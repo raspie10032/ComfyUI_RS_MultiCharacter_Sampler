@@ -1,0 +1,22 @@
+[
+  {
+    "source": "experiments/anima_spatial/routing.py",
+    "sha256": "df052f32dd18c29e29ded75549875f5627b515cd3d85c83bdc033a5550b0fc2c"
+  },
+  {
+    "source": "experiments/anima_spatial/__init__.py",
+    "sha256": "bf240d703ef59eafb5b48e3b72d26b93f1b14681d6688ae1a76b1db9181dd4de"
+  },
+  {
+    "source": "local_regional.py",
+    "sha256": "3c7dac1d17e554920e662eb6ce1275ea6368f2e495fc92a6bf302bbad9a118f0"
+  },
+  {
+    "source": "converters.py",
+    "sha256": "b9b5ac9e11df4b45e7d4770d2fbefac52da29a941649b21ce4e6f704dac31ac6"
+  },
+  {
+    "source": "web/characters.js",
+    "sha256": "e06fde76643f15241d1949cdb41678a3328cd4f654e99b1db2bb9975a9b40b42"
+  }
+]

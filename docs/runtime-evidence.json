@@ -1,0 +1,159 @@
+{
+  "date": "2026-10-16",
+  "test_port": 8194,
+  "python_tests": 42,
+  "ui_check": "tests/test_ui.cjs",
+  "generations": [
+    {
+      "trial": "baseline",
+      "prompt_id": "af148e5c-1c32-4a28-a468-ff442454905d",
+      "chars": 2,
+      "size": [
+        1536,
+        768
+      ],
+      "seed": 49227753394327,
+      "sampler": "euler_ancestral",
+      "assets": {
+        "loaders": [
+          {
+            "node": "UNETLoader",
+            "unet_name": "anima-base-v1.0.safetensors",
+            "weight_dtype": "default"
+          },
+          {
+            "node": "LoraLoaderModelOnly",
+            "lora_name": "anima_RSC_MyMy_exact_080_020.safetensors",
+            "strength_model": 1.0
+          },
+          {
+            "node": "CLIPLoader",
+            "clip_name": "qwen_3_06b_base.safetensors",
+            "type": "stable_diffusion",
+            "device": "default"
+          },
+          {
+            "node": "VAELoader",
+            "vae_name": "qwen_image_vae.safetensors"
+          }
+        ],
+        "unresolved": []
+      },
+      "image_sha256": "ef584a0761d7e9eb1b038bcc1f32d4d3fbea74af6326cddc2cc63bb04a6b24f8",
+      "image_name": "RS_MC_00001_.png"
+    },
+    {
+      "trial": "replay",
+      "prompt_id": "aa4178ed-ec11-4ea2-a8cd-61268a0cc493",
+      "chars": 2,
+      "size": [
+        1536,
+        768
+      ],
+      "seed": 49227753394327,
+      "sampler": "euler_ancestral",
+      "assets": {
+        "loaders": [
+          {
+            "node": "UNETLoader",
+            "unet_name": "anima-base-v1.0.safetensors",
+            "weight_dtype": "default"
+          },
+          {
+            "node": "LoraLoaderModelOnly",
+            "lora_name": "anima_RSC_MyMy_exact_080_020.safetensors",
+            "strength_model": 1.0
+          },
+          {
+            "node": "CLIPLoader",
+            "clip_name": "qwen_3_06b_base.safetensors",
+            "type": "stable_diffusion",
+            "device": "default"
+          },
+          {
+            "node": "VAELoader",
+            "vae_name": "qwen_image_vae.safetensors"
+          }
+        ],
+        "unresolved": []
+      },
+      "image_sha256": "d7c82606e71ca583b8cf3babdf522d67fe536aa715dc85ee347b47b0619e60ea",
+      "image_name": "RS_MC_00002_.webp"
+    },
+    {
+      "trial": "webp-replay",
+      "prompt_id": "991ceb05-dc07-4d43-9b45-177edf542509",
+      "chars": 2,
+      "size": [
+        1536,
+        768
+      ],
+      "seed": 49227753394327,
+      "sampler": "euler_ancestral",
+      "assets": {
+        "loaders": [
+          {
+            "node": "UNETLoader",
+            "unet_name": "anima-base-v1.0.safetensors",
+            "weight_dtype": "default"
+          },
+          {
+            "node": "LoraLoaderModelOnly",
+            "lora_name": "anima_RSC_MyMy_exact_080_020.safetensors",
+            "strength_model": 1.0
+          },
+          {
+            "node": "CLIPLoader",
+            "clip_name": "qwen_3_06b_base.safetensors",
+            "type": "stable_diffusion",
+            "device": "default"
+          },
+          {
+            "node": "VAELoader",
+            "vae_name": "qwen_image_vae.safetensors"
+          }
+        ],
+        "unresolved": []
+      },
+      "image_sha256": "8987bc95126856e28573ade18ba2e0d19ab40fe6be374ecad0a6a15ffa987b19",
+      "image_name": "RS_MC_00003_.webp"
+    },
+    {
+      "trial": "example",
+      "prompt_id": "188199d3-9df7-4df1-b680-a96702197618",
+      "chars": 2,
+      "size": [
+        1536,
+        768
+      ],
+      "seed": 49227753394327,
+      "sampler": "euler_ancestral",
+      "assets": {
+        "loaders": [
+          {
+            "node": "UNETLoader",
+            "unet_name": "anima-base-v1.0.safetensors",
+            "weight_dtype": "default"
+          },
+          {
+            "node": "CLIPLoader",
+            "clip_name": "qwen_3_06b_base.safetensors",
+            "type": "stable_diffusion",
+            "device": "default"
+          },
+          {
+            "node": "VAELoader",
+            "vae_name": "qwen_image_vae.safetensors"
+          }
+        ],
+        "unresolved": []
+      },
+      "image_sha256": "6b94f3b4685c546905f1e14651d10971529ac1e495ff43d60b804383e43bc582",
+      "image_name": "RS_MC_00004_.png"
+    }
+  ],
+  "baseline_pixel_check": {
+    "equal_pixels": true
+  },
+  "png_replay_equal_pixels": true
+}

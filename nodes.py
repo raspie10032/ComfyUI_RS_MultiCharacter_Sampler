@@ -1,0 +1,212 @@
+# SPDX-License-Identifier: GPL-3.0-only
+import hashlib
+import json
+import math
+from pathlib import Path
+
+import numpy as np
+from PIL import Image, ImageOps
+import torch
+
+from .characters import CharacterPipe, PIPE_TYPE
+from .layout import effective_centers, region_masks
+from .metadata import (FORMATS, build_record, graph_assets, pipe_from_record,
+                       read_record, save_image, validate_format, object_json)
+from .prompt_syntax import parse_naiv4, to_comfyui
+
+DEFAULTS = dict(width=1536, height=768, steps=30, cfg=4., sampler_name="euler_ancestral",
+                scheduler="sgm_uniform", region_feather=.04, initial_common_prior=.05,
+                common_after_step3_boost=.1, initial_character_gain=1.7,
+                initial_spatial_separation=.9, boundary_hold_steps=3, boundary_decrement=.2)
+
+
+def validate_settings(settings):
+    for name in ("width", "height"):
+        v = settings[name]
+        if type(v) is not int or not 64 <= v <= 4096 or v % 16:
+            raise ValueError("Anima needs dimensions divisible by 16, from 64 to 4096.")
+    if type(settings["seed"]) is not int or not 0 <= settings["seed"] <= 2**64 - 1:
+        raise ValueError("Seed must be an unsigned 64-bit integer.")
+    if type(settings["steps"]) is not int or settings["steps"] != 30:
+        raise ValueError("This alpha preserves the tested 30-step schedule.")
+    if settings["sampler_name"] not in ("euler_ancestral", "euler") or settings["scheduler"] not in ("sgm_uniform", "simple"):
+        raise ValueError("This alpha supports Euler ancestral/Euler with SGM uniform/simple.")
+    ranges = {"cfg": (1., 20.), "region_feather": (0., .25), "initial_common_prior": (0., 1.),
+              "common_after_step3_boost": (0., 1.), "initial_character_gain": (1., 3.),
+              "initial_spatial_separation": (0., .99), "boundary_decrement": (.01, 1.)}
+    for key, (lo, hi) in ranges.items():
+        value = settings[key]
+        if isinstance(value, bool) or not isinstance(value, (int, float)) or not math.isfinite(value) or not lo <= value <= hi:
+            raise ValueError(f"{key} must be a finite number from {lo} to {hi}.")
+    if type(settings["boundary_hold_steps"]) is not int or not 1 <= settings["boundary_hold_steps"] <= 30:
+        raise ValueError("Boundary hold must be 1–30 steps.")
+
+
+class RSMultiCharacterSampler:
+    @classmethod
+    def INPUT_TYPES(cls):
+        return {"required": {
+            "model": ("MODEL",), "clip": ("CLIP",), "vae": ("VAE",),
+            "character_pipe": (PIPE_TYPE,),
+            "prompt": ("STRING", {"default": "masterpiece, best quality, 5girls, university campus", "multiline": True}),
+            "negative_prompt": ("STRING", {"default": "low quality, bad anatomy, text, watermark", "multiline": True}),
+            "width": ("INT", {"default": 1536, "min": 64, "max": 4096, "step": 16}),
+            "height": ("INT", {"default": 768, "min": 64, "max": 4096, "step": 16}),
+            "seed": ("INT", {"default": 0, "min": 0, "max": 0xffffffffffffffff, "control_after_generate": True}),
+            "steps": ("INT", {"default": 30, "min": 30, "max": 30}),
+            "cfg": ("FLOAT", {"default": 4., "min": 1., "max": 20., "step": .1}),
+            "sampler_name": (["euler_ancestral", "euler"],), "scheduler": (["sgm_uniform", "simple"],),
+            "autosave": ("BOOLEAN", {"default": True}),
+            "save_format": (FORMATS, {"default": "PNG"}),
+            "webp_quality": ("INT", {"default": 90, "min": 1, "max": 100}),
+        }, "optional": {
+            "prompt_syntax": (["ComfyUI", "NovelAI"], {"default": "ComfyUI"}),
+            "use_image_settings": ("BOOLEAN", {"default": False,
+                "tooltip": "An image pipe always supplies its prompts/characters. Enable to also restore dimensions, seed, sampling and routing settings. Connected model/LoRA/CLIP/VAE remain your choice; check the image loader report."}),
+            "region_feather": ("FLOAT", {"default": .04, "min": 0., "max": .25, "step": .01}),
+            "initial_common_prior": ("FLOAT", {"default": .05, "min": 0., "max": 1., "step": .01}),
+            "common_after_step3_boost": ("FLOAT", {"default": .1, "min": 0., "max": 1., "step": .05}),
+            "initial_character_gain": ("FLOAT", {"default": 1.7, "min": 1., "max": 3., "step": .1}),
+            "initial_spatial_separation": ("FLOAT", {"default": .9, "min": 0., "max": .99, "step": .05}),
+            "boundary_hold_steps": ("INT", {"default": 3, "min": 1, "max": 30}),
+            "boundary_decrement": ("FLOAT", {"default": .2, "min": .01, "max": 1., "step": .01}),
+        }, "hidden": {"workflow_prompt": "PROMPT", "unique_id": "UNIQUE_ID"}}
+
+    RETURN_TYPES = ("IMAGE", "LATENT", PIPE_TYPE, "STRING")
+    RETURN_NAMES = ("image", "latent", "character_pipe", "generation_info")
+    FUNCTION = "generate"
+    CATEGORY = "RS MultiCharacter"
+    OUTPUT_NODE = True
+    DESCRIPTION = "Anima-only alpha. 1–10 independent character prompts and X/Y regions; 1–6 tested. Horizontal arrangements work best. Coordinates control prompt regions, not exact body positions. More characters do not guarantee quality. Autosaves NAI-shaped metadata without a workflow."
+
+    def generate(self, model, clip, vae, character_pipe, prompt, negative_prompt, width=1536, height=768,
+                 seed=0, steps=30, cfg=4., sampler_name="euler_ancestral", scheduler="sgm_uniform",
+                 autosave=True, save_format="PNG", webp_quality=90, prompt_syntax="ComfyUI",
+                 use_image_settings=False, region_feather=.04, initial_common_prior=.05,
+                 common_after_step3_boost=.1, initial_character_gain=1.7, initial_spatial_separation=.9,
+                 boundary_hold_steps=3, boundary_decrement=.2, workflow_prompt=None, unique_id=None):
+        import comfy.model_management
+        import comfy.sample
+        import comfy.utils
+        import folder_paths
+        import latent_preview
+        from comfy.model_base import Anima
+        from comfy.patcher_extension import WrappersMP
+        from .engine import AnimaRouting
+
+        if not isinstance(character_pipe, CharacterPipe):
+            raise ValueError("Connect RS MultiCharacter Prompts or Load Image. / 전용 캐릭터 파이프를 연결해 주세요.")
+        if not isinstance(model.model, Anima):
+            raise ValueError("This alpha requires an Anima model. SDXL/Flux/SD1.5 are not supported yet.")
+        if model.model_options.get("transformer_options", {}).get("patches"):
+            raise ValueError("Use an unpatched Anima model, optionally with ordinary LoRA loaders. Attention patches are not supported.")
+        if any(c.uc.strip() for c in character_pipe.characters):
+            raise ValueError("Character-specific negatives are not supported in this alpha. Move them to the common negative prompt. / 캐릭터별 네거티브는 현재 미지원입니다. 공통 네거티브에 입력해 주세요.")
+        settings = {k: v for k, v in locals().items() if k in DEFAULTS or k == "seed"}
+        if character_pipe.prompt is not None:
+            prompt, negative_prompt, prompt_syntax = character_pipe.prompt, character_pipe.negative_prompt, character_pipe.syntax
+        if use_image_settings:
+            if character_pipe.generation_json is None:
+                raise ValueError("No local settings in this pipe. Disable 'use_image_settings' and use the sampler settings.")
+            stored = object_json(character_pipe.generation_json).get("settings", {})
+            if not all(k in stored for k in (*DEFAULTS, "seed")):
+                raise ValueError("Image generation settings are incomplete.")
+            settings = {k: stored[k] for k in (*DEFAULTS, "seed")}
+        validate_settings(settings)
+        validate_format(save_format, webp_quality)
+        if not isinstance(prompt, str) or not isinstance(negative_prompt, str) or prompt_syntax not in ("ComfyUI", "NovelAI"):
+            raise ValueError("Choose valid prompt text and syntax.")
+        pipe = CharacterPipe(character_pipe.characters, prompt, negative_prompt, prompt_syntax)
+        centers, moved = effective_centers(pipe.characters)
+        masks = region_masks(centers, settings["width"], settings["height"], settings["region_feather"])
+        convert = (lambda text: to_comfyui(parse_naiv4(text))) if prompt_syntax == "NovelAI" else (lambda text: text)
+
+        def encode(text):
+            comfy.model_management.throw_exception_if_processing_interrupted()
+            result = clip.encode_from_tokens_scheduled(clip.tokenize(convert(text)))
+            if len(result) != 1 or "t5xxl_ids" not in result[0][1]:
+                raise ValueError("Use Anima's text encoder. Scheduled text is unsupported in this alpha.")
+            return [[t, dict(meta)] for t, meta in result]
+
+        positive, negative = encode(prompt), encode(negative_prompt)
+        conditions = [encode(c.prompt)[0] for c in pipe.characters]
+        audit = {}
+        routing = AnimaRouting(conditions, masks, "character_first", audit,
+            len(positive[0][1]["t5xxl_ids"]),
+            initial_common_prior=settings["initial_common_prior"],
+            initial_character_gain=settings["initial_character_gain"],
+            initial_spatial_separation=settings["initial_spatial_separation"], late_spatial_separation=0.,
+            common_weight_schedule="step_3x0.2", spatial_separation_schedule="hold_decay",
+            boundary_hold_steps=settings["boundary_hold_steps"], boundary_decrement=settings["boundary_decrement"],
+            common_after_step3_boost=settings["common_after_step3_boost"])
+        work = model.clone()
+        work.add_wrapper_with_key(WrappersMP.SAMPLER_SAMPLE, "rs_multicharacter", routing.sample)
+        work.add_wrapper_with_key(WrappersMP.DIFFUSION_MODEL, "rs_multicharacter", routing.forward)
+        latent = torch.zeros((1, 4, settings["height"] // 8, settings["width"] // 8), device=comfy.model_management.intermediate_device())
+        latent = comfy.sample.fix_empty_latent_channels(work, latent)
+        noise = comfy.sample.prepare_noise(latent, settings["seed"])
+        samples = comfy.sample.sample(work, noise, settings["steps"], settings["cfg"],
+            settings["sampler_name"], settings["scheduler"], positive, negative, latent, denoise=1.,
+            callback=latent_preview.prepare_callback(work, settings["steps"]),
+            disable_pbar=not comfy.utils.PROGRESS_BAR_ENABLED, seed=settings["seed"], force_full_denoise=False)
+        images = vae.decode(samples)
+        if images.ndim == 5 and images.shape[1] == 1:
+            images = images.flatten(0, 1)
+        if images.ndim != 4 or images.shape[0] != 1 or not torch.isfinite(images).all():
+            raise RuntimeError("The decoder returned invalid images.")
+        assets = graph_assets(workflow_prompt, unique_id)
+        record = build_record(pipe, settings, assets, centers, audit)
+        enriched = CharacterPipe(pipe.characters, prompt, negative_prompt, prompt_syntax,
+            json.dumps(record["rs_multicharacter"], ensure_ascii=True))
+        summary = {**record, "auto_layout_groups": moved, "cross_attention_calls": audit["cross_calls"],
+                   "self_attention_calls": audit["self_calls"], "restored_forwards": audit["restored_forwards"]}
+        ui = {"text": [f"{len(pipe.characters)} character regions · seed {settings['seed']} · Anima alpha"]}
+        if autosave:
+            folder, filename, counter, subfolder, _ = folder_paths.get_save_image_path(
+                "RS_MultiCharacter/RS_MC", folder_paths.get_output_directory(), settings["width"], settings["height"])
+            pixels = (images[0].detach().cpu().clamp(0, 1).numpy() * 255.).astype(np.uint8)
+            try:
+                path = save_image(Image.fromarray(pixels), Path(folder) / f"{filename}_{counter:05}_.png",
+                                  record, save_format, webp_quality)
+            except (OSError, ValueError) as error:
+                raise RuntimeError(f"Generation completed, but autosave failed: {error}") from error
+            ui["images"] = [{"filename": path.name, "subfolder": subfolder, "type": "output"}]
+        return {"ui": ui, "result": (images, {"samples": samples}, enriched, json.dumps(summary, ensure_ascii=False))}
+
+
+class RSMultiCharacterLoadImage:
+    @classmethod
+    def INPUT_TYPES(cls):
+        import nodes
+        return nodes.LoadImage.INPUT_TYPES()
+
+    RETURN_TYPES = ("IMAGE", "MASK", PIPE_TYPE, "STRING")
+    RETURN_NAMES = ("image", "mask", "character_pipe", "generation_info")
+    FUNCTION = "load"
+    CATEGORY = "RS MultiCharacter"
+    DESCRIPTION = "Loads NAI-shaped character metadata from original PNG/WebP into the dedicated character pipe. Model files are shown as information and never loaded automatically. Use sampler 'use_image_settings' to restore local seed/settings as well."
+
+    def load(self, image):
+        import folder_paths
+        path = folder_paths.get_annotated_filepath(image)
+        with Image.open(path) as source:
+            record = read_record(source)
+            pipe = pipe_from_record(record)
+            original_size = source.size
+            oriented = ImageOps.exif_transpose(source)
+            if oriented.size != original_size or source.getexif().get(274, 1) != 1:
+                raise ValueError("EXIF-oriented image: rotate/export it without changing the recorded coordinate system first.")
+            pixels = np.asarray(oriented.convert("RGB"), dtype=np.float32) / 255.
+            mask = 1. - np.asarray(oriented.getchannel("A"), dtype=np.float32) / 255. if "A" in oriented.getbands() else np.zeros(pixels.shape[:2], dtype=np.float32)
+        return torch.from_numpy(pixels)[None], torch.from_numpy(mask.copy())[None], pipe, json.dumps(record, ensure_ascii=False)
+
+    @classmethod
+    def IS_CHANGED(cls, image):
+        import folder_paths
+        with open(folder_paths.get_annotated_filepath(image), "rb") as f:
+            return hashlib.file_digest(f, "sha256").hexdigest()
+
+    @classmethod
+    def VALIDATE_INPUTS(cls, image):
+        import folder_paths
+        return True if folder_paths.exists_annotated_filepath(image) else f"Image not found: {image}"

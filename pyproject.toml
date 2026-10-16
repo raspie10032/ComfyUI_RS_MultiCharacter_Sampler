@@ -1,0 +1,12 @@
+[project]
+name = "comfyui-rs-multicharacter-sampler"
+version = "0.1.0a1"
+description = "Independent Anima multi-character regional sampler for ComfyUI, with NAI-shaped image metadata."
+readme = "README.md"
+license = {file = "LICENSE"}
+requires-python = ">=3.11"
+dependencies = ["numpy", "Pillow>=10.0", "torch"]
+
+[project.urls]
+Repository = "https://github.com/raspie10032/ComfyUI_RS_MultiCharacter_Sampler"
+Issues = "https://github.com/raspie10032/ComfyUI_RS_MultiCharacter_Sampler/issues"
