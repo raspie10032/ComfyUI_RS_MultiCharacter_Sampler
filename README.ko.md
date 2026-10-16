@@ -1,18 +1,22 @@
 # ComfyUI_RS_MultiCharacter_Sampler
 
-**0.1.0a1 · Anima 전용 알파**입니다. 공통 프롬프트와 캐릭터별 프롬프트·XY를 전용 파이프로 전달하고, 로컬 모델 내부에서 영역별 attention을 조절합니다. RS NAI 확장이나 API 키는 필요 없습니다.
+**0.1.0-alpha1 · Anima 전용 알파**입니다. 공통 프롬프트와 캐릭터별 프롬프트·XY를 전용 파이프로 전달하고, 로컬 모델 내부에서 영역별 attention을 조절합니다. RS NAI 확장이나 API 키는 필요 없습니다.
 
 ## 설치와 사용
 
-이 저장소를 `ComfyUI/custom_nodes` 안에 복제하고 ComfyUI를 재시작하세요. 모델은 자동 다운로드하지 않습니다.
+ComfyUI-Manager에서 **RS MultiCharacter Sampler (Anima Alpha)**를 검색해 설치하거나 [Comfy Registry 페이지](https://registry.comfy.org/publishers/raspie10032/nodes/comfyui-rs-multicharacter-sampler)를 이용하세요. 패키지 ID는 `comfyui-rs-multicharacter-sampler`입니다. 설치 후 ComfyUI를 재시작하세요. 새 항목이 아직 보이지 않으면 Manager 목록을 갱신하거나 Git으로 설치할 수 있습니다.
 
-[2인 예제 워크플로](examples/two-characters-anima.json)를 불러온 뒤 설치된 Anima 모델·텍스트 인코더·VAE를 선택하세요. 예제의 `Load CLIP` 타입은 `stable_diffusion`입니다. 일반 LoRA 로더를 모델과 샘플러 사이에 연결할 수 있습니다.
+Git 설치는 이 저장소를 `ComfyUI/custom_nodes` 안에 복제하면 됩니다. 기존 Git 설치본이 있다면 중복 설치하지 말고 그 설치본을 업데이트하세요. 모델은 자동 다운로드하지 않습니다.
+
+[워크플로가 포함된 원본 PNG](examples/two-characters-workflow.png)를 캔버스로 끌어다 놓거나 [2인 예제 JSON](examples/two-characters-anima.json)을 불러온 뒤 설치된 Anima 모델·텍스트 인코더·VAE를 선택하세요. 예제의 `Load CLIP` 타입은 `stable_diffusion`입니다. 일반 LoRA 로더를 모델과 샘플러 사이에 연결할 수 있습니다.
 
 1. **RS MultiCharacter Prompts**에서 캐릭터 수와 각 문장을 작성합니다. 기본은 5칸, 최대 10칸입니다. 인원수를 줄이면 숨겨진 슬롯의 이전 문장은 생성에 들어가지 않습니다.
 2. X/Y는 0~1이며 왼쪽 위가 `(0,0)`입니다. 같은 좌표의 슬롯은 번호순으로 좌우에 배치합니다.
 3. **RS MultiCharacter Sampler**의 공통 문장에는 전체 인원·화풍·장면을, 캐릭터 칸에는 각자의 외형·행동을 씁니다. 시험에서는 캐릭터마다 `1girl` 또는 `1boy`를 썼습니다.
 4. 우선 30스텝·CFG 4·Euler ancestral·SGM uniform 기본값으로 실행하세요. 시드의 실행 후 동작은 랜덤으로 바꿀 수 있습니다.
 5. 자동 저장은 `output/RS_MultiCharacter`에 PNG 또는 WebP로 생성 정보와 함께 저장합니다. 워크플로는 넣지 않습니다. 워크플로도 필요하면 ComfyUI 기본 이미지 저장 노드를 쓰세요.
+
+공유용 예제 PNG에는 ComfyUI `workflow`·`prompt` 메타데이터가 들어 있습니다. 샘플러의 일반 자동 저장에는 기존처럼 생성 정보만 들어갑니다.
 
 ## 이미지에서 복원
 

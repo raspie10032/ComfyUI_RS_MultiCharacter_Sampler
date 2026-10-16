@@ -1,0 +1,37 @@
+name: Publish to Comfy Registry
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths: [pyproject.toml]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: comfy-registry-publish
+  cancel-in-progress: false
+
+jobs:
+  publish:
+    if: github.repository == 'raspie10032/ComfyUI_RS_MultiCharacter_Sampler'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install Registry CLI
+        run: pip install comfy-cli
+      - name: Validate package
+        run: comfy node validate
+      - name: Publish package
+        env:
+          REGISTRY_ACCESS_TOKEN: ${{ secrets.REGISTRY_ACCESS_TOKEN }}
+        run: |
+          if [ -z "$REGISTRY_ACCESS_TOKEN" ]; then
+            echo "::error::Configure the REGISTRY_ACCESS_TOKEN repository secret with a Comfy Registry publishing key."
+            exit 1
+          fi
+          comfy node publish --token "$REGISTRY_ACCESS_TOKEN"

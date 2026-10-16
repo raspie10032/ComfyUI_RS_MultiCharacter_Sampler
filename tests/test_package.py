@@ -87,7 +87,8 @@ class PackageTests(unittest.TestCase):
             with self.assertRaises(ValueError):
                 m.pipe_from_record(record)
         for field in ("version","engine"):
-            record = copy.deepcopy(self.record); record["rs_multicharacter"][field] = "unknown"
+            record = copy.deepcopy(self.record)
+            record["rs_multicharacter"][field] = "unknown"
             with self.assertRaises(ValueError):
                 m.pipe_from_record(record)
         record = copy.deepcopy(self.record)

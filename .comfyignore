@@ -1,0 +1,5 @@
+# Keep runtime, licenses, documentation and usable examples in Registry builds.
+.github/
+tests/
+.gitignore
+.comfyignore

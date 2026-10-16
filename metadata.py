@@ -134,8 +134,10 @@ def graph_assets(prompt, unique_id):
     def visit(link):
         if not isinstance(link, list) or len(link) != 2 or str(link[0]) in visited:
             return
-        node_id = str(link[0]); visited.add(node_id)
-        node = prompt.get(node_id, {}); kind = node.get("class_type", "unknown")
+        node_id = str(link[0])
+        visited.add(node_id)
+        node = prompt.get(node_id, {})
+        kind = node.get("class_type", "unknown")
         inputs = node.get("inputs", {})
         if kind not in known:
             result["unresolved"].append(kind)

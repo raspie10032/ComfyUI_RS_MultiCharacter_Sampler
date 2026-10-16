@@ -1,12 +1,14 @@
 # ComfyUI_RS_MultiCharacter_Sampler
 
-**0.1.0a1 · Anima 専用アルファ版**。共通プロンプトと各キャラクターの文章・XY座標を専用パイプで渡し、領域ごとに attention を制御します。RS NAI 拡張や API キーは不要です。
+**0.1.0-alpha1 · Anima 専用アルファ版**。共通プロンプトと各キャラクターの文章・XY座標を専用パイプで渡し、領域ごとに attention を制御します。RS NAI 拡張や API キーは不要です。
 
 ## 使用方法
 
-このリポジトリを `ComfyUI/custom_nodes` に clone し、ComfyUI を再起動してください。モデルの自動ダウンロードはありません。
+ComfyUI-Manager で **RS MultiCharacter Sampler (Anima Alpha)** を検索するか、[Comfy Registry](https://registry.comfy.org/publishers/raspie10032/nodes/comfyui-rs-multicharacter-sampler) からインストールします。パッケージ ID は `comfyui-rs-multicharacter-sampler` です。インストール後に ComfyUI を再起動してください。新しい項目が表示されない場合は Manager の一覧を更新するか、Git でインストールできます。
 
-[2人のサンプルワークフロー](examples/two-characters-anima.json)を読み込み、インストール済みの Anima・テキストエンコーダー・VAE を選びます。サンプルの CLIP タイプは `stable_diffusion` です。通常の LoRA ローダーも利用できます。
+Git の場合はこのリポジトリを `ComfyUI/custom_nodes` に clone します。既存の Git インストールがある場合は重複インストールせず、そちらを更新してください。モデルの自動ダウンロードはありません。
+
+[ワークフロー入りの元PNG](examples/two-characters-workflow.png)をキャンバスにドロップするか、[2人のサンプルJSON](examples/two-characters-anima.json)を読み込み、インストール済みの Anima・テキストエンコーダー・VAE を選びます。サンプルの CLIP タイプは `stable_diffusion` です。通常の LoRA ローダーも利用できます。
 
 1. **RS MultiCharacter Prompts** で人数とキャラクター別の文章を入力します。最大10枠です。人数を減らすと非表示の枠は生成対象から外れます。
 2. XY は 0〜1、左上が `(0,0)` です。同一座標の枠は番号順に左から並べます。
@@ -15,6 +17,8 @@
 5. 自動保存先は `output/RS_MultiCharacter`。PNG / WebP に生成情報を保存します。ワークフローも埋め込む場合は ComfyUI の通常の Save Image を使ってください。
 
 **RS MultiCharacter Load Image** は元の PNG/WebP から文章と座標を復元します。`character_pipe` をサンプラーに接続し、`use_image_settings` を有効にするとシード・サイズ・サンプリング・領域設定も復元できます。モデル・LoRA・CLIP・VAE は手動接続です。この経路は T2I 再生成であり、img2img ではありません。
+
+共有用サンプルPNGには ComfyUI の `workflow` と `prompt` メタデータが入っています。通常の自動保存は従来どおり生成情報のみです。
 
 ## 制限
 

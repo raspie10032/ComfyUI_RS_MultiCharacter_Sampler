@@ -1,6 +1,6 @@
 # ComfyUI_RS_MultiCharacter_Sampler
 
-**0.1.0a1 · Anima alpha** — independent character prompts and X/Y prompt regions for local ComfyUI generation.
+**0.1.0-alpha1 · Anima alpha** — independent character prompts and X/Y prompt regions for local ComfyUI generation.
 
 [한국어](README.ko.md) · [日本語](README.ja.md) · [Architecture](docs/architecture.md) · [Validation](docs/validation.md)
 
@@ -14,7 +14,9 @@ This extension contains three nodes. It does not require the RS NovelAI extensio
 
 ## Install
 
-Clone this repository into your ComfyUI `custom_nodes` directory, then restart ComfyUI.
+Find **RS MultiCharacter Sampler (Anima Alpha)** in ComfyUI-Manager, or open the [Comfy Registry page](https://registry.comfy.org/publishers/raspie10032/nodes/comfyui-rs-multicharacter-sampler). Package ID: `comfyui-rs-multicharacter-sampler`. Restart ComfyUI after installation. If the new listing is not yet visible in your Manager cache, refresh its node list or use the Git installation below.
+
+For Git installation, clone this repository into your ComfyUI `custom_nodes` directory, then restart ComfyUI. Use one installation method; do not install a second copy alongside an existing Git checkout.
 
 ```sh
 git clone https://github.com/raspie10032/ComfyUI_RS_MultiCharacter_Sampler.git
@@ -24,7 +26,7 @@ Run the command **inside `ComfyUI/custom_nodes`**. The extension uses ComfyUI's 
 
 ## First workflow
 
-Load [examples/two-characters-anima.json](examples/two-characters-anima.json) into ComfyUI. The separate `-api.json` file is for API clients.
+Drop the original [workflow PNG](examples/two-characters-workflow.png) onto the ComfyUI canvas, or load [examples/two-characters-anima.json](examples/two-characters-anima.json). The shared PNG contains ComfyUI `workflow` and `prompt` metadata; the sampler's normal autosave behavior is unchanged. The separate `-api.json` file is for API clients.
 
 1. Select your Anima diffusion model in **Load Diffusion Model**, its text encoder in **Load CLIP**, and its VAE in **Load VAE**. The example uses `anima-base-v1.0.safetensors`, `qwen_3_06b_base.safetensors` and `qwen_image_vae.safetensors`. Select the names actually installed on your machine. Use the example's CLIP type `stable_diffusion`.
 2. Write the overall scene/style and total person count in the sampler's common prompt. Write one character's appearance/action in each character slot; the tested prompts use `1girl` or `1boy` per slot.
