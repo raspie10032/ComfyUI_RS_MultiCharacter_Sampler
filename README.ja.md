@@ -4,7 +4,7 @@
 
 ## 使用方法
 
-この非公開リポジトリを `ComfyUI/custom_nodes` に clone し、ComfyUI を再起動してください。モデルの自動ダウンロードはありません。
+このリポジトリを `ComfyUI/custom_nodes` に clone し、ComfyUI を再起動してください。モデルの自動ダウンロードはありません。
 
 [2人のサンプルワークフロー](examples/two-characters-anima.json)を読み込み、インストール済みの Anima・テキストエンコーダー・VAE を選びます。サンプルの CLIP タイプは `stable_diffusion` です。通常の LoRA ローダーも利用できます。
 

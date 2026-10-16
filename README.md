@@ -14,7 +14,7 @@ This extension contains three nodes. It does not require the RS NovelAI extensio
 
 ## Install
 
-Clone this repository into your ComfyUI `custom_nodes` directory, then restart ComfyUI. This repository is private during alpha development; GitHub access is required.
+Clone this repository into your ComfyUI `custom_nodes` directory, then restart ComfyUI.
 
 ```sh
 git clone https://github.com/raspie10032/ComfyUI_RS_MultiCharacter_Sampler.git

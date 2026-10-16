@@ -4,7 +4,7 @@
 
 ## 설치와 사용
 
-이 비공개 저장소를 `ComfyUI/custom_nodes` 안에 복제하고 ComfyUI를 재시작하세요. 모델은 자동 다운로드하지 않습니다.
+이 저장소를 `ComfyUI/custom_nodes` 안에 복제하고 ComfyUI를 재시작하세요. 모델은 자동 다운로드하지 않습니다.
 
 [2인 예제 워크플로](examples/two-characters-anima.json)를 불러온 뒤 설치된 Anima 모델·텍스트 인코더·VAE를 선택하세요. 예제의 `Load CLIP` 타입은 `stable_diffusion`입니다. 일반 LoRA 로더를 모델과 샘플러 사이에 연결할 수 있습니다.
 

@@ -43,6 +43,6 @@ Firefox loaded the provided workflow without missing nodes and showed exactly tw
 
 ## Reproducibility artifacts
 
-The private repository includes the implementation, source-lineage hashes, tests, example UI/API workflows and this report. Full 27-image research outputs, intermediate latent traces and actual API histories remain in the original local research artifacts; they are not redistributed with this package. Public examples can be selected separately without bundling private weights or the user's complete research collection.
+The repository includes the implementation, source-lineage hashes, tests, example UI/API workflows, the two-character example output and this report. Full 27-image research outputs, intermediate latent traces and actual API histories remain in the original local research artifacts; they are not redistributed with this package. Model and private LoRA weights are not bundled.
 
 [Compact runtime evidence](runtime-evidence.json) records prompt IDs and file hashes without machine paths.
