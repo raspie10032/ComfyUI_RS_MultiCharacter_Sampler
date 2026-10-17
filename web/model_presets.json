@@ -1,0 +1,202 @@
+[
+  {
+    "id": "anima_points",
+    "label": {
+      "en": "Anima — XY",
+      "ko": "Anima — 좌표",
+      "ja": "Anima — 座標"
+    },
+    "note": {
+      "en": "Anima base v1.0: XY starting point. Mixed layouts can use the separate mixed preset.",
+      "ko": "Anima base v1.0 좌표 배치 시작 설정입니다. 혼합 배치는 별도 프리셋을 사용해 보세요.",
+      "ja": "Anima base v1.0の座標配置用です。混合配置には専用プリセットをお試しください。"
+    },
+    "source": "examples/two-characters-anima.json",
+    "settings": {
+      "steps": 30,
+      "cfg": 4.0,
+      "sampler_name": "euler_ancestral",
+      "scheduler": "sgm_uniform",
+      "region_feather": 0.04,
+      "initial_common_prior": 0.05,
+      "common_after_step3_boost": 0.1,
+      "initial_character_gain": 1.7,
+      "initial_spatial_separation": 0.9,
+      "boundary_hold_steps": 3,
+      "boundary_decrement": 0.2
+    }
+  },
+  {
+    "id": "anima_mixed",
+    "label": {
+      "en": "Anima — mixed",
+      "ko": "Anima — 혼합 배치",
+      "ja": "Anima — 混合配置"
+    },
+    "note": {
+      "en": "Anima base v1.0: two people + text box. Use a shared scene in the prompts; settings alone do not ensure the tested result.",
+      "ko": "Anima base v1.0 두 사람 + 글자 상자 시험값입니다. 문장에도 공통 장면을 적어 주세요. 수치만으로 예제 품질을 보장하지 않습니다.",
+      "ja": "Anima base v1.0の2人＋文字枠の試験値です。共通の場面をプロンプトにも記述してください。数値だけでは品質を保証しません。"
+    },
+    "source": "examples/epsilon/anima-mixed.json",
+    "settings": {
+      "steps": 30,
+      "cfg": 4.0,
+      "sampler_name": "euler_ancestral",
+      "scheduler": "sgm_uniform",
+      "region_feather": 0.04,
+      "initial_common_prior": 0.6,
+      "common_after_step3_boost": 0.1,
+      "initial_character_gain": 1.7,
+      "initial_spatial_separation": 0.9,
+      "boundary_hold_steps": 3,
+      "boundary_decrement": 0.2
+    }
+  },
+  {
+    "id": "sdxl_points",
+    "label": {"en": "SDXL / Illustrious — XY", "ko": "SDXL / Illustrious — 좌표", "ja": "SDXL / Illustrious — 座標"},
+    "note": {
+      "en": "SDXL base XY starting point from the Illustrious example. Mixed layouts have a separate preset. This does not cover every SDXL checkpoint.",
+      "ko": "Illustrious 예제의 SDXL 기본 모델 좌표 배치 시작값입니다. 혼합 배치는 별도 프리셋을 사용해 보세요. 모든 SDXL 체크포인트를 검증한 값은 아닙니다.",
+      "ja": "Illustriousの例を基にしたSDXLベースの座標配置用です。混合配置には専用プリセットをお試しください。全SDXLモデルで検証した値ではありません。"
+    },
+    "source": "examples/two-characters-sdxl.json",
+    "settings": {"steps": 30, "cfg": 5.5, "sampler_name": "euler_ancestral", "scheduler": "normal", "region_feather": 0.04, "initial_common_prior": 0.3, "common_after_step3_boost": 0.1, "initial_character_gain": 1.3, "initial_spatial_separation": 0.5, "boundary_hold_steps": 3, "boundary_decrement": 0.2}
+  },
+  {
+    "id": "sdxl_mixed",
+    "label": {
+      "en": "SDXL / Illustrious — mixed",
+      "ko": "SDXL / Illustrious — 혼합 배치",
+      "ja": "SDXL / Illustrious — 混合配置"
+    },
+    "note": {
+      "en": "Tested on Illustrious XL v1.0, not every SDXL checkpoint. Extra lettering and spelling errors remain.",
+      "ko": "Illustrious XL v1.0 시험값입니다. 모든 SDXL 모델에서 검증한 값은 아닙니다. 불필요한 글자와 철자 오류가 남을 수 있습니다.",
+      "ja": "Illustrious XL v1.0での試験値です。全SDXLモデルで検証した値ではありません。余分な文字や綴りの誤りが残ります。"
+    },
+    "source": "examples/epsilon/sdxl-mixed.json",
+    "settings": {
+      "steps": 30,
+      "cfg": 5.5,
+      "sampler_name": "euler_ancestral",
+      "scheduler": "normal",
+      "region_feather": 0.04,
+      "initial_common_prior": 0.15,
+      "common_after_step3_boost": 0.1,
+      "initial_character_gain": 1.5,
+      "initial_spatial_separation": 0.9,
+      "boundary_hold_steps": 3,
+      "boundary_decrement": 0.2
+    }
+  },
+  {
+    "id": "krea2",
+    "label": {
+      "en": "Krea 2 Turbo",
+      "ko": "Krea 2 Turbo",
+      "ja": "Krea 2 Turbo"
+    },
+    "note": {
+      "en": "Krea 2 Turbo FP8: 8 steps / CFG 1. Connect the matching model and encoder.",
+      "ko": "Krea 2 Turbo FP8: 8스텝 / CFG 1. 대응 모델과 인코더를 연결해 주세요.",
+      "ja": "Krea 2 Turbo FP8：8ステップ／CFG 1。対応するモデルとエンコーダーを接続してください。"
+    },
+    "source": "examples/epsilon/krea2-mixed.json",
+    "settings": {
+      "steps": 8,
+      "cfg": 1.0,
+      "sampler_name": "euler",
+      "scheduler": "simple",
+      "region_feather": 0.04,
+      "initial_common_prior": 0.6,
+      "common_after_step3_boost": 0.1,
+      "initial_character_gain": 1.2,
+      "initial_spatial_separation": 0.35,
+      "boundary_hold_steps": 3,
+      "boundary_decrement": 0.2
+    }
+  },
+  {
+    "id": "moss_base",
+    "label": {
+      "en": "MOSS — base",
+      "ko": "MOSS — 기본 모델",
+      "ja": "MOSS — ベースモデル"
+    },
+    "note": {
+      "en": "MOSS base: 50 steps / CFG 3, regional mode. Model and LoRA connections are managed separately.",
+      "ko": "MOSS 기본 모델: 50스텝 / CFG 3, regional 모드입니다. 모델·LoRA 연결은 별도로 설정해 주세요.",
+      "ja": "MOSSベース：50ステップ／CFG 3、regionalモードです。モデルとLoRAの接続は別途設定してください。"
+    },
+    "source": "examples/two-characters-moss.json",
+    "settings": {
+      "steps": 50,
+      "cfg": 3.0,
+      "sampler_name": "euler",
+      "scheduler": "simple",
+      "region_feather": 0.04,
+      "initial_common_prior": 0.6,
+      "common_after_step3_boost": 0.1,
+      "initial_character_gain": 1.2,
+      "initial_spatial_separation": 0.35,
+      "boundary_hold_steps": 3,
+      "boundary_decrement": 0.2
+    }
+  },
+  {
+    "id": "moss_8step",
+    "label": {
+      "en": "MOSS — 8-step LoRA",
+      "ko": "MOSS — 8스텝 LoRA",
+      "ja": "MOSS — 8ステップ LoRA"
+    },
+    "note": {
+      "en": "Requires the MOSS 8-step LoRA, tested at strength 0.7. This preset does not load or adjust the LoRA. CFG 3 is the tested quality starting point.",
+      "ko": "MOSS 8스텝 LoRA가 필요하며 시험 강도는 0.7입니다. 프리셋은 LoRA를 불러오거나 강도를 바꾸지 않습니다. CFG 3을 시작값으로 사용합니다.",
+      "ja": "MOSS 8ステップLoRAが必要です。試験強度は0.7です。プリセットはLoRAの読み込みや強度変更を行いません。開始値はCFG 3です。"
+    },
+    "source": "examples/epsilon/moss-mixed.json",
+    "settings": {
+      "steps": 8,
+      "cfg": 3.0,
+      "sampler_name": "euler",
+      "scheduler": "simple",
+      "region_feather": 0.04,
+      "initial_common_prior": 0.6,
+      "common_after_step3_boost": 0.1,
+      "initial_character_gain": 1.2,
+      "initial_spatial_separation": 0.35,
+      "boundary_hold_steps": 3,
+      "boundary_decrement": 0.2
+    }
+  },
+  {
+    "id": "sd15_mixed",
+    "label": {
+      "en": "SD1.5 — experimental",
+      "ko": "SD1.5 — 실험적",
+      "ja": "SD1.5 — 実験的"
+    },
+    "note": {
+      "en": "Compatibility only: distinct people and a visible text-like area. Quality, anatomy and exact spelling are not established. Try 768×512.",
+      "ko": "호환성 확인용입니다. 인물 구분과 글자 형태의 표시만 확인했으며 품질·인체·정확한 철자는 보장하지 않습니다. 768×512로 시작해 보세요.",
+      "ja": "互換性の確認用です。人物の区別と文字らしい表示のみ確認しています。品質・人体・正確な綴りは保証しません。768×512からお試しください。"
+    },
+    "source": "examples/epsilon/sd15-mixed.json",
+    "settings": {
+      "steps": 30,
+      "cfg": 7.0,
+      "sampler_name": "euler_ancestral",
+      "scheduler": "normal",
+      "region_feather": 0.04,
+      "initial_common_prior": 0.2,
+      "common_after_step3_boost": 0.1,
+      "initial_character_gain": 1.7,
+      "initial_spatial_separation": 0.9,
+      "boundary_hold_steps": 3,
+      "boundary_decrement": 0.2
+    }
+  }
+]

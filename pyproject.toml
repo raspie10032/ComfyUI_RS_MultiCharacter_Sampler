@@ -1,7 +1,7 @@
 [project]
 name = "comfyui-rs-multicharacter-sampler"
 version = "0.1.5"
-description = "Anima, SDXL, Krea 2 and MOSS Epsilon: multi-character regional sampling and local masked detailing, automatic character matching, detection and tagger loaders, PNG/WebP metadata and prompt restoration. Adds mixed point/box layouts, literal text regions and experimental native MOSS layout prompts. SD1.5 generation is experimental and unstable."
+description = "Anima, SDXL, Krea 2 and MOSS Epsilon: multi-character regional sampling and local masked detailing, automatic character matching, detection and tagger loaders, PNG/WebP metadata and prompt restoration. Adds mixed point/box layouts, literal text regions, editable model-family presets and experimental native MOSS layout prompts. SD1.5 generation is experimental and unstable."
 readme = "README.md"
 license = {file = "LICENSE"}
 requires-python = ">=3.11"

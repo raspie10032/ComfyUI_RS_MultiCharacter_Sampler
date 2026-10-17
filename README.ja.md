@@ -23,7 +23,7 @@ Git の場合はこのリポジトリを `ComfyUI/custom_nodes` に clone しま
 1. **RS MultiCharacter Prompts** で人数とキャラクター別の文章を入力します。最大10枠です。人数を減らすと非表示の枠は生成対象から外れます。
 2. XY は 0〜1、左上が `(0,0)` です。同一座標の枠は番号順に左から並べます。
 3. **RS MultiCharacter Sampler** に全体の人数・画風・背景を入力します。各キャラクターの文章には外見や動作を記入します。試験では各枠に `1girl` / `1boy` を使いました。
-4. 最初は30ステップ・CFG 4・Euler ancestral・SGM uniform を使用してください。シードはランダム化できます。
+4. サンプラー下部の **モデル系統プリセット → プリセットを適用** でAnima・SDXL/Illustrious・Krea 2 Turbo・MOSSベース/8ステップLoRA・実験的SD1.5の試験値をコピーできます。AnimaとSDXLには座標用と混合配置用があります。適用後も手動調整でき、モデル・文・配置・解像度・シードは個別に選択します。[プリセットの値と使い方](docs/model-presets.md)
 5. 自動保存先は `output/RS_MultiCharacter`。PNG / WebP に生成情報を保存します。ワークフローも埋め込む場合は ComfyUI の通常の Save Image を使ってください。
 
 **RS MultiCharacter Load Image** は元の PNG/WebP から文章と座標を復元します。`character_pipe` をサンプラーに接続し、`use_image_settings` を有効にするとシード・サイズ・サンプリング・領域設定も復元できます。モデル・LoRA・CLIP・VAE は手動接続です。この経路は T2I 再生成であり、img2img ではありません。

@@ -92,7 +92,7 @@ Drop the original [workflow PNG](examples/two-characters-workflow.png) onto the 
 1. Select your Anima diffusion model in **Load Diffusion Model**, its text encoder in **Load CLIP**, and its VAE in **Load VAE**. The example uses `anima-base-v1.0.safetensors`, `qwen_3_06b_base.safetensors` and `qwen_image_vae.safetensors`. Select the names actually installed on your machine. Use the example's CLIP type `stable_diffusion`.
 2. Write the overall scene/style and total person count in the sampler's common prompt. Write one character's appearance/action in each character slot; the tested prompts use `1girl` or `1boy` per slot.
 3. Set X/Y from 0 to 1. `(0, 0)` is the upper left. Equal centers spread in slot order from left to right. Lower `character_count` excludes hidden slots even if their old text remains saved.
-4. Keep the Anima defaults for a first run: **30 steps, CFG 4, Euler ancestral, SGM uniform, 1536×768**. The seed's ComfyUI control can randomize between runs.
+4. Select **Model family preset → Apply preset** on the sampler to copy the tested starting values for Anima, SDXL/Illustrious, Krea 2 Turbo, MOSS base/8-step LoRA or experimental SD1.5. Anima and SDXL have separate XY and mixed choices. You can edit every value afterward. Models, prompts, layout, dimensions and seed remain your choices. [Preset values and usage](docs/model-presets.md)
 5. Run. Autosave writes to `output/RS_MultiCharacter/`. Choose PNG, lossless WebP or lossy WebP. Standard model LoRAs can be connected before the sampler with ComfyUI's LoRA loader.
 
 The `IMAGE` output can also go to ComfyUI's ordinary Save Image node. The sampler's own autosave stores generation metadata, **not a ComfyUI workflow**. Use ordinary Save Image if you need workflow embedding.

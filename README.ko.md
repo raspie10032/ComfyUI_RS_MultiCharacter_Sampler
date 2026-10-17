@@ -23,7 +23,7 @@ Git 설치는 이 저장소를 `ComfyUI/custom_nodes` 안에 복제하면 됩니
 1. **RS MultiCharacter Prompts**에서 캐릭터 수와 각 문장을 작성합니다. 기본은 5칸, 최대 10칸입니다. 인원수를 줄이면 숨겨진 슬롯의 이전 문장은 생성에 들어가지 않습니다.
 2. X/Y는 0~1이며 왼쪽 위가 `(0,0)`입니다. 같은 좌표의 슬롯은 번호순으로 좌우에 배치합니다.
 3. **RS MultiCharacter Sampler**의 공통 문장에는 전체 인원·화풍·장면을, 캐릭터 칸에는 각자의 외형·행동을 씁니다. 시험에서는 캐릭터마다 `1girl` 또는 `1boy`를 썼습니다.
-4. 우선 30스텝·CFG 4·Euler ancestral·SGM uniform 기본값으로 실행하세요. 시드의 실행 후 동작은 랜덤으로 바꿀 수 있습니다.
+4. 샘플러 하단에서 **모델 계열 프리셋 → 프리셋 적용**을 누르면 Anima·SDXL/Illustrious·Krea 2 Turbo·MOSS 기본/8스텝 LoRA·실험적 SD1.5의 시험값을 복사합니다. Anima·SDXL은 좌표용과 혼합 배치용이 따로 있습니다. 적용 후 직접 조절할 수 있으며 모델·문장·배치·해상도·시드는 직접 선택합니다. [프리셋 목록과 사용법](docs/model-presets.md)
 5. 자동 저장은 `output/RS_MultiCharacter`에 PNG 또는 WebP로 생성 정보와 함께 저장합니다. 워크플로는 넣지 않습니다. 워크플로도 필요하면 ComfyUI 기본 이미지 저장 노드를 쓰세요.
 
 공유용 예제 PNG에는 ComfyUI `workflow`·`prompt` 메타데이터가 들어 있습니다. 샘플러의 일반 자동 저장에는 기존처럼 생성 정보만 들어갑니다.

@@ -55,3 +55,5 @@ jobs:
         run: node tests/test_boxes_ui.cjs
       - name: Detailer UI serialization and controls
         run: node tests/test_detailer_ui.cjs
+      - name: Model family presets and manual settings
+        run: node tests/test_presets_ui.cjs
