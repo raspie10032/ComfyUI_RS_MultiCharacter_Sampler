@@ -40,6 +40,22 @@ The `IMAGE` output can also go to ComfyUI's ordinary Save Image node. The sample
 
 Actual output from the bundled API example, without the private style LoRA.
 
+## Sampler and scheduler choices
+
+**Every sampler and scheduler registered in your ComfyUI installation is selectable.** Start with the default pair below, or try the two alternatives. The dropdown tooltips also list these starting points.
+
+| Starting point | Sampler | Scheduler | Observation in this trial |
+| --- | --- | --- | --- |
+| Default | `euler_ancestral` | `sgm_uniform` | Clear character features and shared background |
+| Alternative composition | `euler` | `linear_quadratic` | Preserved features and followed the requested face-to-face seating |
+| Clear alternative | `dpmpp_2m_sde_gpu` | `beta` | Distinct hair, outfits and cups; seated side by side instead of opposite |
+
+These observations come from **Anima Base v1.0, one two-character cafe scene and seed, 1536×768, 30 steps, CFG 4, no LoRA**. All 45×9=405 combinations completed generation; several produced severely degraded images. These are starting points, not a ranking or success rate across prompts.
+
+Select both fields yourself. Other combinations remain available, and the node never substitutes a recommended choice. Native option names are preserved for workflows and image metadata. Defaults remain `euler_ancestral + sgm_uniform`; the available inventory depends on your ComfyUI version.
+
+Some CFG++ variants degraded at the fixed test settings. Lower-CFG/fewer-step retests have **not** been performed, so this does not establish incompatibility. This alpha still uses **30 fixed steps and CFG 1–20**; it does not yet provide recommendations below that CFG range or at other step counts. See [matrix results and recommendation evidence](docs/sampler-combinations.md).
+
 ## Restore from an image
 
 Select an original saved image in **RS MultiCharacter Load Image** and connect its `character_pipe` to the sampler. Image prompts and characters replace the sampler's common prompt fields. Enable **use_image_settings** to also restore seed, dimensions, CFG, sampling and region settings; leave it disabled to use the sampler widgets for those values.

@@ -2,6 +2,8 @@
 
 This report separates inherited research evidence, standalone runtime checks, source tests and UI checks. It does not claim universal success rates or equivalence to NovelAI.
 
+The subsequent **2026-10-17 sampler/scheduler matrix** covered all 405 combinations in the installed ComfyUI inventory. See [sampler combinations](sampler-combinations.md) for settings, observed quality failures and three suggested starting points. All installed choices are now exposed; execution success does not guarantee image quality.
+
 ## Environment and isolation
 
 Linux ComfyUI 0.34.0 (`15eb748b3ec5f8a0a2d470b7fb280e2d7579f916`), Python 3.12.14, frontend 1.51.9. A separate runtime on port 8194 loaded only this extension plus ComfyUI core nodes. The RS NAI package was not present in that custom-node directory. All three new node classes registered successfully.

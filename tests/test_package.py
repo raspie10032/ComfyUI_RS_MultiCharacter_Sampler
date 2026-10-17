@@ -4,7 +4,9 @@ import json
 from pathlib import Path
 import sys
 import tempfile
+from types import SimpleNamespace
 import unittest
+from unittest.mock import patch
 
 import numpy as np
 from PIL import Image
@@ -106,10 +108,53 @@ class PackageTests(unittest.TestCase):
                 m.object_json(text)
 
     def test_restored_settings_validated_before_sampling(self):
-        n.validate_settings(self.settings)
-        for key,value in (("seed",-1),("steps",3),("width",1153),("cfg",float("inf")),("sampler_name","unknown"),("boundary_hold_steps",False)):
-            with self.assertRaises(ValueError):
-                n.validate_settings({**self.settings,key:value})
+        host = SimpleNamespace(KSampler=SimpleNamespace(
+            SAMPLERS=["euler_ancestral"], SCHEDULERS=["sgm_uniform"]))
+        with patch.dict(sys.modules, {"comfy.samplers": host}):
+            n.validate_settings(self.settings)
+            for key,value in (("seed",-1),("steps",3),("width",1153),("cfg",float("inf")),("sampler_name","unknown"),("scheduler","unknown"),("boundary_hold_steps",False)):
+                with self.assertRaises(ValueError):
+                    n.validate_settings({**self.settings,key:value})
+
+    def test_host_inventory_retains_defaults_and_accepts_new_choices(self):
+        host = SimpleNamespace(KSampler=SimpleNamespace(
+            SAMPLERS=["euler", "euler_ancestral", "dpmpp_2m_cfg_pp", "future_sampler"],
+            SCHEDULERS=["simple", "sgm_uniform", "future_scheduler"]))
+        with patch.dict(sys.modules, {"comfy.samplers": host}):
+            required = n.RSMultiCharacterSampler.INPUT_TYPES()["required"]
+            for key, choices in (("sampler_name", host.KSampler.SAMPLERS), ("scheduler", host.KSampler.SCHEDULERS)):
+                self.assertEqual(required[key][0], choices)
+                self.assertEqual(required[key][1]["default"], n.DEFAULTS[key])
+                required[key][0].append("local_mutation")
+                self.assertNotIn("local_mutation", choices)
+            for sampler in host.KSampler.SAMPLERS:
+                for scheduler in host.KSampler.SCHEDULERS:
+                    with self.subTest(sampler=sampler, scheduler=scheduler):
+                        n.validate_settings({**self.settings, "sampler_name": sampler, "scheduler": scheduler})
+            host.KSampler.SAMPLERS.append("newly_registered")
+            self.assertIn("newly_registered", n.RSMultiCharacterSampler.INPUT_TYPES()["required"]["sampler_name"][0])
+
+    def test_nondefault_sampler_metadata_replay_requires_available_choices(self):
+        settings = {**self.settings, "sampler_name": "dpmpp_2m_sde_gpu", "scheduler": "beta"}
+        record = m.build_record(self.pipe, settings, {}, [[.8,.2],[.2,.8]], {"spatial_slots":2})
+        host = SimpleNamespace(KSampler=SimpleNamespace(
+            SAMPLERS=["euler_ancestral", "dpmpp_2m_sde_gpu"], SCHEDULERS=["sgm_uniform", "beta"]))
+        with tempfile.TemporaryDirectory() as folder, patch.dict(sys.modules, {"comfy.samplers": host}):
+            for fmt in m.FORMATS:
+                with self.subTest(format=fmt):
+                    path = m.save_image(Image.new("RGB", (32, 32)), Path(folder)/fmt, record, fmt)
+                    with Image.open(path) as image:
+                        pipe = m.pipe_from_record(m.read_record(image))
+                    restored = json.loads(pipe.generation_json)["settings"]
+                    self.assertEqual(restored, settings)
+                    n.validate_settings(restored)
+            host.KSampler.SAMPLERS.remove("dpmpp_2m_sde_gpu")
+            with self.assertRaisesRegex(ValueError, "Sampler 'dpmpp_2m_sde_gpu'.*unavailable"):
+                n.validate_settings(restored)
+            host.KSampler.SAMPLERS.append("dpmpp_2m_sde_gpu")
+            host.KSampler.SCHEDULERS.remove("beta")
+            with self.assertRaisesRegex(ValueError, "Scheduler 'beta'.*unavailable"):
+                n.validate_settings(restored)
 
     def test_provenance_omits_graph_and_secret_values(self):
         graph={"1":{"class_type":"UNETLoader","inputs":{"unet_name":"anima.safetensors","weight_dtype":"default","token":"DO_NOT_COPY"}},

@@ -21,6 +21,7 @@ DEFAULTS = dict(width=1536, height=768, steps=30, cfg=4., sampler_name="euler_an
 
 
 def validate_settings(settings):
+    from comfy.samplers import KSampler
     for name in ("width", "height"):
         v = settings[name]
         if type(v) is not int or not 64 <= v <= 4096 or v % 16:
@@ -29,8 +30,10 @@ def validate_settings(settings):
         raise ValueError("Seed must be an unsigned 64-bit integer.")
     if type(settings["steps"]) is not int or settings["steps"] != 30:
         raise ValueError("This alpha preserves the tested 30-step schedule.")
-    if settings["sampler_name"] not in ("euler_ancestral", "euler") or settings["scheduler"] not in ("sgm_uniform", "simple"):
-        raise ValueError("This alpha supports Euler ancestral/Euler with SGM uniform/simple.")
+    if settings["sampler_name"] not in KSampler.SAMPLERS:
+        raise ValueError(f"Sampler {settings['sampler_name']!r} is unavailable in this ComfyUI installation. Choose an installed sampler.")
+    if settings["scheduler"] not in KSampler.SCHEDULERS:
+        raise ValueError(f"Scheduler {settings['scheduler']!r} is unavailable in this ComfyUI installation. Choose an installed scheduler.")
     ranges = {"cfg": (1., 20.), "region_feather": (0., .25), "initial_common_prior": (0., 1.),
               "common_after_step3_boost": (0., 1.), "initial_character_gain": (1., 3.),
               "initial_spatial_separation": (0., .99), "boundary_decrement": (.01, 1.)}
@@ -45,6 +48,7 @@ def validate_settings(settings):
 class RSMultiCharacterSampler:
     @classmethod
     def INPUT_TYPES(cls):
+        from comfy.samplers import KSampler
         return {"required": {
             "model": ("MODEL",), "clip": ("CLIP",), "vae": ("VAE",),
             "character_pipe": (PIPE_TYPE,),
@@ -55,7 +59,10 @@ class RSMultiCharacterSampler:
             "seed": ("INT", {"default": 0, "min": 0, "max": 0xffffffffffffffff, "control_after_generate": True}),
             "steps": ("INT", {"default": 30, "min": 30, "max": 30}),
             "cfg": ("FLOAT", {"default": 4., "min": 1., "max": 20., "step": .1}),
-            "sampler_name": (["euler_ancestral", "euler"],), "scheduler": (["sgm_uniform", "simple"],),
+            "sampler_name": (list(KSampler.SAMPLERS), {"default": "euler_ancestral",
+                "tooltip": "All installed samplers are selectable. Anima starting points: euler_ancestral + sgm_uniform; euler + linear_quadratic; dpmpp_2m_sde_gpu + beta. Compared at 30 steps / CFG 4, one two-character scene and seed; quality varies."}),
+            "scheduler": (list(KSampler.SCHEDULERS), {"default": "sgm_uniform",
+                "tooltip": "All installed schedulers are selectable. Try sgm_uniform with euler_ancestral, linear_quadratic with euler, or beta with dpmpp_2m_sde_gpu. Choose the pair manually; changing a sampler does not reset this value."}),
             "autosave": ("BOOLEAN", {"default": True}),
             "save_format": (FORMATS, {"default": "PNG"}),
             "webp_quality": ("INT", {"default": 90, "min": 1, "max": 100}),
