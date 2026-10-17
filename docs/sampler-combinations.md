@@ -37,7 +37,7 @@ At least 64 outputs showed severe degradation in this comparison: all nine sched
 
 The [original CFG++ research](https://cfgpp-diffusion.github.io/) uses lower guidance scales. That does not establish appropriate settings for every ComfyUI variant with Anima. This comparison used the same CFG 4 and 30 steps everywhere; it did not test lower-CFG/fewer-step settings or isolate model/sampler effects from region routing. Failure causes remain undetermined. All combinations remain selectable, with no new automatic CFG/step adjustments.
 
-The alpha still accepts **30 steps only and CFG 1–20**. The three suggested pairs were observed at 30/4. Lower guidance or other step counts require separate implementation and validation; no recovery or quality claim is made for them here.
+The sampler now accepts **2–100 steps and CFG 1–20** to support Krea 2 Turbo and MOSS. These three Anima suggestions still come from 30/4. Lower-CFG/fewer-step CFG++ recovery has not been retested; no recovery or quality claim is made here.
 
 One scene and seed cannot establish a general ranking, success rate or guaranteed character count. Use these pairs as starting points and judge your own prompts and models.
 

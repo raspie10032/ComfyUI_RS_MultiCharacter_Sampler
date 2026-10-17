@@ -151,14 +151,16 @@ class AnimaRouting:
                           spatial_separation=separation)
         self.audit["forwards"].append(record)
 
-        def cross(q, k, v, transformer_options=None):
+        def cross(q, k, v, transformer_options=None, preferred_attention=None):
+            q, k, v = (t if isinstance(t, torch.Tensor) else t.take() for t in (q, k, v))
             result = route_cross(q, k, v, self.groups, lengths, kinds,
                                  include_common=self.mode != "cross_exclusive", weights=weights, character_gain=gain)
             self.audit["cross_calls"] += 1
             record["cross_blocks"].append(transformer_options["block_index"])
             return result
 
-        def spatial(q, k, v, transformer_options=None):
+        def spatial(q, k, v, transformer_options=None, preferred_attention=None):
+            q, k, v = (t if isinstance(t, torch.Tensor) else t.take() for t in (q, k, v))
             if weak_spatial:
                 if self.spatial_bias is None or self.spatial_bias_separation != separation:
                     self.spatial_bias = weak_self_bias(self.groups, q.shape[1], q, separation)

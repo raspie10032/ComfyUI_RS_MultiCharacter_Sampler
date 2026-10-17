@@ -80,7 +80,7 @@ class SDXLRouting:
                                        .2, s["common_after_step3_boost"])
         gain = character_value_gain(progress, s["initial_character_gain"])
         separation = hold_decay_spatial_separation(progress, len(self.sigmas),
-            s["initial_spatial_separation"], s["boundary_hold_steps"], s["boundary_decrement"])
+            s["initial_spatial_separation"], min(s["boundary_hold_steps"], len(self.sigmas)), s["boundary_decrement"])
         lengths = [context.shape[1]]
         pieces = [context]
         for condition, _ in self.conditions:

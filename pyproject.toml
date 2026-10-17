@@ -1,7 +1,7 @@
 [project]
 name = "comfyui-rs-multicharacter-sampler"
 version = "0.1.0-alpha1"
-description = "Anima and experimental SDXL alpha: multi-character regional sampling and local masked detailing, automatic character matching, detection and tagger loaders, PNG/WebP metadata and prompt restoration."
+description = "Anima, SDXL, Krea 2 and MOSS experimental alpha: multi-character regional sampling and local masked detailing, automatic character matching, detection and tagger loaders, PNG/WebP metadata and prompt restoration."
 readme = "README.md"
 license = {file = "LICENSE"}
 requires-python = ">=3.11"

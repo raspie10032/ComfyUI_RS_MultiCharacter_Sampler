@@ -1,10 +1,10 @@
 # ComfyUI_RS_MultiCharacter_Sampler
 
-**0.1.0-alpha1 · Anima and experimental SDXL alpha** — independent character prompts and X/Y prompt regions for local ComfyUI generation.
+**0.1.0-alpha1 · Anima · SDXL · Krea 2 · MOSS experimental alpha** — independent character prompts and X/Y prompt regions for local ComfyUI generation.
 
 [한국어](README.ko.md) · [日本語](README.ja.md) · [Architecture](docs/architecture.md) · [Validation](docs/validation.md)
 
-This extension contains six nodes. It does not require the RS NovelAI extension, an API key, or a ControlNet model. It uses your local Anima or supported SDXL checkpoint and matching text encoder.
+This extension contains six nodes. It does not require the RS NovelAI extension, an API key, or a ControlNet model. It uses your supported local model and matching text encoder.
 
 | Node | Purpose |
 | --- | --- |
@@ -36,6 +36,21 @@ Load the [two-character SDXL workflow](examples/two-characters-sdxl.json), then 
 The example starts at **30 steps, CFG 5.5, Euler ancestral + normal**, initial common prior **0.3**, character gain **1.3**, spatial separation **0.5**. Existing Anima defaults stay unchanged. Its 0.05 / 1.7 / 0.9 settings can cause visible panel boundaries on SDXL.
 
 XY routes prompts, not exact body positions or guaranteed counts. Multiple characters and grid layouts can duplicate people, mix attributes or create panels. SDXL Refiner, inpainting models, ControlNet and other attention patches are unsupported. PNG/WebP metadata identifies the SDXL engine and restores through Load Image. See [method and live results](docs/sdxl-validation.md).
+
+
+## Experimental Krea 2 / MOSS-Image support
+
+Use a current ComfyUI with native support for both models. If `Load CLIP` lacks `krea2` or `moss_image`, update ComfyUI and its environment dependencies first. Choosing a model does not automatically change sampling settings.
+
+| Model | Example | Text encoder / VAE | Starting settings |
+| --- | --- | --- | --- |
+| Krea 2 Turbo | [Two characters](examples/two-characters-krea2.json) | Qwen3-VL 4B, `krea2` / Qwen Image VAE | 8 steps · CFG 1 · Euler + simple |
+| MOSS-Image SFT | [Two characters](examples/two-characters-moss.json) | Qwen3.5 9B, `moss_image` / Flux2 VAE | 50 steps · CFG 3 · Euler + simple |
+
+Connect MODEL, CLIP, VAE and the existing character pipe. Write the scene in the common prompt and each character's appearance and action in natural-language sentences. At Krea 2 Turbo's CFG 1, the common negative has no effect. The MOSS example uses ordinary ComfyUI CFG; it does not apply the official pipeline's negative-branch layer-22 skipping.
+
+The sampler accepts **2–100 steps**; Anima/SDXL retain their 30-step defaults. XY selects prompt regions and does not guarantee exact counts, poses or complex interactions. This support covers T2I. Reference-image editing and detailer quality on these new models have not been validated. See [model files, terms and validation scope](docs/krea-moss-validation.md).
+
 
 ## Local multi-character detailing
 
@@ -78,7 +93,7 @@ These observations come from **Anima Base v1.0, one two-character cafe scene and
 
 Select both fields yourself. Other combinations remain available, and the node never substitutes a recommended choice. Native option names are preserved for workflows and image metadata. Defaults remain `euler_ancestral + sgm_uniform`; the available inventory depends on your ComfyUI version.
 
-Some CFG++ variants degraded at the fixed test settings. Lower-CFG/fewer-step retests have **not** been performed, so this does not establish incompatibility. The regional sampler still uses **30 fixed steps and CFG 1–20**; it does not yet provide recommendations below that CFG range or at other step counts. See [matrix results and recommendation evidence](docs/sampler-combinations.md).
+Some CFG++ variants degraded at the fixed test settings. Lower-CFG/fewer-step retests have **not** been performed, so this does not establish incompatibility. The sampler accepts **2–100 steps and CFG 1–20**. The Anima recommendations still refer to the original 30-step comparison; lower-CFG/fewer-step CFG++ recovery is untested. See [matrix results and recommendation evidence](docs/sampler-combinations.md).
 
 ## Restore from an image
 
@@ -90,12 +105,12 @@ The loader also accepts NAI V4-style character captions with one center per char
 
 ## Alpha limits
 
-- **Anima and experimental SDXL**, one image per execution. The sampler is text-to-image; the detailer runs masked img2img crops. Flux/SD1.5, ControlNet and other attention patches are not supported.
-- **1–10 input slots; actual image tests cover 1–6.** More characters do not guarantee quality. Horizontal layouts are the strongest tested use case.
+- **Anima, SDXL, Krea 2 and MOSS experimental support**, one image per execution. The sampler is text-to-image; the detailer runs masked img2img crops. Flux/SD1.5, ControlNet and other attention patches are not supported.
+- **1–10 input slots.** Actual image tests cover Anima 1–6, SDXL 2–6, and Krea 2 / MOSS 2–4. More characters do not guarantee quality. Horizontal layouts are the strongest tested use case; successful new-model 2x2 examples do not establish a general success rate.
 - Coordinates choose prompt regions; they do **not** lock a head/body to a point or enforce exactly one person per region. A single character owns the whole image, so moving that one center does not move the person.
 - Multiple rows, dense interactions and crossing props can duplicate or omit people. Four requested people in a 2×2 experiment became 12 and 10. Six people in two rows became 7 and 11. Do not treat count or identity as guaranteed.
 - Per-character negative captions are preserved in metadata but **rejected by the regional sampler** in this alpha. Use its common negative prompt. The detailer can use the matched character's negative caption. Scheduled text conditioning is not supported.
-- The regional sampler schedule is currently fixed to **30 steps**. The detailer has its own adjustable step count. Initial common weight, character gain and boundary release are advanced experimental controls, not universal quality settings.
+- The regional sampler accepts **2–100 steps**, with 30 as the Anima/SDXL default. The detailer has its own adjustable step count. Initial common weight, character gain and boundary release are advanced experimental controls, not universal quality settings.
 - Autosave does not preserve an uploaded image's unrelated EXIF/GPS/camera data. Social platforms may strip generation metadata; use the original file for restoration.
 
 See [validation](docs/validation.md) for real generation, metadata replay and the limits of the evidence. This is an alpha, not a claim of NovelAI-equivalent performance.

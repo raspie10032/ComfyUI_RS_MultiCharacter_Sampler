@@ -13,6 +13,8 @@ from .characters import Character, CharacterPipe
 
 SOFTWARE = "ComfyUI_RS_MultiCharacter_Sampler"
 FORMATS = ["PNG", "WebP lossless", "WebP lossy"]
+ENGINE_SOURCES = {"anima-spatial-alpha-1": "Anima (local)", "sdxl-spatial-alpha-1": "SDXL (local)",
+                  "krea2-spatial-alpha-1": "Krea2 (local)", "moss-spatial-alpha-1": "MOSS-Image (local)"}
 MAX_METADATA = 4 * 1024 * 1024
 
 
@@ -62,7 +64,7 @@ def save_image(image, path, record, save_format="PNG", quality=90):
     comment = json.dumps(record, ensure_ascii=True, allow_nan=False)
     object_json(comment)
     fields = {"Title": "Local multi-character generation", "Description": record["prompt"],
-              "Software": SOFTWARE, "Source": "SDXL (local)" if record.get("rs_multicharacter", {}).get("engine") == "sdxl-spatial-alpha-1" else "Anima (local)", "Comment": comment}
+              "Software": SOFTWARE, "Source": ENGINE_SOURCES.get(record.get("rs_multicharacter", {}).get("engine"), "Local model"), "Comment": comment}
     path = Path(path).with_suffix(".png" if save_format == "PNG" else ".webp")
     if save_format == "PNG":
         info = PngInfo()
@@ -106,7 +108,7 @@ def pipe_from_record(record):
             c = p["centers"][0]
             chars.append(Character(p["char_caption"], n["char_caption"], c["x"], c["y"]))
         local = record.get("rs_multicharacter")
-        if local is not None and (not isinstance(local, dict) or local.get("version") != 1 or local.get("engine") not in ("anima-spatial-alpha-1", "sdxl-spatial-alpha-1")):
+        if local is not None and (not isinstance(local, dict) or local.get("version") != 1 or local.get("engine") not in ENGINE_SOURCES):
             raise ValueError("Unsupported local metadata version.")
         syntax = local["prompt_syntax"] if local else "NovelAI"
         return CharacterPipe(tuple(chars), pos["base_caption"], neg["base_caption"], syntax,

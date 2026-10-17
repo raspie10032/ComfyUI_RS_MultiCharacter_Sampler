@@ -28,8 +28,8 @@ def validate_settings(settings):
             raise ValueError("This sampler needs dimensions divisible by 16, from 64 to 4096.")
     if type(settings["seed"]) is not int or not 0 <= settings["seed"] <= 2**64 - 1:
         raise ValueError("Seed must be an unsigned 64-bit integer.")
-    if type(settings["steps"]) is not int or settings["steps"] != 30:
-        raise ValueError("This alpha preserves the tested 30-step schedule.")
+    if type(settings["steps"]) is not int or not 2 <= settings["steps"] <= 100:
+        raise ValueError("Use 2–100 sampling steps; Krea2 Turbo starts at 8, MOSS at 50.")
     if settings["sampler_name"] not in KSampler.SAMPLERS:
         raise ValueError(f"Sampler {settings['sampler_name']!r} is unavailable in this ComfyUI installation. Choose an installed sampler.")
     if settings["scheduler"] not in KSampler.SCHEDULERS:
@@ -57,12 +57,12 @@ class RSMultiCharacterSampler:
             "width": ("INT", {"default": 1536, "min": 64, "max": 4096, "step": 16}),
             "height": ("INT", {"default": 768, "min": 64, "max": 4096, "step": 16}),
             "seed": ("INT", {"default": 0, "min": 0, "max": 0xffffffffffffffff, "control_after_generate": True}),
-            "steps": ("INT", {"default": 30, "min": 30, "max": 30}),
+            "steps": ("INT", {"default": 30, "min": 2, "max": 100, "tooltip": "Anima/SDXL: 30; Krea2 Turbo: 8; MOSS: 50. Common weight rises every 3 scheduled steps. Boundary hold uses sampling steps and is capped by the selected step count."}),
             "cfg": ("FLOAT", {"default": 4., "min": 1., "max": 20., "step": .1}),
             "sampler_name": (list(KSampler.SAMPLERS), {"default": "euler_ancestral",
-                "tooltip": "All installed samplers are selectable. Anima starting points: euler_ancestral + sgm_uniform; euler + linear_quadratic; dpmpp_2m_sde_gpu + beta. Compared at 30 steps / CFG 4, one two-character scene and seed; quality varies. SDXL: start with euler_ancestral + normal and the SDXL example settings."}),
+                "tooltip": "All installed samplers are selectable. Anima starting points: euler_ancestral + sgm_uniform; euler + linear_quadratic; dpmpp_2m_sde_gpu + beta. Compared at 30 steps / CFG 4, one two-character scene and seed; quality varies. SDXL: euler_ancestral + normal. Krea2 Turbo / MOSS: euler + simple, with the matching example settings."}),
             "scheduler": (list(KSampler.SCHEDULERS), {"default": "sgm_uniform",
-                "tooltip": "All installed schedulers are selectable. Anima: try sgm_uniform with euler_ancestral, linear_quadratic with euler, or beta with dpmpp_2m_sde_gpu. SDXL: try normal with euler_ancestral. Choose the pair manually; changing a sampler does not reset this value."}),
+                "tooltip": "All installed schedulers are selectable. Anima: try sgm_uniform with euler_ancestral, linear_quadratic with euler, or beta with dpmpp_2m_sde_gpu. SDXL: normal with euler_ancestral. Krea2 Turbo / MOSS: simple with euler. Choose the pair manually; changing a sampler does not reset this value."}),
             "autosave": ("BOOLEAN", {"default": True}),
             "save_format": (FORMATS, {"default": "PNG"}),
             "webp_quality": ("INT", {"default": 90, "min": 1, "max": 100}),
@@ -84,7 +84,7 @@ class RSMultiCharacterSampler:
     FUNCTION = "generate"
     CATEGORY = "RS MultiCharacter"
     OUTPUT_NODE = True
-    DESCRIPTION = "Anima / SDXL experimental alpha. 1–10 independent character prompts and X/Y regions; 1–6 tested. Horizontal arrangements work best. Coordinates control prompt regions, not exact body positions. More characters do not guarantee quality. Autosaves NAI-shaped metadata without a workflow."
+    DESCRIPTION = "Anima / SDXL / Krea2 / MOSS experimental alpha. 1–10 independent character prompts and X/Y regions. Validation coverage differs by model; see the examples and validation docs. Horizontal arrangements work best. Coordinates control prompt regions, not exact body positions. More characters do not guarantee quality. Autosaves NAI-shaped metadata without a workflow."
 
     def generate(self, model, clip, vae, character_pipe, prompt, negative_prompt, width=1536, height=768,
                  seed=0, steps=30, cfg=4., sampler_name="euler_ancestral", scheduler="sgm_uniform",
@@ -98,6 +98,7 @@ class RSMultiCharacterSampler:
         import folder_paths
         import latent_preview
         from comfy.model_base import Anima, SDXL
+        from comfy import model_base
         from comfy.patcher_extension import WrappersMP
         from .engine import AnimaRouting
 
@@ -107,10 +108,14 @@ class RSMultiCharacterSampler:
             family = "Anima"
         elif type(model.model) is SDXL and model.model.diffusion_model.in_channels == 4:
             family = "SDXL"
+        elif isinstance(model.model, getattr(model_base, "Krea2", ())):
+            family = "Krea2"
+        elif isinstance(model.model, getattr(model_base, "MOSSImage", ())):
+            family = "MOSS"
         else:
-            raise ValueError("Connect an Anima or SDXL base-family model. SDXL Refiner, inpainting, Flux and SD1.5 are unsupported.")
+            raise ValueError("Connect Anima, SDXL base, Krea2 or MOSS-Image. Krea2/MOSS need a current ComfyUI with native model support. Refiner, inpainting, Flux and SD1.5 are unsupported.")
         transformer_options = model.model_options.get("transformer_options", {})
-        if transformer_options.get("patches") or transformer_options.get("patches_replace"):
+        if any(transformer_options.get(k) for k in ("patches", "patches_replace", "optimized_attention_override")):
             raise ValueError("Use an unpatched model, optionally with ordinary LoRA loaders. Other attention patches are unsupported.")
         if any(c.uc.strip() for c in character_pipe.characters):
             raise ValueError("Character-specific negatives are not supported in this alpha. Move them to the common negative prompt. / 캐릭터별 네거티브는 현재 미지원입니다. 공통 네거티브에 입력해 주세요.")
@@ -148,6 +153,11 @@ class RSMultiCharacterSampler:
                 meta = {**meta, "width": settings["width"], "height": settings["height"],
                         "target_width": settings["width"], "target_height": settings["height"],
                         "crop_w": 0, "crop_h": 0}
+            if family in ("Krea2", "MOSS"):
+                expected = 30720 if family == "Krea2" else 4096
+                if t.ndim != 3 or t.shape[0] != 1 or t.shape[-1] != expected:
+                    kind = "krea2" if family == "Krea2" else "moss_image"
+                    raise ValueError(f"Connect the matching {family} text encoder with CLIPLoader type {kind!r}.")
             return [[t, dict(meta)]]
 
         positive, negative = encode(prompt), encode(negative_prompt)
@@ -161,16 +171,20 @@ class RSMultiCharacterSampler:
                 initial_character_gain=settings["initial_character_gain"],
                 initial_spatial_separation=settings["initial_spatial_separation"], late_spatial_separation=0.,
                 common_weight_schedule="step_3x0.2", spatial_separation_schedule="hold_decay",
-                boundary_hold_steps=settings["boundary_hold_steps"], boundary_decrement=settings["boundary_decrement"],
+                boundary_hold_steps=min(settings["boundary_hold_steps"], settings["steps"]), boundary_decrement=settings["boundary_decrement"],
                 common_after_step3_boost=settings["common_after_step3_boost"])
             work.add_wrapper_with_key(WrappersMP.SAMPLER_SAMPLE, "rs_multicharacter", routing.sample)
             work.add_wrapper_with_key(WrappersMP.DIFFUSION_MODEL, "rs_multicharacter", routing.forward)
-        else:
+        elif family == "SDXL":
             from .sdxl_engine import SDXLRouting
             routing = SDXLRouting(conditions, masks, settings, audit)
             routing.install(work)
+        else:
+            from .joint_engine import JointRouting
+            routing = JointRouting(family, conditions, masks, settings, audit)
+            routing.install(work)
         latent = torch.zeros((1, 4, settings["height"] // 8, settings["width"] // 8), device=comfy.model_management.intermediate_device())
-        latent = comfy.sample.fix_empty_latent_channels(work, latent)
+        latent = comfy.sample.fix_empty_latent_channels(work, latent, downscale_ratio_spacial=8)
         noise = comfy.sample.prepare_noise(latent, settings["seed"])
         samples = comfy.sample.sample(work, noise, settings["steps"], settings["cfg"],
             settings["sampler_name"], settings["scheduler"], positive, negative, latent, denoise=1.,
@@ -182,7 +196,7 @@ class RSMultiCharacterSampler:
         if images.ndim != 4 or images.shape[0] != 1 or not torch.isfinite(images).all():
             raise RuntimeError("The decoder returned invalid images.")
         assets = graph_assets(workflow_prompt, unique_id)
-        record = build_record(pipe, settings, assets, centers, audit, engine="anima-spatial-alpha-1" if family == "Anima" else "sdxl-spatial-alpha-1")
+        record = build_record(pipe, settings, assets, centers, audit, engine=family.lower()+"-spatial-alpha-1")
         enriched = CharacterPipe(pipe.characters, prompt, negative_prompt, prompt_syntax,
             json.dumps(record["rs_multicharacter"], ensure_ascii=True))
         summary = {**record, "auto_layout_groups": moved, "cross_attention_calls": audit["cross_calls"],

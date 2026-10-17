@@ -1,0 +1,324 @@
+{
+  "last_node_id": 20,
+  "last_link_id": 4,
+  "nodes": [
+    {
+      "id": 1,
+      "type": "UNETLoader",
+      "pos": [
+        40,
+        60
+      ],
+      "size": [
+        340,
+        150
+      ],
+      "flags": {},
+      "order": 0,
+      "mode": 0,
+      "inputs": [],
+      "outputs": [
+        {
+          "name": "MODEL",
+          "type": "MODEL",
+          "links": [
+            1
+          ],
+          "slot_index": 0
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "UNETLoader"
+      },
+      "widgets_values": [
+        "moss_image_sft_bf16.safetensors",
+        "default"
+      ]
+    },
+    {
+      "id": 2,
+      "type": "RSMultiCharacterPrompts",
+      "pos": [
+        440,
+        60
+      ],
+      "size": [
+        440,
+        850
+      ],
+      "flags": {},
+      "order": 1,
+      "mode": 0,
+      "inputs": [],
+      "outputs": [
+        {
+          "name": "character_pipe",
+          "type": "RS_MC_CHARACTER_PIPE",
+          "links": [
+            4
+          ],
+          "slot_index": 0
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "RSMultiCharacterPrompts"
+      },
+      "widgets_values": [
+        2,
+        true,
+        "A single adult woman with a short black bob haircut, red eyes, and a red jacket over a black shirt, holding a white ceramic cup.",
+        "",
+        0.25,
+        0.5,
+        true,
+        "A single adult woman with long blonde hair, blue eyes, and a white blouse with a blue skirt, holding a blue ceramic cup.",
+        "",
+        0.75,
+        0.5,
+        true,
+        "",
+        "",
+        0.5,
+        0.5,
+        true,
+        "",
+        "",
+        0.5,
+        0.5,
+        true,
+        "",
+        "",
+        0.5,
+        0.5,
+        true,
+        "",
+        "",
+        0.5,
+        0.5,
+        true,
+        "",
+        "",
+        0.5,
+        0.5,
+        true,
+        "",
+        "",
+        0.5,
+        0.5,
+        true,
+        "",
+        "",
+        0.5,
+        0.5,
+        true,
+        "",
+        "",
+        0.5,
+        0.5
+      ]
+    },
+    {
+      "id": 11,
+      "type": "CLIPLoader",
+      "pos": [
+        40,
+        280
+      ],
+      "size": [
+        340,
+        150
+      ],
+      "flags": {},
+      "order": 2,
+      "mode": 0,
+      "inputs": [],
+      "outputs": [
+        {
+          "name": "CLIP",
+          "type": "CLIP",
+          "links": [
+            2
+          ],
+          "slot_index": 0
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "CLIPLoader"
+      },
+      "widgets_values": [
+        "qwen3.5_9b_int8_convrot.safetensors",
+        "moss_image",
+        "default"
+      ]
+    },
+    {
+      "id": 12,
+      "type": "VAELoader",
+      "pos": [
+        40,
+        500
+      ],
+      "size": [
+        340,
+        150
+      ],
+      "flags": {},
+      "order": 3,
+      "mode": 0,
+      "inputs": [],
+      "outputs": [
+        {
+          "name": "VAE",
+          "type": "VAE",
+          "links": [
+            3
+          ],
+          "slot_index": 0
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "VAELoader"
+      },
+      "widgets_values": [
+        "flux2-vae.safetensors"
+      ]
+    },
+    {
+      "id": 20,
+      "type": "RSMultiCharacterSampler",
+      "pos": [
+        960,
+        60
+      ],
+      "size": [
+        440,
+        900
+      ],
+      "flags": {},
+      "order": 4,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "model",
+          "type": "MODEL",
+          "link": 1
+        },
+        {
+          "name": "clip",
+          "type": "CLIP",
+          "link": 2
+        },
+        {
+          "name": "vae",
+          "type": "VAE",
+          "link": 3
+        },
+        {
+          "name": "character_pipe",
+          "type": "RS_MC_CHARACTER_PIPE",
+          "link": 4
+        }
+      ],
+      "outputs": [
+        {
+          "name": "image",
+          "type": "IMAGE",
+          "links": null,
+          "slot_index": 0
+        },
+        {
+          "name": "latent",
+          "type": "LATENT",
+          "links": null,
+          "slot_index": 1
+        },
+        {
+          "name": "character_pipe",
+          "type": "RS_MC_CHARACTER_PIPE",
+          "links": null,
+          "slot_index": 2
+        },
+        {
+          "name": "generation_info",
+          "type": "STRING",
+          "links": null,
+          "slot_index": 3
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "RSMultiCharacterSampler"
+      },
+      "widgets_values": [
+        "A colorful anime illustration of exactly two adult women standing side by side in a university garden. Waist-up portrait, both faces visible, a single continuous scene with trees and a brick campus building in the background, soft natural daylight.",
+        "",
+        1024,
+        768,
+        346751,
+        "randomize",
+        50,
+        3.0,
+        "euler",
+        "simple",
+        true,
+        "PNG",
+        90,
+        "ComfyUI",
+        false,
+        0.04,
+        0.6,
+        0.1,
+        1.2,
+        0.35,
+        3,
+        0.2
+      ]
+    }
+  ],
+  "links": [
+    [
+      1,
+      1,
+      0,
+      20,
+      0,
+      "MODEL"
+    ],
+    [
+      2,
+      11,
+      0,
+      20,
+      1,
+      "CLIP"
+    ],
+    [
+      3,
+      12,
+      0,
+      20,
+      2,
+      "VAE"
+    ],
+    [
+      4,
+      2,
+      0,
+      20,
+      3,
+      "RS_MC_CHARACTER_PIPE"
+    ]
+  ],
+  "groups": [],
+  "config": {},
+  "extra": {
+    "ds": {
+      "scale": 0.65,
+      "offset": [
+        40,
+        40
+      ]
+    }
+  },
+  "version": 0.4,
+  "id": "c3ebec47-a9c4-4d1c-82e0-90750a5472b0"
+}

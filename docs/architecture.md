@@ -31,6 +31,16 @@ The common prompt's pooled CLIP-G embedding remains the native global ADM input,
 
 Callbacks are installed only on a cloned ModelPatcher; sampling/forward state and per-forward bias caches are cleared even after errors. Input model attention patches are rejected before installation. Only four-channel SDXL base-family U-Nets are accepted; Refiner and inpainting variants are excluded. No ControlNet or per-character negative routing is added.
 
+## Experimental Krea 2 / MOSS joint-attention paths
+
+These models combine image and text tokens in each transformer block. Common and character text are encoded independently and stay isolated in their native text refiners. On the positive branch, image queries read the common caption, their assigned character caption, and image keys. Character-text queries read their own caption and their image region; common-text queries read common text and all image keys. Cross-region image interaction follows the same boundary schedule. Text priors are normalized by caption length and character gain scales its value vectors.
+
+Krea 2 orders text before image tokens; MOSS orders image tokens before text. MOSS also positions the image after the text on its rotary `f` axis: each separate caption is translated to end at the native text/image boundary, preserving its original distance to the image. Tests compare this rotation with native single-caption Q/K positions. Krea's encoder-layer attention remains native because it mixes tapped layers within each token, not separate captions.
+
+The native ComfyUI optimized-attention override and model wrappers are installed on a cloned patcher. The negative branch uses native text, rotary positions and attention. Branch state is restored after each forward and cleared after sampling, including failures. Unsupported masks/references and existing attention overrides are rejected explicitly. Common weight and boundary release follow actual sampling steps; character gain follows sampling progress. Two to 100 steps are accepted, with existing 30-step defaults unchanged.
+
+Model files, examples and exact live-validation coverage are in [Krea 2 / MOSS validation](krea-moss-validation.md). This is T2I support, not reference-image editing or a guarantee of exact counts or identity.
+
 ## Image metadata version 1
 
 PNG stores `Title`, `Description`, `Software`, `Source` and JSON `Comment` text chunks. WebP stores title, description, software and the same ASCII-escaped JSON in EXIF `ExifIFD.UserComment` (tag 37510). No ComfyUI `prompt` graph or `workflow` chunk is embedded by autosave. The Comment's `prompt` member is plain common text.
@@ -75,7 +85,7 @@ The NAI-shaped part is:
 
 The additional `rs_multicharacter` object stores schema `version: 1`, engine `anima-spatial-alpha-1` or `sdxl-spatial-alpha-1`, prompt syntax, sampler/routing settings, effective centers, slot count and connected loader descriptions. Known standard model, text encoder, VAE and LoRA loaders are recorded by filename and settings. Unrecognized loader chains are explicitly marked unresolved. No credentials, arbitrary graph nodes, absolute model directories or weight files are serialized.
 
-The extension identifies output as `ComfyUI_RS_MultiCharacter_Sampler` / `Anima (local)` or `SDXL (local)`. Similar field names provide caption interoperability; this is not a claim that NAI produced the image or can reproduce local sampling.
+The extension identifies output as `ComfyUI_RS_MultiCharacter_Sampler` / `Anima (local)`, `SDXL (local)`, `Krea2 (local)` or `MOSS-Image (local)`. Similar field names provide caption interoperability; this is not a claim that NAI produced the image or can reproduce local sampling.
 
 ## Restoration boundary
 

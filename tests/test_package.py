@@ -112,7 +112,7 @@ class PackageTests(unittest.TestCase):
             SAMPLERS=["euler_ancestral"], SCHEDULERS=["sgm_uniform"]))
         with patch.dict(sys.modules, {"comfy.samplers": host}):
             n.validate_settings(self.settings)
-            for key,value in (("seed",-1),("steps",3),("width",1153),("cfg",float("inf")),("sampler_name","unknown"),("scheduler","unknown"),("boundary_hold_steps",False)):
+            for key,value in (("seed",-1),("steps",1),("width",1153),("cfg",float("inf")),("sampler_name","unknown"),("scheduler","unknown"),("boundary_hold_steps",False)):
                 with self.assertRaises(ValueError):
                     n.validate_settings({**self.settings,key:value})
 
