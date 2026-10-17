@@ -1,6 +1,6 @@
 # Experimental SDXL generation
 
-This candidate adds actual SDXL U-Net attention routing to the existing sampler. It was branched from `1bb8c79`, including the pending sampler recommendations and local detailer. It has not been merged into main or installed over the user's resident ComfyUI.
+This report records SDXL U-Net attention-routing validation before the 0.1.2 Beta release. The implementation was branched from `1bb8c79`, including sampler recommendations and the local detailer, and is included in 0.1.2 Beta. These tests used an isolated ComfyUI installation.
 
 ## What changes
 

@@ -30,7 +30,9 @@ def attention(q,k,v,heads,mask=None,skip_reshape=False,skip_output_reshape=False
 
 class JointTests(unittest.TestCase):
     def make(self,family):
-        masks=torch.zeros(2,2,4);masks[0,:,:2]=1;masks[1,:,2:]=1
+        masks=torch.zeros(2,2,4)
+        masks[0,:,:2]=1
+        masks[1,:,2:]=1
         audit=dict(cross_calls=0,self_calls=0,text_refiner_calls=0,forwards=[],restored_forwards=0)
         r=j.JointRouting(family,[(torch.randn(1,3,6),{}),(torch.randn(1,4,6),{})],masks,n.DEFAULTS,audit)
         r.sigmas=[10.,5.,1.]
@@ -95,33 +97,43 @@ class JointTests(unittest.TestCase):
         for family in ('Krea2','MOSS'):
             r=self.make(family)
             q,k,v=[torch.randn(1,17,16,dtype=torch.float64) for _ in range(3)]
-            ts=8 if family=='MOSS' else 0;im=0 if family=='MOSS' else 9
+            ts=8 if family=='MOSS' else 0
+            im=0 if family=='MOSS' else 9
             kwargs={'transformer_options':{'block_index':0}}
             actual=r.attention(attention,q,k,v,2,**kwargs)
-            k[:,ts+5:ts+9]+=100.;v[:,ts+5:ts+9]-=200.
+            k[:,ts+5:ts+9]+=100.
+            v[:,ts+5:ts+9]-=200.
             other=r.attention(attention,q,k,v,2,**kwargs)
             torch.testing.assert_close(actual[:,r.state['groups'][0]+im],other[:,r.state['groups'][0]+im],atol=0,rtol=0)
             q,k,v=[torch.randn(1,9,16,dtype=torch.float64) for _ in range(3)]
             actual=r.attention(attention,q,k,v,2)
-            k[:,5:]+=100.;v[:,5:]-=200.
+            k[:,5:]+=100.
+            v[:,5:]-=200.
             other=r.attention(attention,q,k,v,2)
             torch.testing.assert_close(actual[:,:5],other[:,:5],atol=0,rtol=0)
 
     def test_cfg_negative_keeps_native_context_and_scope_restores_on_failure(self):
         for family in ('Krea2','MOSS'):
             for kinds in ([0,1],[1,0],[0],[1]):
-                r=self.make(family);r.state=None
-                x=torch.randn(len(kinds),4,2,4);t=torch.ones(len(kinds));ctx=torch.randn(len(kinds),2,6)
+                r=self.make(family)
+                r.state=None
+                x=torch.randn(len(kinds),4,2,4)
+                t=torch.ones(len(kinds))
+                ctx=torch.randn(len(kinds),2,6)
                 seen=[]
                 def invoke(xb,tb,cb,options):
-                    index=len(seen);kind=kinds[index];seen.append(kind)
+                    index=len(seen)
+                    kind=kinds[index]
+                    seen.append(kind)
                     self.assertEqual(options['cond_or_uncond'],[kind])
                     if kind==1:
-                        torch.testing.assert_close(cb,ctx[index:index+1]);self.assertIsNone(r.state)
+                        torch.testing.assert_close(cb,ctx[index:index+1])
+                        self.assertIsNone(r.state)
                     else:self.assertEqual(cb.shape[1],9)
                     return xb
                 out=r.forward(invoke,x,t,ctx,{'cond_or_uncond':kinds,'sigmas':torch.tensor([5.])},(2,4))
-                torch.testing.assert_close(out,x);self.assertIsNone(r.state)
+                torch.testing.assert_close(out,x)
+                self.assertIsNone(r.state)
                 def broken(*args):raise RuntimeError('cancelled')
                 with self.assertRaisesRegex(RuntimeError,'cancelled'):
                     r.forward(broken,x,t,ctx,{'cond_or_uncond':kinds,'sigmas':torch.tensor([5.])},(2,4))

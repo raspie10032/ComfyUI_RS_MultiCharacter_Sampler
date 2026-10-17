@@ -135,7 +135,8 @@ class DetailerTests(unittest.TestCase):
         self.assertEqual(self.sample_calls, [])
 
     def test_nonfinite_mask_rejected(self):
-        mask = np.ones((1,48,64), np.float32); mask[0,5,5] = float("nan")
+        mask = np.ones((1,48,64), np.float32)
+        mask[0,5,5] = float("nan")
         with self.assertRaisesRegex(ValueError, "finite"):
             self.run_detail(detectors=b.DetectionBundle(FakeDetector(mask)))
 
@@ -158,7 +159,8 @@ class DetailerTests(unittest.TestCase):
 
     def test_repair_fills_small_eye_hole_and_retains_disjoint_ownership(self):
         masks = np.zeros((2,100,130),bool)
-        masks[0,5:95,5:85] = True; masks[0,40:44,40:44] = False
+        masks[0,5:95,5:85] = True
+        masks[0,40:44,40:44] = False
         masks[1,5:95,75:125] = True
         _, fixed, reports = r.plan_masks(masks, dilation=8)
         self.assertTrue(fixed[0,40:44,40:44].all())
@@ -201,7 +203,8 @@ class DetailerTests(unittest.TestCase):
                     return self.pixels[:,None] if video else self.pixels
             observed = []
             def sample(*args, **kw):
-                observed.append((args[8],kw));return (args[8],)
+                observed.append((args[8],kw))
+                return (args[8],)
             clip = NS(tokenize=lambda t:t, encode_from_tokens_scheduled=lambda t:t)
             with temporary_modules({"nodes":NS(common_ksampler=sample)}):
                 out, size = d._sample_crop(self.image, torch.ones(48,64), model=None, clip=clip, vae=VAE(),

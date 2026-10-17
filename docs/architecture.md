@@ -83,7 +83,7 @@ The NAI-shaped part is:
 }
 ```
 
-The additional `rs_multicharacter` object stores schema `version: 1`, engine `anima-spatial-alpha-1` or `sdxl-spatial-alpha-1`, prompt syntax, sampler/routing settings, effective centers, slot count and connected loader descriptions. Known standard model, text encoder, VAE and LoRA loaders are recorded by filename and settings. Unrecognized loader chains are explicitly marked unresolved. No credentials, arbitrary graph nodes, absolute model directories or weight files are serialized.
+The additional `rs_multicharacter` object stores schema `version: 1`, engine `anima-spatial-alpha-1`, `sdxl-spatial-alpha-1`, `krea2-spatial-alpha-1` or `moss-spatial-alpha-1`, prompt syntax, sampler/routing settings, effective centers, slot count and connected loader descriptions. Known standard model, text encoder, VAE and LoRA loaders are recorded by filename and settings. Unrecognized loader chains are explicitly marked unresolved. No credentials, arbitrary graph nodes, absolute model directories or weight files are serialized.
 
 The extension identifies output as `ComfyUI_RS_MultiCharacter_Sampler` / `Anima (local)`, `SDXL (local)`, `Krea2 (local)` or `MOSS-Image (local)`. Similar field names provide caption interoperability; this is not a claim that NAI produced the image or can reproduce local sampling.
 
@@ -93,7 +93,7 @@ The image loader returns original character texts and centers, common text and p
 
 `use_image_settings` restores local settings only when the local versioned object is present. Connected model/CLIP/VAE/LoRA are never replaced. The metadata contains filenames, not weights or content hashes, so a changed model file with the same name is not detected. Exact replay also depends on the runtime and hardware.
 
-Character negative strings can be stored and read, but this alpha rejects them before generation because per-character negative attention is not implemented. EXIF orientation that changes the coordinate system is rejected. Metadata decoding is data-only; it does not execute workflow nodes or fetch models.
+Character negative strings can be stored and read, but the regional sampler rejects them before generation because per-character negative attention is not implemented. EXIF orientation that changes the coordinate system is rejected. Metadata decoding is data-only; it does not execute workflow nodes or fetch models.
 
 ## Local detailer
 

@@ -104,7 +104,7 @@ def pipe_from_record(record):
         chars = []
         for p, n in zip(rows, negatives):
             if len(p["centers"]) != 1 or n["centers"] != p["centers"]:
-                raise ValueError("This alpha requires one matching X/Y center per character.")
+                raise ValueError("This loader requires one matching X/Y center per character.")
             c = p["centers"][0]
             chars.append(Character(p["char_caption"], n["char_caption"], c["x"], c["y"]))
         local = record.get("rs_multicharacter")

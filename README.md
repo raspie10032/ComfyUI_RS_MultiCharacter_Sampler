@@ -1,6 +1,8 @@
 # ComfyUI_RS_MultiCharacter_Sampler
 
-**0.1.0-alpha1 · Anima · SDXL · Krea 2 · MOSS experimental alpha** — independent character prompts and X/Y prompt regions for local ComfyUI generation.
+**0.1.2 Beta · Anima · SDXL · Krea 2 · MOSS** — independent character prompts and X/Y prompt regions for local ComfyUI generation.
+
+**New in 0.1.2 Beta:** local character detailing and detector/tagger loaders, SDXL / Krea 2 / MOSS generation, and all installed sampler/scheduler choices. See [release notes and validation scope](docs/release-0.1.2.md).
 
 [한국어](README.ko.md) · [日本語](README.ja.md) · [Architecture](docs/architecture.md) · [Validation](docs/validation.md)
 
@@ -17,7 +19,7 @@ This extension contains six nodes. It does not require the RS NovelAI extension,
 
 ## Install
 
-Find **RS MultiCharacter Sampler (Anima Alpha)** in ComfyUI-Manager, or open the [Comfy Registry page](https://registry.comfy.org/publishers/raspie10032/nodes/comfyui-rs-multicharacter-sampler). Package ID: `comfyui-rs-multicharacter-sampler`. Restart ComfyUI after installation. If the new listing is not yet visible in your Manager cache, refresh its node list or use the Git installation below.
+Find **RS MultiCharacter Sampler (Beta)** in ComfyUI-Manager, or open the [Comfy Registry page](https://registry.comfy.org/publishers/raspie10032/nodes/comfyui-rs-multicharacter-sampler). Package ID: `comfyui-rs-multicharacter-sampler`. Restart ComfyUI after installation. If the new listing is not yet visible in your Manager cache, refresh its node list or use the Git installation below.
 
 For Git installation, clone this repository into your ComfyUI `custom_nodes` directory, then restart ComfyUI. Use one installation method; do not install a second copy alongside an existing Git checkout.
 
@@ -70,7 +72,7 @@ Drop the original [workflow PNG](examples/two-characters-workflow.png) onto the 
 1. Select your Anima diffusion model in **Load Diffusion Model**, its text encoder in **Load CLIP**, and its VAE in **Load VAE**. The example uses `anima-base-v1.0.safetensors`, `qwen_3_06b_base.safetensors` and `qwen_image_vae.safetensors`. Select the names actually installed on your machine. Use the example's CLIP type `stable_diffusion`.
 2. Write the overall scene/style and total person count in the sampler's common prompt. Write one character's appearance/action in each character slot; the tested prompts use `1girl` or `1boy` per slot.
 3. Set X/Y from 0 to 1. `(0, 0)` is the upper left. Equal centers spread in slot order from left to right. Lower `character_count` excludes hidden slots even if their old text remains saved.
-4. Keep the alpha defaults for a first run: **30 steps, CFG 4, Euler ancestral, SGM uniform, 1536×768**. The seed's ComfyUI control can randomize between runs.
+4. Keep the Anima defaults for a first run: **30 steps, CFG 4, Euler ancestral, SGM uniform, 1536×768**. The seed's ComfyUI control can randomize between runs.
 5. Run. Autosave writes to `output/RS_MultiCharacter/`. Choose PNG, lossless WebP or lossy WebP. Standard model LoRAs can be connected before the sampler with ComfyUI's LoRA loader.
 
 The `IMAGE` output can also go to ComfyUI's ordinary Save Image node. The sampler's own autosave stores generation metadata, **not a ComfyUI workflow**. Use ordinary Save Image if you need workflow embedding.
@@ -103,17 +105,17 @@ Select an original saved image in **RS MultiCharacter Load Image** and connect i
 
 The loader also accepts NAI V4-style character captions with one center per character. Select NovelAI prompt syntax for text typed in that syntax; imported NAI images select it automatically. NAI settings cannot be replayed as local settings: keep `use_image_settings` off for those images.
 
-## Alpha limits
+## Beta limits
 
 - **Anima, SDXL, Krea 2 and MOSS experimental support**, one image per execution. The sampler is text-to-image; the detailer runs masked img2img crops. Flux/SD1.5, ControlNet and other attention patches are not supported.
 - **1–10 input slots.** Actual image tests cover Anima 1–6, SDXL 2–6, and Krea 2 / MOSS 2–4. More characters do not guarantee quality. Horizontal layouts are the strongest tested use case; successful new-model 2x2 examples do not establish a general success rate.
 - Coordinates choose prompt regions; they do **not** lock a head/body to a point or enforce exactly one person per region. A single character owns the whole image, so moving that one center does not move the person.
 - Multiple rows, dense interactions and crossing props can duplicate or omit people. Four requested people in a 2×2 experiment became 12 and 10. Six people in two rows became 7 and 11. Do not treat count or identity as guaranteed.
-- Per-character negative captions are preserved in metadata but **rejected by the regional sampler** in this alpha. Use its common negative prompt. The detailer can use the matched character's negative caption. Scheduled text conditioning is not supported.
+- Per-character negative captions are preserved in metadata but **rejected by the regional sampler** in this beta. Use its common negative prompt. The detailer can use the matched character's negative caption. Scheduled text conditioning is not supported.
 - The regional sampler accepts **2–100 steps**, with 30 as the Anima/SDXL default. The detailer has its own adjustable step count. Initial common weight, character gain and boundary release are advanced experimental controls, not universal quality settings.
 - Autosave does not preserve an uploaded image's unrelated EXIF/GPS/camera data. Social platforms may strip generation metadata; use the original file for restoration.
 
-See [validation](docs/validation.md) for real generation, metadata replay and the limits of the evidence. This is an alpha, not a claim of NovelAI-equivalent performance.
+See [validation](docs/validation.md) for real generation, metadata replay and the limits of the evidence. This beta retains the documented count, identity and interaction limits.
 
 ## Development
 
@@ -122,6 +124,7 @@ From this directory, using an environment containing Torch, NumPy and Pillow:
 ```sh
 python -m unittest discover -s tests -p 'test_*.py' -v
 node tests/test_ui.cjs
+node tests/test_detailer_ui.cjs
 ```
 
 License: GPL-3.0-only. See [COPYING](COPYING), [third-party notices](THIRD_PARTY_NOTICES.md) and [source lineage](docs/source-lineage.json).

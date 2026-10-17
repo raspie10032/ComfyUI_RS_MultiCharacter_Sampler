@@ -84,7 +84,7 @@ class RSMultiCharacterSampler:
     FUNCTION = "generate"
     CATEGORY = "RS MultiCharacter"
     OUTPUT_NODE = True
-    DESCRIPTION = "Anima / SDXL / Krea2 / MOSS experimental alpha. 1–10 independent character prompts and X/Y regions. Validation coverage differs by model; see the examples and validation docs. Horizontal arrangements work best. Coordinates control prompt regions, not exact body positions. More characters do not guarantee quality. Autosaves NAI-shaped metadata without a workflow."
+    DESCRIPTION = "Anima / SDXL / Krea2 / MOSS beta. 1–10 independent character prompts and X/Y regions. Validation coverage differs by model; see the examples and validation docs. Horizontal arrangements work best. Coordinates control prompt regions, not exact body positions. More characters do not guarantee quality. Autosaves NAI-shaped metadata without a workflow."
 
     def generate(self, model, clip, vae, character_pipe, prompt, negative_prompt, width=1536, height=768,
                  seed=0, steps=30, cfg=4., sampler_name="euler_ancestral", scheduler="sgm_uniform",
@@ -118,7 +118,7 @@ class RSMultiCharacterSampler:
         if any(transformer_options.get(k) for k in ("patches", "patches_replace", "optimized_attention_override")):
             raise ValueError("Use an unpatched model, optionally with ordinary LoRA loaders. Other attention patches are unsupported.")
         if any(c.uc.strip() for c in character_pipe.characters):
-            raise ValueError("Character-specific negatives are not supported in this alpha. Move them to the common negative prompt. / 캐릭터별 네거티브는 현재 미지원입니다. 공통 네거티브에 입력해 주세요.")
+            raise ValueError("Character-specific negatives are not supported in this beta. Move them to the common negative prompt. / 캐릭터별 네거티브는 현재 미지원입니다. 공통 네거티브에 입력해 주세요.")
         settings = {k: v for k, v in locals().items() if k in DEFAULTS or k == "seed"}
         if character_pipe.prompt is not None:
             prompt, negative_prompt, prompt_syntax = character_pipe.prompt, character_pipe.negative_prompt, character_pipe.syntax
@@ -142,7 +142,7 @@ class RSMultiCharacterSampler:
             comfy.model_management.throw_exception_if_processing_interrupted()
             result = clip.encode_from_tokens_scheduled(clip.tokenize(convert(text)))
             if len(result) != 1:
-                raise ValueError("Scheduled text is unsupported in this alpha.")
+                raise ValueError("Scheduled text is unsupported in this beta.")
             t, meta = result[0]
             if family == "Anima" and "t5xxl_ids" not in meta:
                 raise ValueError("Connect Anima's matching text encoder.")
@@ -201,7 +201,7 @@ class RSMultiCharacterSampler:
             json.dumps(record["rs_multicharacter"], ensure_ascii=True))
         summary = {**record, "auto_layout_groups": moved, "cross_attention_calls": audit["cross_calls"],
                    "self_attention_calls": audit["self_calls"], "restored_forwards": audit["restored_forwards"], "routing_audit": audit}
-        ui = {"text": [f"{len(pipe.characters)} character regions · seed {settings['seed']} · {family} alpha"]}
+        ui = {"text": [f"{len(pipe.characters)} character regions · seed {settings['seed']} · {family} beta"]}
         if autosave:
             folder, filename, counter, subfolder, _ = folder_paths.get_save_image_path(
                 "RS_MultiCharacter/RS_MC", folder_paths.get_output_directory(), settings["width"], settings["height"])

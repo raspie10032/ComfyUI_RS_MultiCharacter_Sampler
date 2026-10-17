@@ -52,10 +52,12 @@ class SDXLTests(unittest.TestCase):
                     allowed[:,:2] = torch.log(torch.tensor(.3/2, dtype=q.dtype))
                     for group,start,end in [(groups[0],2,5),(groups[1],5,10)]:
                         allowed[group,start:end] = torch.log(torch.tensor(1/(end-start), dtype=q.dtype))
-                    values=v[batch:batch+1].clone(); values[:,2:] *= 1.7
+                    values=v[batch:batch+1].clone()
+                    values[:,2:] *= 1.7
                     expected[batch] = s.sdpa(q[batch:batch+1].reshape(1,8,2,4), k[batch:batch+1].reshape(1,10,2,4), values.reshape(1,10,2,4),allowed)[0]
             torch.testing.assert_close(actual,expected,atol=1e-12,rtol=1e-12)
-            altered=v.clone();altered[:,5:]+=1000
+            altered=v.clone()
+            altered[:,5:]+=1000
             other=self.r.cross(q,k,altered,options)
             for batch,kind in enumerate(kinds):
                 if kind == 1: torch.testing.assert_close(actual[batch],other[batch],atol=0,rtol=0)
@@ -78,7 +80,8 @@ class SDXLTests(unittest.TestCase):
         self.assertFalse(self.r.biases)
         self.assertEqual(self.audit['restored_forwards'],1)
         def fail(*args):
-            self.r.groups['x']=123;self.r.biases['x']=123
+            self.r.groups['x']=123
+            self.r.biases['x']=123
             raise RuntimeError('interrupted')
         with self.assertRaisesRegex(RuntimeError,'interrupted'):
             self.r.sample(fail,None,torch.tensor([10.,5.,1.,0.]))

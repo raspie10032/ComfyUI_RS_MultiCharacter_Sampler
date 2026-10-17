@@ -48,9 +48,12 @@ class NativeModelTests(unittest.TestCase):
         width = 128 if family=='Krea2' else 64
         common = torch.randn(1,3,width)
         conditions = [(torch.randn(1,n,width),{}) for n in (4,5)]
-        masks = torch.zeros(2,4,8); masks[0,:,:4]=1; masks[1,:,4:]=1
+        masks = torch.zeros(2,4,8)
+        masks[0,:,:4]=1
+        masks[1,:,4:]=1
         audit = dict(forwards=[],cross_calls=0,self_calls=0,text_refiner_calls=0,restored_forwards=0)
-        r = j.JointRouting(family,conditions,masks,defaults,audit); r.sigmas=[1.,.5,.1]
+        r = j.JointRouting(family,conditions,masks,defaults,audit)
+        r.sigmas=[1.,.5,.1]
         opts = {'cond_or_uncond':[0],'sigmas':torch.tensor([.5]),'optimized_attention_override':r.attention}
         grid = (2,4) if family=='Krea2' else (4,8)
         def invoke(x,t,c,o): return net(x,t,c,transformer_options=o)
@@ -79,7 +82,9 @@ class NativeModelTests(unittest.TestCase):
         for module in [block.self_attn,block.cross_attn]:
             for p in module.parameters(): p.data.uniform_(-.1,.1)
         saved = [block.self_attn.attn_op,block.cross_attn.attn_op]
-        masks = torch.zeros(2,2,4); masks[0,:,:2]=1; masks[1,:,2:]=1
+        masks = torch.zeros(2,2,4)
+        masks[0,:,:2]=1
+        masks[1,:,2:]=1
         audit = dict(forwards=[],cross_calls=0,self_calls=0,restored_forwards=0)
         r = engine.AnimaRouting([],masks,'character_first',audit,3)
         r.contexts=[torch.randn(1,4,16),torch.randn(1,5,16)]

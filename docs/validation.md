@@ -1,5 +1,7 @@
 # Alpha validation — 2026-10-16
 
+For the current **0.1.2 Beta**, see [release notes](release-0.1.2.md), [detailer validation](detailer-validation.md), [SDXL validation](sdxl-validation.md), and [Krea 2 / MOSS validation](krea-moss-validation.md). The original alpha evidence below is retained with its original scope.
+
 This report separates inherited research evidence, standalone runtime checks, source tests and UI checks. It does not claim universal success rates or equivalence to NovelAI.
 
 The subsequent **2026-10-17 sampler/scheduler matrix** covered all 405 combinations in the installed ComfyUI inventory. See [sampler combinations](sampler-combinations.md) for settings, observed quality failures and three suggested starting points. All installed choices are now exposed; execution success does not guarantee image quality.

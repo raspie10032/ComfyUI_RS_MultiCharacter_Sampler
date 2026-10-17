@@ -1,6 +1,6 @@
 # Local multi-character detailer validation — 2026-10-17
 
-This candidate adds `RSMultiCharacterDetailer`, `RSMultiCharacterDetectionLoader` and `RSMultiCharacterTaggerLoader` to the independent Anima extension. It builds on the sampler recommendation commit `f091f09`. The RS NAI extension is not loaded by the isolated test server, and no NovelAI requests or Anlas are used.
+The implementation adds `RSMultiCharacterDetailer`, `RSMultiCharacterDetectionLoader` and `RSMultiCharacterTaggerLoader` to the independent Anima extension. It builds on the sampler recommendation commit `f091f09`. The RS NAI extension is not loaded by the isolated test server, and no NovelAI requests or Anlas are used.
 
 ## What was implemented
 
@@ -54,4 +54,4 @@ Load [the UI example](../examples/two-characters-detailer-anima.json) or submit 
 
 ## Scope of this evidence
 
-This is an Anima local-detailer candidate, with real generation and known matching failures. It is not a universal 5/6-person identity guarantee, a new SDXL release, or proof of Windows runtime behavior. The regular ComfyUI installation, main branch and Registry release are separate deployment steps. Source lineage for the adapted helpers is recorded in [detailer-source-lineage.json](detailer-source-lineage.json).
+This report records Anima local-detailer validation before its inclusion in 0.1.2 Beta, with real generation and known matching failures. It does not establish universal 5/6-person identity matching, SDXL detailer quality or Windows runtime behavior. The tests used an isolated ComfyUI installation. Source lineage for the adapted helpers is recorded in [detailer-source-lineage.json](detailer-source-lineage.json).

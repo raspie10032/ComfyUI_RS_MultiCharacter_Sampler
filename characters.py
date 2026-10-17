@@ -55,7 +55,7 @@ class RSMultiCharacterPrompts:
                 f"character{i}_enable": ("BOOLEAN", {"default": True}),
                 f"character{i}": ("STRING", {"default": "", "multiline": True}),
                 f"character{i}_uc": ("STRING", {"default": "", "multiline": True,
-                    "tooltip": "Reserved for metadata round trips. Alpha sampling supports a common negative only; nonempty character negatives give an explicit error."}),
+                    "tooltip": "Reserved for metadata round trips. Regional sampling supports a common negative only; nonempty character negatives give an explicit error."}),
                 f"character{i}_x": ("FLOAT", {"default": .5, "min": 0., "max": 1., "step": .05}),
                 f"character{i}_y": ("FLOAT", {"default": .5, "min": 0., "max": 1., "step": .05}),
             })
