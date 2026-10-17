@@ -459,7 +459,7 @@
   },
   "RSMultiCharacterPrompt": {
     "display_name": "RS 캐릭터 프롬프트",
-    "description": "여러 캐릭터의 긍정 STRING 연결부를 함께 봅니다. 여기의 개수가 최종 인원수를 결정하며 UC는 샘플러에서 설정합니다.",
+    "description": "번호별 STRING 하나를 받습니다. 캐릭터는 긍정 프롬프트, 텍스트는 실제로 그릴 글자로 사용합니다. 종류를 바꿔도 연결선은 유지됩니다. 공통 네거티브는 샘플러에서 설정합니다. LoRA·위치와 연결 순서는 자유입니다.",
     "inputs": {
       "character_count": {
         "name": "캐릭터 수"
@@ -478,7 +478,7 @@
         "name": "1 실제 글자 (STRING)"
       },
       "character1": {
-        "name": "캐릭터 1 긍정 (STRING)"
+        "name": "1 프롬프트 / 글자 (STRING)"
       },
       "character2_enable": {
         "name": "2 사용"
@@ -490,7 +490,7 @@
         "name": "2 실제 글자 (STRING)"
       },
       "character2": {
-        "name": "캐릭터 2 긍정 (STRING)"
+        "name": "2 프롬프트 / 글자 (STRING)"
       },
       "character3_enable": {
         "name": "3 사용"
@@ -502,7 +502,7 @@
         "name": "3 실제 글자 (STRING)"
       },
       "character3": {
-        "name": "캐릭터 3 긍정 (STRING)"
+        "name": "3 프롬프트 / 글자 (STRING)"
       },
       "character4_enable": {
         "name": "4 사용"
@@ -514,7 +514,7 @@
         "name": "4 실제 글자 (STRING)"
       },
       "character4": {
-        "name": "캐릭터 4 긍정 (STRING)"
+        "name": "4 프롬프트 / 글자 (STRING)"
       },
       "character5_enable": {
         "name": "5 사용"
@@ -526,7 +526,7 @@
         "name": "5 실제 글자 (STRING)"
       },
       "character5": {
-        "name": "캐릭터 5 긍정 (STRING)"
+        "name": "5 프롬프트 / 글자 (STRING)"
       },
       "character6_enable": {
         "name": "6 사용"
@@ -538,7 +538,7 @@
         "name": "6 실제 글자 (STRING)"
       },
       "character6": {
-        "name": "캐릭터 6 긍정 (STRING)"
+        "name": "6 프롬프트 / 글자 (STRING)"
       },
       "character7_enable": {
         "name": "7 사용"
@@ -550,7 +550,7 @@
         "name": "7 실제 글자 (STRING)"
       },
       "character7": {
-        "name": "캐릭터 7 긍정 (STRING)"
+        "name": "7 프롬프트 / 글자 (STRING)"
       },
       "character8_enable": {
         "name": "8 사용"
@@ -562,7 +562,7 @@
         "name": "8 실제 글자 (STRING)"
       },
       "character8": {
-        "name": "캐릭터 8 긍정 (STRING)"
+        "name": "8 프롬프트 / 글자 (STRING)"
       },
       "character9_enable": {
         "name": "9 사용"
@@ -574,7 +574,7 @@
         "name": "9 실제 글자 (STRING)"
       },
       "character9": {
-        "name": "캐릭터 9 긍정 (STRING)"
+        "name": "9 프롬프트 / 글자 (STRING)"
       },
       "character10_enable": {
         "name": "10 사용"
@@ -586,7 +586,7 @@
         "name": "10 실제 글자 (STRING)"
       },
       "character10": {
-        "name": "캐릭터 10 긍정 (STRING)"
+        "name": "10 프롬프트 / 글자 (STRING)"
       }
     },
     "outputs": {

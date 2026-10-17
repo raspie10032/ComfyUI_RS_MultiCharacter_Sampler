@@ -124,11 +124,13 @@ class RSMultiCharacterPrompt(BuilderNode):
         for i in range(1, 11):
             required[f"character{i}_enable"] = ("BOOLEAN", {"default": True})
             required[f"character{i}_kind"] = (["character", "text"], {"default": "character"})
-            optional[f"character{i}"] = ("STRING", {"forceInput": True, "tooltip": f"Character {i} positive STRING. Common negative is set in the sampler."})
-            optional[f"character{i}_text"] = ("STRING", {"forceInput": True, "tooltip": "Text regions only: literal text. Positive STRING describes its font/color; use a box Position."})
+            optional[f"character{i}"] = ("STRING", {"forceInput": True, "tooltip": f"Slot {i}: character = positive prompt; text = exact words to draw. The same connection is kept when switching kind. Text needs a box Position."})
+            # Accept previous API workflows. The UI migrates this connection to
+            # character{i}; new workflows use one STRING regardless of kind.
+            optional[f"character{i}_text"] = ("STRING", {"forceInput": True, "tooltip": "Legacy literal-text connection; migrated to the shared STRING input."})
         return {"required": required, "optional": optional}
 
-    DESCRIPTION = "All character prompts in one table, supplied as STRING connections. No per-character UC. This node sets the active count; hidden slots are excluded even if connected. LoRA and Position may be connected in any order."
+    DESCRIPTION = "One STRING per slot: character uses it as a positive prompt, text uses it as the words to draw. Switching kind keeps the connection. No per-character UC. This node sets the active count; hidden slots are excluded even if connected. LoRA and Position may be connected in any order."
 
     def apply(self, character_count=2, building_pipe=None, **values):
         def settings(i):
@@ -139,6 +141,14 @@ class RSMultiCharacterPrompt(BuilderNode):
                 raise ValueError(f"Character {i}: choose character/text and enable/disable.")
             if not isinstance(prompt, str) or not isinstance(literal, str):
                 raise ValueError(f"Character {i}: connect STRING text.")
+            if kind == "text":
+                if literal.strip():
+                    # Old API workflows supplied both a style and literal text.
+                    prompt = prompt if prompt.strip() else "Clear legible lettering"
+                else:
+                    literal, prompt = prompt, "Clear legible lettering"
+            else:
+                literal = ""
             return dict(prompt=prompt, enabled=enabled, kind=kind, literal_text=literal)
         return (apply_role(building_pipe, "prompt", character_count, settings),)
 

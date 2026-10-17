@@ -459,7 +459,7 @@
   },
   "RSMultiCharacterPrompt": {
     "display_name": "RS キャラクタープロンプト",
-    "description": "複数キャラクターのポジティブSTRINGを一覧表示します。このノードの数で有効スロットを指定します。UCはサンプラーで設定します。",
+    "description": "各番号でSTRINGを1つ受け取ります。characterはポジティブプロンプト、textは実際に描く文字として使います。種類を変えても接続は保持されます。共通ネガティブはサンプラーで設定します。LoRA・位置との接続順は自由です。",
     "inputs": {
       "character_count": {
         "name": "キャラクター数"
@@ -478,7 +478,7 @@
         "name": "1 描く文字 (STRING)"
       },
       "character1": {
-        "name": "キャラクター 1 ポジティブ (STRING)"
+        "name": "1 プロンプト / 文字 (STRING)"
       },
       "character2_enable": {
         "name": "2 有効"
@@ -490,7 +490,7 @@
         "name": "2 描く文字 (STRING)"
       },
       "character2": {
-        "name": "キャラクター 2 ポジティブ (STRING)"
+        "name": "2 プロンプト / 文字 (STRING)"
       },
       "character3_enable": {
         "name": "3 有効"
@@ -502,7 +502,7 @@
         "name": "3 描く文字 (STRING)"
       },
       "character3": {
-        "name": "キャラクター 3 ポジティブ (STRING)"
+        "name": "3 プロンプト / 文字 (STRING)"
       },
       "character4_enable": {
         "name": "4 有効"
@@ -514,7 +514,7 @@
         "name": "4 描く文字 (STRING)"
       },
       "character4": {
-        "name": "キャラクター 4 ポジティブ (STRING)"
+        "name": "4 プロンプト / 文字 (STRING)"
       },
       "character5_enable": {
         "name": "5 有効"
@@ -526,7 +526,7 @@
         "name": "5 描く文字 (STRING)"
       },
       "character5": {
-        "name": "キャラクター 5 ポジティブ (STRING)"
+        "name": "5 プロンプト / 文字 (STRING)"
       },
       "character6_enable": {
         "name": "6 有効"
@@ -538,7 +538,7 @@
         "name": "6 描く文字 (STRING)"
       },
       "character6": {
-        "name": "キャラクター 6 ポジティブ (STRING)"
+        "name": "6 プロンプト / 文字 (STRING)"
       },
       "character7_enable": {
         "name": "7 有効"
@@ -550,7 +550,7 @@
         "name": "7 描く文字 (STRING)"
       },
       "character7": {
-        "name": "キャラクター 7 ポジティブ (STRING)"
+        "name": "7 プロンプト / 文字 (STRING)"
       },
       "character8_enable": {
         "name": "8 有効"
@@ -562,7 +562,7 @@
         "name": "8 描く文字 (STRING)"
       },
       "character8": {
-        "name": "キャラクター 8 ポジティブ (STRING)"
+        "name": "8 プロンプト / 文字 (STRING)"
       },
       "character9_enable": {
         "name": "9 有効"
@@ -574,7 +574,7 @@
         "name": "9 描く文字 (STRING)"
       },
       "character9": {
-        "name": "キャラクター 9 ポジティブ (STRING)"
+        "name": "9 プロンプト / 文字 (STRING)"
       },
       "character10_enable": {
         "name": "10 有効"
@@ -586,7 +586,7 @@
         "name": "10 描く文字 (STRING)"
       },
       "character10": {
-        "name": "キャラクター 10 ポジティブ (STRING)"
+        "name": "10 プロンプト / 文字 (STRING)"
       }
     },
     "outputs": {

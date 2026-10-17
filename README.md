@@ -4,6 +4,8 @@
 
 **New in Giyeok:** separate Character Prompt, Character LoRA, Character Position and Finalize Character Pipe nodes. Each role shows all active rows together; connect the three roles in any order. Positive prompts use STRING connections, with no individual UC input. Position and Finalize show layout guides. [Changes and validation scope](docs/release-0.2.0.md) · [Usage](docs/modular-characters.md).
 
+Each slot uses **one STRING**: a character prompt or the literal words to draw, selected by kind. Changing kind keeps the same connection.
+
 **Zeta Fix:** fixes Anima character LoRAs silently missing the actual inference model with ComfyUI dynamic VRAM. Update and restart ComfyUI; existing LoRA selections and strengths can be reused. [Fix, controlled image comparisons and validation scope](docs/release-0.1.7.md).
 
 **New in Zeta:** choose a LoRA and model/CLIP strengths for each character. The sampler blends masked predictions through native ComfyUI hooks; the detailer uses the matched character's LoRA. [Usage, cost and limits](docs/regional-lora.md).

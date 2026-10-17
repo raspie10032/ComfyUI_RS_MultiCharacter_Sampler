@@ -121,7 +121,29 @@ function addDiagram(node) {
     });
 }
 
-function visibility(node) {
+function migrateTextInputs(node) {
+    // Old saved graphs may have both style and literal-text sockets. Move the
+    // literal-text connection to the shared socket once the graph is restored.
+    for (let i=(node.inputs?.length??0)-1;i>=0;i--) {
+        const input=node.inputs[i], match=/^(character\d+)_text$/.exec(input.name);
+        if (!match) continue;
+        if (input.link!=null) {
+            const links=node.graph?.links;
+            const link=links?.get?.(input.link) ?? links?.[input.link];
+            if (!link) continue;
+            if (value(node,`${match[1]}_kind`,"character")==="text") {
+                let target=node.inputs.findIndex(v=>v.name===match[1]);
+                if (target<0) {node.addInput(match[1],"STRING");target=node.inputs.length-1;}
+                const source=node.graph.getNodeById(link.origin_id);
+                if (!source) continue;
+                source.connect(link.origin_slot,node,target);
+            }
+        }
+        node.removeInput(i);
+    }
+}
+
+function visibility(node, updateSockets = true) {
     const count = Number(value(node,"character_count",2));
     for (const widget of node.widgets ?? []) {
         const match = /^character(\d+)(?:_.*)?$/.exec(widget.name);
@@ -135,20 +157,20 @@ function visibility(node) {
             widget.type="rs-mc-hidden";widget.hidden=true;widget.computeSize=()=>[0,-4];
         } else if(!hide && widget.rsMcSaved) {Object.assign(widget,widget.rsMcSaved);delete widget.rsMcSaved;}
     }
-    if(typeOf(node)==="RSMultiCharacterPrompt") {
+    if(updateSockets && typeOf(node)==="RSMultiCharacterPrompt") {
+        migrateTextInputs(node);
         // Remove only unused sockets. Connected out-of-count rows stay visible
         // and serialized, but the backend excludes them from the final pipe.
         for(let i=(node.inputs?.length??0)-1;i>=0;i--) {
-            const input=node.inputs[i], match=/^character(\d+)(_text)?$/.exec(input.name);
+            const input=node.inputs[i], match=/^character(\d+)$/.exec(input.name);
             if(!match) continue;
             const id=Number(match[1]);
-            const active=id<=count && (!match[2] || value(node,`character${id}_kind`,"character")==="text");
+            const active=id<=count;
             if(!active && input.link==null) node.removeInput(i);
         }
         for(let id=1;id<=count;id++) {
-            for(const name of [`character${id}`,...(value(node,`character${id}_kind`,"character")==="text"?[`character${id}_text`]:[])]) {
-                if(!node.inputs?.some(i=>i.name===name)) node.addInput(name,"STRING");
-            }
+            const name=`character${id}`;
+            if(!node.inputs?.some(i=>i.name===name)) node.addInput(name,"STRING");
         }
     }
     const size=node.computeSize();node.setSize([Math.max(340,node.size[0],size[0]),size[1]]);node.setDirtyCanvas(true,true);
@@ -169,6 +191,15 @@ app.registerExtension({
             visibility(this);return result;
         };
         const configured=nodeType.prototype.onConfigure;
-        nodeType.prototype.onConfigure=function(){const result=configured?.apply(this,arguments);visibility(this);return result;};
+        nodeType.prototype.onConfigure=function(){
+            const result=configured?.apply(this,arguments);
+            visibility(this,false);
+            // Configure may also be used when pasting nodes. Wait for links to
+            // be restored before migrating the old two-input layout.
+            queueMicrotask(()=>visibility(this));
+            return result;
+        };
+        const graphConfigured=nodeType.prototype.onGraphConfigured;
+        nodeType.prototype.onGraphConfigured=function(){const result=graphConfigured?.apply(this,arguments);visibility(this);return result;};
     },
 });

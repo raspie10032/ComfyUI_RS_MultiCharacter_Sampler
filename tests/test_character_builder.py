@@ -89,6 +89,40 @@ class BuilderTests(unittest.TestCase):
         ten,=b.RSMultiCharacterPrompt().apply(10,**{f'character{i}':f'person {i}' for i in range(1,11)})
         self.assertEqual(len(b.finalize(ten).characters),10)
 
+    def test_shared_string_routes_by_kind_in_every_role_order(self):
+        actions = self.actions()
+        actions[0][1].update(character2='HELLO 안녕 こんにちは', character2_kind='text')
+        actions[1][1].update(character2_lora='None')
+        for order in itertools.permutations(actions):
+            pipe = self.assemble(order)
+            self.assertEqual(len(pipe.characters), 1)
+            self.assertEqual(pipe.text_regions[0].text, 'HELLO 안녕 こんにちは')
+            self.assertEqual(pipe.text_regions[0].prompt, 'Clear legible lettering')
+            record = m.build_record(pipe, {**n.DEFAULTS, 'seed': 12}, {},
+                [(r.x, r.y) for r in pipe.regions], {'spatial_slots': 2})
+            restored = m.pipe_from_record(json.loads(json.dumps(record)))
+            self.assertEqual(restored.text_regions, pipe.text_regions)
+        # The same incoming value becomes the character prompt when switched back.
+        actions[0][1]['character2_kind'] = 'character'
+        pipe = self.assemble(actions)
+        self.assertEqual(pipe.characters[1].prompt, 'HELLO 안녕 こんにちは')
+        self.assertFalse(pipe.text_regions)
+
+    def test_shared_text_rejects_empty_literal_and_requires_box(self):
+        for words in ('', '   '):
+            root, = b.RSMultiCharacterPrompt().apply(1, character1=words, character1_kind='text')
+            root, = b.RSMultiCharacterPosition().apply(1, building_pipe=root, character1_geometry='box')
+            with self.assertRaisesRegex(ValueError, 'literal text'):
+                b.finalize(root)
+        root, = b.RSMultiCharacterPrompt().apply(1, character1='HELLO', character1_kind='text')
+        with self.assertRaisesRegex(ValueError, 'box mode'):
+            b.finalize(root)
+
+    def test_character_kind_ignores_legacy_literal(self):
+        root, = b.RSMultiCharacterPrompt().apply(1, character1='girl', character1_text='OLD TEXT')
+        self.assertEqual(root.slots[0].literal_text, '')
+        self.assertEqual(b.finalize(root).characters[0].prompt, 'girl')
+
     def test_invalid_active_values(self):
         for count in (True,0,11,1.2):
             with self.assertRaises(ValueError):b.RSMultiCharacterPrompt().apply(count)
