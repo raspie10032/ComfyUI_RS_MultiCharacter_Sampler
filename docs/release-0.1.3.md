@@ -48,6 +48,8 @@ The CPU test workflow checks Linux with ComfyUI `v0.3.76` and pinned
 Native tests use small random models and synthetic text/VAE data to check API
 integration; actual image evidence is documented in the reports linked above.
 Windows CPU checks do not establish Windows GPU generation quality.
+The UI test harness accepts both LF and Windows CRLF line endings. Each CI
+command has its own step so a later success cannot hide an earlier failure.
 
 ```sh
 RS_MC_TEST_COMFYUI=/path/to/ComfyUI python -m unittest discover -s tests -v

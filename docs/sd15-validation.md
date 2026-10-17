@@ -64,9 +64,10 @@ The skipped cases are architectures absent from the host snapshot.
 Local requests, ComfyUI histories, original PNGs, download hash, environment
 and CPU logs are retained in `RS_MC_sd15/validation` beside this checkout.
 The downloaded checkpoint is SHA-256 verified against the pinned upstream
-file. The experiment extends compatibility commit `b287ca2` in the separate
-`codex/sd15-validation` branch; this report is not evidence of a public release
-or an update to the everyday installation.
+file. The experiment extends compatibility commit `b287ca2` and was developed
+on `codex/sd15-validation`. It is included in [0.1.3 Gamma](release-0.1.3.md).
+These experiment records do not establish the version loaded by an everyday
+ComfyUI installation.
 
 ## Reproduce
 

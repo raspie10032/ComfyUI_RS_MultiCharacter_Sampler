@@ -1,5 +1,5 @@
 const fs = require('fs'), vm = require('vm'), assert = require('node:assert/strict');
-const source = fs.readFileSync('web/detailer.js', 'utf8').replace(/^import .*\n/gm, '');
+const source = fs.readFileSync('web/detailer.js', 'utf8').replace(/^import [^\r\n]*\r?\n/gm, '');
 let extension;
 vm.runInNewContext(source, {
   app: { registerExtension(e) { extension = e; }, ui: { settings: { getSettingValue() { return 'en'; } } } },

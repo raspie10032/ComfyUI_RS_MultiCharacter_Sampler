@@ -76,10 +76,11 @@ No new detailer algorithm was introduced.
 
 [The test workflow](../.github/workflows/tests.yml) runs CPU checks on Linux with
 `v0.3.76` and the pinned current snapshot, plus Windows with that current
-snapshot. It uses no checkpoint downloads, GPU or service credentials. It is
-prepared in this branch; remote GitHub Actions/Windows execution has not been
-claimed. Pinning the upstream revision makes failures reproducible; update that
-revision deliberately when reviewing a new ComfyUI release.
+snapshot. It uses no checkpoint downloads, GPU or service credentials. Per-commit
+results are available in [GitHub Actions](https://github.com/raspie10032/ComfyUI_RS_MultiCharacter_Sampler/actions/workflows/tests.yml).
+Windows CPU checks do not establish Windows GPU generation quality. Pinning the
+upstream revision makes failures reproducible; update that revision deliberately
+when reviewing a new ComfyUI release.
 
 To repeat the source/API tests with a locally provisioned ComfyUI environment:
 
