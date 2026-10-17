@@ -1,8 +1,8 @@
 # ComfyUI_RS_MultiCharacter_Sampler
 
-**0.1.2 Beta · Anima · SDXL · Krea 2 · MOSS · SD1.5 (experimental, unstable)** — independent character prompts and X/Y prompt regions for local ComfyUI generation.
+**0.1.3 Gamma · Anima · SDXL · Krea 2 · MOSS · SD1.5 (experimental, unstable)** — independent character prompts and X/Y prompt regions for local ComfyUI generation.
 
-**New in 0.1.2 Beta:** local character detailing and detector/tagger loaders, SDXL / Krea 2 / MOSS generation, and all installed sampler/scheduler choices. See [release notes and validation scope](docs/release-0.1.2.md).
+**New in 0.1.3 Gamma:** SDXL compatibility with older ComfyUI versions, independent checks for optional model architectures, and experimental SD1.5 generation with explicitly unstable character counts and attribute separation. See [release notes and validation scope](docs/release-0.1.3.md).
 
 [한국어](README.ko.md) · [日本語](README.ja.md) · [Architecture](docs/architecture.md) · [Validation](docs/validation.md)
 
@@ -19,7 +19,7 @@ This extension contains six nodes. It does not require the RS NovelAI extension,
 
 ## Install
 
-Find **RS MultiCharacter Sampler (Beta)** in ComfyUI-Manager, or open the [Comfy Registry page](https://registry.comfy.org/publishers/raspie10032/nodes/comfyui-rs-multicharacter-sampler). Package ID: `comfyui-rs-multicharacter-sampler`. Restart ComfyUI after installation. If the new listing is not yet visible in your Manager cache, refresh its node list or use the Git installation below.
+Find **RS MultiCharacter Sampler (Gamma)** in ComfyUI-Manager, or open the [Comfy Registry page](https://registry.comfy.org/publishers/raspie10032/nodes/comfyui-rs-multicharacter-sampler). Package ID: `comfyui-rs-multicharacter-sampler`. Restart ComfyUI after installation. If the new listing is not yet visible in your Manager cache, refresh its node list or use the Git installation below.
 
 For Git installation, clone this repository into your ComfyUI `custom_nodes` directory, then restart ComfyUI. Use one installation method; do not install a second copy alongside an existing Git checkout.
 
@@ -109,17 +109,17 @@ Select an original saved image in **RS MultiCharacter Load Image** and connect i
 
 The loader also accepts NAI V4-style character captions with one center per character. Select NovelAI prompt syntax for text typed in that syntax; imported NAI images select it automatically. NAI settings cannot be replayed as local settings: keep `use_image_settings` off for those images.
 
-## Beta limits
+## Current limits
 
 - **Anima, SDXL, Krea 2, MOSS and unstable experimental SD1.5 support**, one image per execution. The sampler is text-to-image; the detailer runs masked img2img crops. SD1.5 has only been tested for generation, not detailing. SD2, Flux, inpainting/refiner checkpoints, ControlNet and other attention patches are not supported by the regional sampler.
 - **1–10 input slots.** Actual image tests cover Anima 1–6, SDXL 2–6, Krea 2 / MOSS 2–4, and SD1.5 two-character requests. More characters do not guarantee quality. Horizontal layouts are the strongest tested use case; successful new-model 2x2 examples do not establish a general success rate.
 - Coordinates choose prompt regions; they do **not** lock a head/body to a point or enforce exactly one person per region. A single character owns the whole image, so moving that one center does not move the person.
 - Multiple rows, dense interactions and crossing props can duplicate or omit people. Four requested people in a 2×2 experiment became 12 and 10. Six people in two rows became 7 and 11. Do not treat count or identity as guaranteed.
-- Per-character negative captions are preserved in metadata but **rejected by the regional sampler** in this beta. Use its common negative prompt. The detailer can use the matched character's negative caption. Scheduled text conditioning is not supported.
+- Per-character negative captions are preserved in metadata but **rejected by the regional sampler** in this release. Use its common negative prompt. The detailer can use the matched character's negative caption. Scheduled text conditioning is not supported.
 - The regional sampler accepts **2–100 steps**, with 30 as the Anima/SDXL default. The detailer has its own adjustable step count. Initial common weight, character gain and boundary release are advanced experimental controls, not universal quality settings.
 - Autosave does not preserve an uploaded image's unrelated EXIF/GPS/camera data. Social platforms may strip generation metadata; use the original file for restoration.
 
-See [validation](docs/validation.md) for real generation, metadata replay and the limits of the evidence. This beta retains the documented count, identity and interaction limits.
+See [validation](docs/validation.md) for real generation, metadata replay and the limits of the evidence. This release retains the documented count, identity and interaction limits.
 
 ## Development
 

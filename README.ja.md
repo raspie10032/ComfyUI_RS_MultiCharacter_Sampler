@@ -1,12 +1,12 @@
 # ComfyUI_RS_MultiCharacter_Sampler
 
-**0.1.2 ベータ · Anima・SDXL・Krea 2・MOSS・SD1.5（実験対応・不安定）**。共通プロンプトと各キャラクターの文章・XY座標を専用パイプで渡し、領域ごとに attention を制御します。RS NAI 拡張や API キーは不要です。
+**0.1.3 ガンマ · Anima・SDXL・Krea 2・MOSS・SD1.5（実験対応・不安定）**。共通プロンプトと各キャラクターの文章・XY座標を専用パイプで渡し、領域ごとに attention を制御します。RS NAI 拡張や API キーは不要です。
 
-**0.1.2 ベータ更新:** ローカルのキャラクターディテイラー・検出/タグローダー、SDXL・Krea 2・MOSS での生成、インストール済み全サンプラー/スケジューラーの選択に対応しました。[変更点と検証範囲](docs/release-0.1.2.md)
+**0.1.3 ガンマ更新:** 古い ComfyUI での SDXL 互換性を改善し、モデル系列ごとに必要な実装を個別に確認します。SD1.5 の生成を実験対応に追加しましたが、人数と特徴の分離は不安定です。[変更点と検証範囲](docs/release-0.1.3.md)
 
 ## 使用方法
 
-ComfyUI-Manager で **RS MultiCharacter Sampler (Beta)** を検索するか、[Comfy Registry](https://registry.comfy.org/publishers/raspie10032/nodes/comfyui-rs-multicharacter-sampler) からインストールします。パッケージ ID は `comfyui-rs-multicharacter-sampler` です。インストール後に ComfyUI を再起動してください。新しい項目が表示されない場合は Manager の一覧を更新するか、Git でインストールできます。
+ComfyUI-Manager で **RS MultiCharacter Sampler (Gamma)** を検索するか、[Comfy Registry](https://registry.comfy.org/publishers/raspie10032/nodes/comfyui-rs-multicharacter-sampler) からインストールします。パッケージ ID は `comfyui-rs-multicharacter-sampler` です。インストール後に ComfyUI を再起動してください。新しい項目が表示されない場合は Manager の一覧を更新するか、Git でインストールできます。
 
 Git の場合はこのリポジトリを `ComfyUI/custom_nodes` に clone します。既存の Git インストールがある場合は重複インストールせず、そちらを更新してください。拡散モデル・テキストエンコーダー・VAEは別途用意します。ディテイラーの検出・タグローダーは、選択したカタログモデルが未導入の場合に実行時ダウンロードし、進捗を表示します。
 
