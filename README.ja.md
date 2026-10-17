@@ -1,6 +1,8 @@
 # ComfyUI_RS_MultiCharacter_Sampler
 
-**0.1.7 Zeta Fix · Anima・SDXL・Krea 2・MOSS・SD1.5（実験対応・不安定）**。共通プロンプトと各キャラクターの文章・XY座標・矩形を専用パイプで渡し、領域ごとに attention を制御します。RS NAI 拡張や API キーは不要です。
+**0.2.0 Giyeok（기역・キヨク）· Anima・SDXL・Krea 2・MOSS・SD1.5（実験対応・不安定）**。共通プロンプトと各キャラクターの文章・XY座標・矩形を専用パイプで渡し、領域ごとに attention を制御します。RS NAI 拡張や API キーは不要です。
+
+**Giyeok の変更:** キャラクタープロンプト・LoRA・位置・最終パイプを別ノードに分割しました。各役割で複数キャラクターの設定を同時に表示し、3種類の役割は任意の順序で接続できます。ポジティブは STRING 接続にし、個別 UC 入力はなくしました。位置・最終パイプでは配置の目安を表示します。[変更内容・検証範囲](docs/release-0.2.0.md) · [使い方](docs/modular-characters.md)。
 
 **Zeta Fix:** ComfyUI の動的 VRAM モードで Anima のキャラクター LoRA が実際の生成モデルに適用されない不具合を修正しました。更新後に ComfyUI を再起動してください。既存の LoRA 選択と強度はそのまま使えます。[修正内容・画像比較・検証範囲](docs/release-0.1.7.md)。
 

@@ -1,6 +1,8 @@
 # ComfyUI_RS_MultiCharacter_Sampler
 
-**0.1.7 Zeta Fix · Anima · SDXL · Krea 2 · MOSS · SD1.5 (experimental, unstable)** — independent prompts with X/Y, box and mixed regions for local ComfyUI generation.
+**0.2.0 Giyeok (기역) · Anima · SDXL · Krea 2 · MOSS · SD1.5 (experimental, unstable)** — independent prompts with X/Y, box and mixed regions for local ComfyUI generation.
+
+**New in Giyeok:** separate Character Prompt, Character LoRA, Character Position and Finalize Character Pipe nodes. Each role shows all active rows together; connect the three roles in any order. Positive prompts use STRING connections, with no individual UC input. Position and Finalize show layout guides. [Changes and validation scope](docs/release-0.2.0.md) · [Usage](docs/modular-characters.md).
 
 **Zeta Fix:** fixes Anima character LoRAs silently missing the actual inference model with ComfyUI dynamic VRAM. Update and restart ComfyUI; existing LoRA selections and strengths can be reused. [Fix, controlled image comparisons and validation scope](docs/release-0.1.7.md).
 

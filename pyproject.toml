@@ -1,7 +1,7 @@
 [project]
 name = "comfyui-rs-multicharacter-sampler"
-version = "0.1.7"
-description = "Anima, SDXL, Krea 2 and MOSS Zeta Fix: multi-character regional sampling and local masked detailing, automatic character matching, detection and tagger loaders, PNG/WebP metadata and prompt restoration. Per-character LoRAs, mixed point/box layouts, text regions and editable presets. Fixes Anima regional LoRA application with dynamic VRAM. SD1.5 generation is experimental and unstable."
+version = "0.2.0"
+description = "Giyeok: modular character prompt, LoRA and position nodes with order-independent pipe assembly and layout previews. Multi-character regional sampling and local masked detailing for Anima, SDXL, Krea 2 and MOSS, with per-character LoRAs, automatic matching, detector/tagger loaders, PNG/WebP settings restoration, mixed point/box layouts, text regions and editable presets. SD1.5 generation is experimental and unstable."
 readme = "README.md"
 license = {file = "LICENSE"}
 requires-python = ">=3.11"
@@ -18,4 +18,4 @@ Documentation = "https://github.com/raspie10032/ComfyUI_RS_MultiCharacter_Sample
 
 [tool.comfy]
 PublisherId = "raspie10032"
-DisplayName = "RS MultiCharacter Sampler (Zeta Fix)"
+DisplayName = "RS MultiCharacter Sampler (Giyeok)"
