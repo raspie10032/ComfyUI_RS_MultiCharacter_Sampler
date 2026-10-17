@@ -157,10 +157,14 @@ class NativeModelTests(unittest.TestCase):
         masks[1,:,4:]=1
         audit = dict(forwards=[],cross_calls=0,self_calls=0,text_refiner_calls=0,restored_forwards=0)
         if boxes == "mixed":
-            masks[0]=1; masks[1].zero_(); masks[1,1:3,3:7]=1
+            masks[0]=1
+            masks[1].zero_()
+            masks[1,1:3,3:7]=1
             boxes = (False, True)
         elif boxes:
-            masks.zero_(); masks[0,1:3,1:5]=1; masks[1,1:3,3:7]=1
+            masks.zero_()
+            masks[0,1:3,1:5]=1
+            masks[1,1:3,3:7]=1
         r = j.JointRouting(family,conditions,masks,defaults,audit,boxes=boxes)
         r.sigmas=[1.,.5,.1]
         opts = {'cond_or_uncond':[0],'sigmas':torch.tensor([.5]),'optimized_attention_override':r.attention}

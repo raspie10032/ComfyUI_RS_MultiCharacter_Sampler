@@ -93,12 +93,16 @@ class BoxTests(unittest.TestCase):
     def test_cross_dense_oracle_background_overlap_cfg_order_zero_prior(self):
         torch.manual_seed(26)
         q=torch.randn(2,4,2,3,dtype=torch.float64)
-        k=torch.randn(2,9,2,3,dtype=torch.float64);v=torch.randn_like(k)
+        k=torch.randn(2,9,2,3,dtype=torch.float64)
+        v=torch.randn_like(k)
         for kinds in ([0,1],[1,0]):
             for prior in (0.,.3,1.):
-                bias=q.new_full((2,1,4,9),-torch.inf);values=v.clone()
+                bias=q.new_full((2,1,4,9),-torch.inf)
+                values=v.clone()
                 for b,kind in enumerate(kinds):
-                    if kind==1:bias[b,:,:,0:2]=0;continue
+                    if kind==1:
+                        bias[b,:,:,0:2]=0
+                        continue
                     values[b,2:]*=1.7
                     for row,members in enumerate(((),(0,),(0,1),(1,))):
                         bias[b,0,row,:2]=0 if not members else (-torch.inf if prior==0 else math.log(prior/2))
@@ -112,8 +116,11 @@ class BoxTests(unittest.TestCase):
 
     def test_overlap_permutation_no_slot_priority_and_background_invariant(self):
         torch.manual_seed(27)
-        q=torch.randn(1,4,1,4,dtype=torch.float64);k=torch.randn(1,9,1,4,dtype=torch.float64);v=torch.randn_like(k)
-        g=self.groups();args=dict(weights=(0.,1.),character_gain=1.3)
+        q=torch.randn(1,4,1,4,dtype=torch.float64)
+        k=torch.randn(1,9,1,4,dtype=torch.float64)
+        v=torch.randn_like(k)
+        g=self.groups()
+        args=dict(weights=(0.,1.),character_gain=1.3)
         a=r.route_cross(q,k,v,g,[2,3,4],[0],**args)
         masks=torch.tensor([[[0.,0.,1.,1.]],[[0.,1.,1.,0.]]])
         order=[0,1,5,6,7,8,2,3,4]
@@ -153,9 +160,11 @@ class BoxTests(unittest.TestCase):
                     self.assertEqual(pipe.characters,self.pipe().characters)
                     self.assertEqual(json.loads(pipe.generation_json)['settings']['layout_method'],'moss_native')
                     self.assertNotIn('workflow',im.info)
-        bad=copy.deepcopy(record);bad['rs_multicharacter']['boxes']=[]
+        bad=copy.deepcopy(record)
+        bad['rs_multicharacter']['boxes']=[]
         with self.assertRaisesRegex(ValueError,'count'):m.pipe_from_record(bad)
-        old=copy.deepcopy(record);del old['rs_multicharacter']['boxes']
+        old=copy.deepcopy(record)
+        del old['rs_multicharacter']['boxes']
         self.assertTrue(all(v.bbox is None for v in m.pipe_from_record(old).characters))
 
     def test_detailer_metadata_retains_input_boxes_without_sampler_snapshot(self):
@@ -206,7 +215,8 @@ class BoxTests(unittest.TestCase):
         with self.assertRaises(ValueError):c.TextRegion('title',text='HELLO')
         with self.assertRaises(ValueError):c.TextRegion('title',bbox=(0,0,1,1),text='')
         with self.assertRaises(ValueError):c.CharacterPipe((),text_regions=(region,)*11)
-        bad=copy.deepcopy(record);bad['rs_multicharacter']['text_regions']={}
+        bad=copy.deepcopy(record)
+        bad['rs_multicharacter']['text_regions']={}
         with self.assertRaises(ValueError):m.pipe_from_record(bad)
 
 if __name__=='__main__':unittest.main()

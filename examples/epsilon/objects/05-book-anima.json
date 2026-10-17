@@ -1,0 +1,383 @@
+{
+  "last_node_id": 5,
+  "last_link_id": 4,
+  "nodes": [
+    {
+      "id": 1,
+      "type": "UNETLoader",
+      "pos": [
+        40,
+        60
+      ],
+      "size": [
+        340,
+        180
+      ],
+      "flags": {},
+      "order": 0,
+      "mode": 0,
+      "inputs": [],
+      "outputs": [
+        {
+          "name": "MODEL",
+          "type": "MODEL",
+          "links": [
+            1
+          ],
+          "slot_index": 0
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "UNETLoader",
+        "cnr_id": "comfy-core"
+      },
+      "widgets_values": [
+        "anima-base-v1.0.safetensors",
+        "default"
+      ]
+    },
+    {
+      "id": 2,
+      "type": "RSMultiCharacterPrompts",
+      "pos": [
+        440,
+        60
+      ],
+      "size": [
+        500,
+        1300
+      ],
+      "flags": {},
+      "order": 1,
+      "mode": 0,
+      "inputs": [],
+      "outputs": [
+        {
+          "name": "character_pipe",
+          "type": "RS_MC_CHARACTER_PIPE",
+          "links": [
+            4
+          ],
+          "slot_index": 0
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "RSMultiCharacterPrompts",
+        "cnr_id": "comfyui-rs-multicharacter-sampler"
+      },
+      "widgets_values": [
+        3,
+        true,
+        "An adult woman with short black bob hair, a red jacket over a black shirt and black trousers, standing behind the left side of a wooden display table in a university garden.",
+        "",
+        0.22,
+        0.43,
+        true,
+        "An adult woman with long blonde hair, a white blouse and a long blue skirt, standing behind the right side of the same wooden display table in a university garden.",
+        "",
+        0.78,
+        0.43,
+        true,
+        "A close view of one open thick book with cream pages and a dark green hardcover, resting naturally on a wooden display table. The complete object is clearly visible.",
+        "",
+        0.5,
+        0.7,
+        false,
+        "",
+        "",
+        0.5,
+        0.5,
+        false,
+        "",
+        "",
+        0.5,
+        0.5,
+        false,
+        "",
+        "",
+        0.5,
+        0.5,
+        false,
+        "",
+        "",
+        0.5,
+        0.5,
+        false,
+        "",
+        "",
+        0.5,
+        0.5,
+        false,
+        "",
+        "",
+        0.5,
+        0.5,
+        false,
+        "",
+        "",
+        0.5,
+        0.5,
+        "mixed",
+        0.36,
+        0.4,
+        0.36,
+        0.4,
+        0.36,
+        0.4,
+        0.4,
+        0.8,
+        0.4,
+        0.8,
+        0.4,
+        0.8,
+        0.4,
+        0.8,
+        0.4,
+        0.8,
+        0.4,
+        0.8,
+        0.4,
+        0.8,
+        "character",
+        "",
+        "character",
+        "",
+        "character",
+        "",
+        "character",
+        "",
+        "character",
+        "",
+        "character",
+        "",
+        "character",
+        "",
+        "character",
+        "",
+        "character",
+        "",
+        "character",
+        "",
+        "point",
+        "point",
+        "box",
+        "point",
+        "point",
+        "point",
+        "point",
+        "point",
+        "point",
+        "point"
+      ],
+      "title": "Two people + book box"
+    },
+    {
+      "id": 3,
+      "type": "RSMultiCharacterSampler",
+      "pos": [
+        1000,
+        60
+      ],
+      "size": [
+        440,
+        1000
+      ],
+      "flags": {},
+      "order": 2,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "model",
+          "type": "MODEL",
+          "link": 1
+        },
+        {
+          "name": "clip",
+          "type": "CLIP",
+          "link": 2
+        },
+        {
+          "name": "vae",
+          "type": "VAE",
+          "link": 3
+        },
+        {
+          "name": "character_pipe",
+          "type": "RS_MC_CHARACTER_PIPE",
+          "link": 4
+        }
+      ],
+      "outputs": [
+        {
+          "name": "image",
+          "type": "IMAGE",
+          "links": [],
+          "slot_index": 0
+        },
+        {
+          "name": "latent",
+          "type": "LATENT",
+          "links": [],
+          "slot_index": 1
+        },
+        {
+          "name": "character_pipe",
+          "type": "RS_MC_CHARACTER_PIPE",
+          "links": [],
+          "slot_index": 2
+        },
+        {
+          "name": "generation_info",
+          "type": "STRING",
+          "links": [],
+          "slot_index": 3
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "RSMultiCharacterSampler",
+        "cnr_id": "comfyui-rs-multicharacter-sampler",
+        "rs_mc_preset": "anima_mixed"
+      },
+      "widgets_values": [
+        "An anime illustration of exactly two adult women standing behind a wooden display table in a sunny university garden, medium wide shot. Both faces are clearly visible, one woman on each side. On the center of the table in the foreground sits one open thick book with cream pages and a dark green hardcover. Flowers, trees and a brick campus building form a single continuous background. Natural perspective, coherent lighting, a single scene.",
+        "worst quality, low quality, bad anatomy, extra arms, extra legs, extra people, watermark, text, letters, nude, naked, white background, blank background, reference sheet, character sheet, collage, panels, border",
+        1024,
+        768,
+        3784684837,
+        "fixed",
+        30,
+        4.0,
+        "euler_ancestral",
+        "sgm_uniform",
+        true,
+        "PNG",
+        90,
+        "ComfyUI",
+        false,
+        0.04,
+        0.6,
+        0.1,
+        1.7,
+        0.9,
+        3,
+        0.2,
+        "regional"
+      ],
+      "title": "anima | book"
+    },
+    {
+      "id": 4,
+      "type": "CLIPLoader",
+      "pos": [
+        40,
+        280
+      ],
+      "size": [
+        340,
+        180
+      ],
+      "flags": {},
+      "order": 3,
+      "mode": 0,
+      "inputs": [],
+      "outputs": [
+        {
+          "name": "CLIP",
+          "type": "CLIP",
+          "links": [
+            2
+          ],
+          "slot_index": 0
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "CLIPLoader",
+        "cnr_id": "comfy-core"
+      },
+      "widgets_values": [
+        "qwen_3_06b_base.safetensors",
+        "stable_diffusion",
+        "default"
+      ]
+    },
+    {
+      "id": 5,
+      "type": "VAELoader",
+      "pos": [
+        40,
+        500
+      ],
+      "size": [
+        340,
+        180
+      ],
+      "flags": {},
+      "order": 4,
+      "mode": 0,
+      "inputs": [],
+      "outputs": [
+        {
+          "name": "VAE",
+          "type": "VAE",
+          "links": [
+            3
+          ],
+          "slot_index": 0
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "VAELoader",
+        "cnr_id": "comfy-core"
+      },
+      "widgets_values": [
+        "qwen_image_vae.safetensors"
+      ]
+    }
+  ],
+  "links": [
+    [
+      1,
+      1,
+      0,
+      3,
+      0,
+      "MODEL"
+    ],
+    [
+      2,
+      4,
+      0,
+      3,
+      1,
+      "CLIP"
+    ],
+    [
+      3,
+      5,
+      0,
+      3,
+      2,
+      "VAE"
+    ],
+    [
+      4,
+      2,
+      0,
+      3,
+      3,
+      "RS_MC_CHARACTER_PIPE"
+    ]
+  ],
+  "groups": [],
+  "config": {},
+  "extra": {
+    "ds": {
+      "scale": 0.6,
+      "offset": [
+        60,
+        60
+      ]
+    }
+  },
+  "version": 0.4
+}

@@ -1,6 +1,6 @@
 # 0.1.5 Epsilon candidate validation
 
-Development branch: `codex/0.1.5-epsilon-bbox`. Base: `66a32eae01eadb4865359c13c964b06993ef81ed` (0.1.4 Delta). Public main and the production installation were not replaced in this task.
+Implementation record for development branch `codex/0.1.5-epsilon-bbox`, based on `66a32eae01eadb4865359c13c964b06993ef81ed` (0.1.4 Delta). This record describes the initial candidate tests; the [0.1.5 release notes](release-0.1.5.md) cover the subsequent tuning, presets, object trial and release checks. The initial trials used an isolated runtime.
 
 ## Implemented behavior
 

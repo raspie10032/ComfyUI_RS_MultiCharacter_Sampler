@@ -1,6 +1,6 @@
 # Epsilon layout examples
 
-Requires the **0.1.5 development candidate**. These are normal ComfyUI workflow JSON files; the `*-api.json` companions are for API submission. Select the model files installed on your computer before running.
+Requires **0.1.5 Epsilon or later**. These are normal ComfyUI workflow JSON files; the `*-api.json` companions are for API submission. Select the model files installed on your computer before running.
 
 | Workflow | Layout | Model |
 |---|---|---|
@@ -18,5 +18,7 @@ MOSS native requires every region to have a box. Use the regional method for mix
 The Anima example now uses stronger early common conditioning, shared scene context in each character caption, and a larger title box placed farther from the top edge. Its original white-background/clipped-title result is retained in the validation history. SDXL uses a lower common strength and tag-style descriptions; Krea 2 uses weaker spatial separation. These are model-specific starting examples, not universal automatic defaults. SD1.5 remains experimental, including literal text.
 
 Use the [model settings and comparison](../../docs/mixed-layout-tuning.md) before transferring one model's settings to another. The MOSS examples retain the previously tested settings; MOSS's text can extend beyond its rectangle. Exact spelling, outlines, count and framing are not guaranteed.
+
+[Two people + object: 10 kinds × Anima/Krea 2](objects) use the same mixed presets. They retain the actual trial prompts and seeds; object slots are generic character slots and are not excluded from face matching. See the [results and limits](../../docs/object-layout-validation.md).
 
 [Settings and limits](../../docs/regional-layout.md) · [Validation scope](../../docs/epsilon-validation.md)

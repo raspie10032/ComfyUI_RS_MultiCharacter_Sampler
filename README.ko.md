@@ -1,10 +1,10 @@
 # ComfyUI_RS_MultiCharacter_Sampler
 
-**0.1.5 엡실론 개발판 · Anima · SDXL · Krea 2 · MOSS · SD1.5(실험 지원·불안정)**입니다. 공통 프롬프트와 캐릭터별 프롬프트·XY를 전용 파이프로 전달하고, 로컬 모델 내부에서 영역별 attention을 조절합니다. RS NAI 확장이나 API 키는 필요 없습니다.
+**0.1.5 엡실론 · Anima · SDXL · Krea 2 · MOSS · SD1.5(실험 지원·불안정)**입니다. 공통 프롬프트와 캐릭터별 프롬프트·XY·상자를 전용 파이프로 전달하고, 로컬 모델 내부에서 영역별 attention을 조절합니다. RS NAI 확장이나 API 키는 필요 없습니다.
 
-**이전 배포판 — 0.1.4 델타:** MOSS-Image SFT 8스텝 LoRA의 2인·4인 XY 예제, CFG 1/3 비교 결과와 설치 방법을 추가했습니다. 기존 샘플러와 기본 LoRA 로더로 사용합니다. [변경 내역과 검증 범위](docs/release-0.1.4.md)
+**엡실론 변경 사항:** 좌표·상자 혼합 배치, 글자 영역, 편집 가능한 모델 계열 프리셋 8개, MOSS 공식 배치 모드, Anima·Krea 2의 2인+물체 예제를 제공합니다. [변경 내역과 검증 범위](docs/release-0.1.5.md)
 
-**0.1.5 엡실론 개발판:** 좌표·상자 혼합 배치와 텍스트 영역을 추가합니다. 예를 들어 캐릭터 2명은 좌표로, `HELLO`는 위쪽 상자로 지정합니다. [설정 방법과 한계](docs/regional-layout.md).
+**엡실론 배치:** 캐릭터 2명은 좌표로, `HELLO`는 위쪽 상자로 지정할 수 있습니다. [설정 방법과 한계](docs/regional-layout.md).
 
 **Anima·Illustrious XL·Krea 2 Turbo·실험적 SD1.5용 혼합 예제**에 모델별 강도와 문장을 적용했습니다. Anima의 초기 예제에서 빠졌던 캠퍼스 배경과 잘린 제목을 개선했습니다. [설정 비교·실제 결과·한계](docs/mixed-layout-tuning.md). 철자와 인원수는 모델에 따라 흔들릴 수 있으며, 기존 워크플로의 설정을 자동으로 바꾸지는 않습니다.
 
@@ -12,9 +12,11 @@ SD1.5 예제는 **두 인물이 구분되고 글자 영역에 표현이 나타�
 
 **캐릭터 2명 + 단어 1개**는 영역 수 `3`, `layout_mode=mixed`로 시작합니다. 1·2번은 `character`와 `point`, 3번은 `text`로 선택하고 실제 글자 칸에 `HELLO`, 프롬프트 칸에 글씨 모양을 적으세요. 글자 상자의 X/Y·너비·높이를 정하고 샘플러는 `layout_method=regional`을 선택합니다. 상자 안은 글자 영역이 우선합니다. 캐릭터·글자 합계 최대 10영역이며, 정확한 철자·상자 크기 준수는 보장하지 않습니다. MOSS 공식 모드는 모든 영역에 상자가 필요합니다. [실행 예제](examples/epsilon) · [검증 범위·실제 한계](docs/epsilon-validation.md).
 
+**캐릭터 2명 + 물체 1개**는 기존 **Anima — 혼합 배치** 또는 **Krea 2 Turbo** 프리셋과 [물체 예제 20개](examples/epsilon/objects)를 사용합니다. 3번 슬롯은 `character` + `box`로 두고 물체를 설명하세요. 10종 시험의 20장 모두 두 사람과 물체가 나왔지만, 정확한 상자 크기와 장면 연결은 일정하지 않았습니다. 물체 슬롯은 얼굴 디테일러에서 자동 제외되지 않습니다. [비교 이미지·설정·한계](docs/object-layout-validation.md).
+
 ## 설치와 사용
 
-ComfyUI-Manager에서 **RS MultiCharacter Sampler (Delta)**를 검색해 설치하거나 [Comfy Registry 페이지](https://registry.comfy.org/publishers/raspie10032/nodes/comfyui-rs-multicharacter-sampler)를 이용하세요. 패키지 ID는 `comfyui-rs-multicharacter-sampler`입니다. 설치 후 ComfyUI를 재시작하세요. 새 항목이 아직 보이지 않으면 Manager 목록을 갱신하거나 Git으로 설치할 수 있습니다.
+ComfyUI-Manager에서 **RS MultiCharacter Sampler (Epsilon)**를 검색해 설치하거나 [Comfy Registry 페이지](https://registry.comfy.org/publishers/raspie10032/nodes/comfyui-rs-multicharacter-sampler)를 이용하세요. 패키지 ID는 `comfyui-rs-multicharacter-sampler`입니다. 설치 후 ComfyUI를 재시작하세요. 새 항목이 아직 보이지 않으면 Manager 목록을 갱신하거나 Git으로 설치할 수 있습니다.
 
 Git 설치는 이 저장소를 `ComfyUI/custom_nodes` 안에 복제하면 됩니다. 기존 Git 설치본이 있다면 중복 설치하지 말고 그 설치본을 업데이트하세요. 확산 모델·텍스트 인코더·VAE는 직접 준비합니다. 디테일러의 감지·태거 로더는 선택한 카탈로그 모델이 없을 때 실행 중 내려받으며 진행도를 표시합니다.
 

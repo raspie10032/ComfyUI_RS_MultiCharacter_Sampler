@@ -1,0 +1,872 @@
+{
+  "date": "2026-10-17",
+  "source_commit": "3ed20f129817c0037b8d250af68ada12c529dddd",
+  "core_commit": "5cc4b870094c89090db54bd8d12649dcaf89f2ba",
+  "design": "10 objects x 2 models; one newly random seed per object, shared across models; no retries selected by quality",
+  "limits": "One sample per object/model is exploratory. The common prompt also names the object and its position. This tests the combined workflow, not box-only causation. Objects currently use generic Character slots and are not excluded from downstream face matching; no detailer is run.",
+  "export_note": "The published API graphs omit only the terminal RSValidationCapture logger. UI workflow sampler properties select the matching existing preset without altering widget values. These exports were checked against the executed inputs, not generated again. Original image/API hashes identify local trial artifacts; published_api_sha256 identifies the portable API export.",
+  "metrics": {
+    "anima": {
+      "generated": 10,
+      "exactly_two_people": 10,
+      "characters_distinguished": 9,
+      "object_recognizable": 10,
+      "object_center_in_box_visual": 6,
+      "object_center_boundary_uncertain": 0,
+      "whole_object_inside_visual": 1,
+      "scene_good_visual": 4
+    },
+    "krea2": {
+      "generated": 10,
+      "exactly_two_people": 10,
+      "characters_distinguished": 10,
+      "object_recognizable": 10,
+      "object_center_in_box_visual": 9,
+      "object_center_boundary_uncertain": 1,
+      "whole_object_inside_visual": 1,
+      "scene_good_visual": 9
+    }
+  },
+  "results": [
+    {
+      "case": "01-apple-anima",
+      "index": 1,
+      "object": "apple",
+      "label": "사과",
+      "caption": "one large shiny red apple with a green leaf",
+      "model": "anima",
+      "seed": 830868837,
+      "target_bbox": [
+        0.32,
+        0.5,
+        0.68,
+        0.9
+      ],
+      "status": "success",
+      "prompt_id": "43b17b43-e8b6-4ded-bc4f-19f8f3dae83b",
+      "elapsed_seconds": 36.022265911102295,
+      "sampler_cached": false,
+      "metadata_pipe_and_settings_match": true,
+      "rgb_sha256": "b5f9c61d11fc9dd2edac78d8e85b351cb0fc11bd17020fd160faaf70e13d15dc",
+      "api_sha256": "d29ed1584d7755ce1411e2a821efb055171b0b145a2bb6f8acf1c373d2030f13",
+      "image_sha256": "977e2b156fbe25b8b2ffaae9ea72f5a7e5005212e8537c5654c4d8ec623721d0",
+      "visual": {
+        "people": 2,
+        "characters_distinguished": true,
+        "object_recognizable": true,
+        "center_in_box": true,
+        "whole_object_inside": false,
+        "scene_coherence": "weak",
+        "note": "두 사람과 사과는 명확. 사과가 매우 크고 화면 아래에서 잘리며 인물과 별도의 전경 탁자처럼 보임."
+      },
+      "published_api_sha256": "88e2dd0598a3dc8203582288e0dd55bd4fec4c575cba2cd71ce8fe89af5e8e00",
+      "workflow": "examples/epsilon/objects/01-apple-anima.json",
+      "api": "examples/epsilon/objects/01-apple-anima-api.json",
+      "routing_summary": {
+        "layout_method": "regional",
+        "region_geometry": "mixed",
+        "box_slots": [
+          3
+        ]
+      }
+    },
+    {
+      "case": "01-apple-krea2",
+      "index": 1,
+      "object": "apple",
+      "label": "사과",
+      "caption": "one large shiny red apple with a green leaf",
+      "model": "krea2",
+      "seed": 830868837,
+      "target_bbox": [
+        0.32,
+        0.5,
+        0.68,
+        0.9
+      ],
+      "status": "success",
+      "prompt_id": "09fcb957-ebb6-4769-a1bd-8c1c10e4f329",
+      "elapsed_seconds": 57.031537771224976,
+      "sampler_cached": false,
+      "metadata_pipe_and_settings_match": true,
+      "rgb_sha256": "63a3695f4366fa411848bb34eff66d580fb169aa5ac885de6f5cdaefa517c763",
+      "api_sha256": "8fffedea1d4a4ff9040cbde0c4e0b689fb5825403e97c65a0bc2a28e970e18b3",
+      "image_sha256": "161390cc22d91ecd5770d03a2f1ed719f8876e307ca251c9602287c921aea260",
+      "visual": {
+        "people": 2,
+        "characters_distinguished": true,
+        "object_recognizable": true,
+        "center_in_box": true,
+        "whole_object_inside": false,
+        "scene_coherence": "good",
+        "note": "두 사람의 외형과 한 탁자 위 배치가 유지됨. 사과는 매우 크고 잎과 꼭지가 상자 위로 나옴. 애니 지시와 달리 실사풍."
+      },
+      "published_api_sha256": "549e6ae5ab8b45570110e5a74ea0e10059fcb5ff58c4f781339e1b25af589504",
+      "workflow": "examples/epsilon/objects/01-apple-krea2.json",
+      "api": "examples/epsilon/objects/01-apple-krea2-api.json",
+      "routing_summary": {
+        "layout_method": "regional",
+        "region_geometry": "mixed",
+        "box_slots": [
+          3
+        ]
+      }
+    },
+    {
+      "case": "02-teapot-anima",
+      "index": 2,
+      "object": "teapot",
+      "label": "주전자",
+      "caption": "one blue ceramic teapot with a curved spout, a handle and a lid",
+      "model": "anima",
+      "seed": 3034467454,
+      "target_bbox": [
+        0.32,
+        0.5,
+        0.68,
+        0.9
+      ],
+      "status": "success",
+      "prompt_id": "8fdf69e8-665a-4975-9722-ac0e92e4538b",
+      "elapsed_seconds": 30.015469551086426,
+      "sampler_cached": false,
+      "metadata_pipe_and_settings_match": true,
+      "rgb_sha256": "4a7b8f45a18a742aae659a9094be065788df280aec1efa27fc6ef261c96a6ce5",
+      "api_sha256": "e3998ce830e7bc6de915e1240bdbd7d5b7c2915e9b9b3aa18e597bafb9a5f9f2",
+      "image_sha256": "3511fc70b46b4edde8dd9a8b49677c29940f23b38da401178142caab15ee463c",
+      "visual": {
+        "people": 2,
+        "characters_distinguished": true,
+        "object_recognizable": true,
+        "center_in_box": true,
+        "whole_object_inside": false,
+        "scene_coherence": "weak",
+        "note": "파란 주전자와 두 사람은 명확. 주전자가 상자 좌우 밖으로 넘고 별도 의자 위에 배치됨. 오른쪽 사람은 요청과 달리 탁자 앞에 있음."
+      },
+      "published_api_sha256": "3a2aff24f5b0f1688e75fff6c08f4f171b15c9dc3b246f816c7cd2b09e0fb0f8",
+      "workflow": "examples/epsilon/objects/02-teapot-anima.json",
+      "api": "examples/epsilon/objects/02-teapot-anima-api.json",
+      "routing_summary": {
+        "layout_method": "regional",
+        "region_geometry": "mixed",
+        "box_slots": [
+          3
+        ]
+      }
+    },
+    {
+      "case": "02-teapot-krea2",
+      "index": 2,
+      "object": "teapot",
+      "label": "주전자",
+      "caption": "one blue ceramic teapot with a curved spout, a handle and a lid",
+      "model": "krea2",
+      "seed": 3034467454,
+      "target_bbox": [
+        0.32,
+        0.5,
+        0.68,
+        0.9
+      ],
+      "status": "success",
+      "prompt_id": "7ebaf041-a0cf-4a40-b0da-53cee40ccf3d",
+      "elapsed_seconds": 24.015445470809937,
+      "sampler_cached": false,
+      "metadata_pipe_and_settings_match": true,
+      "rgb_sha256": "f666b5aed78c6cc994ebdd5594468faf5319482f3ee92e96ec6ea5b611b6fdc6",
+      "api_sha256": "2e970f4a4e9b7043303317d6f4e8f93496800ac0229dc30708eba323df8e813d",
+      "image_sha256": "dc0552367fb3e8fb1418d05c96c187c6338821f9c852f71f8795a3a8eab71371",
+      "visual": {
+        "people": 2,
+        "characters_distinguished": true,
+        "object_recognizable": true,
+        "center_in_box": true,
+        "whole_object_inside": false,
+        "scene_coherence": "good",
+        "note": "두 사람과 파란 주전자가 한 탁자에 자연스럽게 배치됨. 몸체는 상자 안이지만 뚜껑 손잡이가 상자 위로 조금 나옴. 실사풍."
+      },
+      "published_api_sha256": "be4311171eda028355fe97ace49feb475f846c892799ceda85cbd9d02a88af45",
+      "workflow": "examples/epsilon/objects/02-teapot-krea2.json",
+      "api": "examples/epsilon/objects/02-teapot-krea2-api.json",
+      "routing_summary": {
+        "layout_method": "regional",
+        "region_geometry": "mixed",
+        "box_slots": [
+          3
+        ]
+      }
+    },
+    {
+      "case": "03-flowers-anima",
+      "index": 3,
+      "object": "flowers",
+      "label": "꽃병",
+      "caption": "one white ceramic vase holding a bouquet of yellow sunflowers",
+      "model": "anima",
+      "seed": 2345733486,
+      "target_bbox": [
+        0.32,
+        0.5,
+        0.68,
+        0.9
+      ],
+      "status": "success",
+      "prompt_id": "d4f5c5b7-9bdc-487c-80fa-98b5a3aeecc2",
+      "elapsed_seconds": 30.01921510696411,
+      "sampler_cached": false,
+      "metadata_pipe_and_settings_match": true,
+      "rgb_sha256": "4f678f9ff85997d82ee4e2866236a9e5f36dbb24658abb63125e3f5fcc1377e4",
+      "api_sha256": "823668f8f39419ca3b50ab7847bd81d9e5b3abc67f66987ce4d6ba7d8d0b4acd",
+      "image_sha256": "9bb36721db0eb6dbeb33b1025375b1dae57e4cb56a36ee6fcab009620575cd98",
+      "visual": {
+        "people": 2,
+        "characters_distinguished": false,
+        "object_recognizable": true,
+        "center_in_box": true,
+        "whole_object_inside": false,
+        "scene_coherence": "partial",
+        "note": "꽃병과 해바라기는 명확. 두 사람 모두 왼쪽에 몰리고 금발이 흑발로 바뀜. 꽃과 화병이 상자의 위·아래를 넘음. 별도 앞쪽 탁자에 놓임."
+      },
+      "published_api_sha256": "ce6f0ca75b5538088689a6f5a8c65d5592d30f68cb6bb9b68de679d3c547d206",
+      "workflow": "examples/epsilon/objects/03-flowers-anima.json",
+      "api": "examples/epsilon/objects/03-flowers-anima-api.json",
+      "routing_summary": {
+        "layout_method": "regional",
+        "region_geometry": "mixed",
+        "box_slots": [
+          3
+        ]
+      }
+    },
+    {
+      "case": "03-flowers-krea2",
+      "index": 3,
+      "object": "flowers",
+      "label": "꽃병",
+      "caption": "one white ceramic vase holding a bouquet of yellow sunflowers",
+      "model": "krea2",
+      "seed": 2345733486,
+      "target_bbox": [
+        0.32,
+        0.5,
+        0.68,
+        0.9
+      ],
+      "status": "success",
+      "prompt_id": "a54e3b57-ce98-4257-a8fb-45a026cbb70c",
+      "elapsed_seconds": 24.033634901046753,
+      "sampler_cached": false,
+      "metadata_pipe_and_settings_match": true,
+      "rgb_sha256": "1f7771200be62b60bf51fe21547c22b91786e4d33e7d4a5a111dab1129868041",
+      "api_sha256": "3231ada37ba4bfda1ca7e34ee1bc7d492057557b639a9f03bd264a796fef5d0e",
+      "image_sha256": "464ce36199927112aba093afda578ef46c39b57b2bdf14c86a811aecb4ec69e4",
+      "visual": {
+        "people": 2,
+        "characters_distinguished": true,
+        "object_recognizable": true,
+        "center_in_box": null,
+        "whole_object_inside": false,
+        "scene_coherence": "good",
+        "note": "두 사람과 꽃병이 한 탁자에 자연스럽게 배치됨. 꽃다발 대부분이 상자 위쪽. 꽃+화병 외곽 중심은 상단 경계에 매우 가까워 판독 보류. 실사풍."
+      },
+      "published_api_sha256": "a49659547b3b25f9b5ff02f7829813bd3a633bc4a07c0c335fb24d178b173491",
+      "workflow": "examples/epsilon/objects/03-flowers-krea2.json",
+      "api": "examples/epsilon/objects/03-flowers-krea2-api.json",
+      "routing_summary": {
+        "layout_method": "regional",
+        "region_geometry": "mixed",
+        "box_slots": [
+          3
+        ]
+      }
+    },
+    {
+      "case": "04-teddy-anima",
+      "index": 4,
+      "object": "teddy",
+      "label": "곰 인형",
+      "caption": "one brown plush teddy bear sitting upright, with round ears and a red bow tie",
+      "model": "anima",
+      "seed": 2020488034,
+      "target_bbox": [
+        0.32,
+        0.5,
+        0.68,
+        0.9
+      ],
+      "status": "success",
+      "prompt_id": "71f9a003-7f9b-422b-9f07-98f2182d119e",
+      "elapsed_seconds": 30.015276670455933,
+      "sampler_cached": false,
+      "metadata_pipe_and_settings_match": true,
+      "rgb_sha256": "26eef4ad7a7b3b29ac825e123fe2a8a6005e27cd19552bcf0a83cca0a7d84522",
+      "api_sha256": "743fdae456534edc99cd691488bf3d81e9812629b54844b9b47c556b018b7b78",
+      "image_sha256": "ce4fed427ba41cdef300f6143d9bebd376b4626b45945b2e2dcda16629e854c6",
+      "visual": {
+        "people": 2,
+        "characters_distinguished": true,
+        "object_recognizable": true,
+        "center_in_box": false,
+        "whole_object_inside": false,
+        "scene_coherence": "good",
+        "note": "두 사람과 곰 인형이 한 탁자에 자연스럽게 배치됨. 다만 인형은 요청 상자보다 위쪽에 있어 중심도 상자 밖임."
+      },
+      "published_api_sha256": "083be8dc59471dfb4f49c3dbc1ddbe25d05d0d240c61a561b93770eb7ef3fa59",
+      "workflow": "examples/epsilon/objects/04-teddy-anima.json",
+      "api": "examples/epsilon/objects/04-teddy-anima-api.json",
+      "routing_summary": {
+        "layout_method": "regional",
+        "region_geometry": "mixed",
+        "box_slots": [
+          3
+        ]
+      }
+    },
+    {
+      "case": "04-teddy-krea2",
+      "index": 4,
+      "object": "teddy",
+      "label": "곰 인형",
+      "caption": "one brown plush teddy bear sitting upright, with round ears and a red bow tie",
+      "model": "krea2",
+      "seed": 2020488034,
+      "target_bbox": [
+        0.32,
+        0.5,
+        0.68,
+        0.9
+      ],
+      "status": "success",
+      "prompt_id": "c3c26618-65b3-47e3-ad8a-9e2fed9ef801",
+      "elapsed_seconds": 24.016538619995117,
+      "sampler_cached": false,
+      "metadata_pipe_and_settings_match": true,
+      "rgb_sha256": "b88823c7aebf795ff404aaae06583b7342efe08d0abef10f32a16e5b1459ac0e",
+      "api_sha256": "676e76cf1b5b6207947ba4115e3cf8001573ef57f0309864390a79a1ad80e488",
+      "image_sha256": "a8e2e46a419554c36c67c129a80ee7e01e3fd30938df11afda7f669b7ffc5489",
+      "visual": {
+        "people": 2,
+        "characters_distinguished": true,
+        "object_recognizable": true,
+        "center_in_box": true,
+        "whole_object_inside": false,
+        "scene_coherence": "good",
+        "note": "두 캐릭터와 곰 인형이 한 탁자에 자연스럽게 배치됨. 인형 머리와 귀가 상자 위로 나옴. 실사풍."
+      },
+      "published_api_sha256": "d98765c793bd5ccbd0de9798af2662dae0793ea45b8d2d0263e86da4f346f99b",
+      "workflow": "examples/epsilon/objects/04-teddy-krea2.json",
+      "api": "examples/epsilon/objects/04-teddy-krea2-api.json",
+      "routing_summary": {
+        "layout_method": "regional",
+        "region_geometry": "mixed",
+        "box_slots": [
+          3
+        ]
+      }
+    },
+    {
+      "case": "05-book-anima",
+      "index": 5,
+      "object": "book",
+      "label": "펼친 책",
+      "caption": "one open thick book with cream pages and a dark green hardcover",
+      "model": "anima",
+      "seed": 3784684837,
+      "target_bbox": [
+        0.32,
+        0.5,
+        0.68,
+        0.9
+      ],
+      "status": "success",
+      "prompt_id": "d910e9db-a805-4c72-be25-cd4952691af7",
+      "elapsed_seconds": 30.016977310180664,
+      "sampler_cached": false,
+      "metadata_pipe_and_settings_match": true,
+      "rgb_sha256": "ac3c7bbfea099dcf967328c3bd89180d47c785a5c29bf7a192c70a3158651813",
+      "api_sha256": "64c3c2e760fffa8dfcf91e4bd264f12e86cdc8293c82fa594f5ebea3276ab829",
+      "image_sha256": "fab4ca099e2e230fe481be2700084cec2a4e6783c36114a08589f8011870e385",
+      "visual": {
+        "people": 2,
+        "characters_distinguished": true,
+        "object_recognizable": true,
+        "center_in_box": true,
+        "whole_object_inside": false,
+        "scene_coherence": "weak",
+        "note": "두 사람과 펼친 책은 명확. 책이 상자 좌우를 넘고 탁자 상판 아래의 전면에서 떠 있는 듯한 배치."
+      },
+      "published_api_sha256": "81735c97485ae4502ddba7aed8651823fcd39ba13fee13f132147393c32861b8",
+      "workflow": "examples/epsilon/objects/05-book-anima.json",
+      "api": "examples/epsilon/objects/05-book-anima-api.json",
+      "routing_summary": {
+        "layout_method": "regional",
+        "region_geometry": "mixed",
+        "box_slots": [
+          3
+        ]
+      }
+    },
+    {
+      "case": "05-book-krea2",
+      "index": 5,
+      "object": "book",
+      "label": "펼친 책",
+      "caption": "one open thick book with cream pages and a dark green hardcover",
+      "model": "krea2",
+      "seed": 3784684837,
+      "target_bbox": [
+        0.32,
+        0.5,
+        0.68,
+        0.9
+      ],
+      "status": "success",
+      "prompt_id": "2b26699f-5395-471e-aa2b-eacc670e375a",
+      "elapsed_seconds": 24.01393151283264,
+      "sampler_cached": false,
+      "metadata_pipe_and_settings_match": true,
+      "rgb_sha256": "fa3966d4d114593b5ac019cd04788020e31a934bd49067a90cd53df4a59b52c0",
+      "api_sha256": "afb5a71c414386c73ec9db02f78fc384b4ebedfb6b90a3b73fe9a23c319b8245",
+      "image_sha256": "cb8e3c4c19d645bcccad71bc327ea75f37d1892befb78a97666ecc026554e101",
+      "visual": {
+        "people": 2,
+        "characters_distinguished": true,
+        "object_recognizable": true,
+        "center_in_box": true,
+        "whole_object_inside": false,
+        "scene_coherence": "good",
+        "note": "두 캐릭터와 펼친 책이 한 탁자에 자연스럽게 배치됨. 책은 크게 확대되어 상자 좌우를 넘음. 그림체가 다른 Krea 표본보다 일러스트에 가까움."
+      },
+      "published_api_sha256": "6c6ed173e7529ecb2361b8c5ddb1915cfe57dface385dc3175b508fa69dc242d",
+      "workflow": "examples/epsilon/objects/05-book-krea2.json",
+      "api": "examples/epsilon/objects/05-book-krea2-api.json",
+      "routing_summary": {
+        "layout_method": "regional",
+        "region_geometry": "mixed",
+        "box_slots": [
+          3
+        ]
+      }
+    },
+    {
+      "case": "06-camera-anima",
+      "index": 6,
+      "object": "camera",
+      "label": "카메라",
+      "caption": "one black vintage camera with a large round silver lens",
+      "model": "anima",
+      "seed": 1868553389,
+      "target_bbox": [
+        0.32,
+        0.5,
+        0.68,
+        0.9
+      ],
+      "status": "success",
+      "prompt_id": "9822a95a-97fe-430b-b71b-c5d2c902a2f8",
+      "elapsed_seconds": 30.015040159225464,
+      "sampler_cached": false,
+      "metadata_pipe_and_settings_match": true,
+      "rgb_sha256": "782384228ff85e658fc9026295038e3514edeb07cc111c6533291f28f6deb132",
+      "api_sha256": "f56925334adc6ee362caacc11000f68e726d2f552edd6d92936740d5768581fd",
+      "image_sha256": "531abd6e70d36636cf8bb62266981aec94ba386ffd36058b6e244aed42b3b8d9",
+      "visual": {
+        "people": 2,
+        "characters_distinguished": true,
+        "object_recognizable": true,
+        "center_in_box": false,
+        "whole_object_inside": false,
+        "scene_coherence": "partial",
+        "note": "두 사람과 카메라 명확. 카메라가 상자의 오른쪽 위로 이동해 중심도 오른쪽 경계 바로 밖에 있음. 인물은 요청과 달리 탁자 앞에 서 있음."
+      },
+      "published_api_sha256": "249e5bfffb8f9460ff8d79806cb61d859b7f56cba3d90e44a4afbc4f6a2a26c6",
+      "workflow": "examples/epsilon/objects/06-camera-anima.json",
+      "api": "examples/epsilon/objects/06-camera-anima-api.json",
+      "routing_summary": {
+        "layout_method": "regional",
+        "region_geometry": "mixed",
+        "box_slots": [
+          3
+        ]
+      }
+    },
+    {
+      "case": "06-camera-krea2",
+      "index": 6,
+      "object": "camera",
+      "label": "카메라",
+      "caption": "one black vintage camera with a large round silver lens",
+      "model": "krea2",
+      "seed": 1868553389,
+      "target_bbox": [
+        0.32,
+        0.5,
+        0.68,
+        0.9
+      ],
+      "status": "success",
+      "prompt_id": "0370ecae-5a2f-499b-ab5b-7113272f9a1a",
+      "elapsed_seconds": 136.9895257949829,
+      "sampler_cached": false,
+      "metadata_pipe_and_settings_match": true,
+      "rgb_sha256": "2b41372fe1b70c16effbbb38e66691e053c4488a223043fe3cf3e18f5c96dca9",
+      "api_sha256": "8be17227f6a80737eb20df5f03ad54ddd126eb5374aae44b56906b1c4cd461ff",
+      "image_sha256": "c9ce1eed30cdc81c21293f6b0d3313891fdc0ef2e5b9a8aad5db25c06a29f66f",
+      "visual": {
+        "people": 2,
+        "characters_distinguished": true,
+        "object_recognizable": true,
+        "center_in_box": true,
+        "whole_object_inside": true,
+        "scene_coherence": "good",
+        "note": "두 캐릭터의 외형과 한 탁자 위 배치가 유지됨. 카메라는 중심과 전체 외곽이 요청 상자 안에 들어감. 실사풍."
+      },
+      "published_api_sha256": "c0188f41ecc76942aafc022c7786731919a3d968b5c05e9c489c7f4e2598c6c2",
+      "workflow": "examples/epsilon/objects/06-camera-krea2.json",
+      "api": "examples/epsilon/objects/06-camera-krea2-api.json",
+      "routing_summary": {
+        "layout_method": "regional",
+        "region_geometry": "mixed",
+        "box_slots": [
+          3
+        ]
+      }
+    },
+    {
+      "case": "07-lantern-anima",
+      "index": 7,
+      "object": "lantern",
+      "label": "랜턴",
+      "caption": "one red metal camping lantern with a glowing glass chamber and a handle",
+      "model": "anima",
+      "seed": 3615478632,
+      "target_bbox": [
+        0.32,
+        0.5,
+        0.68,
+        0.9
+      ],
+      "status": "success",
+      "prompt_id": "8bbd7a6b-9510-49a3-a24e-fd77fbf2017f",
+      "elapsed_seconds": 30.018367528915405,
+      "sampler_cached": false,
+      "metadata_pipe_and_settings_match": true,
+      "rgb_sha256": "e3ae58c940b7ca3ec457dd652a42864c895bd0c7f485e7b7e1efd63eef438809",
+      "api_sha256": "506affcbd94955b992a848ad9b87ea29cce33aeaefd1327d59b9efb4169f3827",
+      "image_sha256": "bf7734023c68f6b37534c01815b1f8e021f1685dc8309dad56292aec00220756",
+      "visual": {
+        "people": 2,
+        "characters_distinguished": true,
+        "object_recognizable": true,
+        "center_in_box": false,
+        "whole_object_inside": false,
+        "scene_coherence": "good",
+        "note": "두 사람과 붉은 랜턴, 탁자, 캠퍼스가 자연스럽게 이어짐. 손잡이까지 포함한 랜턴 중심이 상자 위쪽에 있음."
+      },
+      "published_api_sha256": "84c5ea29e2434c7116d0b90aadbc6f1fbaff3ef20ebe2a91aa3e044640906ffa",
+      "workflow": "examples/epsilon/objects/07-lantern-anima.json",
+      "api": "examples/epsilon/objects/07-lantern-anima-api.json",
+      "routing_summary": {
+        "layout_method": "regional",
+        "region_geometry": "mixed",
+        "box_slots": [
+          3
+        ]
+      }
+    },
+    {
+      "case": "07-lantern-krea2",
+      "index": 7,
+      "object": "lantern",
+      "label": "랜턴",
+      "caption": "one red metal camping lantern with a glowing glass chamber and a handle",
+      "model": "krea2",
+      "seed": 3615478632,
+      "target_bbox": [
+        0.32,
+        0.5,
+        0.68,
+        0.9
+      ],
+      "status": "success",
+      "prompt_id": "a04af32c-bed9-4366-bade-ae60cbfc3e56",
+      "elapsed_seconds": 72.58068346977234,
+      "sampler_cached": false,
+      "metadata_pipe_and_settings_match": true,
+      "rgb_sha256": "5cdf9bfad492e5cb2430119dd08ac184825ada9f217e0ef21e59e0bcba37a0c4",
+      "api_sha256": "4b514a3a97a77790811a1d6f7497d228ccf656f78e86484ca23362da244a13c2",
+      "image_sha256": "95e931b92f4456a4916dfba4a9cce9081273c661e1e4e42a7376d19f38d61ea5",
+      "visual": {
+        "people": 2,
+        "characters_distinguished": true,
+        "object_recognizable": true,
+        "center_in_box": true,
+        "whole_object_inside": false,
+        "scene_coherence": "good",
+        "note": "두 캐릭터와 붉은 랜턴이 한 탁자에 자연스럽게 배치됨. 랜턴은 크게 확대되어 상부와 손잡이가 상자 위로 나옴. 실사풍."
+      },
+      "published_api_sha256": "ef0fbbf0f0aff983905fcb7955faef1723d6ef919e8b3427bddd474e07d499aa",
+      "workflow": "examples/epsilon/objects/07-lantern-krea2.json",
+      "api": "examples/epsilon/objects/07-lantern-krea2-api.json",
+      "routing_summary": {
+        "layout_method": "regional",
+        "region_geometry": "mixed",
+        "box_slots": [
+          3
+        ]
+      }
+    },
+    {
+      "case": "08-cake-anima",
+      "index": 8,
+      "object": "cake",
+      "label": "케이크",
+      "caption": "one small round strawberry birthday cake with white cream and three lit candles",
+      "model": "anima",
+      "seed": 1527163390,
+      "target_bbox": [
+        0.32,
+        0.5,
+        0.68,
+        0.9
+      ],
+      "status": "success",
+      "prompt_id": "bc2fc6d5-6a6c-4920-9afe-012881e9271d",
+      "elapsed_seconds": 30.020492553710938,
+      "sampler_cached": false,
+      "metadata_pipe_and_settings_match": true,
+      "rgb_sha256": "bd5eca57516a58d409b04f5ddfaf9500984f40ce3b7f88e5961fbda963110b88",
+      "api_sha256": "89405fd4c56904a5040815ce879fa64c9bce9cc5f78a1779cee97e9c8bd22584",
+      "image_sha256": "4f347bb393deae6730941a193d4f9cad8b3379bf3f11bbbc9cf44f86d6113156",
+      "visual": {
+        "people": 2,
+        "characters_distinguished": true,
+        "object_recognizable": true,
+        "center_in_box": true,
+        "whole_object_inside": true,
+        "scene_coherence": "good",
+        "note": "두 사람과 딸기 케이크가 한 탁자에 자연스럽게 배치되고 케이크·초·접시가 상자 안에 들어옴. 초 3개라는 세부 수량 지시는 불일치."
+      },
+      "published_api_sha256": "62813aea6f8c64fcd5aaf249c165139657b62bd1d603b63ee775fb34721cdfa0",
+      "workflow": "examples/epsilon/objects/08-cake-anima.json",
+      "api": "examples/epsilon/objects/08-cake-anima-api.json",
+      "routing_summary": {
+        "layout_method": "regional",
+        "region_geometry": "mixed",
+        "box_slots": [
+          3
+        ]
+      }
+    },
+    {
+      "case": "08-cake-krea2",
+      "index": 8,
+      "object": "cake",
+      "label": "케이크",
+      "caption": "one small round strawberry birthday cake with white cream and three lit candles",
+      "model": "krea2",
+      "seed": 1527163390,
+      "target_bbox": [
+        0.32,
+        0.5,
+        0.68,
+        0.9
+      ],
+      "status": "success",
+      "prompt_id": "adb12d53-71b4-45dd-8a98-8d32558a22ef",
+      "elapsed_seconds": 78.75937724113464,
+      "sampler_cached": false,
+      "metadata_pipe_and_settings_match": true,
+      "rgb_sha256": "eeb36862e04da101f736a3f88d2556f7cfb463263119815a599e5fc494ce3907",
+      "api_sha256": "e64079bc9fb23e5b29171b54c22cff7fe9bfdbd369190ec774b8ef80f4a655fe",
+      "image_sha256": "6e916aa5ef6a1f83b03871b1f4912e0a91632a8bcaa02019a8026e7c1615e0d4",
+      "visual": {
+        "people": 2,
+        "characters_distinguished": true,
+        "object_recognizable": true,
+        "center_in_box": true,
+        "whole_object_inside": false,
+        "scene_coherence": "good",
+        "note": "두 캐릭터와 딸기 케이크가 한 탁자에 자연스럽게 배치됨. 케이크 몸체는 상자 안이지만 초와 불꽃이 상자 위로 나옴. 초 3개도 표현됨. 실사풍."
+      },
+      "published_api_sha256": "2d59a03b678dc9cb8cd2f62463e93f48be77ff650f921fdbb7d2ef35ceabe1bb",
+      "workflow": "examples/epsilon/objects/08-cake-krea2.json",
+      "api": "examples/epsilon/objects/08-cake-krea2-api.json",
+      "routing_summary": {
+        "layout_method": "regional",
+        "region_geometry": "mixed",
+        "box_slots": [
+          3
+        ]
+      }
+    },
+    {
+      "case": "09-basketball-anima",
+      "index": 9,
+      "object": "basketball",
+      "label": "농구공",
+      "caption": "one orange basketball with black curved seams",
+      "model": "anima",
+      "seed": 2050307009,
+      "target_bbox": [
+        0.32,
+        0.5,
+        0.68,
+        0.9
+      ],
+      "status": "success",
+      "prompt_id": "15a476b4-391c-45c3-8372-bfcefd92cd82",
+      "elapsed_seconds": 30.01565170288086,
+      "sampler_cached": false,
+      "metadata_pipe_and_settings_match": true,
+      "rgb_sha256": "ec7f82941320f1afac4dced3c9e6ae677aec89ee4f8d9e851628f4cae0e523cb",
+      "api_sha256": "3c3592cadf6fc5403a564d2465248b6f1d52ee3d8cca95570f80039f50fe5115",
+      "image_sha256": "6baaeb7e8371e1d7e3a4e87b5f76efbd98d34a716f9d5efe3805fbeca7707716",
+      "visual": {
+        "people": 2,
+        "characters_distinguished": true,
+        "object_recognizable": true,
+        "center_in_box": true,
+        "whole_object_inside": false,
+        "scene_coherence": "partial",
+        "note": "두 사람과 농구공은 명확. 공이 매우 커져 상자 위·오른쪽·아래를 넘고 별도의 앞쪽 탁자에 놓임."
+      },
+      "published_api_sha256": "7ead8aecbf7dba90462dd0c769492df043db3c457607e77d73a0bdc0d0013d0f",
+      "workflow": "examples/epsilon/objects/09-basketball-anima.json",
+      "api": "examples/epsilon/objects/09-basketball-anima-api.json",
+      "routing_summary": {
+        "layout_method": "regional",
+        "region_geometry": "mixed",
+        "box_slots": [
+          3
+        ]
+      }
+    },
+    {
+      "case": "09-basketball-krea2",
+      "index": 9,
+      "object": "basketball",
+      "label": "농구공",
+      "caption": "one orange basketball with black curved seams",
+      "model": "krea2",
+      "seed": 2050307009,
+      "target_bbox": [
+        0.32,
+        0.5,
+        0.68,
+        0.9
+      ],
+      "status": "success",
+      "prompt_id": "ae34fd62-daec-4d71-901b-168a0f600286",
+      "elapsed_seconds": 96.65561699867249,
+      "sampler_cached": false,
+      "metadata_pipe_and_settings_match": true,
+      "rgb_sha256": "2921189f6f2c4a0f12b66f1b36fc54b67fd201c0b05ce87d26a0a93bbd763a93",
+      "api_sha256": "f57c769b93a9e6d2411a0459241ab18928898d645c4d293023402ca80228aeb6",
+      "image_sha256": "2b22d14eac2c454adb1a4d1a5601f94ca0b89c28baca2e9b32ac953adf74b680",
+      "visual": {
+        "people": 2,
+        "characters_distinguished": true,
+        "object_recognizable": true,
+        "center_in_box": true,
+        "whole_object_inside": false,
+        "scene_coherence": "good",
+        "note": "두 캐릭터와 농구공이 같은 높이의 이어진 탁자에 배치됨. 공은 크고 상단이 요청 상자의 위로 조금 나옴. 실사풍."
+      },
+      "published_api_sha256": "b3b7229b98c42d2a5fc28328a31442d30028a449d9e60ae48dcb36cf389f53b1",
+      "workflow": "examples/epsilon/objects/09-basketball-krea2.json",
+      "api": "examples/epsilon/objects/09-basketball-krea2-api.json",
+      "routing_summary": {
+        "layout_method": "regional",
+        "region_geometry": "mixed",
+        "box_slots": [
+          3
+        ]
+      }
+    },
+    {
+      "case": "10-cactus-anima",
+      "index": 10,
+      "object": "cactus",
+      "label": "선인장 화분",
+      "caption": "one green cactus with two side arms in a terracotta flowerpot",
+      "model": "anima",
+      "seed": 915598712,
+      "target_bbox": [
+        0.32,
+        0.5,
+        0.68,
+        0.9
+      ],
+      "status": "success",
+      "prompt_id": "62dc6e07-875a-4b28-b4c1-2da0b9128e19",
+      "elapsed_seconds": 30.01528525352478,
+      "sampler_cached": false,
+      "metadata_pipe_and_settings_match": true,
+      "rgb_sha256": "85511bf9a24aa4e6c3083d742d4d83d38df2dc0b29f5afb8be632eda579e88a6",
+      "api_sha256": "6fda04b923336bd4851cac9f8f8d628abd02f2fe7a91ecb1956d30c48566255b",
+      "image_sha256": "d5820184d17983ce4d286f9f420f884abd1adce0c70e22ec2484c13a9fa7f001",
+      "visual": {
+        "people": 2,
+        "characters_distinguished": true,
+        "object_recognizable": true,
+        "center_in_box": false,
+        "whole_object_inside": false,
+        "scene_coherence": "good",
+        "note": "두 사람과 선인장 화분이 한 탁자에 배치됨. 화분·식물이 요청 상자보다 위로 이동. 선인장에 요청하지 않은 얼굴이 붙음."
+      },
+      "published_api_sha256": "becac6daa61f4522a8051a08de7d5d66332ef3b95ff8eac3c32108a68b666f6b",
+      "workflow": "examples/epsilon/objects/10-cactus-anima.json",
+      "api": "examples/epsilon/objects/10-cactus-anima-api.json",
+      "routing_summary": {
+        "layout_method": "regional",
+        "region_geometry": "mixed",
+        "box_slots": [
+          3
+        ]
+      }
+    },
+    {
+      "case": "10-cactus-krea2",
+      "index": 10,
+      "object": "cactus",
+      "label": "선인장 화분",
+      "caption": "one green cactus with two side arms in a terracotta flowerpot",
+      "model": "krea2",
+      "seed": 915598712,
+      "target_bbox": [
+        0.32,
+        0.5,
+        0.68,
+        0.9
+      ],
+      "status": "success",
+      "prompt_id": "e761520a-1aac-4388-a062-f232a6bd0204",
+      "elapsed_seconds": 30.023696422576904,
+      "sampler_cached": false,
+      "metadata_pipe_and_settings_match": true,
+      "rgb_sha256": "702874a416f0b2a14fa8d35c876b08ae5d3e754bb353045e0f21477f55511c54",
+      "api_sha256": "26d8212b81fb2ebb785d9f1e10e9973381070f9fcfeb76182875fadf741ead7c",
+      "image_sha256": "610a22a6911704ebc131453aaecdd3c1268d994508af79e259b73530b20e8586",
+      "visual": {
+        "people": 2,
+        "characters_distinguished": true,
+        "object_recognizable": true,
+        "center_in_box": true,
+        "whole_object_inside": false,
+        "scene_coherence": "partial",
+        "note": "두 캐릭터와 선인장 화분은 명확. 식물은 상자 위로 크게 나오고 화분 받침은 아래로 조금 넘음. 인물 앞의 탁자와 별개인 전경 받침대에 놓임. 실사풍."
+      },
+      "published_api_sha256": "21f8bfa129a463a6e04314c4e070f194cd818ee179b1e523606cb9ea31fc654f",
+      "workflow": "examples/epsilon/objects/10-cactus-krea2.json",
+      "api": "examples/epsilon/objects/10-cactus-krea2-api.json",
+      "routing_summary": {
+        "layout_method": "regional",
+        "region_geometry": "mixed",
+        "box_slots": [
+          3
+        ]
+      }
+    }
+  ]
+}

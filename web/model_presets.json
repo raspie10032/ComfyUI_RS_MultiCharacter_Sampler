@@ -34,9 +34,9 @@
       "ja": "Anima — 混合配置"
     },
     "note": {
-      "en": "Anima base v1.0: two people + text box. Use a shared scene in the prompts; settings alone do not ensure the tested result.",
-      "ko": "Anima base v1.0 두 사람 + 글자 상자 시험값입니다. 문장에도 공통 장면을 적어 주세요. 수치만으로 예제 품질을 보장하지 않습니다.",
-      "ja": "Anima base v1.0の2人＋文字枠の試験値です。共通の場面をプロンプトにも記述してください。数値だけでは品質を保証しません。"
+      "en": "Anima base v1.0: tested with two people plus a text or object box. Use shared scene context in the captions. Exact object bounds and natural placement are not guaranteed.",
+      "ko": "Anima base v1.0 두 사람 + 글자/물체 상자 시험값입니다. 문장에도 공통 장면을 적어 주세요. 정확한 물체 크기와 자연스러운 배치는 보장하지 않습니다.",
+      "ja": "Anima base v1.0の2人＋文字/物体枠の試験値です。共通の場面も記述してください。正確な大きさや自然な配置は保証しません。"
     },
     "source": "examples/epsilon/anima-mixed.json",
     "settings": {
@@ -99,9 +99,9 @@
       "ja": "Krea 2 Turbo"
     },
     "note": {
-      "en": "Krea 2 Turbo FP8: 8 steps / CFG 1. Connect the matching model and encoder.",
-      "ko": "Krea 2 Turbo FP8: 8스텝 / CFG 1. 대응 모델과 인코더를 연결해 주세요.",
-      "ja": "Krea 2 Turbo FP8：8ステップ／CFG 1。対応するモデルとエンコーダーを接続してください。"
+      "en": "Krea 2 Turbo: 8 steps, CFG 1. Tested with two people plus a text or object box. Objects can exceed the box and render photographically despite an anime prompt.",
+      "ko": "Krea 2 Turbo 8스텝·CFG 1, 두 사람 + 글자/물체 상자 시험값입니다. 물체가 상자를 넘거나 애니 문장에도 실사풍으로 나올 수 있습니다.",
+      "ja": "Krea 2 Turboの8ステップ・CFG 1、2人＋文字/物体枠の試験値です。矩形からはみ出したり、アニメ指定でも写真風になる場合があります。"
     },
     "source": "examples/epsilon/krea2-mixed.json",
     "settings": {

@@ -34,6 +34,8 @@ The prompt, seed and box placement also influence the image. Copying these numbe
 
 See the [preset UI and real-generation validation record](model-presets-validation.md) for the checks performed on this feature.
 
+The existing **Anima — mixed** and **Krea 2 Turbo** presets also supplied the settings for [two people plus ten different boxed objects](object-layout-validation.md). No separate object preset is needed: the sampler values are identical. Load an [object workflow](../examples/epsilon/objects) for its prompts and geometry. Bounds are approximate, and the generic object slot remains a face-matching candidate if this pipe is passed to the detailer.
+
 ## 한국어
 
 샘플러 하단의 **모델 계열 프리셋 → 프리셋 적용**을 사용하세요. 이름을 고르면 안내만 바뀌고, 적용 버튼을 눌러야 스텝·CFG·샘플러·스케줄러·영역 강도가 바뀝니다. 이후 수동으로 수정할 수 있으며, 저장 후 다시 열어도 프리셋을 자동으로 덮어쓰지 않습니다. Anima·SDXL은 좌표용과 혼합 배치용이 따로 있습니다.

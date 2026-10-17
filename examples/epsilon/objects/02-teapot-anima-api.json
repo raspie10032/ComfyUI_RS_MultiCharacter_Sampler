@@ -1,0 +1,138 @@
+{
+  "1": {
+    "class_type": "UNETLoader",
+    "inputs": {
+      "unet_name": "anima-base-v1.0.safetensors",
+      "weight_dtype": "default"
+    }
+  },
+  "2": {
+    "class_type": "RSMultiCharacterPrompts",
+    "inputs": {
+      "character_count": 3,
+      "layout_mode": "mixed",
+      "character1": "An adult woman with short black bob hair, a red jacket over a black shirt and black trousers, standing behind the left side of a wooden display table in a university garden.",
+      "character1_uc": "",
+      "character1_enable": true,
+      "character1_kind": "character",
+      "character1_text": "",
+      "character1_geometry": "point",
+      "character1_x": 0.22,
+      "character1_y": 0.43,
+      "character1_width": 0.36,
+      "character1_height": 0.4,
+      "character2": "An adult woman with long blonde hair, a white blouse and a long blue skirt, standing behind the right side of the same wooden display table in a university garden.",
+      "character2_uc": "",
+      "character2_enable": true,
+      "character2_kind": "character",
+      "character2_text": "",
+      "character2_geometry": "point",
+      "character2_x": 0.78,
+      "character2_y": 0.43,
+      "character2_width": 0.36,
+      "character2_height": 0.4,
+      "character3": "A close view of one blue ceramic teapot with a curved spout, a handle and a lid, resting naturally on a wooden display table. The complete object is clearly visible.",
+      "character3_uc": "",
+      "character3_enable": true,
+      "character3_kind": "character",
+      "character3_text": "",
+      "character3_geometry": "box",
+      "character3_x": 0.5,
+      "character3_y": 0.7,
+      "character3_width": 0.36,
+      "character3_height": 0.4,
+      "character4": "",
+      "character4_uc": "",
+      "character4_enable": false,
+      "character4_x": 0.5,
+      "character4_y": 0.5,
+      "character5": "",
+      "character5_uc": "",
+      "character5_enable": false,
+      "character5_x": 0.5,
+      "character5_y": 0.5,
+      "character6": "",
+      "character6_uc": "",
+      "character6_enable": false,
+      "character6_x": 0.5,
+      "character6_y": 0.5,
+      "character7": "",
+      "character7_uc": "",
+      "character7_enable": false,
+      "character7_x": 0.5,
+      "character7_y": 0.5,
+      "character8": "",
+      "character8_uc": "",
+      "character8_enable": false,
+      "character8_x": 0.5,
+      "character8_y": 0.5,
+      "character9": "",
+      "character9_uc": "",
+      "character9_enable": false,
+      "character9_x": 0.5,
+      "character9_y": 0.5,
+      "character10": "",
+      "character10_uc": "",
+      "character10_enable": false,
+      "character10_x": 0.5,
+      "character10_y": 0.5
+    }
+  },
+  "3": {
+    "class_type": "RSMultiCharacterSampler",
+    "inputs": {
+      "model": [
+        "1",
+        0
+      ],
+      "clip": [
+        "4",
+        0
+      ],
+      "vae": [
+        "5",
+        0
+      ],
+      "character_pipe": [
+        "2",
+        0
+      ],
+      "prompt": "An anime illustration of exactly two adult women standing behind a wooden display table in a sunny university garden, medium wide shot. Both faces are clearly visible, one woman on each side. On the center of the table in the foreground sits one blue ceramic teapot with a curved spout, a handle and a lid. Flowers, trees and a brick campus building form a single continuous background. Natural perspective, coherent lighting, a single scene.",
+      "negative_prompt": "worst quality, low quality, bad anatomy, extra arms, extra legs, extra people, watermark, text, letters, nude, naked, white background, blank background, reference sheet, character sheet, collage, panels, border",
+      "width": 1024,
+      "height": 768,
+      "seed": 3034467454,
+      "steps": 30,
+      "cfg": 4.0,
+      "sampler_name": "euler_ancestral",
+      "scheduler": "sgm_uniform",
+      "autosave": true,
+      "save_format": "PNG",
+      "webp_quality": 90,
+      "prompt_syntax": "ComfyUI",
+      "use_image_settings": false,
+      "region_feather": 0.04,
+      "initial_common_prior": 0.6,
+      "common_after_step3_boost": 0.1,
+      "initial_character_gain": 1.7,
+      "initial_spatial_separation": 0.9,
+      "boundary_hold_steps": 3,
+      "boundary_decrement": 0.2,
+      "layout_method": "regional"
+    }
+  },
+  "4": {
+    "class_type": "CLIPLoader",
+    "inputs": {
+      "clip_name": "qwen_3_06b_base.safetensors",
+      "type": "stable_diffusion",
+      "device": "default"
+    }
+  },
+  "5": {
+    "class_type": "VAELoader",
+    "inputs": {
+      "vae_name": "qwen_image_vae.safetensors"
+    }
+  }
+}

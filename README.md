@@ -1,8 +1,8 @@
 # ComfyUI_RS_MultiCharacter_Sampler
 
-**0.1.5 Epsilon development candidate · Anima · SDXL · Krea 2 · MOSS · SD1.5 (experimental, unstable)** — independent character prompts and X/Y prompt regions for local ComfyUI generation.
+**0.1.5 Epsilon · Anima · SDXL · Krea 2 · MOSS · SD1.5 (experimental, unstable)** — independent prompts with X/Y, box and mixed regions for local ComfyUI generation.
 
-**Previous release — 0.1.4 Delta:** MOSS-Image SFT 8-step LoRA examples for two characters and four-character XY layouts, CFG 1/3 comparisons, and setup instructions. Uses the existing sampler and standard LoRA loader. See [release notes and validation scope](docs/release-0.1.4.md).
+**New in Epsilon:** mixed point/box layouts, literal text regions, eight editable model-family presets, MOSS native layout mode, and two-person object-box examples for Anima and Krea 2. See [release notes and validation scope](docs/release-0.1.5.md).
 
 [한국어](README.ko.md) · [日本語](README.ja.md) · [Architecture](docs/architecture.md) · [Validation](docs/validation.md)
 
@@ -10,14 +10,14 @@ This extension contains six nodes. It does not require the RS NovelAI extension,
 
 | Node | Purpose |
 | --- | --- |
-| **RS MultiCharacter Prompts** | 1–10 character slots, each with original text, enable switch and normalized X/Y. One dedicated `RS_MC_CHARACTER_PIPE` output. |
+| **RS MultiCharacter Prompts** | 1–10 regions with original text, enable switch, normalized X/Y and optional boxes or literal text. One dedicated `RS_MC_CHARACTER_PIPE` output. |
 | **RS MultiCharacter Sampler** | Common positive/negative prompts, local sampling, optional autosave, image/latent/pipe/info outputs. |
 | **RS MultiCharacter Load Image** | PNG/WebP image and mask, restored character pipe and generation information. |
 | **RS MultiCharacter Detailer** | Detect regions, match original character prompts and locally correct masked crops. |
 | **RS Detection Combine Loader** | SEGM / BBOX / SAM selection in one detector connection; SEGM takes priority. |
 | **RS Character Tagger Loader** | Local tagger selection for automatic character matching, with download progress. |
 
-**0.1.5 Epsilon candidate:** optional boxes and mixed point/box layouts, text regions, and MOSS native layout comparison. [Setup and limitations](docs/regional-layout.md).
+**Epsilon layouts:** optional boxes and mixed point/box layouts, text regions, and MOSS native layout comparison. [Setup and limitations](docs/regional-layout.md).
 
 Mixed-layout examples now include **Anima, Illustrious XL, Krea 2 Turbo and experimental SD1.5**, with model-specific conditioning and prompts. Anima's initial example has been retuned for a shared campus background and an unclipped title. [Settings, comparisons and limits](docs/mixed-layout-tuning.md). Text spelling and person count remain model-dependent; these settings do not automatically replace existing workflow values.
 
@@ -25,9 +25,11 @@ The SD1.5 example checks **two distinguishable people and visible lettering in t
 
 To try **two people plus one word**, use region count `3`, `layout_mode=mixed`, point geometry for character slots 1–2, and `kind=text` with literal `HELLO` for slot 3. Set its X/Y and width/height, then select sampler `layout_method=regional`. [Runnable examples](examples/epsilon) · [Validation and visual limitations](docs/epsilon-validation.md). Up to 10 total character/text regions; MOSS native mode requires boxes for every region.
 
+**Two people plus one object:** use the existing **Anima — mixed** or **Krea 2 Turbo** preset with the [20 object workflows](examples/epsilon/objects). Slot 3 uses `character` + `box` with an object description. The ten-object trial preserved two people and recognizable objects in all 20 images, but exact bounds and scene coherence varied. Object slots are not automatically excluded from face detailing. [Images, settings and limits](docs/object-layout-validation.md).
+
 ## Install
 
-Find **RS MultiCharacter Sampler (Delta)** in ComfyUI-Manager, or open the [Comfy Registry page](https://registry.comfy.org/publishers/raspie10032/nodes/comfyui-rs-multicharacter-sampler). Package ID: `comfyui-rs-multicharacter-sampler`. Restart ComfyUI after installation. If the new listing is not yet visible in your Manager cache, refresh its node list or use the Git installation below.
+Find **RS MultiCharacter Sampler (Epsilon)** in ComfyUI-Manager, or open the [Comfy Registry page](https://registry.comfy.org/publishers/raspie10032/nodes/comfyui-rs-multicharacter-sampler). Package ID: `comfyui-rs-multicharacter-sampler`. Restart ComfyUI after installation. If the new listing is not yet visible in your Manager cache, refresh its node list or use the Git installation below.
 
 For Git installation, clone this repository into your ComfyUI `custom_nodes` directory, then restart ComfyUI. Use one installation method; do not install a second copy alongside an existing Git checkout.
 
@@ -145,6 +147,8 @@ From this directory, using an environment containing Torch, NumPy and Pillow:
 python -m unittest discover -s tests -p 'test_*.py' -v
 node tests/test_ui.cjs
 node tests/test_detailer_ui.cjs
+node tests/test_boxes_ui.cjs
+node tests/test_presets_ui.cjs
 ```
 
 License: GPL-3.0-only. See [COPYING](COPYING), [third-party notices](THIRD_PARTY_NOTICES.md) and [source lineage](docs/source-lineage.json).

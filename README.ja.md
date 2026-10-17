@@ -1,10 +1,10 @@
 # ComfyUI_RS_MultiCharacter_Sampler
 
-**0.1.5 Epsilon 開発版 · Anima・SDXL・Krea 2・MOSS・SD1.5（実験対応・不安定）**。共通プロンプトと各キャラクターの文章・XY座標を専用パイプで渡し、領域ごとに attention を制御します。RS NAI 拡張や API キーは不要です。
+**0.1.5 Epsilon · Anima・SDXL・Krea 2・MOSS・SD1.5（実験対応・不安定）**。共通プロンプトと各キャラクターの文章・XY座標・矩形を専用パイプで渡し、領域ごとに attention を制御します。RS NAI 拡張や API キーは不要です。
 
-**前のリリース — 0.1.4 デルタ:** MOSS-Image SFT 8ステップ LoRA の2人・4人XYサンプル、CFG 1/3の比較結果と導入手順を追加しました。既存のサンプラーと標準 LoRA ローダーで使用します。[変更点と検証範囲](docs/release-0.1.4.md)
+**Epsilonの変更点:** 座標と矩形の混合配置、文字領域、編集可能なモデル系統プリセット8種類、MOSSネイティブ配置、Anima・Krea 2の人物2人＋物体サンプルを追加しました。[変更点と検証範囲](docs/release-0.1.5.md)
 
-**0.1.5 Epsilon 開発版:** 座標と矩形の混合配置、文字領域、MOSSネイティブレイアウトの比較を追加。人物2人は座標、`HELLO`は上部の矩形で指定できます。[設定と制限](docs/regional-layout.md)。
+**Epsilonの配置:** 人物2人は座標、`HELLO`は上部の矩形で指定できます。[設定と制限](docs/regional-layout.md)。
 
 **Anima・Illustrious XL・Krea 2 Turbo・実験対応のSD1.5**向けに、モデル別の強度と文章を使う混合配置サンプルを追加しました。Animaの初期サンプルで消えたキャンパス背景と、上端で切れたタイトルを改善しています。[設定比較・実際の結果・制限](docs/mixed-layout-tuning.md)。綴りや人数はモデルによって不安定で、既存ワークフローの設定は自動変更しません。
 
@@ -12,9 +12,11 @@ SD1.5の例は、**人物2人を区別でき、文字領域に何らかの表現
 
 **人物2人＋単語1つ**は領域数 `3`、`layout_mode=mixed` に設定します。1・2番を `character` と `point`、3番を `text` にし、文字欄に `HELLO`、プロンプト欄に字体や色の説明を入力してください。文字のX/Y・幅・高さを指定し、サンプラーは `layout_method=regional` にします。矩形内は文字領域が優先されます。人物と文字を合わせて最大10領域です。正確な綴りや矩形への収まりは保証されません。MOSSネイティブ方式では全領域に矩形が必要です。[実行サンプル](examples/epsilon) · [検証範囲と実際の制限](docs/epsilon-validation.md)。
 
+**人物2人＋物体1つ**には既存の **Anima — 混合配置** または **Krea 2 Turbo** プリセットと[物体サンプル20件](examples/epsilon/objects)を使います。3番目の枠は `character` + `box` にして物体を記述します。10種類の試験では20枚すべてに人物2人と識別できる物体が現れましたが、矩形への収まりと場面の一体感には差があります。物体の枠は顔ディテイラーの候補から自動除外されません。[比較画像・設定・制限](docs/object-layout-validation.md)。
+
 ## 使用方法
 
-ComfyUI-Manager で **RS MultiCharacter Sampler (Delta)** を検索するか、[Comfy Registry](https://registry.comfy.org/publishers/raspie10032/nodes/comfyui-rs-multicharacter-sampler) からインストールします。パッケージ ID は `comfyui-rs-multicharacter-sampler` です。インストール後に ComfyUI を再起動してください。新しい項目が表示されない場合は Manager の一覧を更新するか、Git でインストールできます。
+ComfyUI-Manager で **RS MultiCharacter Sampler (Epsilon)** を検索するか、[Comfy Registry](https://registry.comfy.org/publishers/raspie10032/nodes/comfyui-rs-multicharacter-sampler) からインストールします。パッケージ ID は `comfyui-rs-multicharacter-sampler` です。インストール後に ComfyUI を再起動してください。新しい項目が表示されない場合は Manager の一覧を更新するか、Git でインストールできます。
 
 Git の場合はこのリポジトリを `ComfyUI/custom_nodes` に clone します。既存の Git インストールがある場合は重複インストールせず、そちらを更新してください。拡散モデル・テキストエンコーダー・VAEは別途用意します。ディテイラーの検出・タグローダーは、選択したカタログモデルが未導入の場合に実行時ダウンロードし、進捗を表示します。
 
