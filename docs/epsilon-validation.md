@@ -13,7 +13,7 @@ Development branch: `codex/0.1.5-epsilon-bbox`. Base: `66a32eae01eadb4865359c13c
 
 ## Evidence
 
-27 completed runtime history records and corresponding output images were retained in the local validation bundle. These comprise 18 initial point/box/swap/resize/overlap cases, 6 two-people-plus-HELLO cases, and 3 final-code/restore/browser replays. All cases are local model generation, with no NovelAI API use.
+The initial implementation pass retained 27 completed runtime history records and corresponding output images in the local validation bundle. These comprise 18 initial point/box/swap/resize/overlap cases, 6 two-people-plus-HELLO cases, and 3 final-code/restore/browser replays. All cases are local model generation, with no NovelAI API use. The later [model-specific mixed-layout tuning](mixed-layout-tuning.md) adds actual mixed-mode generation for Anima, Illustrious XL, Krea 2 and SD1.5, with separate evidence and limitations.
 
 - Anima: old points regression; four box layouts; all-boxes and mixed 2 people + HELLO; final mixed replay, image-loader replay, browser Run.
 - SDXL, SD1.5, Krea2: one overlapping-box execution smoke each. This proves the routes ran, not general geometry, spelling or image-quality reliability.
@@ -26,11 +26,11 @@ The old points sample matches the pre-Epsilon reference pixel for pixel. The fin
 
 ## Visual findings and limits
 
-Anima followed the left/right box swap. Boxes influence prompt lookup, not exact object outlines. The mixed Anima sample drew two people and HELLO, but clipped the word at the top, used a white background instead of the requested campus, and did not keep whole bodies inside the view.
+Anima followed the left/right box swap. Boxes influence prompt lookup, not exact object outlines. The initial mixed Anima sample drew two people and HELLO, but clipped the word at the top, used a white background instead of the requested campus, and did not keep whole bodies inside the view. This initial result remains in the validation history; the example workflow has since been replaced with the [tuned campus setup](mixed-layout-tuning.md).
 
 MOSS 8-step LoRA regional mixed drew two people and correctly spelled HELLO above them while retaining the campus. The text extends beyond the requested rectangle, so exact typesetting is not achieved. Native MOSS base and 8-step LoRA were tested separately. Samples use one seed per layout; no success-rate or universal superiority claim is supported.
 
-This task does not revalidate live detailing with text regions. Source/unit evidence checks exclusion from matching and preservation of boxes/text through detailer metadata. SDXL/SD1.5/Krea2 literal-text quality and mixed-mode image quality were not separately generated; only their overlapping-box routes and CPU mixed membership were checked.
+This task does not revalidate live detailing with text regions. Source/unit evidence checks exclusion from matching and preservation of boxes/text through detailer metadata. In the initial implementation pass, SDXL/SD1.5/Krea2 literal-text quality and mixed-mode image quality were not separately generated; only their overlapping-box routes and CPU mixed membership were checked. The subsequent [mixed-layout comparison](mixed-layout-tuning.md) addresses those generation paths without claiming universal spelling or image-quality reliability.
 
 ## Reproduce
 

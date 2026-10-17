@@ -1,0 +1,283 @@
+{
+  "date": "2026-10-17",
+  "source_commit": "fb073f2c95c62d0aea296ad25edf6e5f4ae74758",
+  "comfyui_commit": "5cc4b870094c89090db54bd8d12649dcaf89f2ba",
+  "scope": "Mixed XY character regions plus one text box; model-specific example conditioning and captions.",
+  "source_and_test_hashes_unchanged": {
+    "routing.py": true,
+    "layout.py": true,
+    "prompt_syntax.py": true,
+    "characters.py": true,
+    "detailer.py": true,
+    "detailer_matching.py": true,
+    "detection.py": true,
+    "detection_models.py": true,
+    "detector_bundle.py": true,
+    "errors.py": true,
+    "image_utils.py": true,
+    "joint_engine.py": true,
+    "mask_repair.py": true,
+    "runtime_control.py": true,
+    "tagger_progress.py": true,
+    "wd_tagger.py": true,
+    "engine.py": true,
+    "metadata.py": true,
+    "sdxl_engine.py": true,
+    "__init__.py": true,
+    "nodes.py": true,
+    "tests/test_routing.py": true,
+    "tests/test_detailer.py": true,
+    "tests/test_joint_engine.py": true,
+    "tests/test_package.py": true,
+    "tests/test_native_models.py": true,
+    "tests/test_sdxl.py": true,
+    "tests/test_boxes.py": true
+  },
+  "total_completed_cases": 49,
+  "exploration_cases": 37,
+  "final_confirmation_cases": 12,
+  "selection": {
+    "cases": {
+      "anima": "anima-context",
+      "sdxl": "sdxl-natural-strong",
+      "sd15": "sd15-context",
+      "krea2": "krea2-baseline"
+    },
+    "seeds": [
+      346751,
+      1226307043,
+      867403938
+    ]
+  },
+  "sd15_acceptance": "Two distinguishable people and visible lettering in the requested area. Image quality and exact spelling are not acceptance requirements.",
+  "visual_assessment": {
+    "anima": {
+      "two_people": 3,
+      "shared_scene": 3,
+      "readable_unclipped_HELLO": 3,
+      "limit": "Static title illustration; outlines not enforced."
+    },
+    "sdxl": {
+      "two_people": 3,
+      "shared_scene": 3,
+      "lettering_above": 3,
+      "limit": "Additional small lettering, repeated HELLO or malformed letters."
+    },
+    "krea2": {
+      "two_people": 3,
+      "shared_scene": 3,
+      "readable_HELLO": 3,
+      "limit": "Hair overlaps title in some results; letters exceed box."
+    },
+    "sd15": {
+      "two_people": 3,
+      "shared_scene": 3,
+      "lettering_above": 3,
+      "exact_HELLO": 0,
+      "limit": "Limited compatibility acceptance only."
+    }
+  },
+  "visual_assessment_method": "Manual review of all 12 final confirmation images; each model has only three seeds.",
+  "workflow_schema_audit": [
+    {
+      "model": "anima",
+      "source": "anima-context",
+      "nodes": 5,
+      "widget_values_match": true,
+      "links_match": true,
+      "valid_installed_choices": true
+    },
+    {
+      "model": "sdxl",
+      "source": "sdxl-natural-strong",
+      "nodes": 3,
+      "widget_values_match": true,
+      "links_match": true,
+      "valid_installed_choices": true
+    },
+    {
+      "model": "sd15",
+      "source": "sd15-context",
+      "nodes": 3,
+      "widget_values_match": true,
+      "links_match": true,
+      "valid_installed_choices": true
+    },
+    {
+      "model": "krea2",
+      "source": "krea2-baseline",
+      "nodes": 5,
+      "widget_values_match": true,
+      "links_match": true,
+      "valid_installed_choices": true
+    }
+  ],
+  "confirmations": [
+    {
+      "case": "anima-confirm-1",
+      "prompt_id": "7cf17b81-2722-4e84-abc6-faa711a43570",
+      "status": "success",
+      "sampler_cached": false,
+      "metadata_pipe_and_settings_match": true,
+      "seed": 346751,
+      "rgb_sha256": "088630ef57de66ea050fbde7cb3a05ca50ceedd1c7095f1c254b483ca838aecf",
+      "api_sha256": "6b0447b8fbf33131ef85d85614afb99155714f090aa51f59be7ec2e702534916",
+      "history_sha256": "68e6258b6d62008d9fe3ec98a1555760ab1e5f252f75918b23c55bdff220c447"
+    },
+    {
+      "case": "anima-confirm-2",
+      "prompt_id": "eae796a3-4c37-4d3d-9739-2d514b2c2d83",
+      "status": "success",
+      "sampler_cached": false,
+      "metadata_pipe_and_settings_match": true,
+      "seed": 1226307043,
+      "rgb_sha256": "7bc13f5dec4150bbe80e78cb2a288a5533d5d28b158154c26d6bf6f6e7f76fd7",
+      "api_sha256": "50da3e26b59bd19ad48f5690d8c1d794f55b133b0a46d7a3b0e88c45fa3541cd",
+      "history_sha256": "7df79b58e2bb101fe878fba1c577a0737069882686b761ae2b337e9d4389280a"
+    },
+    {
+      "case": "anima-confirm-3",
+      "prompt_id": "8b0660e9-1965-4110-8888-9219501d5814",
+      "status": "success",
+      "sampler_cached": false,
+      "metadata_pipe_and_settings_match": true,
+      "seed": 867403938,
+      "rgb_sha256": "db0c99b682ab43703f90f5c72007c85c17b022add603135009b664cf3bcc35f1",
+      "api_sha256": "d81bf001ed394d5493edd2ed42ce6b4dab39878139858b15804dcb352c639013",
+      "history_sha256": "67496a20aeeab737a79ab932729bf56f13779b502bdbac4b1659625b517b6766"
+    },
+    {
+      "case": "sdxl-confirm-1",
+      "prompt_id": "a97838a9-3e07-40b8-a3d0-c33908859c73",
+      "status": "success",
+      "sampler_cached": false,
+      "metadata_pipe_and_settings_match": true,
+      "seed": 346751,
+      "rgb_sha256": "154c7d1b24c4873c61daaa277727c198593f26a9f0e9dd0a23bd7fc23586f97c",
+      "api_sha256": "e5be2a6999d7c4ff269aa64575ae90c2a90fde28f68719a383c81796830a71e2",
+      "history_sha256": "0dce5c49e214cf1fb3fd5387bec75d73a7863ae07d44152576f8132509bbdd5d"
+    },
+    {
+      "case": "sdxl-confirm-2",
+      "prompt_id": "dc388c06-fdb0-45af-9405-a405ef804814",
+      "status": "success",
+      "sampler_cached": false,
+      "metadata_pipe_and_settings_match": true,
+      "seed": 1226307043,
+      "rgb_sha256": "302461ff4119c84ec2002720f46fe755e5e0615628e9bbb5055865fb5b29b9ff",
+      "api_sha256": "8fbafe5147355f6f150576f84e82c4d03efd88619e7424e023b2cec2ab12f4e2",
+      "history_sha256": "d971d300727a06846a25823deadacbefce18e88cd4dda974082222f2876bd344"
+    },
+    {
+      "case": "sdxl-confirm-3",
+      "prompt_id": "834b8c68-c444-41db-8e20-0fb625ee6fbf",
+      "status": "success",
+      "sampler_cached": false,
+      "metadata_pipe_and_settings_match": true,
+      "seed": 867403938,
+      "rgb_sha256": "a875f027a87baaa32a26b7b32796b217b81fe95abc908a76098163e3061fad30",
+      "api_sha256": "0539e50e7791b4000b97a6154cd3a8fcaf1b309b246f15e3ebf9d797723d643d",
+      "history_sha256": "68a86d48593274daab1296528548c048415806402fcb733a2fe38573dc1f9d3b"
+    },
+    {
+      "case": "sd15-confirm-1",
+      "prompt_id": "3ed79421-7552-4e68-8dc1-4bfa3a47afd3",
+      "status": "success",
+      "sampler_cached": false,
+      "metadata_pipe_and_settings_match": true,
+      "seed": 346751,
+      "rgb_sha256": "0f0e7f1cda6ea4e71bf25b989cc6a1eb463c65341988e6ed2316a0e887d681c7",
+      "api_sha256": "7e27c22f6efe7569211de8cbcd752ea8e5cf78e3deabc0e54ef960c2242f12ff",
+      "history_sha256": "8c37d7acb0dc3a6c2a09f248c3640e9f074096e7953dd28123068ec76b6486d3"
+    },
+    {
+      "case": "sd15-confirm-2",
+      "prompt_id": "f0692524-4a40-4ca2-a41b-e3ce8ccf193f",
+      "status": "success",
+      "sampler_cached": false,
+      "metadata_pipe_and_settings_match": true,
+      "seed": 1226307043,
+      "rgb_sha256": "43789dac2f08b19f17ba8550b8f7587633c16e6f3882e6dfe1bc0535a63ff0e8",
+      "api_sha256": "3a7a692078d218d138bd921cab2596df489e882a1c32a7b71f86d078f64e893d",
+      "history_sha256": "674a29f9fcc3fbcba861931b7c6609b5805e2a2418edfb81835e29cfbebb4db7"
+    },
+    {
+      "case": "sd15-confirm-3",
+      "prompt_id": "a72a01dd-0762-4dba-b7c4-9c06ab9049de",
+      "status": "success",
+      "sampler_cached": false,
+      "metadata_pipe_and_settings_match": true,
+      "seed": 867403938,
+      "rgb_sha256": "1ff43e52ab3a244c8c34e729d44721c32b57d6063169348ea40b74139bcf8c0c",
+      "api_sha256": "890d26a549713bc0310633c57c9c8d8555a43440462f959174cacf7f48702d18",
+      "history_sha256": "e2e1620fa9dc65536c907b4f50c6b6c938cdf53bf3eec20e6669ef9db6f68606"
+    },
+    {
+      "case": "krea2-confirm-1",
+      "prompt_id": "7effe19f-654f-4dfa-8af9-ce6157899617",
+      "status": "success",
+      "sampler_cached": false,
+      "metadata_pipe_and_settings_match": true,
+      "seed": 346751,
+      "rgb_sha256": "0984a88fcbfe6bbc40698f3e9502f6cb4c05df5997790d084ae01384bef05a1e",
+      "api_sha256": "e0cfb1e98aee3b4a50066469f60416d5cb2f72d3429f4db538478c3ca3466213",
+      "history_sha256": "2bebee03283d0ae298658385a2575895c8cc83cdcdae2fc6a612ebb0816cca79"
+    },
+    {
+      "case": "krea2-confirm-2",
+      "prompt_id": "482a463a-acef-4eae-a369-68115d949ed3",
+      "status": "success",
+      "sampler_cached": false,
+      "metadata_pipe_and_settings_match": true,
+      "seed": 1226307043,
+      "rgb_sha256": "23c2f5b4b94427a6926f4c73778580fbaf50d922a031fc95b45bf2a68d012505",
+      "api_sha256": "0c5a2d478b5face38cf9aeff4c74ff71b27c3a432c390c113a64a38052bb3ac4",
+      "history_sha256": "ea9c97aa4cb3f1105a148ba20e6e95166f40bff135245f0a085f69e668468b4d"
+    },
+    {
+      "case": "krea2-confirm-3",
+      "prompt_id": "a6b3d69c-6f33-43b2-9e30-9abc375019d5",
+      "status": "success",
+      "sampler_cached": false,
+      "metadata_pipe_and_settings_match": true,
+      "seed": 867403938,
+      "rgb_sha256": "4cfd83988473c27529edca1e6209b946f0308c2a80429ba923a160723fb5df28",
+      "api_sha256": "2ed7727aa6ce628a3e4f0ee26be38ec18c38fccb9aa2b9a5c327df8e6b5e9135",
+      "history_sha256": "bfbb13b8e1504471228e4cfd309dc03343035a8883c17f4aa578f9f1f0e33743"
+    }
+  ],
+  "normal_graph_reference_replays": {
+    "anima": {
+      "rgb_identical": true,
+      "mean_absolute_rgb_difference": 0.0,
+      "maximum_rgb_difference": 0,
+      "note": ""
+    },
+    "sdxl": {
+      "rgb_identical": false,
+      "mean_absolute_rgb_difference": 1.1788694593641493,
+      "maximum_rgb_difference": 100,
+      "note": "SDXL numerical variation cause was not isolated."
+    },
+    "sd15": {
+      "rgb_identical": true,
+      "mean_absolute_rgb_difference": 0.0,
+      "maximum_rgb_difference": 0,
+      "note": ""
+    },
+    "krea2": {
+      "rgb_identical": true,
+      "mean_absolute_rgb_difference": 0.0,
+      "maximum_rgb_difference": 0,
+      "note": ""
+    }
+  },
+  "local_bundle": "RS_MC_epsilon_tuning_20261017/validation: index.html, manifest.json, per-case API graphs, receipts, histories and original PNG files.",
+  "limits": [
+    "No general success-rate claim.",
+    "Common prompt also specifies the title and person count.",
+    "No text-only conditioning ablation.",
+    "No change to the regional routing algorithm or default values.",
+    "No live detailer test in this follow-up."
+  ]
+}

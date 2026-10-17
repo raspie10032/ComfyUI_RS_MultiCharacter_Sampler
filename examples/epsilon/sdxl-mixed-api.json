@@ -1,0 +1,116 @@
+{
+  "1": {
+    "class_type": "CheckpointLoaderSimple",
+    "inputs": {
+      "ckpt_name": "Illustrious-XL-v1.0.safetensors"
+    }
+  },
+  "2": {
+    "class_type": "RSMultiCharacterPrompts",
+    "inputs": {
+      "character_count": 3,
+      "character1": "1girl, adult woman, full body, standing, short black bob hair, red eyes, red jacket, black shirt, black pants",
+      "character1_uc": "",
+      "character1_enable": true,
+      "character1_x": 0.25,
+      "character1_y": 0.6,
+      "character2": "1girl, adult woman, full body, standing, long blonde hair, blue eyes, white blouse, blue long skirt",
+      "character2_uc": "",
+      "character2_enable": true,
+      "character2_x": 0.75,
+      "character2_y": 0.6,
+      "character3": "A single line of neat red uppercase lettering, with clear space around the word.",
+      "character3_uc": "",
+      "character3_enable": true,
+      "character3_x": 0.5,
+      "character3_y": 0.14,
+      "character4": "",
+      "character4_uc": "",
+      "character4_enable": true,
+      "character4_x": 0.5,
+      "character4_y": 0.5,
+      "character5": "",
+      "character5_uc": "",
+      "character5_enable": true,
+      "character5_x": 0.5,
+      "character5_y": 0.5,
+      "character6": "",
+      "character6_uc": "",
+      "character6_enable": true,
+      "character6_x": 0.5,
+      "character6_y": 0.5,
+      "character7": "",
+      "character7_uc": "",
+      "character7_enable": true,
+      "character7_x": 0.5,
+      "character7_y": 0.5,
+      "character8": "",
+      "character8_uc": "",
+      "character8_enable": true,
+      "character8_x": 0.5,
+      "character8_y": 0.5,
+      "character9": "",
+      "character9_uc": "",
+      "character9_enable": true,
+      "character9_x": 0.5,
+      "character9_y": 0.5,
+      "character10": "",
+      "character10_uc": "",
+      "character10_enable": true,
+      "character10_x": 0.5,
+      "character10_y": 0.5,
+      "layout_mode": "mixed",
+      "character1_width": 0.4,
+      "character1_height": 0.7,
+      "character2_width": 0.3999999999999999,
+      "character2_height": 0.7,
+      "character3_kind": "text",
+      "character3_text": "HELLO",
+      "character3_width": 0.6,
+      "character3_height": 0.2
+    }
+  },
+  "3": {
+    "class_type": "RSMultiCharacterSampler",
+    "inputs": {
+      "model": [
+        "1",
+        0
+      ],
+      "clip": [
+        "1",
+        1
+      ],
+      "vae": [
+        "1",
+        2
+      ],
+      "character_pipe": [
+        "2",
+        0
+      ],
+      "prompt": "masterpiece, best quality, 2girls, two adult women standing together, full body, outdoors, university campus, garden, flower beds, trees, brick building, paved walkway, afternoon sunlight, a small red HELLO heading above the people",
+      "negative_prompt": "worst quality, low quality, bad anatomy, extra arms, extra legs, extra person, watermark, nude, naked",
+      "width": 1024,
+      "height": 768,
+      "seed": 346751,
+      "steps": 30,
+      "cfg": 5.5,
+      "sampler_name": "euler_ancestral",
+      "scheduler": "normal",
+      "autosave": true,
+      "save_format": "PNG",
+      "webp_quality": 90,
+      "prompt_syntax": "ComfyUI",
+      "use_image_settings": false,
+      "region_feather": 0.04,
+      "initial_common_prior": 0.15,
+      "common_after_step3_boost": 0.1,
+      "initial_character_gain": 1.5,
+      "initial_spatial_separation": 0.9,
+      "boundary_hold_steps": 3,
+      "boundary_decrement": 0.2,
+      "layout_method": "regional"
+    }
+  }
+}

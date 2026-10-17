@@ -19,6 +19,10 @@ This extension contains six nodes. It does not require the RS NovelAI extension,
 
 **0.1.5 Epsilon candidate:** optional boxes and mixed point/box layouts, text regions, and MOSS native layout comparison. [Setup and limitations](docs/regional-layout.md).
 
+Mixed-layout examples now include **Anima, Illustrious XL, Krea 2 Turbo and experimental SD1.5**, with model-specific conditioning and prompts. Anima's initial example has been retuned for a shared campus background and an unclipped title. [Settings, comparisons and limits](docs/mixed-layout-tuning.md). Text spelling and person count remain model-dependent; these settings do not automatically replace existing workflow values.
+
+The SD1.5 example checks **two distinguishable people and visible lettering in the requested area**. Natural image quality and exact spelling are outside that compatibility criterion.
+
 To try **two people plus one word**, use region count `3`, `layout_mode=mixed`, point geometry for character slots 1–2, and `kind=text` with literal `HELLO` for slot 3. Set its X/Y and width/height, then select sampler `layout_method=regional`. [Runnable examples](examples/epsilon) · [Validation and visual limitations](docs/epsilon-validation.md). Up to 10 total character/text regions; MOSS native mode requires boxes for every region.
 
 ## Install
