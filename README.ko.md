@@ -1,6 +1,8 @@
 # ComfyUI_RS_MultiCharacter_Sampler
 
-**0.1.6 제타 · Anima · SDXL · Krea 2 · MOSS · SD1.5(실험 지원·불안정)**입니다. 공통 프롬프트와 캐릭터별 프롬프트·XY·상자를 전용 파이프로 전달하고, 로컬 모델 내부에서 영역별 attention을 조절합니다. RS NAI 확장이나 API 키는 필요 없습니다.
+**0.1.7 제타 픽스 · Anima · SDXL · Krea 2 · MOSS · SD1.5(실험 지원·불안정)**입니다. 공통 프롬프트와 캐릭터별 프롬프트·XY·상자를 전용 파이프로 전달하고, 로컬 모델 내부에서 영역별 attention을 조절합니다. RS NAI 확장이나 API 키는 필요 없습니다.
+
+**제타 픽스:** ComfyUI의 동적 VRAM 모드에서 Anima 캐릭터 LoRA가 실제 생성 모델에 적용되지 않던 오류를 수정했습니다. 업데이트 후 ComfyUI를 재시작하면 기존 LoRA 선택과 강도를 그대로 사용할 수 있습니다. [수정 내용·이미지 비교·검증 범위](docs/release-0.1.7.md).
 
 **제타 변경 사항:** 캐릭터마다 LoRA 파일과 모델·CLIP 강도를 선택합니다. 샘플러는 ComfyUI 기본 Hook으로 영역별 예측을 합치고, 디테일러는 매칭된 캐릭터의 LoRA를 사용합니다. [사용법·계산 비용·한계](docs/regional-lora.md).
 

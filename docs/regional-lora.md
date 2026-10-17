@@ -1,5 +1,10 @@
 # Per-character LoRA — Zeta
 
+Use **0.1.7 Zeta Fix or later** for Anima with dynamic VRAM. Version 0.1.6 could
+save the correct LoRA selections while applying them to an unused model instance.
+The fix resolves the actual inference layers for each call and retains the shared
+small-factor backend. [Controlled comparisons and scope](release-0.1.7.md).
+
 In **RS MultiCharacter Prompts**, each active character has `characterN_lora`,
 `characterN_lora_strength` (model), and `characterN_lora_clip_strength` (text encoder).
 Choose an installed file from `models/loras`; subfolders are supported. `None` disables

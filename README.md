@@ -1,6 +1,8 @@
 # ComfyUI_RS_MultiCharacter_Sampler
 
-**0.1.6 Zeta · Anima · SDXL · Krea 2 · MOSS · SD1.5 (experimental, unstable)** — independent prompts with X/Y, box and mixed regions for local ComfyUI generation.
+**0.1.7 Zeta Fix · Anima · SDXL · Krea 2 · MOSS · SD1.5 (experimental, unstable)** — independent prompts with X/Y, box and mixed regions for local ComfyUI generation.
+
+**Zeta Fix:** fixes Anima character LoRAs silently missing the actual inference model with ComfyUI dynamic VRAM. Update and restart ComfyUI; existing LoRA selections and strengths can be reused. [Fix, controlled image comparisons and validation scope](docs/release-0.1.7.md).
 
 **New in Zeta:** choose a LoRA and model/CLIP strengths for each character. The sampler blends masked predictions through native ComfyUI hooks; the detailer uses the matched character's LoRA. [Usage, cost and limits](docs/regional-lora.md).
 

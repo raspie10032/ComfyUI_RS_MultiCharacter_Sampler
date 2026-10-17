@@ -1,5 +1,7 @@
 """Native factor-only execution, fallback and restoration regressions (CPU)."""
 import importlib
+import copy
+from functools import partial
 import os
 from pathlib import Path
 import sys
@@ -58,18 +60,59 @@ class BypassTests(unittest.TestCase):
         self.assertIsNotNone(plan)
         return plan
 
+    def run_plan(self, plan, strength, runtime=None, call=None):
+        from comfy.patcher_extension import WrapperExecutor
+        runtime = self.model.model.diffusion_model if runtime is None else runtime
+        executor = WrapperExecutor.new_class_executor(
+            runtime.forward if call is None else call, runtime,
+            [partial(plan.forward, strength=strength)])
+        return executor.execute(self.x)
+
     def test_matches_merged_fp32_positive_negative_and_zero_strength(self):
         plan = self.plan()
         original = self.layer.weight.detach().clone()
         base = self.layer(self.x)
         for strength in (.7, -1.2, 0.):
             expected = F.linear(self.x, original + (self.up @ self.down)*(.5*strength), self.layer.bias)
-            result = plan.forward(self.layer, self.x, strength=strength)
+            result = self.run_plan(plan, strength)
             torch.testing.assert_close(result, expected, atol=1e-6, rtol=1e-5)
         self.assertTrue(torch.equal(original, self.layer.weight))
         self.assertTrue(torch.equal(base, self.layer(self.x)))
         self.assertNotIn('forward', self.layer.__dict__)
         self.assertNotIn('comfy_force_forward', self.layer.__dict__)
+
+    def test_inference_delegate_receives_lora_instead_of_original_modules(self):
+        # Dynamic VRAM switches models after LoRA preparation. Counting wrapper
+        # calls alone passed the old implementation while the actual model was
+        # untouched. Verify the delegate's numerical result and both restorations.
+        plan = self.plan()
+        runtime = copy.deepcopy(self.model.model.diffusion_model)
+        base = runtime(self.x)
+        expected = F.linear(self.x, runtime[0].weight + (self.up @ self.down)*.5,
+                            runtime[0].bias)
+        result = self.run_plan(plan, 1., runtime)
+        self.assertFalse(torch.equal(base, result))
+        torch.testing.assert_close(result, expected, atol=1e-6, rtol=1e-5)
+        self.assertTrue(torch.equal(base, runtime(self.x)))
+        self.assertTrue(torch.equal(base, self.model.model.diffusion_model(self.x)))
+        for layer in (self.layer, runtime[0]):
+            self.assertNotIn('forward', layer.__dict__)
+            self.assertNotIn('comfy_force_forward', layer.__dict__)
+
+    def test_delegate_failure_restores_actual_runtime_and_zero_is_identity(self):
+        plan = self.plan()
+        runtime = copy.deepcopy(self.model.model.diffusion_model)
+        base = runtime(self.x)
+        self.assertTrue(torch.equal(base, self.run_plan(plan, 0., runtime)))
+        def fail(*args):
+            self.assertIn('forward', runtime[0].__dict__)
+            self.assertNotIn('forward', self.layer.__dict__)
+            raise RuntimeError('delegate failure')
+        with self.assertRaisesRegex(RuntimeError, 'delegate failure'):
+            self.run_plan(plan, 1., runtime, fail)
+        self.assertTrue(torch.equal(base, runtime(self.x)))
+        self.assertNotIn('forward', runtime[0].__dict__)
+        self.assertNotIn('comfy_force_forward', runtime[0].__dict__)
 
     def test_scope_has_no_weight_patches_and_shares_factors_across_strengths(self):
         from comfy.hooks import EnumHookType, EnumHookScope
@@ -88,7 +131,7 @@ class BypassTests(unittest.TestCase):
         self.layer.comfy_force_forward = False
         def fail(*args): raise RuntimeError('deliberate failure')
         with self.assertRaisesRegex(RuntimeError, 'deliberate failure'):
-            plan.forward(fail, self.x, strength=1.)
+            self.run_plan(plan, 1., call=fail)
         self.assertIs(self.layer.forward, original)
         self.assertFalse(self.layer.comfy_force_forward)
         native_inject = plan.hook_type.inject
@@ -97,7 +140,7 @@ class BypassTests(unittest.TestCase):
             raise RuntimeError('partial injection')
         with patch.object(plan.hook_type, 'inject', inject_then_fail):
             with self.assertRaisesRegex(RuntimeError, 'partial injection'):
-                plan.forward(self.layer, self.x, strength=1.)
+                self.run_plan(plan, 1.)
         self.assertIs(self.layer.forward, original)
         self.assertFalse(self.layer.comfy_force_forward)
 

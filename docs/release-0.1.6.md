@@ -1,5 +1,10 @@
 # 0.1.6 Zeta
 
+> Superseded by [0.1.7 Zeta Fix](release-0.1.7.md). With default dynamic VRAM,
+> Anima's regional bypass could target preparation-time modules instead of the
+> actual inference model. Successful generation and saved LoRA names alone did
+> not prove application. Update to 0.1.7 and restart ComfyUI.
+
 Zeta adds a LoRA file selector and separate model/CLIP strengths to each character
 slot. The existing character pipe carries these settings to the sampler and local
 detailer. Coordinates and boxes determine where character predictions are blended;

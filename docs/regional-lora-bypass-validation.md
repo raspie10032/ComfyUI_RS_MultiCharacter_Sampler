@@ -1,5 +1,12 @@
 # Zeta: Anima small-factor LoRA validation — 2026-10-17
 
+> Correction in **0.1.7 Zeta Fix**: the default dynamic-VRAM completion check below
+> did not prove that the LoRA reached the inference model. ComfyUI may replace that
+> model after preparation. Version 0.1.6 attached bypass to the old modules and could
+> generate exactly the no-LoRA image. The timed paired tests explicitly disabled
+> dynamic VRAM; their scope must not be extended to default dynamic execution.
+> See [the fix and controlled dynamic-VRAM comparisons](release-0.1.7.md).
+
 This changes only the application of eligible Anima LoRA weights. Character
 conditioning, coordinate/box masks, CFG and the number of predictions stay the same.
 ComfyUI's native Bypass LoRA evaluates the base layer plus the two small factor

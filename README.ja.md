@@ -1,6 +1,8 @@
 # ComfyUI_RS_MultiCharacter_Sampler
 
-**0.1.6 Zeta · Anima・SDXL・Krea 2・MOSS・SD1.5（実験対応・不安定）**。共通プロンプトと各キャラクターの文章・XY座標・矩形を専用パイプで渡し、領域ごとに attention を制御します。RS NAI 拡張や API キーは不要です。
+**0.1.7 Zeta Fix · Anima・SDXL・Krea 2・MOSS・SD1.5（実験対応・不安定）**。共通プロンプトと各キャラクターの文章・XY座標・矩形を専用パイプで渡し、領域ごとに attention を制御します。RS NAI 拡張や API キーは不要です。
+
+**Zeta Fix:** ComfyUI の動的 VRAM モードで Anima のキャラクター LoRA が実際の生成モデルに適用されない不具合を修正しました。更新後に ComfyUI を再起動してください。既存の LoRA 選択と強度はそのまま使えます。[修正内容・画像比較・検証範囲](docs/release-0.1.7.md)。
 
 **Zeta の変更:** キャラクターごとに LoRA ファイルとモデル・CLIP 強度を選択できます。ComfyUI の標準 Hook で領域別の予測を合成し、Detailer は一致したキャラクターの LoRA を使います。[使い方・計算コスト・制限](docs/regional-lora.md)。
 

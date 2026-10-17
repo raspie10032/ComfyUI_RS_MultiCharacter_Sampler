@@ -31,12 +31,14 @@ def prepare_bypass(model, weights):
         return None, "core_without_bypass"
     if not weights:
         return None, "no_model_weights"
-    layers = []
+    layers, layer_paths = [], []
     for key, adapter in weights.items():
         # Tuple keys can represent offsets/functions; DoRA, LoHa, LoKr, diff,
         # reshape and convolutional patches need the existing weight path.
         if not isinstance(key, str) or not key.endswith(".weight") or type(adapter) is not LoRAAdapter:
             return None, "patch_type"
+        if not key.startswith("diffusion_model."):
+            return None, "non_diffusion_layer"
         if "llm_adapter" in key:
             return None, "text_adapter"
         values = adapter.weights
@@ -64,12 +66,14 @@ def prepare_bypass(model, weights):
         # A shallow copy shares the original CPU factors. Strength combinations
         # use this same adapter/GPU storage; only its scalar multiplier changes.
         layers.append((module, copy.copy(adapter), adapter.weights))
-    return BypassLora(layers, BypassForwardHook, TransformerOptionsHook), "plain_linear_lora"
+        layer_paths.append(key[len("diffusion_model."):-len(".weight")])
+    return BypassLora(layers, layer_paths, BypassForwardHook, TransformerOptionsHook), "plain_linear_lora"
 
 
 class BypassLora:
-    def __init__(self, layers, hook_type, options_type):
+    def __init__(self, layers, layer_paths, hook_type, options_type):
         self.layers = layers
+        self.layer_paths = layer_paths
         self.hook_type, self.options_type = hook_type, options_type
         self.forward_calls = 0
 
@@ -89,9 +93,22 @@ class BypassLora:
         return group
 
     def forward(self, executor, *args, strength, **kwargs):
+        # CFGGuider can replace ModelPatcherDynamic with a non-dynamic delegate
+        # when conditioning carries hooks. The delegate owns NEW modules. Patch
+        # the diffusion model actually being called, never preparation-time
+        # module references (which would silently leave inference unchanged).
+        runtime_model = executor.class_obj
+        modules = []
+        for path, (_, adapter, _) in zip(self.layer_paths, self.layers):
+            module = runtime_model.get_submodule(path)
+            up, down = adapter.weights[:2]
+            if (not isinstance(module, torch.nn.Linear)
+                    or tuple(module.weight.shape) != (up.shape[0], down.shape[1])):
+                raise RuntimeError(f"Regional LoRA: incompatible runtime layer {path!r}.")
+            modules.append(module)
         installed = []
         try:
-            for module, adapter, _ in self.layers:
+            for module, (_, adapter, _) in zip(modules, self.layers):
                 # Native inject also handles ComfyUI's dynamic forward dispatch.
                 hook = self.hook_type(module, adapter, multiplier=strength)
                 state = {key: module.__dict__.get(key) for key in ("forward", "comfy_force_forward")}
