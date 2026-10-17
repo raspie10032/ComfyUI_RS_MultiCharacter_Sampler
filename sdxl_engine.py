@@ -9,7 +9,7 @@ for compatibility with existing SDXL callers.
 """
 import torch
 
-from .routing import (route_cross, sdpa, token_owners, weak_self_bias,
+from .routing import (route_cross, sdpa, token_groups, weak_self_bias,
                       sigma_progress, stepped_common_weight,
                       character_value_gain, hold_decay_spatial_separation)
 
@@ -25,8 +25,9 @@ def attention_grid(original_shape, tokens):
 
 
 class SDXLRouting:
-    def __init__(self, conditions, masks, settings, audit, family="SDXL"):
+    def __init__(self, conditions, masks, settings, audit, family="SDXL", boxes=False):
         self.family = family
+        self.boxes = boxes
         self.conditions, self.masks = conditions, masks
         self.settings, self.audit = settings, audit
         self.sigmas = self.state = None
@@ -114,8 +115,7 @@ class SDXLRouting:
         h, w = attention_grid(options["original_shape"], q.shape[1])
         key = (h, w, q.device)
         if key not in self.groups:
-            owners = token_owners(self.masks, h, w).to(q.device)
-            self.groups[key] = [(owners == i).nonzero().flatten() for i in range(len(self.masks))]
+            self.groups[key] = token_groups(self.masks, h, w, q.device, boxes=self.boxes)
             self.audit["token_grids"].append({"height": h, "width": w,
                 "tokens_per_slot": [len(g) for g in self.groups[key]]})
         heads = options["n_heads"]

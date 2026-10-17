@@ -160,7 +160,177 @@
     }
   },
   "RSMultiCharacterSampler": {
-    "display_name": "RS マルチキャラクターサンプラー (デルタ)",
-    "description": "SD1.5 は実験対応で、人数と特徴の分離は不安定です。 Anima / SD1.5 / SDXL / Krea2 / MOSS デルタ。独立したキャラクタープロンプトとXY領域を1〜10個使用できます。モデル別の検証範囲はサンプルと検証資料を参照してください。座標はプロンプト領域であり、正確な人数や姿勢を保証しません。処理数が多いほど品質を保証できません。自動保存はワークフローを含まずローカル生成メタデータを保存します。"
+    "display_name": "RS マルチキャラクターサンプラー (イプシロン)",
+    "description": "SD1.5 は実験対応で、人数と特徴の分離は不安定です。 Anima / SD1.5 / SDXL / Krea2 / MOSS イプシロン。独立したキャラクタープロンプトとXY領域を1〜10個使用できます。モデル別の検証範囲はサンプルと検証資料を参照してください。座標はプロンプト領域であり、正確な人数や姿勢を保証しません。処理数が多いほど品質を保証できません。自動保存はワークフローを含まずローカル生成メタデータを保存します。",
+    "inputs": {
+      "layout_method": {
+        "name": "レイアウト処理",
+        "tooltip": "regional: 各モデルの領域attention制御。moss_native: MOSS専用の公式レイアウトJSON。boxes入力が必要で、領域の強度設定は使用しません。"
+      }
+    }
+  },
+  "RSMultiCharacterPrompts": {
+    "display_name": "RS マルチキャラクタープロンプト",
+    "inputs": {
+      "layout_mode": {
+        "name": "領域の指定方法",
+        "tooltip": "points: X/Yで自動分割。boxes: 全領域を矩形に指定。mixed: スロットごとに座標/矩形を選択。矩形は座標領域より優先され、重なる矩形は文を共有します。文字は常に矩形を使います。幅・高さは画面比率です。"
+      },
+      "character1_width": {
+        "name": "領域1の幅"
+      },
+      "character1_height": {
+        "name": "領域1の高さ"
+      },
+      "character2_width": {
+        "name": "領域2の幅"
+      },
+      "character2_height": {
+        "name": "領域2の高さ"
+      },
+      "character3_width": {
+        "name": "領域3の幅"
+      },
+      "character3_height": {
+        "name": "領域3の高さ"
+      },
+      "character4_width": {
+        "name": "領域4の幅"
+      },
+      "character4_height": {
+        "name": "領域4の高さ"
+      },
+      "character5_width": {
+        "name": "領域5の幅"
+      },
+      "character5_height": {
+        "name": "領域5の高さ"
+      },
+      "character6_width": {
+        "name": "領域6の幅"
+      },
+      "character6_height": {
+        "name": "領域6の高さ"
+      },
+      "character7_width": {
+        "name": "領域7の幅"
+      },
+      "character7_height": {
+        "name": "領域7の高さ"
+      },
+      "character8_width": {
+        "name": "領域8の幅"
+      },
+      "character8_height": {
+        "name": "領域8の高さ"
+      },
+      "character9_width": {
+        "name": "領域9の幅"
+      },
+      "character9_height": {
+        "name": "領域9の高さ"
+      },
+      "character10_width": {
+        "name": "領域10の幅"
+      },
+      "character10_height": {
+        "name": "領域10の高さ"
+      },
+      "character_count": {
+        "name": "有効な領域数（キャラクター＋文字）"
+      },
+      "character1_kind": {
+        "name": "領域1の種類",
+        "tooltip": "character / text"
+      },
+      "character1_text": {
+        "name": "領域1の実際に描く文字"
+      },
+      "character1_geometry": {
+        "name": "領域1の座標/矩形"
+      },
+      "character2_kind": {
+        "name": "領域2の種類"
+      },
+      "character2_text": {
+        "name": "領域2の実際に描く文字"
+      },
+      "character2_geometry": {
+        "name": "領域2の座標/矩形"
+      },
+      "character3_kind": {
+        "name": "領域3の種類"
+      },
+      "character3_text": {
+        "name": "領域3の実際に描く文字"
+      },
+      "character3_geometry": {
+        "name": "領域3の座標/矩形"
+      },
+      "character4_kind": {
+        "name": "領域4の種類"
+      },
+      "character4_text": {
+        "name": "領域4の実際に描く文字"
+      },
+      "character4_geometry": {
+        "name": "領域4の座標/矩形"
+      },
+      "character5_kind": {
+        "name": "領域5の種類"
+      },
+      "character5_text": {
+        "name": "領域5の実際に描く文字"
+      },
+      "character5_geometry": {
+        "name": "領域5の座標/矩形"
+      },
+      "character6_kind": {
+        "name": "領域6の種類"
+      },
+      "character6_text": {
+        "name": "領域6の実際に描く文字"
+      },
+      "character6_geometry": {
+        "name": "領域6の座標/矩形"
+      },
+      "character7_kind": {
+        "name": "領域7の種類"
+      },
+      "character7_text": {
+        "name": "領域7の実際に描く文字"
+      },
+      "character7_geometry": {
+        "name": "領域7の座標/矩形"
+      },
+      "character8_kind": {
+        "name": "領域8の種類"
+      },
+      "character8_text": {
+        "name": "領域8の実際に描く文字"
+      },
+      "character8_geometry": {
+        "name": "領域8の座標/矩形"
+      },
+      "character9_kind": {
+        "name": "領域9の種類"
+      },
+      "character9_text": {
+        "name": "領域9の実際に描く文字"
+      },
+      "character9_geometry": {
+        "name": "領域9の座標/矩形"
+      },
+      "character10_kind": {
+        "name": "領域10の種類"
+      },
+      "character10_text": {
+        "name": "領域10の実際に描く文字"
+      },
+      "character10_geometry": {
+        "name": "領域10の座標/矩形"
+      }
+    },
+    "description": "キャラクター/文字を合計1～10領域指定。座標・矩形・混合モード。同じ座標の人物は左右に分散し、矩形の位置は維持します。文字スロットは実際の単語とスタイルを別々に入力し、ディテーラーの人数には含めません。領域数が多いほど品質の保証は難しくなります。"
   }
 }

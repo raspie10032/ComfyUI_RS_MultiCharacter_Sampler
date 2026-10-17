@@ -1,0 +1,428 @@
+{
+  "last_node_id": 6,
+  "last_link_id": 5,
+  "nodes": [
+    {
+      "id": 1,
+      "type": "UNETLoader",
+      "pos": [
+        40,
+        60
+      ],
+      "size": [
+        340,
+        180
+      ],
+      "flags": {},
+      "order": 0,
+      "mode": 0,
+      "inputs": [],
+      "outputs": [
+        {
+          "name": "MODEL",
+          "type": "MODEL",
+          "links": [
+            5
+          ],
+          "slot_index": 0
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "UNETLoader",
+        "cnr_id": "comfy-core"
+      },
+      "widgets_values": [
+        "moss_image_sft_bf16.safetensors",
+        "default"
+      ]
+    },
+    {
+      "id": 2,
+      "type": "RSMultiCharacterPrompts",
+      "pos": [
+        440,
+        60
+      ],
+      "size": [
+        500,
+        1300
+      ],
+      "flags": {},
+      "order": 1,
+      "mode": 0,
+      "inputs": [],
+      "outputs": [
+        {
+          "name": "character_pipe",
+          "type": "RS_MC_CHARACTER_PIPE",
+          "links": [
+            4
+          ],
+          "slot_index": 0
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "RSMultiCharacterPrompts",
+        "cnr_id": "comfyui-rs-multicharacter-sampler"
+      },
+      "widgets_values": [
+        3,
+        true,
+        "An adult woman with a short black bob haircut, red eyes, a red jacket over a black shirt, and black trousers.",
+        "",
+        0.25,
+        0.6,
+        true,
+        "An adult woman with long blonde hair, blue eyes, a white blouse and a long blue skirt.",
+        "",
+        0.75,
+        0.6,
+        true,
+        "Large bold red uppercase lettering, clear and easy to read, centered at the top.",
+        "",
+        0.5,
+        0.1,
+        true,
+        "",
+        "",
+        0.5,
+        0.5,
+        true,
+        "",
+        "",
+        0.5,
+        0.5,
+        true,
+        "",
+        "",
+        0.5,
+        0.5,
+        true,
+        "",
+        "",
+        0.5,
+        0.5,
+        true,
+        "",
+        "",
+        0.5,
+        0.5,
+        true,
+        "",
+        "",
+        0.5,
+        0.5,
+        true,
+        "",
+        "",
+        0.5,
+        0.5,
+        "mixed",
+        0.4,
+        0.7,
+        0.3999999999999999,
+        0.7,
+        0.55,
+        0.16,
+        0.4,
+        0.8,
+        0.4,
+        0.8,
+        0.4,
+        0.8,
+        0.4,
+        0.8,
+        0.4,
+        0.8,
+        0.4,
+        0.8,
+        0.4,
+        0.8,
+        "character",
+        "",
+        "character",
+        "",
+        "text",
+        "HELLO",
+        "character",
+        "",
+        "character",
+        "",
+        "character",
+        "",
+        "character",
+        "",
+        "character",
+        "",
+        "character",
+        "",
+        "character",
+        "",
+        "point",
+        "point",
+        "point",
+        "point",
+        "point",
+        "point",
+        "point",
+        "point",
+        "point",
+        "point"
+      ]
+    },
+    {
+      "id": 3,
+      "type": "RSMultiCharacterSampler",
+      "pos": [
+        1000,
+        60
+      ],
+      "size": [
+        440,
+        1000
+      ],
+      "flags": {},
+      "order": 2,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "model",
+          "type": "MODEL",
+          "link": 1
+        },
+        {
+          "name": "clip",
+          "type": "CLIP",
+          "link": 2
+        },
+        {
+          "name": "vae",
+          "type": "VAE",
+          "link": 3
+        },
+        {
+          "name": "character_pipe",
+          "type": "RS_MC_CHARACTER_PIPE",
+          "link": 4
+        }
+      ],
+      "outputs": [
+        {
+          "name": "image",
+          "type": "IMAGE",
+          "links": [],
+          "slot_index": 0
+        },
+        {
+          "name": "latent",
+          "type": "LATENT",
+          "links": [],
+          "slot_index": 1
+        },
+        {
+          "name": "character_pipe",
+          "type": "RS_MC_CHARACTER_PIPE",
+          "links": [],
+          "slot_index": 2
+        },
+        {
+          "name": "generation_info",
+          "type": "STRING",
+          "links": [],
+          "slot_index": 3
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "RSMultiCharacterSampler",
+        "cnr_id": "comfyui-rs-multicharacter-sampler"
+      },
+      "widgets_values": [
+        "An anime poster showing exactly two adult women standing in a sunny university garden, full body, with a large HELLO title at the top. Flowers, trees and a campus building form a single continuous background.",
+        "",
+        1024,
+        768,
+        346751,
+        "fixed",
+        8,
+        3.0,
+        "euler",
+        "simple",
+        true,
+        "PNG",
+        90,
+        "ComfyUI",
+        false,
+        0.04,
+        0.6,
+        0.1,
+        1.2,
+        0.35,
+        3,
+        0.2,
+        "regional"
+      ]
+    },
+    {
+      "id": 4,
+      "type": "CLIPLoader",
+      "pos": [
+        40,
+        280
+      ],
+      "size": [
+        340,
+        180
+      ],
+      "flags": {},
+      "order": 3,
+      "mode": 0,
+      "inputs": [],
+      "outputs": [
+        {
+          "name": "CLIP",
+          "type": "CLIP",
+          "links": [
+            2
+          ],
+          "slot_index": 0
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "CLIPLoader",
+        "cnr_id": "comfy-core"
+      },
+      "widgets_values": [
+        "qwen3.5_9b_int8_convrot.safetensors",
+        "moss_image",
+        "default"
+      ]
+    },
+    {
+      "id": 5,
+      "type": "VAELoader",
+      "pos": [
+        40,
+        500
+      ],
+      "size": [
+        340,
+        180
+      ],
+      "flags": {},
+      "order": 4,
+      "mode": 0,
+      "inputs": [],
+      "outputs": [
+        {
+          "name": "VAE",
+          "type": "VAE",
+          "links": [
+            3
+          ],
+          "slot_index": 0
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "VAELoader",
+        "cnr_id": "comfy-core"
+      },
+      "widgets_values": [
+        "flux2-vae.safetensors"
+      ]
+    },
+    {
+      "id": 6,
+      "type": "LoraLoaderModelOnly",
+      "pos": [
+        40,
+        720
+      ],
+      "size": [
+        340,
+        180
+      ],
+      "flags": {},
+      "order": 5,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "model",
+          "type": "MODEL",
+          "link": 5
+        }
+      ],
+      "outputs": [
+        {
+          "name": "MODEL",
+          "type": "MODEL",
+          "links": [
+            1
+          ],
+          "slot_index": 0
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "LoraLoaderModelOnly",
+        "cnr_id": "comfy-core"
+      },
+      "widgets_values": [
+        "moss/lodestones_8step_latest_f95df83.safetensors",
+        0.7
+      ]
+    }
+  ],
+  "links": [
+    [
+      1,
+      6,
+      0,
+      3,
+      0,
+      "MODEL"
+    ],
+    [
+      2,
+      4,
+      0,
+      3,
+      1,
+      "CLIP"
+    ],
+    [
+      3,
+      5,
+      0,
+      3,
+      2,
+      "VAE"
+    ],
+    [
+      4,
+      2,
+      0,
+      3,
+      3,
+      "RS_MC_CHARACTER_PIPE"
+    ],
+    [
+      5,
+      1,
+      0,
+      6,
+      0,
+      "MODEL"
+    ]
+  ],
+  "groups": [],
+  "config": {},
+  "extra": {
+    "ds": {
+      "scale": 0.6,
+      "offset": [
+        60,
+        60
+      ]
+    }
+  },
+  "version": 0.4
+}

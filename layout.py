@@ -1,11 +1,20 @@
 # SPDX-License-Identifier: GPL-3.0-only
 import math
+import json
 import torch
 import torch.nn.functional as F
 
 def effective_centers(characters):
     """Keep unique points; spread coincident groups horizontally in slot order."""
     points = [(c.x, c.y) for c in characters]
+    if any(c.bbox is not None for c in characters):
+        indices = [i for i, c in enumerate(characters) if c.bbox is None]
+        if not indices:
+            return tuple(points), []  # Coincident boxes are intentional overlaps.
+        adjusted, moved = effective_centers([characters[i] for i in indices])
+        for i, center in zip(indices, adjusted):
+            points[i] = center
+        return tuple(points), [[indices[i-1]+1 for i in group] for group in moved]
     result = list(points)
     groups = {}
     for i, point in enumerate(points):
@@ -50,3 +59,47 @@ def region_masks(centers, width, height, feather):
         raise ValueError("Character positions are too close at this resolution. Spread them farther apart or increase the size. / "
                          "현재 해상도에서 캐릭터 좌표가 너무 가깝습니다. 간격이나 이미지 크기를 늘려 주세요.")
     return masks / masks.sum(dim=0, keepdim=True).clamp_min(1e-8)
+
+
+def character_masks(characters, centers, width, height, feather):
+    if not any(c.bbox is not None for c in characters):
+        return region_masks(centers, width, height, feather)
+    region_masks((), width, height, feather)  # Shared dimension validation.
+    point_ids = [i for i, c in enumerate(characters) if c.bbox is None]
+    points = iter(region_masks([centers[i] for i in point_ids], width, height, feather)) if point_ids else iter(())
+    h, w = height // 8, width // 8
+    xx, yy = torch.arange(w) / w, torch.arange(h) / h
+    masks = []
+    for c in characters:
+        if c.bbox is None:
+            masks.append(next(points))
+            continue
+        left, top, right, bottom = c.bbox
+        # Exact fractional coverage. Downstream area resize keeps small boxes
+        # representable; boxes touching a token share it, without argmax ties.
+        horizontal = (torch.minimum(xx + 1/w, torch.tensor(right)) - torch.maximum(xx, torch.tensor(left))).clamp_min(0) * w
+        vertical = (torch.minimum(yy + 1/h, torch.tensor(bottom)) - torch.maximum(yy, torch.tensor(top))).clamp_min(0) * h
+        masks.append(vertical[:, None] * horizontal[None, :])
+    return torch.stack(masks)
+
+
+def moss_layout_prompt(pipe, width, height):
+    if not all(c.bbox is not None for c in pipe.regions):
+        raise ValueError("MOSS native layout needs boxes for every region. Choose boxes, or use regional for mixed point/box layouts. / 좌표와 상자를 함께 쓰려면 regional을 선택해 주세요. MOSS 공식 모드는 모든 영역에 상자가 필요합니다.")
+    items = []
+    from .characters import TextRegion
+    for c in pipe.regions:
+        left, top, right, bottom = c.bbox
+        box = [math.floor(round(top*height, 9))-height//2,
+               math.floor(round(left*width, 9))-width//2,
+               math.ceil(round(bottom*height, 9))-height//2,
+               math.ceil(round(right*width, 9))-width//2]
+        if box[0] >= box[2] or box[1] >= box[3]:
+            raise ValueError("A MOSS box is smaller than one pixel. Increase its size.")
+        item = {"label": "text" if isinstance(c, TextRegion) else "object", "caption": c.prompt, "bbox": box}
+        if isinstance(c, TextRegion):
+            item["text"] = c.text
+        items.append(item)
+    return json.dumps({"summary": {"canvas": "single", "caption": pipe.prompt or ""},
+        "items": items, "bbox_coord_space": "abs_centralized", "bbox_format": "yxyx"},
+        ensure_ascii=False, allow_nan=False)

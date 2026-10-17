@@ -40,13 +40,32 @@ class NativeModelTests(unittest.TestCase):
             cls.mm.in_training = cls.previous_training
         sys.path.remove(os.environ['RS_MC_TEST_COMFYUI'])
 
+    def test_literal_lettering_is_not_converted_as_prompt_weights(self):
+        c = importlib.import_module(PKG + ".characters")
+        n = importlib.import_module(PKG + ".nodes")
+        from comfy.sd1_clip import escape_important, unescape_important, token_weights
+        region = c.TextRegion('{bold}', bbox=(.1,.4,.9,.6), text='{HELLO} (1:2)')
+        convert = lambda value: n.to_comfyui(n.parse_naiv4(value))
+        caption = n.text_region_caption(region, convert)
+        parsed = [(unescape_important(text), weight) for text, weight in token_weights(escape_important(caption), 1)]
+        self.assertIn('{HELLO} (1:2)', ''.join(text for text, _ in parsed))
+        self.assertFalse(any(weight == 2 for _, weight in parsed))
+        self.assertIn('{HELLO} (1:2)', n.text_region_caption(region, convert, weighted=False))
+
     def test_sdxl_node_native_sampling_without_optional_architectures(self):
         self.unet_node("SDXL")
 
     def test_sd15_node_native_sampling_encoder_and_model_guards(self):
         self.unet_node("SD1.5")
 
-    def unet_node(self, family):
+    def test_sdxl_boxes_native_sampling(self): self.unet_node("SDXL", boxes=True)
+
+    def test_sd15_boxes_native_sampling(self): self.unet_node("SD1.5", boxes=True)
+
+    def test_sdxl_mixed_native_sampling(self): self.unet_node("SDXL", boxes="mixed")
+    def test_sd15_mixed_native_sampling(self): self.unet_node("SD1.5", boxes="mixed")
+
+    def unet_node(self, family, boxes=False):
         """Run the public node through real SD1.5/SDXL U-Net/sampler wrappers on CPU.
 
         A small random UNet and synthetic CLIP/VAE keep this an API integration
@@ -81,7 +100,9 @@ class NativeModelTests(unittest.TestCase):
         clip = SimpleNamespace(tokenize=lambda text: text,
             encode_from_tokens_scheduled=lambda text: contexts[text])
         vae = SimpleNamespace(decode=lambda latent: latent[:, :3].movedim(1, -1).sigmoid())
-        pipe = chars.CharacterPipe((chars.Character('left', x=.25), chars.Character('right', x=.75)))
+        pipe = chars.CharacterPipe((chars.Character('left', x=.3 if boxes else .25, bbox=(.1,.1,.5,.9) if boxes else None), chars.Character('right', x=.65 if boxes else .75, bbox=(.4,.1,.9,.9) if boxes else None)))
+        if boxes == "mixed":
+            pipe = chars.CharacterPipe((chars.Character('left', x=.25), chars.Character('right', x=.75, bbox=(.6,.2,.9,.8))))
         with patch.object(args, 'preview_method', LatentPreviewMethod.NoPreviews), torch.no_grad():
             output = nodes.RSMultiCharacterSampler().generate(
                 model, clip, vae, pipe, 'common', 'negative', width=64, height=64,
@@ -113,7 +134,7 @@ class NativeModelTests(unittest.TestCase):
                     with self.assertRaisesRegex(ValueError, 'matching CLIP-L'):
                         invoke()
 
-    def joint(self, family):
+    def joint(self, family, boxes=False):
         j = importlib.import_module(PKG+'.joint_engine')
         defaults = importlib.import_module(PKG+'.nodes').DEFAULTS
         from comfy import model_base
@@ -135,7 +156,12 @@ class NativeModelTests(unittest.TestCase):
         masks[0,:,:4]=1
         masks[1,:,4:]=1
         audit = dict(forwards=[],cross_calls=0,self_calls=0,text_refiner_calls=0,restored_forwards=0)
-        r = j.JointRouting(family,conditions,masks,defaults,audit)
+        if boxes == "mixed":
+            masks[0]=1; masks[1].zero_(); masks[1,1:3,3:7]=1
+            boxes = (False, True)
+        elif boxes:
+            masks.zero_(); masks[0,1:3,1:5]=1; masks[1,1:3,3:7]=1
+        r = j.JointRouting(family,conditions,masks,defaults,audit,boxes=boxes)
         r.sigmas=[1.,.5,.1]
         opts = {'cond_or_uncond':[0],'sigmas':torch.tensor([.5]),'optimized_attention_override':r.attention}
         grid = (2,4) if family=='Krea2' else (4,8)
@@ -154,6 +180,11 @@ class NativeModelTests(unittest.TestCase):
 
     def test_krea_native_refiners_joint_attention_and_negative(self): self.joint('Krea2')
     def test_moss_native_rope_joint_attention_and_negative(self): self.joint('MOSS')
+    def test_krea_mixed_native_attention_and_negative(self): self.joint('Krea2',boxes='mixed')
+    def test_moss_mixed_native_attention_and_negative(self): self.joint('MOSS',boxes='mixed')
+
+    def test_krea_boxes_native_attention_and_negative(self): self.joint('Krea2',boxes=True)
+    def test_moss_boxes_native_attention_and_negative(self): self.joint('MOSS',boxes=True)
 
     def test_anima_native_tensor_containers_and_backend_argument(self):
         from comfy import model_base

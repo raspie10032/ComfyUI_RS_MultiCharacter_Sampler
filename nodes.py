@@ -8,11 +8,20 @@ import numpy as np
 from PIL import Image, ImageOps
 import torch
 
-from .characters import CharacterPipe, PIPE_TYPE
-from .layout import effective_centers, region_masks
+from .characters import CharacterPipe, PIPE_TYPE, TextRegion
+from .layout import effective_centers, character_masks, moss_layout_prompt
 from .metadata import (FORMATS, build_record, graph_assets, pipe_from_record,
                        read_record, save_image, validate_format, object_json)
 from .prompt_syntax import parse_naiv4, to_comfyui
+
+
+def text_region_caption(region, convert, weighted=True):
+    # Convert style weights only. Literal lettering must survive NAI/CLIP syntax.
+    literal = json.dumps(region.text, ensure_ascii=False)
+    if weighted:
+        literal = literal.replace("(", "\\(").replace(")", "\\)")
+    return f"{convert(region.prompt)} The visible text reads exactly {literal}."
+
 
 DEFAULTS = dict(width=1536, height=768, steps=30, cfg=4., sampler_name="euler_ancestral",
                 scheduler="sgm_uniform", region_feather=.04, initial_common_prior=.05,
@@ -70,13 +79,15 @@ class RSMultiCharacterSampler:
             "prompt_syntax": (["ComfyUI", "NovelAI"], {"default": "ComfyUI"}),
             "use_image_settings": ("BOOLEAN", {"default": False,
                 "tooltip": "An image pipe always supplies its prompts/characters. Enable to also restore dimensions, seed, sampling and routing settings. Connected model/LoRA/CLIP/VAE remain your choice; check the image loader report."}),
-            "region_feather": ("FLOAT", {"default": .04, "min": 0., "max": .25, "step": .01}),
+            "region_feather": ("FLOAT", {"default": .04, "min": 0., "max": .25, "step": .01, "tooltip": "Softens point partitions only. Boxes use fractional cell coverage and ignore this setting."}),
             "initial_common_prior": ("FLOAT", {"default": .05, "min": 0., "max": 1., "step": .01}),
             "common_after_step3_boost": ("FLOAT", {"default": .1, "min": 0., "max": 1., "step": .05}),
             "initial_character_gain": ("FLOAT", {"default": 1.7, "min": 1., "max": 3., "step": .1}),
             "initial_spatial_separation": ("FLOAT", {"default": .9, "min": 0., "max": .99, "step": .05}),
             "boundary_hold_steps": ("INT", {"default": 3, "min": 1, "max": 30}),
             "boundary_decrement": ("FLOAT", {"default": .2, "min": .01, "max": 1., "step": .01}),
+            "layout_method": (["regional", "moss_native"], {"default": "regional",
+                "tooltip": "Regional routes attention for all supported models. MOSS native sends one official layout JSON prompt, requires boxes and MOSS, and ignores regional strength/boundary/feather settings. Experimental: exact object bounds are not guaranteed."}),
         }, "hidden": {"workflow_prompt": "PROMPT", "unique_id": "UNIQUE_ID"}}
 
     RETURN_TYPES = ("IMAGE", "LATENT", PIPE_TYPE, "STRING")
@@ -84,14 +95,15 @@ class RSMultiCharacterSampler:
     FUNCTION = "generate"
     CATEGORY = "RS MultiCharacter"
     OUTPUT_NODE = True
-    DESCRIPTION = "Anima / SDXL / Krea2 / MOSS Delta; SD1.5 generation is experimental and unstable. 1–10 independent character prompts and X/Y regions. Validation coverage differs by model; see the examples and validation docs. Horizontal arrangements work best. Coordinates control prompt regions, not exact body positions. More characters do not guarantee quality. Autosaves NAI-shaped metadata without a workflow."
+    DESCRIPTION = "Anima / SDXL / Krea2 / MOSS Epsilon; SD1.5 generation is experimental and unstable. 1–10 character/text regions with X/Y points, boxes or mixed layouts. MOSS native layout is optional and experimental. Validation coverage differs by model; see the examples and validation docs. Horizontal arrangements work best. Coordinates control prompt regions, not exact body positions. More characters do not guarantee quality. Autosaves NAI-shaped metadata without a workflow."
 
     def generate(self, model, clip, vae, character_pipe, prompt, negative_prompt, width=1536, height=768,
                  seed=0, steps=30, cfg=4., sampler_name="euler_ancestral", scheduler="sgm_uniform",
                  autosave=True, save_format="PNG", webp_quality=90, prompt_syntax="ComfyUI",
                  use_image_settings=False, region_feather=.04, initial_common_prior=.05,
                  common_after_step3_boost=.1, initial_character_gain=1.7, initial_spatial_separation=.9,
-                 boundary_hold_steps=3, boundary_decrement=.2, workflow_prompt=None, unique_id=None):
+                 boundary_hold_steps=3, boundary_decrement=.2, workflow_prompt=None, unique_id=None,
+                 layout_method="regional"):
         import comfy.model_management
         import comfy.sample
         import comfy.utils
@@ -119,7 +131,7 @@ class RSMultiCharacterSampler:
         transformer_options = model.model_options.get("transformer_options", {})
         if any(transformer_options.get(k) for k in ("patches", "patches_replace", "optimized_attention_override")):
             raise ValueError("Use an unpatched model, optionally with ordinary LoRA loaders. Other attention patches are unsupported.")
-        if any(c.uc.strip() for c in character_pipe.characters):
+        if any(c.uc.strip() for c in character_pipe.regions):
             raise ValueError("Character-specific negatives are not supported in this beta. Move them to the common negative prompt. / 캐릭터별 네거티브는 현재 미지원입니다. 공통 네거티브에 입력해 주세요.")
         settings = {k: v for k, v in locals().items() if k in DEFAULTS or k == "seed"}
         if character_pipe.prompt is not None:
@@ -131,18 +143,29 @@ class RSMultiCharacterSampler:
             if not all(k in stored for k in (*DEFAULTS, "seed")):
                 raise ValueError("Image generation settings are incomplete.")
             settings = {k: stored[k] for k in (*DEFAULTS, "seed")}
+            layout_method = stored.get("layout_method", "regional")
+        if layout_method not in ("regional", "moss_native"):
+            raise ValueError("Choose regional or moss_native for the layout method.")
+        if layout_method == "moss_native" and family != "MOSS":
+            raise ValueError("MOSS native layout requires MOSS-Image. Choose regional for this model. / 이 모델은 regional 모드를 사용해 주세요.")
+        settings["layout_method"] = layout_method
         validate_settings(settings)
         validate_format(save_format, webp_quality)
         if not isinstance(prompt, str) or not isinstance(negative_prompt, str) or prompt_syntax not in ("ComfyUI", "NovelAI"):
             raise ValueError("Choose valid prompt text and syntax.")
-        pipe = CharacterPipe(character_pipe.characters, prompt, negative_prompt, prompt_syntax)
-        centers, moved = effective_centers(pipe.characters)
-        masks = region_masks(centers, settings["width"], settings["height"], settings["region_feather"])
+        pipe = CharacterPipe(character_pipe.characters, prompt, negative_prompt, prompt_syntax, text_regions=character_pipe.text_regions)
+        centers, moved = effective_centers(pipe.regions)
+        geometry = tuple(c.bbox is not None for c in pipe.regions)
+        boxes = geometry if any(geometry) else False
+        native_prompt = moss_layout_prompt(pipe, settings["width"], settings["height"]) if layout_method == "moss_native" else None
+        if native_prompt is not None and prompt_syntax != "ComfyUI":
+            raise ValueError("MOSS native layout uses literal captions. Choose ComfyUI syntax and remove prompt-weight syntax. / MOSS 레이아웃에는 가중치 문법 없는 일반 문장을 사용해 주세요.")
+        masks = character_masks(pipe.regions, centers, settings["width"], settings["height"], settings["region_feather"])
         convert = (lambda text: to_comfyui(parse_naiv4(text))) if prompt_syntax == "NovelAI" else (lambda text: text)
 
-        def encode(text):
+        def encode(text, converted=False):
             comfy.model_management.throw_exception_if_processing_interrupted()
-            result = clip.encode_from_tokens_scheduled(clip.tokenize(convert(text)))
+            result = clip.encode_from_tokens_scheduled(clip.tokenize(text if converted else convert(text)))
             if len(result) != 1:
                 raise ValueError("Scheduled text is unsupported in this beta.")
             t, meta = result[0]
@@ -164,11 +187,19 @@ class RSMultiCharacterSampler:
                     raise ValueError(f"Connect the matching {family} text encoder with CLIPLoader type {kind!r}.")
             return [[t, dict(meta)]]
 
-        positive, negative = encode(prompt), encode(negative_prompt)
-        conditions = [encode(c.prompt)[0] for c in pipe.characters]
-        audit = {}
+        positive, negative = encode(native_prompt if native_prompt is not None else prompt), encode(negative_prompt)
+        conditions = [encode(text_region_caption(c, convert, family not in ("Krea2", "MOSS")), converted=True)[0]
+                      if isinstance(c, TextRegion) else encode(c.prompt)[0]
+                      for c in pipe.regions] if native_prompt is None else []
+        audit = {"layout_method": layout_method,
+                 "region_geometry": "boxes" if all(geometry) else "mixed" if any(geometry) else "points",
+                 "box_slots": [i+1 for i, is_box in enumerate(geometry) if is_box]}
         work = model.clone()
-        if family == "Anima":
+        if native_prompt is not None:
+            audit.update(spatial_slots=len(pipe.regions), cross_calls=0, self_calls=0,
+                         restored_forwards=0, native_layout_json=native_prompt,
+                         regional_controls_applied=False)
+        elif family == "Anima":
             from .engine import AnimaRouting
             routing = AnimaRouting(conditions, masks, "character_first", audit,
                 len(positive[0][1]["t5xxl_ids"]),
@@ -177,16 +208,16 @@ class RSMultiCharacterSampler:
                 initial_spatial_separation=settings["initial_spatial_separation"], late_spatial_separation=0.,
                 common_weight_schedule="step_3x0.2", spatial_separation_schedule="hold_decay",
                 boundary_hold_steps=min(settings["boundary_hold_steps"], settings["steps"]), boundary_decrement=settings["boundary_decrement"],
-                common_after_step3_boost=settings["common_after_step3_boost"])
+                common_after_step3_boost=settings["common_after_step3_boost"], boxes=boxes)
             work.add_wrapper_with_key(WrappersMP.SAMPLER_SAMPLE, "rs_multicharacter", routing.sample)
             work.add_wrapper_with_key(WrappersMP.DIFFUSION_MODEL, "rs_multicharacter", routing.forward)
         elif family in ("SD1.5", "SDXL"):
             from .sdxl_engine import SDXLRouting
-            routing = SDXLRouting(conditions, masks, settings, audit, family=family)
+            routing = SDXLRouting(conditions, masks, settings, audit, family=family, boxes=boxes)
             routing.install(work)
         else:
             from .joint_engine import JointRouting
-            routing = JointRouting(family, conditions, masks, settings, audit)
+            routing = JointRouting(family, conditions, masks, settings, audit, boxes=boxes)
             routing.install(work)
         latent = torch.zeros((1, 4, settings["height"] // 8, settings["width"] // 8), device=comfy.model_management.intermediate_device())
         if family in ("SD1.5", "SDXL"):
@@ -207,10 +238,10 @@ class RSMultiCharacterSampler:
         assets = graph_assets(workflow_prompt, unique_id)
         record = build_record(pipe, settings, assets, centers, audit, engine=family.lower()+"-spatial-alpha-1")
         enriched = CharacterPipe(pipe.characters, prompt, negative_prompt, prompt_syntax,
-            json.dumps(record["rs_multicharacter"], ensure_ascii=True))
+            json.dumps(record["rs_multicharacter"], ensure_ascii=True), text_regions=pipe.text_regions)
         summary = {**record, "auto_layout_groups": moved, "cross_attention_calls": audit["cross_calls"],
                    "self_attention_calls": audit["self_calls"], "restored_forwards": audit["restored_forwards"], "routing_audit": audit}
-        ui = {"text": [f"{len(pipe.characters)} character regions · seed {settings['seed']} · {family} beta"]}
+        ui = {"text": [f"{len(pipe.characters)} characters + {len(pipe.text_regions)} text regions · seed {settings['seed']} · {family} epsilon"]}
         if autosave:
             folder, filename, counter, subfolder, _ = folder_paths.get_save_image_path(
                 "RS_MultiCharacter/RS_MC", folder_paths.get_output_directory(), settings["width"], settings["height"])

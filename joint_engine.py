@@ -10,7 +10,7 @@ import math
 
 import torch
 
-from .routing import (token_owners, sigma_progress, stepped_common_weight,
+from .routing import (token_groups, BoxGroups, sigma_progress, stepped_common_weight,
                       character_value_gain, hold_decay_spatial_separation)
 
 
@@ -45,8 +45,9 @@ def moss_caption_positions(tensor, heads, lengths, image_tokens, pre_shaped=Fals
 
 
 class JointRouting:
-    def __init__(self, family, conditions, masks, settings, audit):
+    def __init__(self, family, conditions, masks, settings, audit, boxes=False):
         self.family, self.conditions, self.masks = family, conditions, masks
+        self.boxes = boxes
         self.settings, self.audit = settings, audit
         self.sigmas = self.state = None
 
@@ -105,8 +106,7 @@ class JointRouting:
         gain = character_value_gain(progress, s['initial_character_gain'])
         separation = hold_decay_spatial_separation(progress, len(self.sigmas),
             s['initial_spatial_separation'], min(s['boundary_hold_steps'],len(self.sigmas)), s['boundary_decrement'])
-        owners = token_owners(self.masks, *grid).to(x.device)
-        groups = [(owners == i).nonzero().flatten() for i in range(len(self.masks))]
+        groups = token_groups(self.masks, *grid, x.device, boxes=self.boxes)
         self.audit.update(token_grid=list(grid), tokens_per_slot=[len(g) for g in groups])
         record = dict(sigma=sigma, progress=progress, kinds=list(kinds), common_prior=common,
                       character_value_gain=gain, spatial_separation=separation,
@@ -130,7 +130,7 @@ class JointRouting:
                     lengths = [c.shape[1] for c in pieces]
                     cb = torch.cat(pieces, 1)
                     record['text_lengths'] = lengths
-                    self.state = dict(lengths=lengths, groups=groups, image_tokens=owners.numel(),
+                    self.state = dict(lengths=lengths, groups=groups, image_tokens=grid[0]*grid[1],
                                       common=common, gain=gain, separation=separation, record=record)
                 outputs.append(invoke(x[batch:batch+1], tb, cb, branch_options))
             return torch.cat(outputs, 0)
@@ -196,6 +196,37 @@ class JointRouting:
         images = torch.arange(image_start, image_start+total_image, device=q.device)
         image_groups = [g+image_start for g in state['groups']]
         attend(text[0], torch.cat((text[0], images)))
+        if isinstance(state['groups'], BoxGroups):
+            groups = state['groups']
+            for slot, own_images in enumerate(image_groups):
+                attend(text[slot+1], torch.cat((text[slot+1], own_images)))
+            for members, queries in groups.cells:
+                if not members:
+                    attend(queries+image_start, torch.cat((text[0], images)))
+                    continue
+                captions = [text[i+1] for i in members]
+                keys = torch.cat((text[0], *captions, images))
+                common_len = len(text[0])
+                text_len = common_len + sum(len(t) for t in captions)
+                mass = common_len / (1 + state['common'])
+                bias = q.new_zeros((len(queries), len(keys)))
+                bias[:, :common_len] = -torch.inf if state['common'] == 0 else math.log(state['common']*mass/common_len)
+                offset = common_len
+                for tokens in captions:
+                    bias[:, offset:offset+len(tokens)] = math.log(mass / (len(members)*len(tokens)))
+                    offset += len(tokens)
+                if state['separation']:
+                    bias[:, text_len:] = math.log1p(-state['separation'])
+                    for slot in members:
+                        bias[:, text_len+groups[slot]] = 0
+                    bias[:, text_len+groups.background] = 0
+                gain = q.new_ones(len(keys))
+                gain[common_len:text_len] = state['gain']
+                attend(queries+image_start, keys, bias, gain)
+            state['record']['joint_calls'] += 1
+            self.audit['cross_calls'] += 1
+            self.audit['self_calls'] += 1
+            return out
         for slot, own_images in enumerate(image_groups):
             own_text = text[slot+1]
             attend(own_text, torch.cat((own_text, own_images)))

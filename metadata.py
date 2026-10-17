@@ -4,12 +4,13 @@
 No ComfyUI workflow, authentication, arbitrary graph inputs or model weights.
 """
 import json
+from dataclasses import replace
 from pathlib import Path
 
 from PIL import Image, features
 from PIL.PngImagePlugin import PngInfo
 
-from .characters import Character, CharacterPipe
+from .characters import Character, CharacterPipe, TextRegion
 
 SOFTWARE = "ComfyUI_RS_MultiCharacter_Sampler"
 FORMATS = ["PNG", "WebP lossless", "WebP lossy"]
@@ -49,8 +50,15 @@ def build_record(pipe, settings, assets, centers, audit, engine="anima-spatial-a
         **captions(pipe),
         "rs_multicharacter": {"version": 1, "engine": engine,
             "prompt_syntax": pipe.syntax, "settings": settings, "assets": assets,
+            "boxes": [c.bbox for c in pipe.characters],
+            "text_regions": text_region_records(pipe),
             "effective_centers": centers, "spatial_slots": audit["spatial_slots"]},
     }
+
+
+def text_region_records(pipe):
+    return [{"caption": c.prompt, "negative": c.uc, "text": c.text, "center": c.center,
+             "bbox": list(c.bbox)} for c in pipe.text_regions]
 
 
 def validate_format(save_format, quality):
@@ -112,8 +120,24 @@ def pipe_from_record(record):
         if local is not None and (not isinstance(local, dict) or local.get("version") != 1 or local.get("engine") not in ENGINE_SOURCES):
             raise ValueError("Unsupported local metadata version.")
         syntax = local["prompt_syntax"] if local else "NovelAI"
+        if local and "boxes" in local:
+            boxes = local["boxes"]
+            if not isinstance(boxes, list) or len(boxes) != len(chars):
+                raise ValueError("Box metadata must match the character count.")
+            if any(box is not None and not isinstance(box, list) for box in boxes):
+                raise ValueError("Each box must be a coordinate array or null.")
+            chars = [replace(c, bbox=tuple(box) if box is not None else None) for c, box in zip(chars, boxes)]
+        texts = local.get("text_regions", []) if local else []
+        if not isinstance(texts, list) or len(texts) + len(chars) > 10:
+            raise ValueError("Text metadata must be a list with at most 10 total regions.")
+        text_regions = []
+        for item in texts:
+            if not isinstance(item, dict) or not isinstance(item.get("bbox"), list):
+                raise ValueError("Invalid text region metadata.")
+            text_regions.append(TextRegion(item["caption"], item.get("negative", ""),
+                item["center"]["x"], item["center"]["y"], tuple(item["bbox"]), item["text"]))
         return CharacterPipe(tuple(chars), pos["base_caption"], neg["base_caption"], syntax,
-            json.dumps(local, ensure_ascii=True, allow_nan=False) if local else None)
+            json.dumps(local, ensure_ascii=True, allow_nan=False) if local else None, tuple(text_regions))
     except (KeyError, TypeError, IndexError) as error:
         raise ValueError("Incomplete character metadata: common prompts, character captions and X/Y are required.") from error
 

@@ -9,7 +9,7 @@ import torch
 from comfy.sampler_helpers import convert_cond
 from comfy.samplers import process_conds
 
-from .routing import (installed_ops, route_cross, route_self, token_owners,
+from .routing import (installed_ops, route_cross, route_self, token_groups,
                       common_weight, stepped_common_weight, character_value_gain, staged_character_gain, spatial_separation, stepped_spatial_separation, hold2_decay_spatial_separation, hold_decay_spatial_separation, release_step2_spatial_separation, sigma_progress, weak_self_bias, sdpa)
 
 WEIGHTED = ("weighted_static", "character_first", "character_first_open")
@@ -18,8 +18,9 @@ MODES = ("identity", "cross", "cross_self", "cross_compact", "cross_exclusive") 
 
 
 class AnimaRouting:
-    def __init__(self, conditions, masks, mode, audit, common_tokens, initial_common_prior=0.05, initial_character_gain=1., character_gain_schedule="early_decay", middle_character_gain=1.5, late_character_gain=1.7, initial_spatial_separation=.2, late_spatial_separation=.2, common_weight_schedule="smooth", spatial_separation_schedule="smooth", boundary_hold_steps=3, boundary_decrement=.2, common_after_step3_boost=0.):
+    def __init__(self, conditions, masks, mode, audit, common_tokens, initial_common_prior=0.05, initial_character_gain=1., character_gain_schedule="early_decay", middle_character_gain=1.5, late_character_gain=1.7, initial_spatial_separation=.2, late_spatial_separation=.2, common_weight_schedule="smooth", spatial_separation_schedule="smooth", boundary_hold_steps=3, boundary_decrement=.2, common_after_step3_boost=0., boxes=False):
         self.conditions, self.masks, self.mode = conditions, masks, mode
+        self.boxes = boxes
         self.audit = audit
         self.process = None
         self.contexts = None
@@ -95,8 +96,7 @@ class AnimaRouting:
             if any(s % model.patch_spatial for s in x.shape[-2:]):
                 raise ValueError("Image latent must align with Anima spatial patches")
             h, w = (s // model.patch_spatial for s in x.shape[-2:])
-            owners = token_owners(self.masks, h, w).to(x.device)
-            self.groups = [(owners == i).nonzero().flatten() for i in range(len(self.masks))]
+            self.groups = token_groups(self.masks, h, w, x.device, boxes=self.boxes)
             self.audit.update(token_grid=[h, w], spatial_slots=len(self.groups),
                               tokens_per_slot=[len(g) for g in self.groups])
         lengths = [context.shape[1]] + [c.shape[1] for c in self.contexts]

@@ -1,8 +1,12 @@
 # ComfyUI_RS_MultiCharacter_Sampler
 
-**0.1.4 デルタ · Anima・SDXL・Krea 2・MOSS・SD1.5（実験対応・不安定）**。共通プロンプトと各キャラクターの文章・XY座標を専用パイプで渡し、領域ごとに attention を制御します。RS NAI 拡張や API キーは不要です。
+**0.1.5 Epsilon 開発版 · Anima・SDXL・Krea 2・MOSS・SD1.5（実験対応・不安定）**。共通プロンプトと各キャラクターの文章・XY座標を専用パイプで渡し、領域ごとに attention を制御します。RS NAI 拡張や API キーは不要です。
 
-**0.1.4 デルタ更新:** MOSS-Image SFT 8ステップ LoRA の2人・4人XYサンプル、CFG 1/3の比較結果と導入手順を追加しました。既存のサンプラーと標準 LoRA ローダーで使用します。[変更点と検証範囲](docs/release-0.1.4.md)
+**前のリリース — 0.1.4 デルタ:** MOSS-Image SFT 8ステップ LoRA の2人・4人XYサンプル、CFG 1/3の比較結果と導入手順を追加しました。既存のサンプラーと標準 LoRA ローダーで使用します。[変更点と検証範囲](docs/release-0.1.4.md)
+
+**0.1.5 Epsilon 開発版:** 座標と矩形の混合配置、文字領域、MOSSネイティブレイアウトの比較を追加。人物2人は座標、`HELLO`は上部の矩形で指定できます。[設定と制限](docs/regional-layout.md)。
+
+**人物2人＋単語1つ**は領域数 `3`、`layout_mode=mixed` に設定します。1・2番を `character` と `point`、3番を `text` にし、文字欄に `HELLO`、プロンプト欄に字体や色の説明を入力してください。文字のX/Y・幅・高さを指定し、サンプラーは `layout_method=regional` にします。矩形内は文字領域が優先されます。人物と文字を合わせて最大10領域です。正確な綴りや矩形への収まりは保証されません。MOSSネイティブ方式では全領域に矩形が必要です。[実行サンプル](examples/epsilon) · [検証範囲と実際の制限](docs/epsilon-validation.md)。
 
 ## 使用方法
 

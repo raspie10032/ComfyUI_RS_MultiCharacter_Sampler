@@ -43,6 +43,88 @@ def token_owners(masks, height, width):
     return owners
 
 
+class BoxGroups(list):
+    """Character membership plus disjoint cells; each query is written once."""
+    def __init__(self, groups, cells, background):
+        super().__init__(groups)
+        self.cells, self.background = cells, background
+
+
+def token_groups(masks, height, width, device=None, boxes=False):
+    """boxes=True: all boxes; tuple[bool]: per-slot box/point geometry.
+
+    In a mixed layout, explicit boxes win at each attention resolution. Outside
+    them, exactly one point owns a token, using the legacy argmax partition.
+    """
+    if not boxes:
+        owners = token_owners(masks, height, width).to(device)
+        return [(owners == i).nonzero().flatten() for i in range(len(masks))]
+    if (masks.ndim != 3 or not 1 <= len(masks) <= 10 or
+            not torch.isfinite(masks).all() or (masks < 0).any()):
+        raise ValueError("Expected 1–10 finite, nonnegative box masks.")
+    coverage = F.interpolate(masks[:, None].float(), (height, width), mode="area")[:, 0].flatten(1)
+    membership = coverage > 1e-6
+    if isinstance(boxes, tuple):
+        if len(boxes) != len(masks) or any(type(v) is not bool for v in boxes):
+            raise ValueError("Expected one box/point flag per region.")
+        point_ids = [i for i, is_box in enumerate(boxes) if not is_box]
+        box_ids = [i for i, is_box in enumerate(boxes) if is_box]
+        if point_ids:
+            occupied = membership[box_ids].any(0) if box_ids else torch.zeros_like(membership[0])
+            owners = coverage[point_ids].argmax(0)
+            for point, slot in enumerate(point_ids):
+                membership[slot] = (owners == point) & ~occupied & (coverage[slot] > 1e-6)
+    if not membership.any(1).all():
+        raise ValueError("A region has no image tokens. Boxes may fully cover a point region; reduce/move them, spread the points, or increase image size. / 상자가 좌표 영역을 완전히 덮었거나 영역이 너무 작습니다. 상자 크기·위치나 좌표 간격을 조정해 주세요.")
+    codes = (membership.long() * (2 ** torch.arange(len(masks)))[:, None]).sum(0)
+    cells = [(tuple(i for i in range(len(masks)) if code & (1 << i)),
+              (codes == code).nonzero().flatten().to(device)) for code in codes.unique().tolist()]
+    groups = [row.nonzero().flatten().to(device) for row in membership]
+    return BoxGroups(groups, cells, (codes == 0).nonzero().flatten().to(device))
+
+
+def box_cross(q, k, v, groups, lengths, kinds, weights, character_gain, include_common, common_tokens):
+    offsets = [0]
+    for length in lengths:
+        offsets.append(offsets[-1] + length)
+    if any(length <= 0 for length in lengths):
+        raise ValueError("Every caption needs at least one text token.")
+    common_end = lengths[0] if common_tokens is None else common_tokens
+    if not 1 <= common_end <= lengths[0]:
+        raise ValueError("Invalid common text token count")
+    if weights is not None and (not include_common or len(weights) != 2 or
+            any(not math.isfinite(w) for w in weights) or weights[0] < 0 or weights[1] <= 0):
+        raise ValueError("Common weight must be nonnegative; character weight must be positive")
+    result = q.new_empty(q.shape[:2] + (q.shape[2] * q.shape[3],))
+    for batch, kind in enumerate(kinds):
+        qb, kb, vb = q[batch:batch+1], k[batch:batch+1], v[batch:batch+1]
+        if kind == 1:
+            result[batch:batch+1] = sdpa(qb, kb[:, :lengths[0]], vb[:, :lengths[0]])
+            continue
+        if kind != 0:
+            raise ValueError("Unsupported CFG condition kind")
+        for members, indices in groups.cells:
+            if not members:
+                # A zero early common prior only applies inside character boxes.
+                result[batch:batch+1, indices] = sdpa(qb[:, indices], kb[:, :common_end], vb[:, :common_end])
+                continue
+            end = common_end if include_common else 0
+            keys, values = [kb[:, :end]], [vb[:, :end]]
+            bias_parts = []
+            if weights is not None:
+                bias_parts.append(q.new_full((end,), -torch.inf if weights[0] == 0 else math.log(weights[0] / end)))
+            for slot in members:
+                start, stop = offsets[slot+1], offsets[slot+2]
+                keys.append(kb[:, start:stop])
+                values.append(vb[:, start:stop] * character_gain)
+                if weights is not None:
+                    # Share total character prior equally, independent of text length.
+                    bias_parts.append(q.new_full((stop-start,), math.log(weights[1] / (len(members)*(stop-start)))))
+            bias = torch.cat(bias_parts)[None, :] if weights is not None else None
+            result[batch:batch+1, indices] = sdpa(qb[:, indices], torch.cat(keys, 1), torch.cat(values, 1), bias)
+    return result
+
+
 def sdpa(q, k, v, bias=None):
     # Anima input/output: B,S,H,D -> B,S,H*D.
     return F.scaled_dot_product_attention(
@@ -65,6 +147,9 @@ def route_cross(q, k, v, groups, text_lengths, kinds, include_common=True, weigh
         raise ValueError("Text key/value layout mismatch")
     if not math.isfinite(character_gain) or not 1 <= character_gain <= 3:
         raise ValueError("Character value gain must be finite and in [1, 3]")
+    if isinstance(groups, BoxGroups):
+        return box_cross(q, k, v, groups, text_lengths, kinds, weights,
+                         character_gain, include_common, common_tokens)
     offsets = [text_lengths[0]]
     for length in text_lengths[1:]:
         offsets.append(offsets[-1] + length)
@@ -129,6 +214,10 @@ def weak_self_bias(groups, size, reference, separation=0.2):
     bias = reference.new_full((size, size), math.log1p(-separation))
     for group in groups:
         bias[group[:, None], group] = 0
+    if isinstance(groups, BoxGroups):
+        # Background remains a shared scene; overlapping boxes share spatial keys.
+        bias[groups.background, :] = 0
+        bias[:, groups.background] = 0
     return bias
 
 

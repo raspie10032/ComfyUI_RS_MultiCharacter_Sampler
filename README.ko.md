@@ -1,8 +1,12 @@
 # ComfyUI_RS_MultiCharacter_Sampler
 
-**0.1.4 델타 · Anima · SDXL · Krea 2 · MOSS · SD1.5(실험 지원·불안정)**입니다. 공통 프롬프트와 캐릭터별 프롬프트·XY를 전용 파이프로 전달하고, 로컬 모델 내부에서 영역별 attention을 조절합니다. RS NAI 확장이나 API 키는 필요 없습니다.
+**0.1.5 엡실론 개발판 · Anima · SDXL · Krea 2 · MOSS · SD1.5(실험 지원·불안정)**입니다. 공통 프롬프트와 캐릭터별 프롬프트·XY를 전용 파이프로 전달하고, 로컬 모델 내부에서 영역별 attention을 조절합니다. RS NAI 확장이나 API 키는 필요 없습니다.
 
-**0.1.4 델타 업데이트:** MOSS-Image SFT 8스텝 LoRA의 2인·4인 XY 예제, CFG 1/3 비교 결과와 설치 방법을 추가했습니다. 기존 샘플러와 기본 LoRA 로더로 사용합니다. [변경 내역과 검증 범위](docs/release-0.1.4.md)
+**이전 배포판 — 0.1.4 델타:** MOSS-Image SFT 8스텝 LoRA의 2인·4인 XY 예제, CFG 1/3 비교 결과와 설치 방법을 추가했습니다. 기존 샘플러와 기본 LoRA 로더로 사용합니다. [변경 내역과 검증 범위](docs/release-0.1.4.md)
+
+**0.1.5 엡실론 개발판:** 좌표·상자 혼합 배치와 텍스트 영역을 추가합니다. 예를 들어 캐릭터 2명은 좌표로, `HELLO`는 위쪽 상자로 지정합니다. [설정 방법과 한계](docs/regional-layout.md).
+
+**캐릭터 2명 + 단어 1개**는 영역 수 `3`, `layout_mode=mixed`로 시작합니다. 1·2번은 `character`와 `point`, 3번은 `text`로 선택하고 실제 글자 칸에 `HELLO`, 프롬프트 칸에 글씨 모양을 적으세요. 글자 상자의 X/Y·너비·높이를 정하고 샘플러는 `layout_method=regional`을 선택합니다. 상자 안은 글자 영역이 우선합니다. 캐릭터·글자 합계 최대 10영역이며, 정확한 철자·상자 크기 준수는 보장하지 않습니다. MOSS 공식 모드는 모든 영역에 상자가 필요합니다. [실행 예제](examples/epsilon) · [검증 범위·실제 한계](docs/epsilon-validation.md).
 
 ## 설치와 사용
 

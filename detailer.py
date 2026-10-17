@@ -13,7 +13,7 @@ from .detection import RepairedDetector, _detect, _context_crop, _crop_box, _nat
 from .detector_bundle import DetectionBundle
 from .detailer_matching import Match, match_characters, selected_prompts
 from .image_utils import tensor_to_pil, validate_single_image
-from .metadata import FORMATS, captions, graph_assets, object_json, save_image, validate_format
+from .metadata import FORMATS, captions, graph_assets, object_json, save_image, validate_format, text_region_records
 from .prompt_syntax import parse_naiv4, to_comfyui
 from .runtime_control import check_interrupted
 
@@ -86,6 +86,8 @@ def detail_record(pipe, width, height, settings, assets, report):
         raise ValueError("Invalid detail history in character metadata.")
     local["detail_history"] = [*history, {"engine": "local-masked-img2img-v1", "settings": settings,
         "assets": assets, "image_size": [width, height], "report": report}]
+    local["boxes"] = [list(c.bbox) if c.bbox is not None else None for c in pipe.characters]
+    local["text_regions"] = text_region_records(pipe)
     original = local.get("settings", {})
     record = {"prompt": pipe.prompt or "", "uc": pipe.negative_prompt or "", "width": width, "height": height,
               **captions(pipe), "rs_multicharacter": local}
@@ -160,6 +162,8 @@ class RSMultiCharacterDetailer:
             raise ValueError("Connect an RS MultiCharacter pipe. / 전용 캐릭터 파이프를 연결해 주세요.")
         if not isinstance(detectors, DetectionBundle) or (detectors.segm_detector is None and detectors.bbox_detector is None):
             raise ValueError("Select SEGM or BBOX in RS Detection Loader. SAM alone cannot find regions. / SEGM 또는 BBOX를 선택해 주세요.")
+        if not character_pipe.characters:
+            raise ValueError("The detailer needs a character prompt. Text regions are not face-matching candidates. / 디테일러에는 캐릭터 프롬프트가 필요합니다.")
         if len(character_pipe.characters) > 1 and not callable(getattr(tagger, "score", None)):
             raise ValueError("Multiple characters need RS Tagger Loader for matching. / 여러 캐릭터를 구분하려면 태거 로더를 연결해 주세요.")
         from .mask_repair import inside_alpha
@@ -225,7 +229,7 @@ class RSMultiCharacterDetailer:
                   "detected": len(regions), "edited": edited_count, "skipped": len(regions)-edited_count, "regions": items}
         record = detail_record(character_pipe, width, height, settings, graph_assets(workflow_prompt, unique_id), report)
         enriched = CharacterPipe(character_pipe.characters, character_pipe.prompt, character_pipe.negative_prompt,
-                                 character_pipe.syntax, json.dumps(record["rs_multicharacter"], ensure_ascii=True, allow_nan=False))
+                                 character_pipe.syntax, json.dumps(record["rs_multicharacter"], ensure_ascii=True, allow_nan=False), text_regions=character_pipe.text_regions)
         text = f"{edited_count}/{len(regions)} regions corrected · {report['skipped']} preserved"
         ui = {"text": [text], "rs_mc_report": [report]}
         if autosave:

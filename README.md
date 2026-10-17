@@ -1,8 +1,8 @@
 # ComfyUI_RS_MultiCharacter_Sampler
 
-**0.1.4 Delta · Anima · SDXL · Krea 2 · MOSS · SD1.5 (experimental, unstable)** — independent character prompts and X/Y prompt regions for local ComfyUI generation.
+**0.1.5 Epsilon development candidate · Anima · SDXL · Krea 2 · MOSS · SD1.5 (experimental, unstable)** — independent character prompts and X/Y prompt regions for local ComfyUI generation.
 
-**New in 0.1.4 Delta:** MOSS-Image SFT 8-step LoRA examples for two characters and four-character XY layouts, CFG 1/3 comparisons, and setup instructions. Uses the existing sampler and standard LoRA loader. See [release notes and validation scope](docs/release-0.1.4.md).
+**Previous release — 0.1.4 Delta:** MOSS-Image SFT 8-step LoRA examples for two characters and four-character XY layouts, CFG 1/3 comparisons, and setup instructions. Uses the existing sampler and standard LoRA loader. See [release notes and validation scope](docs/release-0.1.4.md).
 
 [한국어](README.ko.md) · [日本語](README.ja.md) · [Architecture](docs/architecture.md) · [Validation](docs/validation.md)
 
@@ -16,6 +16,10 @@ This extension contains six nodes. It does not require the RS NovelAI extension,
 | **RS MultiCharacter Detailer** | Detect regions, match original character prompts and locally correct masked crops. |
 | **RS Detection Combine Loader** | SEGM / BBOX / SAM selection in one detector connection; SEGM takes priority. |
 | **RS Character Tagger Loader** | Local tagger selection for automatic character matching, with download progress. |
+
+**0.1.5 Epsilon candidate:** optional boxes and mixed point/box layouts, text regions, and MOSS native layout comparison. [Setup and limitations](docs/regional-layout.md).
+
+To try **two people plus one word**, use region count `3`, `layout_mode=mixed`, point geometry for character slots 1–2, and `kind=text` with literal `HELLO` for slot 3. Set its X/Y and width/height, then select sampler `layout_method=regional`. [Runnable examples](examples/epsilon) · [Validation and visual limitations](docs/epsilon-validation.md). Up to 10 total character/text regions; MOSS native mode requires boxes for every region.
 
 ## Install
 
