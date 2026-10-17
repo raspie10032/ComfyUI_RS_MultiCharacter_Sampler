@@ -1,0 +1,162 @@
+{
+  "RSMultiCharacterDetailer": {
+    "display_name": "RS マルチキャラクターディテイラー",
+    "description": "元画像とキャラクターパイプから顔を補正します。タグは元の文章を選ぶためだけに使い、曖昧な照合は保持します。穴・凹凸の補修とマスク拡張を適用します。処理数が増えるほど品質を保証できません。",
+    "inputs": {
+      "image": {
+        "name": "画像"
+      },
+      "model": {
+        "name": "モデル"
+      },
+      "clip": {
+        "name": "CLIP"
+      },
+      "vae": {
+        "name": "VAE"
+      },
+      "character_pipe": {
+        "name": "キャラクターパイプ"
+      },
+      "detectors": {
+        "name": "検出モデル"
+      },
+      "tagger": {
+        "name": "タグモデル"
+      },
+      "denoise": {
+        "name": "補正強度"
+      },
+      "seed": {
+        "name": "シード"
+      },
+      "autosave": {
+        "name": "自動保存"
+      },
+      "show_advanced": {
+        "name": "詳細オプション"
+      },
+      "steps": {
+        "name": "ステップ"
+      },
+      "cfg": {
+        "name": "CFG"
+      },
+      "sampler_name": {
+        "name": "サンプラー"
+      },
+      "scheduler": {
+        "name": "スケジューラー"
+      },
+      "guide_size": {
+        "name": "クロップの短辺サイズ"
+      },
+      "max_size": {
+        "name": "クロップの最大サイズ"
+      },
+      "max_regions": {
+        "name": "最大補正領域数",
+        "tooltip": "人数ではなく補正する領域数です。既定10、最大64個。処理数が増えるほど品質を保証できません。"
+      },
+      "bbox_threshold": {
+        "name": "検出の信頼度"
+      },
+      "crop_factor": {
+        "name": "クロップ余白倍率"
+      },
+      "dilation": {
+        "name": "マスク拡張"
+      },
+      "fill_holes": {
+        "name": "穴埋め"
+      },
+      "closing": {
+        "name": "凹凸の補修"
+      },
+      "mask_feather": {
+        "name": "マスク境界ぼかし"
+      },
+      "match_min_score": {
+        "name": "照合の最小スコア"
+      },
+      "match_min_margin": {
+        "name": "照合の最小スコア差"
+      },
+      "match_crop_factor": {
+        "name": "照合クロップ倍率"
+      },
+      "save_format": {
+        "name": "保存形式"
+      },
+      "webp_quality": {
+        "name": "WebP品質"
+      }
+    },
+    "outputs": {
+      "0": {
+        "name": "補正画像"
+      },
+      "1": {
+        "name": "修正マスク"
+      },
+      "2": {
+        "name": "キャラクターパイプ"
+      },
+      "3": {
+        "name": "領域レポート"
+      }
+    }
+  },
+  "RSMultiCharacterDetectionLoader": {
+    "display_name": "RS 検出コンバインローダー",
+    "description": "SEGM 選択時は BBOX・SAM を読み込みません。SEGM OFF では BBOX または BBOX+SAM を使います。OFF は未使用です。選択した未導入カタログモデルのみダウンロードし、進捗を表示します。モデルフォルダに追加したファイルは一覧更新後に表示されます。",
+    "inputs": {
+      "show_optional_models": {
+        "name": "任意の検出モデルを表示"
+      },
+      "face_segm_model": {
+        "name": "SEGMモデル",
+        "tooltip": "SEGM 選択時は BBOX・SAM を読み込みません。SEGM OFF では BBOX または BBOX+SAM を使います。OFF は未使用です。選択した未導入カタログモデルのみダウンロードし、進捗を表示します。モデルフォルダに追加したファイルは一覧更新後に表示されます。"
+      },
+      "face_bbox_model": {
+        "name": "BBOXモデル",
+        "tooltip": "SEGM 選択時は BBOX・SAM を読み込みません。SEGM OFF では BBOX または BBOX+SAM を使います。OFF は未使用です。選択した未導入カタログモデルのみダウンロードし、進捗を表示します。モデルフォルダに追加したファイルは一覧更新後に表示されます。"
+      },
+      "sam_model": {
+        "name": "SAMモデル",
+        "tooltip": "SEGM 選択時は BBOX・SAM を読み込みません。SEGM OFF では BBOX または BBOX+SAM を使います。OFF は未使用です。選択した未導入カタログモデルのみダウンロードし、進捗を表示します。モデルフォルダに追加したファイルは一覧更新後に表示されます。"
+      }
+    },
+    "outputs": {
+      "0": {
+        "name": "検出モデル"
+      }
+    }
+  },
+  "RSMultiCharacterTaggerLoader": {
+    "display_name": "RS キャラクタータグローダー",
+    "description": "タガーモデルを選択します。実行時に選択したモデルだけをダウンロードし、ノードに転送量と進捗を表示します。取得済みのファイルはキャッシュを再利用します。推論はローカルで行い、スコアは元のキャラクタープロンプトの選択にのみ使用します。生成プロンプトにタグを追加しません。",
+    "inputs": {
+      "device": {
+        "name": "実行デバイス",
+        "tooltip": "autoはComfyUIが選択した実行デバイスを使用し、cpuはCPUで実行します。",
+        "options": {
+          "auto": "自動",
+          "cpu": "CPU"
+        }
+      },
+      "batch_size": {
+        "name": "バッチサイズ"
+      },
+      "model_name": {
+        "name": "タガーモデル",
+        "tooltip": "実行時に選択したモデルだけをダウンロードし、ノードに進捗を表示します。取得済みのファイルはキャッシュを再利用します。モデルによって追加パッケージや多くのメモリが必要です。インストール方法はREADMEを参照してください。バッチサイズ1から始めてください。"
+      }
+    },
+    "outputs": {
+      "0": {
+        "name": "タガー"
+      }
+    }
+  }
+}

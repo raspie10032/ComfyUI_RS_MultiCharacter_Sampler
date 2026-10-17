@@ -1,0 +1,86 @@
+{
+  "mask_repair.py": {
+    "source": "mask_repair.py",
+    "sha256": "1a80832ffae763c8734912c0bcae0bec11932fcb5f52b90c848362c8eb90047f",
+    "source_repository": "https://github.com/raspie10032/ComfyUI_RS_NAI_API_Request",
+    "source_base_commit": "15eb748b3ec5f8a0a2d470b7fb280e2d7579f916"
+  },
+  "detailer_matching.py": {
+    "source": "detailer_matching.py",
+    "sha256": "947a2f95723d4f07f3b5c5502fa3186d5da70053989f67c3dab4605ce76308b4",
+    "source_repository": "https://github.com/raspie10032/ComfyUI_RS_NAI_API_Request",
+    "source_base_commit": "15eb748b3ec5f8a0a2d470b7fb280e2d7579f916"
+  },
+  "detection_models.py": {
+    "source": "detection_models.py",
+    "sha256": "d456779147876f29d516613df0c721155e6d818dc3c667eb73011e4952645178",
+    "source_repository": "https://github.com/raspie10032/ComfyUI_RS_NAI_API_Request",
+    "source_base_commit": "15eb748b3ec5f8a0a2d470b7fb280e2d7579f916"
+  },
+  "detection_model_catalog.json": {
+    "source": "detection_model_catalog.json",
+    "sha256": "56e205c0ba51c9fdac557b68de8c894ba18703a5a90254a8579f17e9fe552336",
+    "source_repository": "https://github.com/raspie10032/ComfyUI_RS_NAI_API_Request",
+    "source_base_commit": "15eb748b3ec5f8a0a2d470b7fb280e2d7579f916"
+  },
+  "wd_tagger.py": {
+    "source": "wd_tagger.py",
+    "sha256": "1f7e163c0bde3c0a9362ac1aa828143f1eccac11a87b2e23709f94e5c1050536",
+    "source_repository": "https://github.com/raspie10032/ComfyUI_RS_NAI_API_Request",
+    "source_base_commit": "15eb748b3ec5f8a0a2d470b7fb280e2d7579f916"
+  },
+  "tagger_progress.py": {
+    "source": "tagger_progress.py",
+    "sha256": "ebca7321e990b93e6657a890125fbbf157535eff6cdbfc3f4a2ea221e6ca1821",
+    "source_repository": "https://github.com/raspie10032/ComfyUI_RS_NAI_API_Request",
+    "source_base_commit": "15eb748b3ec5f8a0a2d470b7fb280e2d7579f916"
+  },
+  "runtime_control.py": {
+    "source": "runtime_control.py",
+    "sha256": "aa8a15045b4f19c569a69d86b067a064a941e2c806d2905766684a92bf2248c2",
+    "source_repository": "https://github.com/raspie10032/ComfyUI_RS_NAI_API_Request",
+    "source_base_commit": "15eb748b3ec5f8a0a2d470b7fb280e2d7579f916"
+  },
+  "requirements-tagger.txt": {
+    "source": "requirements-tagger.txt",
+    "sha256": "681b6e5bc06aa4c850a079b8968e166bb2b0c6cb3e0a9100df12a75ea71169bb",
+    "source_repository": "https://github.com/raspie10032/ComfyUI_RS_NAI_API_Request",
+    "source_base_commit": "15eb748b3ec5f8a0a2d470b7fb280e2d7579f916"
+  },
+  "requirements-tagger-pixai.txt": {
+    "source": "requirements-tagger-pixai.txt",
+    "sha256": "8be705a5b7f494285fe779f2d77d590b394c782482b7db2f5e076d093ca9f868",
+    "source_repository": "https://github.com/raspie10032/ComfyUI_RS_NAI_API_Request",
+    "source_base_commit": "15eb748b3ec5f8a0a2d470b7fb280e2d7579f916"
+  },
+  "detailer.py": {
+    "source": "detailer.py",
+    "sha256": "b38620cb22c855836efbb43a15c0f590952c17ca35ce606d14dc61d786c50d76",
+    "symbols": [
+      "_detect",
+      "_center",
+      "_crop_box",
+      "_context_crop",
+      "_mask_array",
+      "_expanded_crop",
+      "_native_crop_mask"
+    ],
+    "source_repository": "https://github.com/raspie10032/ComfyUI_RS_NAI_API_Request",
+    "source_base_commit": "15eb748b3ec5f8a0a2d470b7fb280e2d7579f916"
+  },
+  "combined_detailer.py": {
+    "source": "combined_detailer.py",
+    "sha256": "ac46397bd2cac2fd123730990c01b4eb6d557fa5071507a69b075a1a43a8aa7e",
+    "symbols": [
+      "RepairedDetector"
+    ],
+    "source_repository": "https://github.com/raspie10032/ComfyUI_RS_NAI_API_Request",
+    "source_base_commit": "15eb748b3ec5f8a0a2d470b7fb280e2d7579f916"
+  },
+  "detector_bundle.py": {
+    "source": "detector_bundle.py",
+    "sha256": "0fd09d8094a163180bdf10e59a61a8315cd441a8cb31a119c6273c0e36e77e55",
+    "source_repository": "https://github.com/raspie10032/ComfyUI_RS_NAI_API_Request",
+    "source_base_commit": "15eb748b3ec5f8a0a2d470b7fb280e2d7579f916"
+  }
+}

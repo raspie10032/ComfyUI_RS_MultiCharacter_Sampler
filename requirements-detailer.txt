@@ -1,0 +1,5 @@
+# Detection uses ComfyUI-Impact-Pack and ComfyUI-Impact-Subpack.
+# Keep their model folders; no dependency on the RS NovelAI extension.
+opencv-python>=4.8
+scipy>=1.11
+-r requirements-tagger.txt

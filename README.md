@@ -4,13 +4,16 @@
 
 [한국어](README.ko.md) · [日本語](README.ja.md) · [Architecture](docs/architecture.md) · [Validation](docs/validation.md)
 
-This extension contains three nodes. It does not require the RS NovelAI extension, an API key, or a ControlNet model. It uses your local Anima model and text encoder.
+This extension contains six nodes. It does not require the RS NovelAI extension, an API key, or a ControlNet model. It uses your local Anima model and text encoder.
 
 | Node | Purpose |
 | --- | --- |
 | **RS MultiCharacter Prompts** | 1–10 character slots, each with original text, enable switch and normalized X/Y. One dedicated `RS_MC_CHARACTER_PIPE` output. |
 | **RS MultiCharacter Sampler** | Common positive/negative prompts, local sampling, optional autosave, image/latent/pipe/info outputs. |
 | **RS MultiCharacter Load Image** | PNG/WebP image and mask, restored character pipe and generation information. |
+| **RS MultiCharacter Detailer** | Detect regions, match original character prompts and locally correct masked crops. |
+| **RS Detection Combine Loader** | SEGM / BBOX / SAM selection in one detector connection; SEGM takes priority. |
+| **RS Character Tagger Loader** | Local tagger selection for automatic character matching, with download progress. |
 
 ## Install
 
@@ -22,7 +25,20 @@ For Git installation, clone this repository into your ComfyUI `custom_nodes` dir
 git clone https://github.com/raspie10032/ComfyUI_RS_MultiCharacter_Sampler.git
 ```
 
-Run the command **inside `ComfyUI/custom_nodes`**. The extension uses ComfyUI's existing PyTorch, NumPy and Pillow. Python 3.11+ and a ComfyUI version with Anima support are required; the tested environment is recorded in the validation report. No weights are bundled or downloaded automatically.
+Run the command **inside `ComfyUI/custom_nodes`**. The sampler uses ComfyUI's existing PyTorch, NumPy and Pillow. Python 3.11+ and a ComfyUI version with Anima support are required; the tested environment is recorded in the validation report. Supply your own diffusion model, text encoder and VAE. The optional detector/tagger loaders download their selected missing catalog models when executed.
+
+For detailing, install **ComfyUI-Impact-Pack** and **ComfyUI-Impact-Subpack** through Manager, then install `requirements-detailer.txt` using your **ComfyUI Python environment**. Restart ComfyUI. SAM is optional and must already be installed to select it. Additional tagger choices can require the optional dependencies listed in their error message.
+
+## Local multi-character detailing
+
+Load [the generation + detailer example](examples/two-characters-detailer-anima.json). Branch the same MODEL / CLIP / VAE (including your LoRA) to the sampler and **RS MultiCharacter Detailer**. Connect the sampler's `image` and `character_pipe` outputs to the detailer, then connect **RS Detection Combine Loader** and **RS Character Tagger Loader**. An existing image can instead supply `image` and `character_pipe` from **RS MultiCharacter Load Image**.
+
+Start with the default face SEGM, WD ViT v3 and **denoise 0.25**. The basic view contains denoise, seed and autosave; expand the options for crop size, mask settings, matching thresholds and sampling. SEGM skips BBOX and SAM entirely. With SEGM OFF, choose BBOX alone or BBOX + SAM. OFF models are not loaded. Existing models in `ultralytics/segm`, `ultralytics/bbox` and `sams` appear when you refresh the model list.
+
+The tagger only selects an original character prompt; inferred tags never enter the correction prompt. Hole filling and notch closing are enabled by default. Crops use the original image, with separate ownership masks and feathering inside those masks. Ambiguous regions are preserved and the report explains the reason. High-confidence misidentification is still possible; inspect the reported character assignments, especially when several characters look alike. The pipe has up to **10 characters**; the detailer processes up to **10 regions by default, 64 maximum**. More processed regions do not guarantee quality.
+
+Detailer autosave keeps the original generation settings and adds a separate correction history in PNG/WebP metadata. It does not embed a workflow. PNG/lossless WebP preserve pixels outside the applied mask; lossy WebP can change pixels through compression. Current live validation is Anima; support for other model families is not established. See [detailer validation](docs/detailer-validation.md).
+
 
 ## First workflow
 
@@ -54,7 +70,7 @@ These observations come from **Anima Base v1.0, one two-character cafe scene and
 
 Select both fields yourself. Other combinations remain available, and the node never substitutes a recommended choice. Native option names are preserved for workflows and image metadata. Defaults remain `euler_ancestral + sgm_uniform`; the available inventory depends on your ComfyUI version.
 
-Some CFG++ variants degraded at the fixed test settings. Lower-CFG/fewer-step retests have **not** been performed, so this does not establish incompatibility. This alpha still uses **30 fixed steps and CFG 1–20**; it does not yet provide recommendations below that CFG range or at other step counts. See [matrix results and recommendation evidence](docs/sampler-combinations.md).
+Some CFG++ variants degraded at the fixed test settings. Lower-CFG/fewer-step retests have **not** been performed, so this does not establish incompatibility. The regional sampler still uses **30 fixed steps and CFG 1–20**; it does not yet provide recommendations below that CFG range or at other step counts. See [matrix results and recommendation evidence](docs/sampler-combinations.md).
 
 ## Restore from an image
 
@@ -66,12 +82,12 @@ The loader also accepts NAI V4-style character captions with one center per char
 
 ## Alpha limits
 
-- **Anima only**, single image, text-to-image. SDXL/Flux/SD1.5, ControlNet and other attention patches are not supported.
+- **Anima only**, one image per execution. The sampler is text-to-image; the detailer runs masked img2img crops. SDXL/Flux/SD1.5, ControlNet and other attention patches are not supported.
 - **1–10 input slots; actual image tests cover 1–6.** More characters do not guarantee quality. Horizontal layouts are the strongest tested use case.
 - Coordinates choose prompt regions; they do **not** lock a head/body to a point or enforce exactly one person per region. A single character owns the whole image, so moving that one center does not move the person.
 - Multiple rows, dense interactions and crossing props can duplicate or omit people. Four requested people in a 2×2 experiment became 12 and 10. Six people in two rows became 7 and 11. Do not treat count or identity as guaranteed.
-- Per-character negative captions are preserved in metadata but **rejected by sampling** in this alpha. Use the common negative prompt. Scheduled text conditioning is not supported.
-- The schedule is currently fixed to **30 steps**. Initial common weight, character gain and boundary release are advanced experimental controls, not universal quality settings.
+- Per-character negative captions are preserved in metadata but **rejected by the regional sampler** in this alpha. Use its common negative prompt. The detailer can use the matched character's negative caption. Scheduled text conditioning is not supported.
+- The regional sampler schedule is currently fixed to **30 steps**. The detailer has its own adjustable step count. Initial common weight, character gain and boundary release are advanced experimental controls, not universal quality settings.
 - Autosave does not preserve an uploaded image's unrelated EXIF/GPS/camera data. Social platforms may strip generation metadata; use the original file for restoration.
 
 See [validation](docs/validation.md) for real generation, metadata replay and the limits of the evidence. This is an alpha, not a claim of NovelAI-equivalent performance.

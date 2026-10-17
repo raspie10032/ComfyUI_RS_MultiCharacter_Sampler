@@ -1,0 +1,162 @@
+{
+  "RSMultiCharacterDetailer": {
+    "display_name": "RS 멀티캐릭터 디테일러",
+    "description": "원본 이미지와 캐릭터 파이프로 얼굴을 보정합니다. 태거는 원래 프롬프트를 선택하는 데만 사용합니다. 애매한 매칭은 보존하며 홀·요철 채우기와 마스크 확장을 적용합니다. 처리수가 많을수록 품질을 보장하지 못합니다.",
+    "inputs": {
+      "image": {
+        "name": "이미지"
+      },
+      "model": {
+        "name": "모델"
+      },
+      "clip": {
+        "name": "CLIP"
+      },
+      "vae": {
+        "name": "VAE"
+      },
+      "character_pipe": {
+        "name": "캐릭터 파이프"
+      },
+      "detectors": {
+        "name": "감지 모델"
+      },
+      "tagger": {
+        "name": "태거"
+      },
+      "denoise": {
+        "name": "보정 강도"
+      },
+      "seed": {
+        "name": "시드"
+      },
+      "autosave": {
+        "name": "자동 저장"
+      },
+      "show_advanced": {
+        "name": "상세 옵션"
+      },
+      "steps": {
+        "name": "스텝"
+      },
+      "cfg": {
+        "name": "CFG"
+      },
+      "sampler_name": {
+        "name": "샘플러"
+      },
+      "scheduler": {
+        "name": "스케줄러"
+      },
+      "guide_size": {
+        "name": "크롭 짧은 변 크기"
+      },
+      "max_size": {
+        "name": "크롭 최대 크기"
+      },
+      "max_regions": {
+        "name": "최대 보정 영역 수",
+        "tooltip": "캐릭터 수가 아닌 수정 영역 수입니다. 기본 10개, 최대 64개. 처리수가 많을수록 품질을 보장하지 못합니다."
+      },
+      "bbox_threshold": {
+        "name": "감지 신뢰도"
+      },
+      "crop_factor": {
+        "name": "크롭 여백 배율"
+      },
+      "dilation": {
+        "name": "마스크 확장"
+      },
+      "fill_holes": {
+        "name": "홀 채우기"
+      },
+      "closing": {
+        "name": "요철 채우기"
+      },
+      "mask_feather": {
+        "name": "마스크 경계 부드럽게"
+      },
+      "match_min_score": {
+        "name": "매칭 최소 점수"
+      },
+      "match_min_margin": {
+        "name": "매칭 최소 점수 차이"
+      },
+      "match_crop_factor": {
+        "name": "매칭 크롭 배율"
+      },
+      "save_format": {
+        "name": "저장 형식"
+      },
+      "webp_quality": {
+        "name": "WebP 품질"
+      }
+    },
+    "outputs": {
+      "0": {
+        "name": "보정 이미지"
+      },
+      "1": {
+        "name": "수정 마스크"
+      },
+      "2": {
+        "name": "캐릭터 파이프"
+      },
+      "3": {
+        "name": "영역 보고서"
+      }
+    }
+  },
+  "RSMultiCharacterDetectionLoader": {
+    "display_name": "RS 감지 콤바인 로더",
+    "description": "SEGM이 선택되면 BBOX·SAM은 로드하지 않습니다. SEGM OFF에서는 BBOX 또는 BBOX+SAM을 사용합니다. OFF는 미사용입니다. 선택한 미설치 카탈로그 모델만 내려받고 진행도를 표시합니다. 모델 폴더에 추가한 파일도 목록 새로 고침 후 보입니다.",
+    "inputs": {
+      "show_optional_models": {
+        "name": "선택 감지 모델 보기"
+      },
+      "face_segm_model": {
+        "name": "SEGM 모델",
+        "tooltip": "SEGM이 선택되면 BBOX·SAM은 로드하지 않습니다. SEGM OFF에서는 BBOX 또는 BBOX+SAM을 사용합니다. OFF는 미사용입니다. 선택한 미설치 카탈로그 모델만 내려받고 진행도를 표시합니다. 모델 폴더에 추가한 파일도 목록 새로 고침 후 보입니다."
+      },
+      "face_bbox_model": {
+        "name": "BBOX 모델",
+        "tooltip": "SEGM이 선택되면 BBOX·SAM은 로드하지 않습니다. SEGM OFF에서는 BBOX 또는 BBOX+SAM을 사용합니다. OFF는 미사용입니다. 선택한 미설치 카탈로그 모델만 내려받고 진행도를 표시합니다. 모델 폴더에 추가한 파일도 목록 새로 고침 후 보입니다."
+      },
+      "sam_model": {
+        "name": "SAM 모델",
+        "tooltip": "SEGM이 선택되면 BBOX·SAM은 로드하지 않습니다. SEGM OFF에서는 BBOX 또는 BBOX+SAM을 사용합니다. OFF는 미사용입니다. 선택한 미설치 카탈로그 모델만 내려받고 진행도를 표시합니다. 모델 폴더에 추가한 파일도 목록 새로 고침 후 보입니다."
+      }
+    },
+    "outputs": {
+      "0": {
+        "name": "감지 모델"
+      }
+    }
+  },
+  "RSMultiCharacterTaggerLoader": {
+    "display_name": "RS 캐릭터 태거 로더",
+    "description": "태거 모델을 선택합니다. 실행하면 선택한 모델만 다운로드하고 노드에 다운로드 용량과 진행률을 표시합니다. 이미 받은 파일은 캐시를 재사용합니다. 추론은 로컬에서 실행되며, 점수는 원본 캐릭터 프롬프트를 고르는 데만 사용하고 생성 프롬프트에 태그를 추가하지 않습니다.",
+    "inputs": {
+      "device": {
+        "name": "실행 장치",
+        "tooltip": "auto는 ComfyUI가 선택한 실행 장치를 사용하며, cpu는 CPU에서 실행합니다.",
+        "options": {
+          "auto": "자동",
+          "cpu": "CPU"
+        }
+      },
+      "batch_size": {
+        "name": "배치 크기"
+      },
+      "model_name": {
+        "name": "태거 모델",
+        "tooltip": "실행하면 선택한 모델만 다운로드하며 노드에 진행률을 표시합니다. 이미 받은 파일은 캐시를 재사용합니다. 모델에 따라 추가 패키지와 더 많은 메모리가 필요합니다. 설치 방법은 README를 참고하세요. 배치 크기 1로 시작하세요."
+      }
+    },
+    "outputs": {
+      "0": {
+        "name": "태거"
+      }
+    }
+  }
+}

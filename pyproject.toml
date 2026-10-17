@@ -1,12 +1,15 @@
 [project]
 name = "comfyui-rs-multicharacter-sampler"
 version = "0.1.0-alpha1"
-description = "Anima alpha: local multi-character sampling with independent prompts and XY regions, PNG/WebP autosave, and NAI-shaped generation metadata restoration."
+description = "Anima alpha: multi-character regional sampling and local masked detailing, automatic character matching, detection and tagger loaders, PNG/WebP metadata and prompt restoration."
 readme = "README.md"
 license = {file = "LICENSE"}
 requires-python = ">=3.11"
 dependencies = ["numpy", "Pillow>=10.0", "torch"]
 classifiers = ["Development Status :: 3 - Alpha"]
+
+[project.optional-dependencies]
+detailer = ["opencv-python>=4.8", "scipy>=1.11", "timm>=1.0.3,<2", "huggingface-hub>=1.1,<2", "safetensors>=0.4"]
 
 [project.urls]
 Repository = "https://github.com/raspie10032/ComfyUI_RS_MultiCharacter_Sampler"

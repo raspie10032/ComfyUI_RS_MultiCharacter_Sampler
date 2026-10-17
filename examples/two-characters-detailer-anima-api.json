@@ -1,0 +1,162 @@
+{
+  "1": {
+    "class_type": "UNETLoader",
+    "inputs": {
+      "unet_name": "anima-base-v1.0.safetensors",
+      "weight_dtype": "default"
+    }
+  },
+  "2": {
+    "class_type": "RSMultiCharacterPrompts",
+    "inputs": {
+      "character_count": 2,
+      "character1": "1girl, adult woman, long blonde hair, blue eyes, white blouse, holding a blue cup, smiling",
+      "character1_uc": "",
+      "character1_enable": true,
+      "character1_x": 0.75,
+      "character1_y": 0.5,
+      "character2": "1girl, adult woman, short black hair, red eyes, red jacket, holding a white cup, laughing",
+      "character2_uc": "",
+      "character2_enable": true,
+      "character2_x": 0.25,
+      "character2_y": 0.5,
+      "character3": "",
+      "character3_uc": "",
+      "character3_enable": true,
+      "character3_x": 0.5,
+      "character3_y": 0.5,
+      "character4": "",
+      "character4_uc": "",
+      "character4_enable": true,
+      "character4_x": 0.5,
+      "character4_y": 0.5,
+      "character5": "",
+      "character5_uc": "",
+      "character5_enable": true,
+      "character5_x": 0.5,
+      "character5_y": 0.5,
+      "character6": "",
+      "character6_uc": "",
+      "character6_enable": true,
+      "character6_x": 0.5,
+      "character6_y": 0.5,
+      "character7": "",
+      "character7_uc": "",
+      "character7_enable": true,
+      "character7_x": 0.5,
+      "character7_y": 0.5,
+      "character8": "",
+      "character8_uc": "",
+      "character8_enable": true,
+      "character8_x": 0.5,
+      "character8_y": 0.5,
+      "character9": "",
+      "character9_uc": "",
+      "character9_enable": true,
+      "character9_x": 0.5,
+      "character9_y": 0.5,
+      "character10": "",
+      "character10_uc": "",
+      "character10_enable": true,
+      "character10_x": 0.5,
+      "character10_y": 0.5
+    }
+  },
+  "11": {
+    "class_type": "CLIPLoader",
+    "inputs": {
+      "clip_name": "qwen_3_06b_base.safetensors",
+      "type": "stable_diffusion",
+      "device": "default"
+    }
+  },
+  "12": {
+    "class_type": "VAELoader",
+    "inputs": {
+      "vae_name": "qwen_image_vae.safetensors"
+    }
+  },
+  "20": {
+    "class_type": "RSMultiCharacterSampler",
+    "inputs": {
+      "model": [
+        "1",
+        0
+      ],
+      "clip": [
+        "11",
+        0
+      ],
+      "vae": [
+        "12",
+        0
+      ],
+      "character_pipe": [
+        "2",
+        0
+      ],
+      "prompt": "masterpiece, best quality, anime illustration, 2girls, two adult women, cafe interior, seated opposite each other at a small wooden table, talking, two cups of coffee, hanging plants, afternoon light",
+      "negative_prompt": "low quality, worst quality, bad anatomy, text, watermark, nude, naked",
+      "seed": 49227753394327,
+      "width": 1536,
+      "height": 768,
+      "steps": 30,
+      "cfg": 4.0,
+      "sampler_name": "euler_ancestral",
+      "scheduler": "sgm_uniform",
+      "autosave": true,
+      "save_format": "PNG",
+      "webp_quality": 90
+    }
+  },
+  "31": {
+    "class_type": "RSMultiCharacterDetectionLoader",
+    "inputs": {
+      "face_segm_model": "segm/Anzhc Face seg 640 v2 y8n.pt"
+    }
+  },
+  "32": {
+    "class_type": "RSMultiCharacterTaggerLoader",
+    "inputs": {
+      "device": "auto",
+      "batch_size": 4,
+      "model_name": "WD ViT v3"
+    }
+  },
+  "40": {
+    "class_type": "RSMultiCharacterDetailer",
+    "inputs": {
+      "image": [
+        "20",
+        0
+      ],
+      "character_pipe": [
+        "20",
+        2
+      ],
+      "model": [
+        "1",
+        0
+      ],
+      "clip": [
+        "11",
+        0
+      ],
+      "vae": [
+        "12",
+        0
+      ],
+      "detectors": [
+        "31",
+        0
+      ],
+      "tagger": [
+        "32",
+        0
+      ],
+      "denoise": 0.25,
+      "seed": 42719,
+      "autosave": true
+    }
+  }
+}
