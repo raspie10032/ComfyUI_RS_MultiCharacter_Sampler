@@ -1,9 +1,11 @@
 # SPDX-License-Identifier: GPL-3.0-only
-"""SDXL U-Net attention routing through clone-local ComfyUI patch callbacks.
+"""SD1.5/SDXL U-Net routing through clone-local ComfyUI patch callbacks.
 
 CLIP-L/G character sequences stay independent until projected by each attn2.
 The common prompt supplies the native pooled ADM. Character pooled embeddings
 are deliberately not mixed into that global vector: they have no XY dimension.
+SD1.5 uses CLIP-L sequences and has no pooled ADM. The class name is retained
+for compatibility with existing SDXL callers.
 """
 import torch
 
@@ -17,13 +19,14 @@ def attention_grid(original_shape, tokens):
     h, w = original_shape[-2:]
     while h * w != tokens:
         if h == 1 and w == 1:
-            raise ValueError("SDXL attention has an unsupported spatial token layout.")
+            raise ValueError("U-Net attention has an unsupported spatial token layout.")
         h, w = (h + 1) // 2, (w + 1) // 2
     return h, w
 
 
 class SDXLRouting:
-    def __init__(self, conditions, masks, settings, audit):
+    def __init__(self, conditions, masks, settings, audit, family="SDXL"):
+        self.family = family
         self.conditions, self.masks = conditions, masks
         self.settings, self.audit = settings, audit
         self.sigmas = self.state = None
@@ -42,12 +45,12 @@ class SDXLRouting:
                 if not transformers:
                     continue
                 if any(m.disable_self_attn or m.attn2 is None or m.switch_temporal_ca_to_sa for m in transformers):
-                    raise ValueError("This SDXL U-Net uses an unsupported attention layout.")
+                    raise ValueError(f"This {self.family} U-Net uses an unsupported attention layout.")
                 work.set_model_attn1_replace(self.spatial, name, index)
                 work.set_model_attn2_replace(self.cross, name, index)
                 blocks.append([name, index, len(transformers)])
         if not blocks:
-            raise ValueError("No SDXL U-Net attention blocks were found.")
+            raise ValueError(f"No {self.family} U-Net attention blocks were found.")
         self.audit["installed_blocks"] = blocks
         work.add_wrapper_with_key(WrappersMP.SAMPLER_SAMPLE, "rs_multicharacter", self.sample)
         work.add_wrapper_with_key(WrappersMP.DIFFUSION_MODEL, "rs_multicharacter", self.forward)
@@ -56,7 +59,7 @@ class SDXLRouting:
         self.sigmas = args[1].detach().cpu().tolist()[:-1]
         self.audit.update(evaluation_sigmas=self.sigmas, cross_calls=0, self_calls=0,
                           restored_forwards=0, forwards=[], spatial_slots=len(self.masks),
-                          pooled_conditioning="common_prompt_native_adm", token_grids=[])
+                          pooled_conditioning=("none" if self.family == "SD1.5" else "common_prompt_native_adm"), token_grids=[])
         self.groups.clear()
         self.biases.clear()
         try:
@@ -70,9 +73,9 @@ class SDXLRouting:
         options = transformer_options or {}
         kinds = options.get("cond_or_uncond")
         if not kinds or x.ndim != 4 or x.shape[0] != len(kinds):
-            raise ValueError("SDXL regional generation supports image batch size 1 only.")
+            raise ValueError(f"{self.family} regional generation supports image batch size 1 only.")
         if self.sigmas is None:
-            raise RuntimeError("SDXL routing was not initialized by the sampler.")
+            raise RuntimeError(f"{self.family} routing was not initialized by the sampler.")
         sigma = float(options["sigmas"][0])
         progress = sigma_progress(sigma, self.sigmas)
         s = self.settings
@@ -86,7 +89,7 @@ class SDXLRouting:
         for condition, _ in self.conditions:
             c = condition.to(context)
             if c.ndim != 3 or c.shape[0] != 1 or c.shape[2] != context.shape[2]:
-                raise ValueError("Connect the SDXL checkpoint's matching dual CLIP encoder.")
+                raise ValueError(f"Connect the {self.family} checkpoint's matching text encoder.")
             pieces.append(torch.cat([c if kind == 0 else torch.zeros_like(c) for kind in kinds], 0))
             lengths.append(c.shape[1])
         record = dict(sigma=sigma, progress=progress, kinds=list(kinds), text_lengths=lengths,
@@ -105,9 +108,9 @@ class SDXLRouting:
 
     def _inputs(self, q, k, v, options):
         if self.state is None:
-            raise RuntimeError("SDXL attention called outside its routing scope.")
+            raise RuntimeError(f"{self.family} attention called outside its routing scope.")
         if list(options["cond_or_uncond"]) != self.state["kinds"]:
-            raise ValueError("SDXL CFG batch order changed inside a model evaluation.")
+            raise ValueError(f"{self.family} CFG batch order changed inside a model evaluation.")
         h, w = attention_grid(options["original_shape"], q.shape[1])
         key = (h, w, q.device)
         if key not in self.groups:

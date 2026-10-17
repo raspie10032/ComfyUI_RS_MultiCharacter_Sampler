@@ -102,4 +102,20 @@ class SDXLTests(unittest.TestCase):
                     if fmt=='PNG': self.assertEqual(image.info['Source'],'SDXL (local)')
                     self.assertNotIn('workflow',image.info)
 
+    def test_sd15_metadata_roundtrip_preserves_family_and_settings(self):
+        pipe=c.CharacterPipe((c.Character('woman, blonde hair',x=.25),c.Character('woman, black hair',x=.75)),'two women','text')
+        settings={**n.DEFAULTS,'seed':1515,'width':768,'height':512,'cfg':7.,'scheduler':'normal'}
+        record=m.build_record(pipe,settings,{},[[.25,.5],[.75,.5]],{'spatial_slots':2},engine='sd1.5-spatial-alpha-1')
+        with tempfile.TemporaryDirectory() as tmp:
+            for fmt in m.FORMATS:
+                path=m.save_image(Image.new('RGB',(16,16)),Path(tmp)/fmt,record,fmt)
+                with Image.open(path) as image:
+                    restored=m.pipe_from_record(m.read_record(image))
+                    if fmt=='PNG': self.assertEqual(image.info['Source'],'SD1.5 (local)')
+                self.assertEqual(restored.characters,pipe.characters)
+                import json
+                local=json.loads(restored.generation_json)
+                self.assertEqual(local['settings'],settings)
+                self.assertEqual(local['engine'],'sd1.5-spatial-alpha-1')
+
 if __name__=='__main__': unittest.main()

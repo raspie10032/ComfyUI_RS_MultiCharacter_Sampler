@@ -14,6 +14,7 @@ from .characters import Character, CharacterPipe
 SOFTWARE = "ComfyUI_RS_MultiCharacter_Sampler"
 FORMATS = ["PNG", "WebP lossless", "WebP lossy"]
 ENGINE_SOURCES = {"anima-spatial-alpha-1": "Anima (local)", "sdxl-spatial-alpha-1": "SDXL (local)",
+                  "sd1.5-spatial-alpha-1": "SD1.5 (local)",
                   "krea2-spatial-alpha-1": "Krea2 (local)", "moss-spatial-alpha-1": "MOSS-Image (local)"}
 MAX_METADATA = 4 * 1024 * 1024
 

@@ -1,0 +1,106 @@
+{
+  "1": {
+    "class_type": "CheckpointLoaderSimple",
+    "inputs": {
+      "ckpt_name": "v1-5-pruned-emaonly.safetensors"
+    }
+  },
+  "2": {
+    "class_type": "RSMultiCharacterPrompts",
+    "inputs": {
+      "character_count": 2,
+      "character1": "one adult woman, short black hair, red jacket, black shirt",
+      "character1_uc": "",
+      "character1_enable": true,
+      "character1_x": 0.25,
+      "character1_y": 0.5,
+      "character2": "one adult woman, long blonde hair, white blouse, blue skirt",
+      "character2_uc": "",
+      "character2_enable": true,
+      "character2_x": 0.75,
+      "character2_y": 0.5,
+      "character3": "",
+      "character3_uc": "",
+      "character3_enable": true,
+      "character3_x": 0.5,
+      "character3_y": 0.5,
+      "character4": "",
+      "character4_uc": "",
+      "character4_enable": true,
+      "character4_x": 0.5,
+      "character4_y": 0.5,
+      "character5": "",
+      "character5_uc": "",
+      "character5_enable": true,
+      "character5_x": 0.5,
+      "character5_y": 0.5,
+      "character6": "",
+      "character6_uc": "",
+      "character6_enable": true,
+      "character6_x": 0.5,
+      "character6_y": 0.5,
+      "character7": "",
+      "character7_uc": "",
+      "character7_enable": true,
+      "character7_x": 0.5,
+      "character7_y": 0.5,
+      "character8": "",
+      "character8_uc": "",
+      "character8_enable": true,
+      "character8_x": 0.5,
+      "character8_y": 0.5,
+      "character9": "",
+      "character9_uc": "",
+      "character9_enable": true,
+      "character9_x": 0.5,
+      "character9_y": 0.5,
+      "character10": "",
+      "character10_uc": "",
+      "character10_enable": true,
+      "character10_x": 0.5,
+      "character10_y": 0.5
+    }
+  },
+  "3": {
+    "class_type": "RSMultiCharacterSampler",
+    "inputs": {
+      "model": [
+        "1",
+        0
+      ],
+      "clip": [
+        "1",
+        1
+      ],
+      "vae": [
+        "1",
+        2
+      ],
+      "character_pipe": [
+        "2",
+        0
+      ],
+      "prompt": "a color photograph of exactly two adult women, standing side by side, waist-up portrait, looking at the camera, university campus courtyard, trees, natural daylight",
+      "negative_prompt": "low quality, bad anatomy, extra person, extra arms, extra legs, text, watermark, nude",
+      "width": 768,
+      "height": 512,
+      "seed": 617201,
+      "steps": 30,
+      "cfg": 7.0,
+      "sampler_name": "euler_ancestral",
+      "scheduler": "normal",
+      "autosave": true,
+      "save_format": "PNG",
+      "webp_quality": 90,
+      "prompt_syntax": "ComfyUI",
+      "use_image_settings": false,
+      "region_feather": 0.04,
+      "initial_common_prior": 0.3,
+      "common_after_step3_boost": 0.1,
+      "initial_character_gain": 1.3,
+      "initial_spatial_separation": 0.5,
+      "boundary_hold_steps": 3,
+      "boundary_decrement": 0.2
+    }
+  }
+}

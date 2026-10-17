@@ -84,7 +84,7 @@ class RSMultiCharacterSampler:
     FUNCTION = "generate"
     CATEGORY = "RS MultiCharacter"
     OUTPUT_NODE = True
-    DESCRIPTION = "Anima / SDXL / Krea2 / MOSS beta. 1–10 independent character prompts and X/Y regions. Validation coverage differs by model; see the examples and validation docs. Horizontal arrangements work best. Coordinates control prompt regions, not exact body positions. More characters do not guarantee quality. Autosaves NAI-shaped metadata without a workflow."
+    DESCRIPTION = "Anima / SDXL / Krea2 / MOSS beta; SD1.5 generation is experimental and unstable. 1–10 independent character prompts and X/Y regions. Validation coverage differs by model; see the examples and validation docs. Horizontal arrangements work best. Coordinates control prompt regions, not exact body positions. More characters do not guarantee quality. Autosaves NAI-shaped metadata without a workflow."
 
     def generate(self, model, clip, vae, character_pipe, prompt, negative_prompt, width=1536, height=768,
                  seed=0, steps=30, cfg=4., sampler_name="euler_ancestral", scheduler="sgm_uniform",
@@ -97,7 +97,7 @@ class RSMultiCharacterSampler:
         import comfy.utils
         import folder_paths
         import latent_preview
-        from comfy import model_base
+        from comfy import model_base, supported_models
         from comfy.patcher_extension import WrappersMP
 
         if not isinstance(character_pipe, CharacterPipe):
@@ -106,12 +106,16 @@ class RSMultiCharacterSampler:
             family = "Anima"
         elif type(model.model) is model_base.SDXL and model.model.diffusion_model.in_channels == 4:
             family = "SDXL"
+        elif (type(model.model) is model_base.BaseModel
+              and type(model.model.model_config) is supported_models.SD15
+              and model.model.diffusion_model.in_channels == 4):
+            family = "SD1.5"
         elif isinstance(model.model, getattr(model_base, "Krea2", ())):
             family = "Krea2"
         elif isinstance(model.model, getattr(model_base, "MOSSImage", ())):
             family = "MOSS"
         else:
-            raise ValueError("Connect Anima, SDXL base, Krea2 or MOSS-Image. Krea2/MOSS need a current ComfyUI with native model support. Refiner, inpainting, Flux and SD1.5 are unsupported.")
+            raise ValueError("Connect Anima, SD1.5 base, SDXL base, Krea2 or MOSS-Image. Krea2/MOSS need a current ComfyUI with native model support. SD2, Refiner, inpainting, instruct-pix2pix and Flux are unsupported.")
         transformer_options = model.model_options.get("transformer_options", {})
         if any(transformer_options.get(k) for k in ("patches", "patches_replace", "optimized_attention_override")):
             raise ValueError("Use an unpatched model, optionally with ordinary LoRA loaders. Other attention patches are unsupported.")
@@ -144,6 +148,8 @@ class RSMultiCharacterSampler:
             t, meta = result[0]
             if family == "Anima" and "t5xxl_ids" not in meta:
                 raise ValueError("Connect Anima's matching text encoder.")
+            if family == "SD1.5" and (t.ndim != 3 or t.shape[0] != 1 or t.shape[-1] != 768):
+                raise ValueError("Connect the SD1.5 checkpoint's matching CLIP-L encoder.")
             if family == "SDXL":
                 pooled = meta.get("pooled_output")
                 if t.ndim != 3 or t.shape[-1] != 2048 or pooled is None or pooled.shape[-1] != 1280:
@@ -174,16 +180,16 @@ class RSMultiCharacterSampler:
                 common_after_step3_boost=settings["common_after_step3_boost"])
             work.add_wrapper_with_key(WrappersMP.SAMPLER_SAMPLE, "rs_multicharacter", routing.sample)
             work.add_wrapper_with_key(WrappersMP.DIFFUSION_MODEL, "rs_multicharacter", routing.forward)
-        elif family == "SDXL":
+        elif family in ("SD1.5", "SDXL"):
             from .sdxl_engine import SDXLRouting
-            routing = SDXLRouting(conditions, masks, settings, audit)
+            routing = SDXLRouting(conditions, masks, settings, audit, family=family)
             routing.install(work)
         else:
             from .joint_engine import JointRouting
             routing = JointRouting(family, conditions, masks, settings, audit)
             routing.install(work)
         latent = torch.zeros((1, 4, settings["height"] // 8, settings["width"] // 8), device=comfy.model_management.intermediate_device())
-        if family == "SDXL":
+        if family in ("SD1.5", "SDXL"):
             # Already 4-channel H/8 x W/8; older ComfyUI has no ratio keyword.
             latent = comfy.sample.fix_empty_latent_channels(work, latent)
         else:

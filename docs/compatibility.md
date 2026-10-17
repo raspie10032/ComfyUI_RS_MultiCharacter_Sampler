@@ -43,8 +43,10 @@ node schemas (input order/defaults, outputs and execution method) matched the
 
 This is a set of tested snapshots, not certification of every intervening
 ComfyUI version. Selecting Anima/Krea/MOSS still requires a host that implements
-that architecture. SD1.5, arbitrary model patches and ControlNet remain outside
-the supported regional sampler contract. No Windows GPU run was performed.
+that architecture. At that compatibility baseline, SD1.5 was outside the supported regional
+sampler contract; the subsequent [SD1.5 experiment](sd15-validation.md) adds
+limited, unstable generation support. Arbitrary model patches and ControlNet
+remain outside the supported regional sampler contract. No Windows GPU run was performed.
 
 ## Real checkpoint generation
 

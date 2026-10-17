@@ -1,6 +1,6 @@
 # ComfyUI_RS_MultiCharacter_Sampler
 
-**0.1.2 Beta · Anima · SDXL · Krea 2 · MOSS** — independent character prompts and X/Y prompt regions for local ComfyUI generation.
+**0.1.2 Beta · Anima · SDXL · Krea 2 · MOSS · SD1.5 (experimental, unstable)** — independent character prompts and X/Y prompt regions for local ComfyUI generation.
 
 **New in 0.1.2 Beta:** local character detailing and detector/tagger loaders, SDXL / Krea 2 / MOSS generation, and all installed sampler/scheduler choices. See [release notes and validation scope](docs/release-0.1.2.md).
 
@@ -27,9 +27,13 @@ For Git installation, clone this repository into your ComfyUI `custom_nodes` dir
 git clone https://github.com/raspie10032/ComfyUI_RS_MultiCharacter_Sampler.git
 ```
 
-Run the command **inside `ComfyUI/custom_nodes`**. The sampler uses ComfyUI's existing PyTorch, NumPy and Pillow. Python 3.11+ and a ComfyUI version with Anima support are required; the tested environment is recorded in the validation report. Supply your own diffusion model, text encoder and VAE. The optional detector/tagger loaders download their selected missing catalog models when executed.
+Run the command **inside `ComfyUI/custom_nodes`**. The sampler uses ComfyUI's existing PyTorch, NumPy and Pillow. Python 3.11+ and a ComfyUI version supporting your chosen model are required; the tested environment is recorded in the validation report. Supply your own diffusion model, text encoder and VAE. The optional detector/tagger loaders download their selected missing catalog models when executed.
 
 For detailing, install **ComfyUI-Impact-Pack** and **ComfyUI-Impact-Subpack** through Manager, then install `requirements-detailer.txt` using your **ComfyUI Python environment**. Restart ComfyUI. SAM is optional and must already be installed to select it. Additional tagger choices can require the optional dependencies listed in their error message.
+
+## SD1.5 — experimental, unstable
+
+Ordinary SD1.5 checkpoints can run through the existing sampler. **Character counts and attribute separation are unstable.** The base checkpoint completed four two-character requests; two images contained three people, with some hair/clothing attributes mixed or omitted. This is limited execution evidence, not a success-rate estimate or validation of SD1.5 fine-tunes. See the [trial settings and scope](docs/sd15-validation.md) and [workflow](examples/two-characters-sd15.json).
 
 ## Experimental SDXL generation
 
@@ -107,8 +111,8 @@ The loader also accepts NAI V4-style character captions with one center per char
 
 ## Beta limits
 
-- **Anima, SDXL, Krea 2 and MOSS experimental support**, one image per execution. The sampler is text-to-image; the detailer runs masked img2img crops. Flux/SD1.5, ControlNet and other attention patches are not supported.
-- **1–10 input slots.** Actual image tests cover Anima 1–6, SDXL 2–6, and Krea 2 / MOSS 2–4. More characters do not guarantee quality. Horizontal layouts are the strongest tested use case; successful new-model 2x2 examples do not establish a general success rate.
+- **Anima, SDXL, Krea 2, MOSS and unstable experimental SD1.5 support**, one image per execution. The sampler is text-to-image; the detailer runs masked img2img crops. SD1.5 has only been tested for generation, not detailing. SD2, Flux, inpainting/refiner checkpoints, ControlNet and other attention patches are not supported by the regional sampler.
+- **1–10 input slots.** Actual image tests cover Anima 1–6, SDXL 2–6, Krea 2 / MOSS 2–4, and SD1.5 two-character requests. More characters do not guarantee quality. Horizontal layouts are the strongest tested use case; successful new-model 2x2 examples do not establish a general success rate.
 - Coordinates choose prompt regions; they do **not** lock a head/body to a point or enforce exactly one person per region. A single character owns the whole image, so moving that one center does not move the person.
 - Multiple rows, dense interactions and crossing props can duplicate or omit people. Four requested people in a 2×2 experiment became 12 and 10. Six people in two rows became 7 and 11. Do not treat count or identity as guaranteed.
 - Per-character negative captions are preserved in metadata but **rejected by the regional sampler** in this beta. Use its common negative prompt. The detailer can use the matched character's negative caption. Scheduled text conditioning is not supported.
@@ -131,4 +135,4 @@ License: GPL-3.0-only. See [COPYING](COPYING), [third-party notices](THIRD_PARTY
 
 ## ComfyUI compatibility
 
-SDXL does not require Anima, Krea 2 or MOSS to exist in ComfyUI. Each newer architecture still requires a ComfyUI checkout with native support for that model. CPU API integration tests cover ComfyUI `v0.3.76` (SDXL), `15eb748` (Anima/SDXL/Krea 2) and `5cc4b87` (all four families). These are tested snapshots, not a guarantee for every intervening version or third-party model patch. The [compatibility report](docs/compatibility.md) separates real generation, small native model tests and pending Windows CI.
+SDXL does not require Anima, Krea 2 or MOSS to exist in ComfyUI. Each newer architecture still requires a ComfyUI checkout with native support for that model. SD1.5 also passed native CPU integration at all three snapshots below; see [its limited real-generation results](docs/sd15-validation.md). The earlier compatibility audit’s CPU API integration tests cover ComfyUI `v0.3.76` (SDXL), `15eb748` (Anima/SDXL/Krea 2) and `5cc4b87` (all four families). These are tested snapshots, not a guarantee for every intervening version or third-party model patch. The [compatibility report](docs/compatibility.md) separates real generation, small native model tests and pending Windows CI.

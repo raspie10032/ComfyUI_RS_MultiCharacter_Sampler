@@ -41,7 +41,13 @@ class NativeModelTests(unittest.TestCase):
         sys.path.remove(os.environ['RS_MC_TEST_COMFYUI'])
 
     def test_sdxl_node_native_sampling_without_optional_architectures(self):
-        """Run the public node through real SDXL/UNet/sampler wrappers on CPU.
+        self.unet_node("SDXL")
+
+    def test_sd15_node_native_sampling_encoder_and_model_guards(self):
+        self.unet_node("SD1.5")
+
+    def unet_node(self, family):
+        """Run the public node through real SD1.5/SDXL U-Net/sampler wrappers on CPU.
 
         A small random UNet and synthetic CLIP/VAE keep this an API integration
         test, not image-quality evidence. This also runs on pre-Anima ComfyUI.
@@ -51,20 +57,26 @@ class NativeModelTests(unittest.TestCase):
         nodes = importlib.import_module(PKG + '.nodes')
         chars = importlib.import_module(PKG + '.characters')
         torch.manual_seed(617)
-        config = supported_models.SDXL(dict(
+        sd15 = family == "SD1.5"
+        context_dim = 768 if sd15 else 2048
+        config_type = supported_models.SD15 if sd15 else supported_models.SDXL
+        config = config_type(dict(
             image_size=32, in_channels=4, out_channels=4, model_channels=32,
             num_res_blocks=1, channel_mult=[1, 2], use_spatial_transformer=True,
             transformer_depth=[1, 1], transformer_depth_output=[1, 1, 1, 1],
-            transformer_depth_middle=1, context_dim=2048, num_classes='sequential',
-            adm_in_channels=2816, dtype=torch.float32))
+            transformer_depth_middle=1, context_dim=context_dim,
+            num_classes=None if sd15 else 'sequential',
+            adm_in_channels=None if sd15 else 2816, dtype=torch.float32))
         config.unet_config.update(num_heads=2, num_head_channels=-1)
         config.custom_operations = self.ops
-        base = model_base.SDXL(config, device=torch.device('cpu'))
+        base_type = model_base.BaseModel if sd15 else model_base.SDXL
+        base = base_type(config, device=torch.device('cpu'))
         for p in base.parameters():
             p.data.uniform_(-.05, .05)
         model = model_patcher.ModelPatcher(base, torch.device('cpu'), torch.device('cpu'))
         original = copy.deepcopy(model.model_options)
-        contexts = {s: [[torch.randn(1, 3 + i, 2048), {'pooled_output': torch.randn(1, 1280)}]]
+        contexts = {s: [[torch.randn(1, 3 + i, context_dim),
+                         {} if sd15 else {'pooled_output': torch.randn(1, 1280)}]]
                     for i, s in enumerate(('common', 'negative', 'left', 'right'))}
         clip = SimpleNamespace(tokenize=lambda text: text,
             encode_from_tokens_scheduled=lambda text: contexts[text])
@@ -83,6 +95,23 @@ class NativeModelTests(unittest.TestCase):
         self.assertGreater(audit['self_calls'], 0)
         self.assertEqual(audit['restored_forwards'], len(audit['forwards']))
         self.assertEqual(model.model_options, original)
+        self.assertEqual(audit['pooled_conditioning'], 'none' if sd15 else 'common_prompt_native_adm')
+        self.assertEqual(json.loads(restored_pipe.generation_json)['engine'], family.lower() + '-spatial-alpha-1')
+        if sd15:
+            def invoke():
+                return nodes.RSMultiCharacterSampler().generate(
+                    model, clip, vae, pipe, 'common', 'negative',
+                    width=64, height=64, steps=2, autosave=False)
+            with patch.object(base.diffusion_model, 'in_channels', 9):
+                with self.assertRaisesRegex(ValueError, 'inpainting'):
+                    invoke()
+            with patch.object(base, 'model_config', supported_models.SD20({})):
+                with self.assertRaisesRegex(ValueError, 'SD2'):
+                    invoke()
+            for bad_shape in ((1, 3, 2048), (2, 3, 768)):
+                with patch.dict(contexts, common=[[torch.zeros(bad_shape), {}]]):
+                    with self.assertRaisesRegex(ValueError, 'matching CLIP-L'):
+                        invoke()
 
     def joint(self, family):
         j = importlib.import_module(PKG+'.joint_engine')
