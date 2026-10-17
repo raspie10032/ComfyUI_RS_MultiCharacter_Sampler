@@ -7,7 +7,7 @@
 | Two characters, 1024×768 | [Workflow](../examples/moss-8step/two-cfg3.json) · [API](../examples/moss-8step/two-cfg3-api.json) | [Workflow](../examples/moss-8step/two-cfg1.json) · [API](../examples/moss-8step/two-cfg1-api.json) |
 | Four characters, XY, 1024×1024 | [Workflow](../examples/moss-8step/four-xy-cfg3.json) · [API](../examples/moss-8step/four-xy-cfg3-api.json) | [Workflow](../examples/moss-8step/four-xy-cfg1.json) · [API](../examples/moss-8step/four-xy-cfg1-api.json) |
 
-These are ordinary ComfyUI workflows using the six existing extension nodes and
+These are ordinary ComfyUI workflows using the existing character/sampler nodes and
 the built-in `LoraLoaderModelOnly`. No measurement or private custom node is needed.
 The sampler implementation and its default settings are unchanged in 0.1.4.
 
