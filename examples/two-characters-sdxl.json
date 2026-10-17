@@ -1,0 +1,272 @@
+{
+  "last_node_id": 20,
+  "last_link_id": 4,
+  "nodes": [
+    {
+      "id": 1,
+      "type": "CheckpointLoaderSimple",
+      "pos": [
+        40,
+        60
+      ],
+      "size": [
+        340,
+        120
+      ],
+      "flags": {},
+      "order": 0,
+      "mode": 0,
+      "inputs": [],
+      "outputs": [
+        {
+          "name": "MODEL",
+          "type": "MODEL",
+          "links": [
+            1
+          ],
+          "slot_index": 0
+        },
+        {
+          "name": "CLIP",
+          "type": "CLIP",
+          "links": [
+            2
+          ],
+          "slot_index": 1
+        },
+        {
+          "name": "VAE",
+          "type": "VAE",
+          "links": [
+            3
+          ],
+          "slot_index": 2
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "CheckpointLoaderSimple"
+      },
+      "widgets_values": [
+        "Illustrious-XL-v1.0.safetensors"
+      ]
+    },
+    {
+      "id": 2,
+      "type": "RSMultiCharacterPrompts",
+      "pos": [
+        440,
+        60
+      ],
+      "size": [
+        440,
+        850
+      ],
+      "flags": {},
+      "order": 1,
+      "mode": 0,
+      "inputs": [],
+      "outputs": [
+        {
+          "name": "character_pipe",
+          "type": "RS_MC_CHARACTER_PIPE",
+          "links": [
+            4
+          ],
+          "slot_index": 0
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "RSMultiCharacterPrompts"
+      },
+      "widgets_values": [
+        2,
+        true,
+        "1girl, adult woman, short hair, black hair, red eyes, red jacket, black shirt",
+        "",
+        0.5,
+        0.5,
+        true,
+        "1girl, adult woman, long hair, blonde hair, blue eyes, white blouse, blue skirt",
+        "",
+        0.5,
+        0.5,
+        true,
+        "",
+        "",
+        0.5,
+        0.5,
+        true,
+        "",
+        "",
+        0.5,
+        0.5,
+        true,
+        "",
+        "",
+        0.5,
+        0.5,
+        true,
+        "",
+        "",
+        0.5,
+        0.5,
+        true,
+        "",
+        "",
+        0.5,
+        0.5,
+        true,
+        "",
+        "",
+        0.5,
+        0.5,
+        true,
+        "",
+        "",
+        0.5,
+        0.5,
+        true,
+        "",
+        "",
+        0.5,
+        0.5
+      ]
+    },
+    {
+      "id": 20,
+      "type": "RSMultiCharacterSampler",
+      "pos": [
+        960,
+        60
+      ],
+      "size": [
+        440,
+        900
+      ],
+      "flags": {},
+      "order": 4,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "model",
+          "type": "MODEL",
+          "link": 1
+        },
+        {
+          "name": "clip",
+          "type": "CLIP",
+          "link": 2
+        },
+        {
+          "name": "vae",
+          "type": "VAE",
+          "link": 3
+        },
+        {
+          "name": "character_pipe",
+          "type": "RS_MC_CHARACTER_PIPE",
+          "link": 4
+        }
+      ],
+      "outputs": [
+        {
+          "name": "image",
+          "type": "IMAGE",
+          "links": null,
+          "slot_index": 0
+        },
+        {
+          "name": "latent",
+          "type": "LATENT",
+          "links": null,
+          "slot_index": 1
+        },
+        {
+          "name": "character_pipe",
+          "type": "RS_MC_CHARACTER_PIPE",
+          "links": null,
+          "slot_index": 2
+        },
+        {
+          "name": "generation_info",
+          "type": "STRING",
+          "links": null,
+          "slot_index": 3
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "RSMultiCharacterSampler"
+      },
+      "widgets_values": [
+        "masterpiece, best quality, anime illustration, 2girls, adult women, group portrait, upper body, standing side by side, looking at viewer, university campus, trees, brick building, natural daylight",
+        "worst quality, low quality, bad anatomy, extra arms, extra legs, extra person, text, watermark, nude, naked",
+        1024,
+        768,
+        346751,
+        "randomize",
+        30,
+        5.5,
+        "euler_ancestral",
+        "normal",
+        true,
+        "PNG",
+        90,
+        "ComfyUI",
+        false,
+        0.04,
+        0.3,
+        0.1,
+        1.3,
+        0.5,
+        3,
+        0.2
+      ]
+    }
+  ],
+  "links": [
+    [
+      1,
+      1,
+      0,
+      20,
+      0,
+      "MODEL"
+    ],
+    [
+      2,
+      1,
+      1,
+      20,
+      1,
+      "CLIP"
+    ],
+    [
+      3,
+      1,
+      2,
+      20,
+      2,
+      "VAE"
+    ],
+    [
+      4,
+      2,
+      0,
+      20,
+      3,
+      "RS_MC_CHARACTER_PIPE"
+    ]
+  ],
+  "groups": [],
+  "config": {},
+  "extra": {
+    "ds": {
+      "scale": 0.8,
+      "offset": [
+        20,
+        20
+      ]
+    }
+  },
+  "version": 0.4
+}

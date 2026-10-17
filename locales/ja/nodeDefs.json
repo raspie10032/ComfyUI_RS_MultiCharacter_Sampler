@@ -158,5 +158,9 @@
         "name": "タガー"
       }
     }
+  },
+  "RSMultiCharacterSampler": {
+    "display_name": "RS マルチキャラクターサンプラー (アルファ)",
+    "description": "Anima と SDXL の実験対応。各キャラクターの原文と XY を領域別に渡します。SDXL は専用例の弱めた初期強度を推奨します。人数・正確な位置・品質は保証しません。Refiner・インペイント・他の attention パッチは非対応です。"
   }
 }

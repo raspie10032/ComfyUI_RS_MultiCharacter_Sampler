@@ -1,6 +1,6 @@
 # ComfyUI_RS_MultiCharacter_Sampler
 
-**0.1.0-alpha1 · Anima 전용 알파**입니다. 공통 프롬프트와 캐릭터별 프롬프트·XY를 전용 파이프로 전달하고, 로컬 모델 내부에서 영역별 attention을 조절합니다. RS NAI 확장이나 API 키는 필요 없습니다.
+**0.1.0-alpha1 · Anima 및 SDXL 실험 알파**입니다. 공통 프롬프트와 캐릭터별 프롬프트·XY를 전용 파이프로 전달하고, 로컬 모델 내부에서 영역별 attention을 조절합니다. RS NAI 확장이나 API 키는 필요 없습니다.
 
 ## 설치와 사용
 
@@ -17,6 +17,14 @@ Git 설치는 이 저장소를 `ComfyUI/custom_nodes` 안에 복제하면 됩니
 5. 자동 저장은 `output/RS_MultiCharacter`에 PNG 또는 WebP로 생성 정보와 함께 저장합니다. 워크플로는 넣지 않습니다. 워크플로도 필요하면 ComfyUI 기본 이미지 저장 노드를 쓰세요.
 
 공유용 예제 PNG에는 ComfyUI `workflow`·`prompt` 메타데이터가 들어 있습니다. 샘플러의 일반 자동 저장에는 기존처럼 생성 정보만 들어갑니다.
+
+## SDXL 실험 지원
+
+[SDXL 2인 예제](examples/two-characters-sdxl.json)는 일반 체크포인트 로더 하나에서 MODEL·CLIP·VAE를 받습니다. Illustrious XL v1.0과 NoobAI XL epsilon-pred 1.1에서 실제 생성과 좌우 문장 교환을 시험했습니다. SDXL 전체 계열이나 모든 샘플러 조합을 검증한 것은 아닙니다.
+
+예제 시작값은 **30스텝·CFG 5.5·Euler ancestral + normal**, 초기 공통 강도 **0.3**, 초기 캐릭터 강도 **1.3**, 초기 경계 분리 **0.5**입니다. 기존 Anima 기본값은 유지합니다. SDXL에서는 Anima의 초기 공통 0.05·캐릭터 1.7·경계 0.9를 그대로 쓰면 화면이 칸처럼 갈라질 수 있습니다.
+
+좌표는 프롬프트 영역을 정하며 정확한 인원·자세를 보장하지 않습니다. 특히 다인·격자 배치에는 중복 인물, 외형 혼합과 칸 분리가 생길 수 있습니다. SDXL Refiner·인페인트 모델·외부 attention 패치·ControlNet은 지원하지 않습니다. 생성 메타데이터는 SDXL 엔진으로 표시되며 이미지 로더로 복원할 수 있습니다. [방법과 실제 시험 기록](docs/sdxl-validation.md)
 
 ## 로컬 멀티캐릭터 디테일러
 
@@ -55,7 +63,7 @@ Manager에서 **ComfyUI-Impact-Pack**, **ComfyUI-Impact-Subpack**을 설치하�
 
 ## 확인된 범위
 
-- Anima 전용, 한 번에 1장입니다. 샘플러는 T2I, 디테일러는 마스크가 있는 크롭의 img2img를 수행합니다. 다른 모델 계열·ControlNet·attention 패치는 아직 지원하지 않습니다.
+- Anima 및 지원하는 SDXL 모델로 한 번에 1장입니다. 샘플러는 T2I, 디테일러는 마스크가 있는 크롭의 img2img를 수행합니다. SD1.5·Flux·ControlNet·외부 attention 패치는 지원하지 않습니다.
 - 입력은 최대 10명, 실제 생성 시험은 1~6명입니다. **처리수가 많을수록 품질을 보장하지 못합니다.** 가로 배치가 비교적 잘 맞습니다.
 - 좌표는 프롬프트 영역입니다. 정확한 인물 위치나 인원수 보장은 아닙니다. 1명은 전 화면이 한 영역이므로 좌표 이동 효과가 없습니다.
 - 두 줄·격자 배치는 인물이 늘거나 빠지는 실패가 큽니다. 여러 번 생성해 고를 필요가 있습니다.

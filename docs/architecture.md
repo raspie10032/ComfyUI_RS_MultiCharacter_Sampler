@@ -23,6 +23,14 @@ At the tested 30-step defaults:
 
 Character value gain starts at 1.7, holds through the early 40%, smoothly returns to 1.0 by 75%, then stays at 1.0. Timing is computed from the actual sigma schedule, not a mutable forward-call counter. The model patcher is cloned; temporary attention forwards are restored in `finally` blocks, including interruptions/errors.
 
+## Experimental SDXL path
+
+SDXL base-family U-Nets use ComfyUI's clone-local `attn1` / `attn2` replacement callbacks, not Anima's adapter. Each character is encoded independently with the checkpoint's dual CLIP. Character token sequences are concatenated only for the native attention K/V projection. Positive queries then read common tokens plus their own region's character tokens; the negative branch reads only native negative tokens. Unequal text lengths are supported. Resolution-aware ownership is recalculated for each U-Net token grid, including odd downsampled sizes.
+
+The common prompt's pooled CLIP-G embedding remains the native global ADM input, with requested size/crop information. Character pooled embeddings are not averaged into this vector because it has no spatial axis. Consequently, a zero common attention prior does not disable all common-prompt influence on SDXL. This design preserves native SDXL conditioning, but does not enforce exact counts or eliminate panel artifacts. The SDXL example uses milder initial strengths than Anima; see [live validation](sdxl-validation.md).
+
+Callbacks are installed only on a cloned ModelPatcher; sampling/forward state and per-forward bias caches are cleared even after errors. Input model attention patches are rejected before installation. Only four-channel SDXL base-family U-Nets are accepted; Refiner and inpainting variants are excluded. No ControlNet or per-character negative routing is added.
+
 ## Image metadata version 1
 
 PNG stores `Title`, `Description`, `Software`, `Source` and JSON `Comment` text chunks. WebP stores title, description, software and the same ASCII-escaped JSON in EXIF `ExifIFD.UserComment` (tag 37510). No ComfyUI `prompt` graph or `workflow` chunk is embedded by autosave. The Comment's `prompt` member is plain common text.
@@ -65,9 +73,9 @@ The NAI-shaped part is:
 }
 ```
 
-The additional `rs_multicharacter` object stores schema `version: 1`, engine `anima-spatial-alpha-1`, prompt syntax, sampler/routing settings, effective centers, slot count and connected loader descriptions. Known standard model, text encoder, VAE and LoRA loaders are recorded by filename and settings. Unrecognized loader chains are explicitly marked unresolved. No credentials, arbitrary graph nodes, absolute model directories or weight files are serialized.
+The additional `rs_multicharacter` object stores schema `version: 1`, engine `anima-spatial-alpha-1` or `sdxl-spatial-alpha-1`, prompt syntax, sampler/routing settings, effective centers, slot count and connected loader descriptions. Known standard model, text encoder, VAE and LoRA loaders are recorded by filename and settings. Unrecognized loader chains are explicitly marked unresolved. No credentials, arbitrary graph nodes, absolute model directories or weight files are serialized.
 
-The extension identifies output as `ComfyUI_RS_MultiCharacter_Sampler` / `Anima (local)`. Similar field names provide caption interoperability; this is not a claim that NAI produced the image or can reproduce local sampling.
+The extension identifies output as `ComfyUI_RS_MultiCharacter_Sampler` / `Anima (local)` or `SDXL (local)`. Similar field names provide caption interoperability; this is not a claim that NAI produced the image or can reproduce local sampling.
 
 ## Restoration boundary
 

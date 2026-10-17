@@ -1,10 +1,10 @@
 # ComfyUI_RS_MultiCharacter_Sampler
 
-**0.1.0-alpha1 · Anima alpha** — independent character prompts and X/Y prompt regions for local ComfyUI generation.
+**0.1.0-alpha1 · Anima and experimental SDXL alpha** — independent character prompts and X/Y prompt regions for local ComfyUI generation.
 
 [한국어](README.ko.md) · [日本語](README.ja.md) · [Architecture](docs/architecture.md) · [Validation](docs/validation.md)
 
-This extension contains six nodes. It does not require the RS NovelAI extension, an API key, or a ControlNet model. It uses your local Anima model and text encoder.
+This extension contains six nodes. It does not require the RS NovelAI extension, an API key, or a ControlNet model. It uses your local Anima or supported SDXL checkpoint and matching text encoder.
 
 | Node | Purpose |
 | --- | --- |
@@ -28,6 +28,14 @@ git clone https://github.com/raspie10032/ComfyUI_RS_MultiCharacter_Sampler.git
 Run the command **inside `ComfyUI/custom_nodes`**. The sampler uses ComfyUI's existing PyTorch, NumPy and Pillow. Python 3.11+ and a ComfyUI version with Anima support are required; the tested environment is recorded in the validation report. Supply your own diffusion model, text encoder and VAE. The optional detector/tagger loaders download their selected missing catalog models when executed.
 
 For detailing, install **ComfyUI-Impact-Pack** and **ComfyUI-Impact-Subpack** through Manager, then install `requirements-detailer.txt` using your **ComfyUI Python environment**. Restart ComfyUI. SAM is optional and must already be installed to select it. Additional tagger choices can require the optional dependencies listed in their error message.
+
+## Experimental SDXL generation
+
+Load the [two-character SDXL workflow](examples/two-characters-sdxl.json), then select your checkpoint in **Load Checkpoint**. Branch its MODEL / CLIP / VAE outputs into the existing sampler. Illustrious XL v1.0 and NoobAI XL epsilon-pred 1.1 were tested with real generation and prompt-position swaps. This does not establish compatibility across all SDXL derivatives or sampler combinations.
+
+The example starts at **30 steps, CFG 5.5, Euler ancestral + normal**, initial common prior **0.3**, character gain **1.3**, spatial separation **0.5**. Existing Anima defaults stay unchanged. Its 0.05 / 1.7 / 0.9 settings can cause visible panel boundaries on SDXL.
+
+XY routes prompts, not exact body positions or guaranteed counts. Multiple characters and grid layouts can duplicate people, mix attributes or create panels. SDXL Refiner, inpainting models, ControlNet and other attention patches are unsupported. PNG/WebP metadata identifies the SDXL engine and restores through Load Image. See [method and live results](docs/sdxl-validation.md).
 
 ## Local multi-character detailing
 
@@ -82,7 +90,7 @@ The loader also accepts NAI V4-style character captions with one center per char
 
 ## Alpha limits
 
-- **Anima only**, one image per execution. The sampler is text-to-image; the detailer runs masked img2img crops. SDXL/Flux/SD1.5, ControlNet and other attention patches are not supported.
+- **Anima and experimental SDXL**, one image per execution. The sampler is text-to-image; the detailer runs masked img2img crops. Flux/SD1.5, ControlNet and other attention patches are not supported.
 - **1–10 input slots; actual image tests cover 1–6.** More characters do not guarantee quality. Horizontal layouts are the strongest tested use case.
 - Coordinates choose prompt regions; they do **not** lock a head/body to a point or enforce exactly one person per region. A single character owns the whole image, so moving that one center does not move the person.
 - Multiple rows, dense interactions and crossing props can duplicate or omit people. Four requested people in a 2×2 experiment became 12 and 10. Six people in two rows became 7 and 11. Do not treat count or identity as guaranteed.

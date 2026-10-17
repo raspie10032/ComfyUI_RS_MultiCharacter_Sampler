@@ -25,7 +25,7 @@ def validate_settings(settings):
     for name in ("width", "height"):
         v = settings[name]
         if type(v) is not int or not 64 <= v <= 4096 or v % 16:
-            raise ValueError("Anima needs dimensions divisible by 16, from 64 to 4096.")
+            raise ValueError("This sampler needs dimensions divisible by 16, from 64 to 4096.")
     if type(settings["seed"]) is not int or not 0 <= settings["seed"] <= 2**64 - 1:
         raise ValueError("Seed must be an unsigned 64-bit integer.")
     if type(settings["steps"]) is not int or settings["steps"] != 30:
@@ -60,9 +60,9 @@ class RSMultiCharacterSampler:
             "steps": ("INT", {"default": 30, "min": 30, "max": 30}),
             "cfg": ("FLOAT", {"default": 4., "min": 1., "max": 20., "step": .1}),
             "sampler_name": (list(KSampler.SAMPLERS), {"default": "euler_ancestral",
-                "tooltip": "All installed samplers are selectable. Anima starting points: euler_ancestral + sgm_uniform; euler + linear_quadratic; dpmpp_2m_sde_gpu + beta. Compared at 30 steps / CFG 4, one two-character scene and seed; quality varies."}),
+                "tooltip": "All installed samplers are selectable. Anima starting points: euler_ancestral + sgm_uniform; euler + linear_quadratic; dpmpp_2m_sde_gpu + beta. Compared at 30 steps / CFG 4, one two-character scene and seed; quality varies. SDXL: start with euler_ancestral + normal and the SDXL example settings."}),
             "scheduler": (list(KSampler.SCHEDULERS), {"default": "sgm_uniform",
-                "tooltip": "All installed schedulers are selectable. Try sgm_uniform with euler_ancestral, linear_quadratic with euler, or beta with dpmpp_2m_sde_gpu. Choose the pair manually; changing a sampler does not reset this value."}),
+                "tooltip": "All installed schedulers are selectable. Anima: try sgm_uniform with euler_ancestral, linear_quadratic with euler, or beta with dpmpp_2m_sde_gpu. SDXL: try normal with euler_ancestral. Choose the pair manually; changing a sampler does not reset this value."}),
             "autosave": ("BOOLEAN", {"default": True}),
             "save_format": (FORMATS, {"default": "PNG"}),
             "webp_quality": ("INT", {"default": 90, "min": 1, "max": 100}),
@@ -84,7 +84,7 @@ class RSMultiCharacterSampler:
     FUNCTION = "generate"
     CATEGORY = "RS MultiCharacter"
     OUTPUT_NODE = True
-    DESCRIPTION = "Anima-only alpha. 1–10 independent character prompts and X/Y regions; 1–6 tested. Horizontal arrangements work best. Coordinates control prompt regions, not exact body positions. More characters do not guarantee quality. Autosaves NAI-shaped metadata without a workflow."
+    DESCRIPTION = "Anima / SDXL experimental alpha. 1–10 independent character prompts and X/Y regions; 1–6 tested. Horizontal arrangements work best. Coordinates control prompt regions, not exact body positions. More characters do not guarantee quality. Autosaves NAI-shaped metadata without a workflow."
 
     def generate(self, model, clip, vae, character_pipe, prompt, negative_prompt, width=1536, height=768,
                  seed=0, steps=30, cfg=4., sampler_name="euler_ancestral", scheduler="sgm_uniform",
@@ -97,16 +97,21 @@ class RSMultiCharacterSampler:
         import comfy.utils
         import folder_paths
         import latent_preview
-        from comfy.model_base import Anima
+        from comfy.model_base import Anima, SDXL
         from comfy.patcher_extension import WrappersMP
         from .engine import AnimaRouting
 
         if not isinstance(character_pipe, CharacterPipe):
             raise ValueError("Connect RS MultiCharacter Prompts or Load Image. / 전용 캐릭터 파이프를 연결해 주세요.")
-        if not isinstance(model.model, Anima):
-            raise ValueError("This alpha requires an Anima model. SDXL/Flux/SD1.5 are not supported yet.")
-        if model.model_options.get("transformer_options", {}).get("patches"):
-            raise ValueError("Use an unpatched Anima model, optionally with ordinary LoRA loaders. Attention patches are not supported.")
+        if isinstance(model.model, Anima):
+            family = "Anima"
+        elif type(model.model) is SDXL and model.model.diffusion_model.in_channels == 4:
+            family = "SDXL"
+        else:
+            raise ValueError("Connect an Anima or SDXL base-family model. SDXL Refiner, inpainting, Flux and SD1.5 are unsupported.")
+        transformer_options = model.model_options.get("transformer_options", {})
+        if transformer_options.get("patches") or transformer_options.get("patches_replace"):
+            raise ValueError("Use an unpatched model, optionally with ordinary LoRA loaders. Other attention patches are unsupported.")
         if any(c.uc.strip() for c in character_pipe.characters):
             raise ValueError("Character-specific negatives are not supported in this alpha. Move them to the common negative prompt. / 캐릭터별 네거티브는 현재 미지원입니다. 공통 네거티브에 입력해 주세요.")
         settings = {k: v for k, v in locals().items() if k in DEFAULTS or k == "seed"}
@@ -131,24 +136,39 @@ class RSMultiCharacterSampler:
         def encode(text):
             comfy.model_management.throw_exception_if_processing_interrupted()
             result = clip.encode_from_tokens_scheduled(clip.tokenize(convert(text)))
-            if len(result) != 1 or "t5xxl_ids" not in result[0][1]:
-                raise ValueError("Use Anima's text encoder. Scheduled text is unsupported in this alpha.")
-            return [[t, dict(meta)] for t, meta in result]
+            if len(result) != 1:
+                raise ValueError("Scheduled text is unsupported in this alpha.")
+            t, meta = result[0]
+            if family == "Anima" and "t5xxl_ids" not in meta:
+                raise ValueError("Connect Anima's matching text encoder.")
+            if family == "SDXL":
+                pooled = meta.get("pooled_output")
+                if t.ndim != 3 or t.shape[-1] != 2048 or pooled is None or pooled.shape[-1] != 1280:
+                    raise ValueError("Connect the SDXL checkpoint's matching dual CLIP encoder.")
+                meta = {**meta, "width": settings["width"], "height": settings["height"],
+                        "target_width": settings["width"], "target_height": settings["height"],
+                        "crop_w": 0, "crop_h": 0}
+            return [[t, dict(meta)]]
 
         positive, negative = encode(prompt), encode(negative_prompt)
         conditions = [encode(c.prompt)[0] for c in pipe.characters]
         audit = {}
-        routing = AnimaRouting(conditions, masks, "character_first", audit,
-            len(positive[0][1]["t5xxl_ids"]),
-            initial_common_prior=settings["initial_common_prior"],
-            initial_character_gain=settings["initial_character_gain"],
-            initial_spatial_separation=settings["initial_spatial_separation"], late_spatial_separation=0.,
-            common_weight_schedule="step_3x0.2", spatial_separation_schedule="hold_decay",
-            boundary_hold_steps=settings["boundary_hold_steps"], boundary_decrement=settings["boundary_decrement"],
-            common_after_step3_boost=settings["common_after_step3_boost"])
         work = model.clone()
-        work.add_wrapper_with_key(WrappersMP.SAMPLER_SAMPLE, "rs_multicharacter", routing.sample)
-        work.add_wrapper_with_key(WrappersMP.DIFFUSION_MODEL, "rs_multicharacter", routing.forward)
+        if family == "Anima":
+            routing = AnimaRouting(conditions, masks, "character_first", audit,
+                len(positive[0][1]["t5xxl_ids"]),
+                initial_common_prior=settings["initial_common_prior"],
+                initial_character_gain=settings["initial_character_gain"],
+                initial_spatial_separation=settings["initial_spatial_separation"], late_spatial_separation=0.,
+                common_weight_schedule="step_3x0.2", spatial_separation_schedule="hold_decay",
+                boundary_hold_steps=settings["boundary_hold_steps"], boundary_decrement=settings["boundary_decrement"],
+                common_after_step3_boost=settings["common_after_step3_boost"])
+            work.add_wrapper_with_key(WrappersMP.SAMPLER_SAMPLE, "rs_multicharacter", routing.sample)
+            work.add_wrapper_with_key(WrappersMP.DIFFUSION_MODEL, "rs_multicharacter", routing.forward)
+        else:
+            from .sdxl_engine import SDXLRouting
+            routing = SDXLRouting(conditions, masks, settings, audit)
+            routing.install(work)
         latent = torch.zeros((1, 4, settings["height"] // 8, settings["width"] // 8), device=comfy.model_management.intermediate_device())
         latent = comfy.sample.fix_empty_latent_channels(work, latent)
         noise = comfy.sample.prepare_noise(latent, settings["seed"])
@@ -162,12 +182,12 @@ class RSMultiCharacterSampler:
         if images.ndim != 4 or images.shape[0] != 1 or not torch.isfinite(images).all():
             raise RuntimeError("The decoder returned invalid images.")
         assets = graph_assets(workflow_prompt, unique_id)
-        record = build_record(pipe, settings, assets, centers, audit)
+        record = build_record(pipe, settings, assets, centers, audit, engine="anima-spatial-alpha-1" if family == "Anima" else "sdxl-spatial-alpha-1")
         enriched = CharacterPipe(pipe.characters, prompt, negative_prompt, prompt_syntax,
             json.dumps(record["rs_multicharacter"], ensure_ascii=True))
         summary = {**record, "auto_layout_groups": moved, "cross_attention_calls": audit["cross_calls"],
-                   "self_attention_calls": audit["self_calls"], "restored_forwards": audit["restored_forwards"]}
-        ui = {"text": [f"{len(pipe.characters)} character regions · seed {settings['seed']} · Anima alpha"]}
+                   "self_attention_calls": audit["self_calls"], "restored_forwards": audit["restored_forwards"], "routing_audit": audit}
+        ui = {"text": [f"{len(pipe.characters)} character regions · seed {settings['seed']} · {family} alpha"]}
         if autosave:
             folder, filename, counter, subfolder, _ = folder_paths.get_save_image_path(
                 "RS_MultiCharacter/RS_MC", folder_paths.get_output_directory(), settings["width"], settings["height"])

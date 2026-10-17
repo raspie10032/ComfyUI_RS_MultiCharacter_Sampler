@@ -15,7 +15,7 @@ NODE_CLASS_MAPPINGS = {
 }
 NODE_DISPLAY_NAME_MAPPINGS = {
     "RSMultiCharacterPrompts": "RS MultiCharacter Prompts",
-    "RSMultiCharacterSampler": "RS MultiCharacter Sampler (Anima Alpha)",
+    "RSMultiCharacterSampler": "RS MultiCharacter Sampler (Alpha)",
     "RSMultiCharacterLoadImage": "RS MultiCharacter Load Image",
     "RSMultiCharacterDetailer": "RS MultiCharacter Detailer",
     "RSMultiCharacterDetectionLoader": "RS Detection Combine Loader",

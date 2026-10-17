@@ -158,5 +158,9 @@
         "name": "태거"
       }
     }
+  },
+  "RSMultiCharacterSampler": {
+    "display_name": "RS 멀티캐릭터 샘플러 (알파)",
+    "description": "Anima 및 SDXL 실험 지원. 캐릭터별 원문과 XY로 영역별 조건을 전달합니다. SDXL은 전용 예제의 완화된 초기 강도를 권장하며 인원·정확한 위치·품질을 보장하지 않습니다. Refiner·인페인트·다른 attention 패치는 지원하지 않습니다."
   }
 }

@@ -36,7 +36,7 @@ def captions(pipe):
     }
 
 
-def build_record(pipe, settings, assets, centers, audit):
+def build_record(pipe, settings, assets, centers, audit, engine="anima-spatial-alpha-1"):
     # Own field records local semantics; Source/Software never claim NAI origin.
     return {
         "prompt": pipe.prompt, "uc": pipe.negative_prompt,
@@ -44,7 +44,7 @@ def build_record(pipe, settings, assets, centers, audit):
         "seed": settings["seed"], "steps": settings["steps"], "scale": settings["cfg"],
         "sampler": settings["sampler_name"], "noise_schedule": settings["scheduler"],
         **captions(pipe),
-        "rs_multicharacter": {"version": 1, "engine": "anima-spatial-alpha-1",
+        "rs_multicharacter": {"version": 1, "engine": engine,
             "prompt_syntax": pipe.syntax, "settings": settings, "assets": assets,
             "effective_centers": centers, "spatial_slots": audit["spatial_slots"]},
     }
@@ -62,7 +62,7 @@ def save_image(image, path, record, save_format="PNG", quality=90):
     comment = json.dumps(record, ensure_ascii=True, allow_nan=False)
     object_json(comment)
     fields = {"Title": "Local multi-character generation", "Description": record["prompt"],
-              "Software": SOFTWARE, "Source": "Anima (local)", "Comment": comment}
+              "Software": SOFTWARE, "Source": "SDXL (local)" if record.get("rs_multicharacter", {}).get("engine") == "sdxl-spatial-alpha-1" else "Anima (local)", "Comment": comment}
     path = Path(path).with_suffix(".png" if save_format == "PNG" else ".webp")
     if save_format == "PNG":
         info = PngInfo()
@@ -106,7 +106,7 @@ def pipe_from_record(record):
             c = p["centers"][0]
             chars.append(Character(p["char_caption"], n["char_caption"], c["x"], c["y"]))
         local = record.get("rs_multicharacter")
-        if local is not None and (not isinstance(local, dict) or local.get("version") != 1 or local.get("engine") != "anima-spatial-alpha-1"):
+        if local is not None and (not isinstance(local, dict) or local.get("version") != 1 or local.get("engine") not in ("anima-spatial-alpha-1", "sdxl-spatial-alpha-1")):
             raise ValueError("Unsupported local metadata version.")
         syntax = local["prompt_syntax"] if local else "NovelAI"
         return CharacterPipe(tuple(chars), pos["base_caption"], neg["base_caption"], syntax,

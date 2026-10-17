@@ -1,0 +1,2283 @@
+{
+  "base_commit": "1bb8c79",
+  "comfyui_commit": "15eb748b3ec5f8a0a2d470b7fb280e2d7579f916",
+  "test_device": "physical GPU 1: NVIDIA GeForce RTX 5060 Ti 16 GB; isolated server 8198",
+  "successful_runs": 36,
+  "successful_sdxl_runs": 35,
+  "historical_failures": [
+    {
+      "case": "initial-error-illustrious-two-a",
+      "errors": [
+        "SDXL regional generation supports image batch size 1 only.\n"
+      ],
+      "historical_before_fix": true
+    },
+    {
+      "case": "initial-error-illustrious-two-swap",
+      "errors": [
+        "SDXL regional generation supports image batch size 1 only.\n"
+      ],
+      "historical_before_fix": true
+    }
+  ],
+  "runs": [
+    {
+      "case": "anima-regression",
+      "status": "success",
+      "prompt_id": "1b462983-5014-4b4c-b7f4-c54c2119f6f3",
+      "engine": "anima-spatial-alpha-1",
+      "image": "anima-regression-20-0.png",
+      "sha256": "63ed579f5fe41217dc938748af8d03374fea3a6c019681cacd2ae7aaaae7f651",
+      "count": 2,
+      "settings": {
+        "width": 1536,
+        "height": 768,
+        "seed": 49227753394327,
+        "steps": 30,
+        "cfg": 4.0,
+        "sampler_name": "euler_ancestral",
+        "scheduler": "sgm_uniform",
+        "region_feather": 0.04,
+        "initial_common_prior": 0.05,
+        "common_after_step3_boost": 0.1,
+        "initial_character_gain": 1.7,
+        "initial_spatial_separation": 0.9,
+        "boundary_hold_steps": 3,
+        "boundary_decrement": 0.2
+      },
+      "effective_centers": [
+        [
+          0.75,
+          0.5
+        ],
+        [
+          0.25,
+          0.5
+        ]
+      ],
+      "forward_calls": 30,
+      "restored_forwards": 30,
+      "cross_calls": 840,
+      "self_calls": 840,
+      "token_grids": []
+    },
+    {
+      "case": "illustrious-1-random-balanced",
+      "status": "success",
+      "prompt_id": "2b275236-249b-4960-a5eb-2b61911e8765",
+      "engine": "sdxl-spatial-alpha-1",
+      "image": "illustrious-1-random-balanced-3-0.png",
+      "sha256": "d4d61339b18aeb326d54eed64f439ae1ce82abaf5eaf4f086df4707cc0bdd585",
+      "count": 1,
+      "settings": {
+        "width": 1024,
+        "height": 768,
+        "seed": 3179805511,
+        "steps": 30,
+        "cfg": 5.5,
+        "sampler_name": "euler_ancestral",
+        "scheduler": "normal",
+        "region_feather": 0.04,
+        "initial_common_prior": 0.3,
+        "common_after_step3_boost": 0.1,
+        "initial_character_gain": 1.3,
+        "initial_spatial_separation": 0.5,
+        "boundary_hold_steps": 3,
+        "boundary_decrement": 0.2
+      },
+      "effective_centers": [
+        [
+          0.5,
+          0.5
+        ]
+      ],
+      "forward_calls": 30,
+      "restored_forwards": 30,
+      "cross_calls": 2100,
+      "self_calls": 2100,
+      "token_grids": [
+        {
+          "height": 48,
+          "width": 64,
+          "tokens_per_slot": [
+            3072
+          ]
+        },
+        {
+          "height": 24,
+          "width": 32,
+          "tokens_per_slot": [
+            768
+          ]
+        }
+      ]
+    },
+    {
+      "case": "illustrious-1-random",
+      "status": "success",
+      "prompt_id": "083331d3-dd30-4a30-b0ab-cc6323ae01c0",
+      "engine": "sdxl-spatial-alpha-1",
+      "image": "illustrious-1-random-3-0.png",
+      "sha256": "78a62b15cd64125a758544e7a17e21326164aae599a0e159fe3f0051b9e20e45",
+      "count": 1,
+      "settings": {
+        "width": 1024,
+        "height": 768,
+        "seed": 3179805511,
+        "steps": 30,
+        "cfg": 5.5,
+        "sampler_name": "euler_ancestral",
+        "scheduler": "normal",
+        "region_feather": 0.04,
+        "initial_common_prior": 0.05,
+        "common_after_step3_boost": 0.1,
+        "initial_character_gain": 1.7,
+        "initial_spatial_separation": 0.9,
+        "boundary_hold_steps": 3,
+        "boundary_decrement": 0.2
+      },
+      "effective_centers": [
+        [
+          0.5,
+          0.5
+        ]
+      ],
+      "forward_calls": 30,
+      "restored_forwards": 30,
+      "cross_calls": 2100,
+      "self_calls": 2100,
+      "token_grids": [
+        {
+          "height": 48,
+          "width": 64,
+          "tokens_per_slot": [
+            3072
+          ]
+        },
+        {
+          "height": 24,
+          "width": 32,
+          "tokens_per_slot": [
+            768
+          ]
+        }
+      ]
+    },
+    {
+      "case": "illustrious-2-random-balanced-swap",
+      "status": "success",
+      "prompt_id": "48526660-f853-4b59-b158-5ab9eadc3ca1",
+      "engine": "sdxl-spatial-alpha-1",
+      "image": "illustrious-2-random-balanced-swap-3-0.png",
+      "sha256": "f5218991c76ce0cb9df35d0041927dd88c3dad40afacc42701376b5c9e9cb097",
+      "count": 2,
+      "settings": {
+        "width": 1024,
+        "height": 768,
+        "seed": 2845200558,
+        "steps": 30,
+        "cfg": 5.5,
+        "sampler_name": "euler_ancestral",
+        "scheduler": "normal",
+        "region_feather": 0.04,
+        "initial_common_prior": 0.3,
+        "common_after_step3_boost": 0.1,
+        "initial_character_gain": 1.3,
+        "initial_spatial_separation": 0.5,
+        "boundary_hold_steps": 3,
+        "boundary_decrement": 0.2
+      },
+      "effective_centers": [
+        [
+          0.25,
+          0.5
+        ],
+        [
+          0.75,
+          0.5
+        ]
+      ],
+      "forward_calls": 30,
+      "restored_forwards": 30,
+      "cross_calls": 2100,
+      "self_calls": 2100,
+      "token_grids": [
+        {
+          "height": 48,
+          "width": 64,
+          "tokens_per_slot": [
+            1536,
+            1536
+          ]
+        },
+        {
+          "height": 24,
+          "width": 32,
+          "tokens_per_slot": [
+            384,
+            384
+          ]
+        }
+      ]
+    },
+    {
+      "case": "illustrious-2-random-balanced",
+      "status": "success",
+      "prompt_id": "ec086cd8-5e06-4f49-82ff-4a25155e0c88",
+      "engine": "sdxl-spatial-alpha-1",
+      "image": "illustrious-2-random-balanced-3-0.png",
+      "sha256": "a76f5fa5e05df3bea9df37f9fbd334b7446a0a094fa18c003ff4b1076dfc53c1",
+      "count": 2,
+      "settings": {
+        "width": 1024,
+        "height": 768,
+        "seed": 2845200558,
+        "steps": 30,
+        "cfg": 5.5,
+        "sampler_name": "euler_ancestral",
+        "scheduler": "normal",
+        "region_feather": 0.04,
+        "initial_common_prior": 0.3,
+        "common_after_step3_boost": 0.1,
+        "initial_character_gain": 1.3,
+        "initial_spatial_separation": 0.5,
+        "boundary_hold_steps": 3,
+        "boundary_decrement": 0.2
+      },
+      "effective_centers": [
+        [
+          0.25,
+          0.5
+        ],
+        [
+          0.75,
+          0.5
+        ]
+      ],
+      "forward_calls": 30,
+      "restored_forwards": 30,
+      "cross_calls": 2100,
+      "self_calls": 2100,
+      "token_grids": [
+        {
+          "height": 48,
+          "width": 64,
+          "tokens_per_slot": [
+            1536,
+            1536
+          ]
+        },
+        {
+          "height": 24,
+          "width": 32,
+          "tokens_per_slot": [
+            384,
+            384
+          ]
+        }
+      ]
+    },
+    {
+      "case": "illustrious-2-random-swap",
+      "status": "success",
+      "prompt_id": "875838d5-fe75-4285-968a-fda2078fa618",
+      "engine": "sdxl-spatial-alpha-1",
+      "image": "illustrious-2-random-swap-3-0.png",
+      "sha256": "4fbd5374209fbe9aaed6c43e888683b3662887af7e4c11eca96e13818d68b797",
+      "count": 2,
+      "settings": {
+        "width": 1024,
+        "height": 768,
+        "seed": 2845200558,
+        "steps": 30,
+        "cfg": 5.5,
+        "sampler_name": "euler_ancestral",
+        "scheduler": "normal",
+        "region_feather": 0.04,
+        "initial_common_prior": 0.05,
+        "common_after_step3_boost": 0.1,
+        "initial_character_gain": 1.7,
+        "initial_spatial_separation": 0.9,
+        "boundary_hold_steps": 3,
+        "boundary_decrement": 0.2
+      },
+      "effective_centers": [
+        [
+          0.25,
+          0.5
+        ],
+        [
+          0.75,
+          0.5
+        ]
+      ],
+      "forward_calls": 30,
+      "restored_forwards": 30,
+      "cross_calls": 2100,
+      "self_calls": 2100,
+      "token_grids": [
+        {
+          "height": 48,
+          "width": 64,
+          "tokens_per_slot": [
+            1536,
+            1536
+          ]
+        },
+        {
+          "height": 24,
+          "width": 32,
+          "tokens_per_slot": [
+            384,
+            384
+          ]
+        }
+      ]
+    },
+    {
+      "case": "illustrious-2-random",
+      "status": "success",
+      "prompt_id": "3071020c-dd2a-4e51-8754-0770566b8da6",
+      "engine": "sdxl-spatial-alpha-1",
+      "image": "illustrious-2-random-3-0.png",
+      "sha256": "0c4efd6db1c0cdb6b5cba78e84fc1989ebd529b1cd1e3fd4c5876d37438b6f42",
+      "count": 2,
+      "settings": {
+        "width": 1024,
+        "height": 768,
+        "seed": 2845200558,
+        "steps": 30,
+        "cfg": 5.5,
+        "sampler_name": "euler_ancestral",
+        "scheduler": "normal",
+        "region_feather": 0.04,
+        "initial_common_prior": 0.05,
+        "common_after_step3_boost": 0.1,
+        "initial_character_gain": 1.7,
+        "initial_spatial_separation": 0.9,
+        "boundary_hold_steps": 3,
+        "boundary_decrement": 0.2
+      },
+      "effective_centers": [
+        [
+          0.25,
+          0.5
+        ],
+        [
+          0.75,
+          0.5
+        ]
+      ],
+      "forward_calls": 30,
+      "restored_forwards": 30,
+      "cross_calls": 2100,
+      "self_calls": 2100,
+      "token_grids": [
+        {
+          "height": 48,
+          "width": 64,
+          "tokens_per_slot": [
+            1536,
+            1536
+          ]
+        },
+        {
+          "height": 24,
+          "width": 32,
+          "tokens_per_slot": [
+            384,
+            384
+          ]
+        }
+      ]
+    },
+    {
+      "case": "illustrious-3-random-balanced",
+      "status": "success",
+      "prompt_id": "ce3779fa-b4a4-46bf-8810-627af239c929",
+      "engine": "sdxl-spatial-alpha-1",
+      "image": "illustrious-3-random-balanced-3-0.png",
+      "sha256": "ec2f92440a7e2dc9531e4dd882227f4e3415616c1246b2b7c162d175f18ee1fc",
+      "count": 3,
+      "settings": {
+        "width": 1024,
+        "height": 768,
+        "seed": 3916709978,
+        "steps": 30,
+        "cfg": 5.5,
+        "sampler_name": "euler_ancestral",
+        "scheduler": "normal",
+        "region_feather": 0.04,
+        "initial_common_prior": 0.3,
+        "common_after_step3_boost": 0.1,
+        "initial_character_gain": 1.3,
+        "initial_spatial_separation": 0.5,
+        "boundary_hold_steps": 3,
+        "boundary_decrement": 0.2
+      },
+      "effective_centers": [
+        [
+          0.16666666666666666,
+          0.5
+        ],
+        [
+          0.5,
+          0.5
+        ],
+        [
+          0.8333333333333334,
+          0.5
+        ]
+      ],
+      "forward_calls": 30,
+      "restored_forwards": 30,
+      "cross_calls": 2100,
+      "self_calls": 2100,
+      "token_grids": [
+        {
+          "height": 48,
+          "width": 64,
+          "tokens_per_slot": [
+            1056,
+            1008,
+            1008
+          ]
+        },
+        {
+          "height": 24,
+          "width": 32,
+          "tokens_per_slot": [
+            264,
+            240,
+            264
+          ]
+        }
+      ]
+    },
+    {
+      "case": "illustrious-3-random",
+      "status": "success",
+      "prompt_id": "84fcdb28-9b3b-4dfa-89a0-5f99e3f79792",
+      "engine": "sdxl-spatial-alpha-1",
+      "image": "illustrious-3-random-3-0.png",
+      "sha256": "77dae3ae840a161f87917a05fbb1f7c569e706e309771760d12db1552760e5ce",
+      "count": 3,
+      "settings": {
+        "width": 1024,
+        "height": 768,
+        "seed": 3916709978,
+        "steps": 30,
+        "cfg": 5.5,
+        "sampler_name": "euler_ancestral",
+        "scheduler": "normal",
+        "region_feather": 0.04,
+        "initial_common_prior": 0.05,
+        "common_after_step3_boost": 0.1,
+        "initial_character_gain": 1.7,
+        "initial_spatial_separation": 0.9,
+        "boundary_hold_steps": 3,
+        "boundary_decrement": 0.2
+      },
+      "effective_centers": [
+        [
+          0.16666666666666666,
+          0.5
+        ],
+        [
+          0.5,
+          0.5
+        ],
+        [
+          0.8333333333333334,
+          0.5
+        ]
+      ],
+      "forward_calls": 30,
+      "restored_forwards": 30,
+      "cross_calls": 2100,
+      "self_calls": 2100,
+      "token_grids": [
+        {
+          "height": 48,
+          "width": 64,
+          "tokens_per_slot": [
+            1056,
+            1008,
+            1008
+          ]
+        },
+        {
+          "height": 24,
+          "width": 32,
+          "tokens_per_slot": [
+            264,
+            240,
+            264
+          ]
+        }
+      ]
+    },
+    {
+      "case": "illustrious-4-random-balanced",
+      "status": "success",
+      "prompt_id": "b32596c1-1120-4ccd-bde1-336d8df71631",
+      "engine": "sdxl-spatial-alpha-1",
+      "image": "illustrious-4-random-balanced-3-0.png",
+      "sha256": "eb32093bc3953ac82a8276e6c519d90f11708ba918fa6be7c7f1748f47155406",
+      "count": 4,
+      "settings": {
+        "width": 1536,
+        "height": 1024,
+        "seed": 3095589958,
+        "steps": 30,
+        "cfg": 5.5,
+        "sampler_name": "euler_ancestral",
+        "scheduler": "normal",
+        "region_feather": 0.04,
+        "initial_common_prior": 0.3,
+        "common_after_step3_boost": 0.1,
+        "initial_character_gain": 1.3,
+        "initial_spatial_separation": 0.5,
+        "boundary_hold_steps": 3,
+        "boundary_decrement": 0.2
+      },
+      "effective_centers": [
+        [
+          0.25,
+          0.25
+        ],
+        [
+          0.75,
+          0.25
+        ],
+        [
+          0.25,
+          0.75
+        ],
+        [
+          0.75,
+          0.75
+        ]
+      ],
+      "forward_calls": 30,
+      "restored_forwards": 30,
+      "cross_calls": 2100,
+      "self_calls": 2100,
+      "token_grids": [
+        {
+          "height": 64,
+          "width": 96,
+          "tokens_per_slot": [
+            1536,
+            1536,
+            1536,
+            1536
+          ]
+        },
+        {
+          "height": 32,
+          "width": 48,
+          "tokens_per_slot": [
+            384,
+            384,
+            384,
+            384
+          ]
+        }
+      ]
+    },
+    {
+      "case": "illustrious-4-random",
+      "status": "success",
+      "prompt_id": "4cc042d4-3172-4893-ae4b-31dfbb77a7e5",
+      "engine": "sdxl-spatial-alpha-1",
+      "image": "illustrious-4-random-3-0.png",
+      "sha256": "e290c13a32416901fcc464b5593269034814fec3f08ebd26bb692bf7daf99ca7",
+      "count": 4,
+      "settings": {
+        "width": 1536,
+        "height": 1024,
+        "seed": 3095589958,
+        "steps": 30,
+        "cfg": 5.5,
+        "sampler_name": "euler_ancestral",
+        "scheduler": "normal",
+        "region_feather": 0.04,
+        "initial_common_prior": 0.05,
+        "common_after_step3_boost": 0.1,
+        "initial_character_gain": 1.7,
+        "initial_spatial_separation": 0.9,
+        "boundary_hold_steps": 3,
+        "boundary_decrement": 0.2
+      },
+      "effective_centers": [
+        [
+          0.25,
+          0.25
+        ],
+        [
+          0.75,
+          0.25
+        ],
+        [
+          0.25,
+          0.75
+        ],
+        [
+          0.75,
+          0.75
+        ]
+      ],
+      "forward_calls": 30,
+      "restored_forwards": 30,
+      "cross_calls": 2100,
+      "self_calls": 2100,
+      "token_grids": [
+        {
+          "height": 64,
+          "width": 96,
+          "tokens_per_slot": [
+            1536,
+            1536,
+            1536,
+            1536
+          ]
+        },
+        {
+          "height": 32,
+          "width": 48,
+          "tokens_per_slot": [
+            384,
+            384,
+            384,
+            384
+          ]
+        }
+      ]
+    },
+    {
+      "case": "illustrious-5-random-balanced",
+      "status": "success",
+      "prompt_id": "4555464d-0495-4020-a338-e7b754ddaf7c",
+      "engine": "sdxl-spatial-alpha-1",
+      "image": "illustrious-5-random-balanced-3-0.png",
+      "sha256": "700c324773a848f41389ba90b4f5b082560d84a0928d8f3b65eadaf0f28bb3cc",
+      "count": 5,
+      "settings": {
+        "width": 1536,
+        "height": 768,
+        "seed": 458455353,
+        "steps": 30,
+        "cfg": 5.5,
+        "sampler_name": "euler_ancestral",
+        "scheduler": "normal",
+        "region_feather": 0.04,
+        "initial_common_prior": 0.3,
+        "common_after_step3_boost": 0.1,
+        "initial_character_gain": 1.3,
+        "initial_spatial_separation": 0.5,
+        "boundary_hold_steps": 3,
+        "boundary_decrement": 0.2
+      },
+      "effective_centers": [
+        [
+          0.1,
+          0.5
+        ],
+        [
+          0.3,
+          0.5
+        ],
+        [
+          0.5,
+          0.5
+        ],
+        [
+          0.7,
+          0.5
+        ],
+        [
+          0.9,
+          0.5
+        ]
+      ],
+      "forward_calls": 30,
+      "restored_forwards": 30,
+      "cross_calls": 2100,
+      "self_calls": 2100,
+      "token_grids": [
+        {
+          "height": 48,
+          "width": 96,
+          "tokens_per_slot": [
+            912,
+            960,
+            912,
+            912,
+            912
+          ]
+        },
+        {
+          "height": 24,
+          "width": 48,
+          "tokens_per_slot": [
+            216,
+            240,
+            240,
+            216,
+            240
+          ]
+        }
+      ]
+    },
+    {
+      "case": "illustrious-5-random",
+      "status": "success",
+      "prompt_id": "5da1ccdb-2253-49ea-b4ff-0de88ae9d4fa",
+      "engine": "sdxl-spatial-alpha-1",
+      "image": "illustrious-5-random-3-0.png",
+      "sha256": "99cc71f9156f72a398d484f8acd3c653aea6ae16e0d4d6b9abaab34fcaec43d8",
+      "count": 5,
+      "settings": {
+        "width": 1536,
+        "height": 768,
+        "seed": 458455353,
+        "steps": 30,
+        "cfg": 5.5,
+        "sampler_name": "euler_ancestral",
+        "scheduler": "normal",
+        "region_feather": 0.04,
+        "initial_common_prior": 0.05,
+        "common_after_step3_boost": 0.1,
+        "initial_character_gain": 1.7,
+        "initial_spatial_separation": 0.9,
+        "boundary_hold_steps": 3,
+        "boundary_decrement": 0.2
+      },
+      "effective_centers": [
+        [
+          0.1,
+          0.5
+        ],
+        [
+          0.3,
+          0.5
+        ],
+        [
+          0.5,
+          0.5
+        ],
+        [
+          0.7,
+          0.5
+        ],
+        [
+          0.9,
+          0.5
+        ]
+      ],
+      "forward_calls": 30,
+      "restored_forwards": 30,
+      "cross_calls": 2100,
+      "self_calls": 2100,
+      "token_grids": [
+        {
+          "height": 48,
+          "width": 96,
+          "tokens_per_slot": [
+            912,
+            960,
+            912,
+            912,
+            912
+          ]
+        },
+        {
+          "height": 24,
+          "width": 48,
+          "tokens_per_slot": [
+            216,
+            240,
+            240,
+            216,
+            240
+          ]
+        }
+      ]
+    },
+    {
+      "case": "illustrious-6-random-balanced",
+      "status": "success",
+      "prompt_id": "bf174211-f153-4716-80c5-c030c8813651",
+      "engine": "sdxl-spatial-alpha-1",
+      "image": "illustrious-6-random-balanced-3-0.png",
+      "sha256": "9a6508cf51684bf473c97a609c9aadc3abe9dce4b0aafc3c0af7a1d1bca40148",
+      "count": 6,
+      "settings": {
+        "width": 1536,
+        "height": 768,
+        "seed": 4265406901,
+        "steps": 30,
+        "cfg": 5.5,
+        "sampler_name": "euler_ancestral",
+        "scheduler": "normal",
+        "region_feather": 0.04,
+        "initial_common_prior": 0.3,
+        "common_after_step3_boost": 0.1,
+        "initial_character_gain": 1.3,
+        "initial_spatial_separation": 0.5,
+        "boundary_hold_steps": 3,
+        "boundary_decrement": 0.2
+      },
+      "effective_centers": [
+        [
+          0.08333333333333333,
+          0.5
+        ],
+        [
+          0.25,
+          0.5
+        ],
+        [
+          0.4166666666666667,
+          0.5
+        ],
+        [
+          0.5833333333333334,
+          0.5
+        ],
+        [
+          0.75,
+          0.5
+        ],
+        [
+          0.9166666666666666,
+          0.5
+        ]
+      ],
+      "forward_calls": 30,
+      "restored_forwards": 30,
+      "cross_calls": 2100,
+      "self_calls": 2100,
+      "token_grids": [
+        {
+          "height": 48,
+          "width": 96,
+          "tokens_per_slot": [
+            768,
+            768,
+            768,
+            768,
+            768,
+            768
+          ]
+        },
+        {
+          "height": 24,
+          "width": 48,
+          "tokens_per_slot": [
+            192,
+            192,
+            192,
+            192,
+            192,
+            192
+          ]
+        }
+      ]
+    },
+    {
+      "case": "illustrious-6-random",
+      "status": "success",
+      "prompt_id": "be4a7c55-a1a2-466a-8690-65a46329a33e",
+      "engine": "sdxl-spatial-alpha-1",
+      "image": "illustrious-6-random-3-0.png",
+      "sha256": "f05f4c5d3d37fb8664e9050f2ca5885d467f7b6cee2e3b6befeae2c4487a38a6",
+      "count": 6,
+      "settings": {
+        "width": 1536,
+        "height": 768,
+        "seed": 4265406901,
+        "steps": 30,
+        "cfg": 5.5,
+        "sampler_name": "euler_ancestral",
+        "scheduler": "normal",
+        "region_feather": 0.04,
+        "initial_common_prior": 0.05,
+        "common_after_step3_boost": 0.1,
+        "initial_character_gain": 1.7,
+        "initial_spatial_separation": 0.9,
+        "boundary_hold_steps": 3,
+        "boundary_decrement": 0.2
+      },
+      "effective_centers": [
+        [
+          0.08333333333333333,
+          0.5
+        ],
+        [
+          0.25,
+          0.5
+        ],
+        [
+          0.4166666666666667,
+          0.5
+        ],
+        [
+          0.5833333333333334,
+          0.5
+        ],
+        [
+          0.75,
+          0.5
+        ],
+        [
+          0.9166666666666666,
+          0.5
+        ]
+      ],
+      "forward_calls": 30,
+      "restored_forwards": 30,
+      "cross_calls": 2100,
+      "self_calls": 2100,
+      "token_grids": [
+        {
+          "height": 48,
+          "width": 96,
+          "tokens_per_slot": [
+            768,
+            768,
+            768,
+            768,
+            768,
+            768
+          ]
+        },
+        {
+          "height": 24,
+          "width": 48,
+          "tokens_per_slot": [
+            192,
+            192,
+            192,
+            192,
+            192,
+            192
+          ]
+        }
+      ]
+    },
+    {
+      "case": "illustrious-two-a",
+      "status": "success",
+      "prompt_id": "0c372b61-2d8c-4353-9ef7-2316df5a00b7",
+      "engine": "sdxl-spatial-alpha-1",
+      "image": "illustrious-two-a-3-0.png",
+      "sha256": "d59bbd683fff97bd6ea139524825f9f69f9f1fa183cbd3d7f3c58e8cec1f0a0c",
+      "count": 2,
+      "settings": {
+        "width": 1024,
+        "height": 768,
+        "seed": 346751,
+        "steps": 30,
+        "cfg": 5.5,
+        "sampler_name": "euler_ancestral",
+        "scheduler": "normal",
+        "region_feather": 0.04,
+        "initial_common_prior": 0.05,
+        "common_after_step3_boost": 0.1,
+        "initial_character_gain": 1.7,
+        "initial_spatial_separation": 0.9,
+        "boundary_hold_steps": 3,
+        "boundary_decrement": 0.2
+      },
+      "effective_centers": [
+        [
+          0.25,
+          0.5
+        ],
+        [
+          0.75,
+          0.5
+        ]
+      ],
+      "forward_calls": 30,
+      "restored_forwards": 30,
+      "cross_calls": 2100,
+      "self_calls": 2100,
+      "token_grids": [
+        {
+          "height": 48,
+          "width": 64,
+          "tokens_per_slot": [
+            1536,
+            1536
+          ]
+        },
+        {
+          "height": 24,
+          "width": 32,
+          "tokens_per_slot": [
+            384,
+            384
+          ]
+        }
+      ]
+    },
+    {
+      "case": "illustrious-two-balanced",
+      "status": "success",
+      "prompt_id": "5373397e-5738-49e3-80d7-23751f6604a9",
+      "engine": "sdxl-spatial-alpha-1",
+      "image": "illustrious-two-balanced-3-0.png",
+      "sha256": "ba3ea879361c9062dd32e3953f59af43511a23d60190fa16e9192a287b445ec1",
+      "count": 2,
+      "settings": {
+        "width": 1024,
+        "height": 768,
+        "seed": 346751,
+        "steps": 30,
+        "cfg": 5.5,
+        "sampler_name": "euler_ancestral",
+        "scheduler": "normal",
+        "region_feather": 0.04,
+        "initial_common_prior": 0.3,
+        "common_after_step3_boost": 0.1,
+        "initial_character_gain": 1.3,
+        "initial_spatial_separation": 0.5,
+        "boundary_hold_steps": 3,
+        "boundary_decrement": 0.2
+      },
+      "effective_centers": [
+        [
+          0.25,
+          0.5
+        ],
+        [
+          0.75,
+          0.5
+        ]
+      ],
+      "forward_calls": 30,
+      "restored_forwards": 30,
+      "cross_calls": 2100,
+      "self_calls": 2100,
+      "token_grids": [
+        {
+          "height": 48,
+          "width": 64,
+          "tokens_per_slot": [
+            1536,
+            1536
+          ]
+        },
+        {
+          "height": 24,
+          "width": 32,
+          "tokens_per_slot": [
+            384,
+            384
+          ]
+        }
+      ]
+    },
+    {
+      "case": "illustrious-two-no-boundary",
+      "status": "success",
+      "prompt_id": "fee08fc8-8f8c-4bbb-a02d-808a1fabb7a0",
+      "engine": "sdxl-spatial-alpha-1",
+      "image": "illustrious-two-no-boundary-3-0.png",
+      "sha256": "934e9c4cd1902ae85f1495d3687c2cd8816ad513f92f878571b4cec8ef89b80f",
+      "count": 2,
+      "settings": {
+        "width": 1024,
+        "height": 768,
+        "seed": 346751,
+        "steps": 30,
+        "cfg": 5.5,
+        "sampler_name": "euler_ancestral",
+        "scheduler": "normal",
+        "region_feather": 0.04,
+        "initial_common_prior": 0.3,
+        "common_after_step3_boost": 0.1,
+        "initial_character_gain": 1.3,
+        "initial_spatial_separation": 0.0,
+        "boundary_hold_steps": 3,
+        "boundary_decrement": 0.2
+      },
+      "effective_centers": [
+        [
+          0.25,
+          0.5
+        ],
+        [
+          0.75,
+          0.5
+        ]
+      ],
+      "forward_calls": 30,
+      "restored_forwards": 30,
+      "cross_calls": 2100,
+      "self_calls": 2100,
+      "token_grids": [
+        {
+          "height": 48,
+          "width": 64,
+          "tokens_per_slot": [
+            1536,
+            1536
+          ]
+        },
+        {
+          "height": 24,
+          "width": 32,
+          "tokens_per_slot": [
+            384,
+            384
+          ]
+        }
+      ]
+    },
+    {
+      "case": "illustrious-two-sgm",
+      "status": "success",
+      "prompt_id": "0f7e8094-d2b8-4370-9c44-834665a39de7",
+      "engine": "sdxl-spatial-alpha-1",
+      "image": "illustrious-two-sgm-3-0.png",
+      "sha256": "2b060e18529397f38a5673af848fb73583b75d8c507aa6c37e21c823fccc8262",
+      "count": 2,
+      "settings": {
+        "width": 1024,
+        "height": 768,
+        "seed": 346751,
+        "steps": 30,
+        "cfg": 5.5,
+        "sampler_name": "euler_ancestral",
+        "scheduler": "sgm_uniform",
+        "region_feather": 0.04,
+        "initial_common_prior": 0.05,
+        "common_after_step3_boost": 0.1,
+        "initial_character_gain": 1.7,
+        "initial_spatial_separation": 0.9,
+        "boundary_hold_steps": 3,
+        "boundary_decrement": 0.2
+      },
+      "effective_centers": [
+        [
+          0.25,
+          0.5
+        ],
+        [
+          0.75,
+          0.5
+        ]
+      ],
+      "forward_calls": 30,
+      "restored_forwards": 30,
+      "cross_calls": 2100,
+      "self_calls": 2100,
+      "token_grids": [
+        {
+          "height": 48,
+          "width": 64,
+          "tokens_per_slot": [
+            1536,
+            1536
+          ]
+        },
+        {
+          "height": 24,
+          "width": 32,
+          "tokens_per_slot": [
+            384,
+            384
+          ]
+        }
+      ]
+    },
+    {
+      "case": "illustrious-two-swap",
+      "status": "success",
+      "prompt_id": "c25d03d6-b368-41f3-bb2e-885c7df893b6",
+      "engine": "sdxl-spatial-alpha-1",
+      "image": "illustrious-two-swap-3-0.png",
+      "sha256": "7bf506662902ac137f43e4986c09a15078f4d09818d57bf293f68a4fa3c271c1",
+      "count": 2,
+      "settings": {
+        "width": 1024,
+        "height": 768,
+        "seed": 346751,
+        "steps": 30,
+        "cfg": 5.5,
+        "sampler_name": "euler_ancestral",
+        "scheduler": "normal",
+        "region_feather": 0.04,
+        "initial_common_prior": 0.05,
+        "common_after_step3_boost": 0.1,
+        "initial_character_gain": 1.7,
+        "initial_spatial_separation": 0.9,
+        "boundary_hold_steps": 3,
+        "boundary_decrement": 0.2
+      },
+      "effective_centers": [
+        [
+          0.25,
+          0.5
+        ],
+        [
+          0.75,
+          0.5
+        ]
+      ],
+      "forward_calls": 30,
+      "restored_forwards": 30,
+      "cross_calls": 2100,
+      "self_calls": 2100,
+      "token_grids": [
+        {
+          "height": 48,
+          "width": 64,
+          "tokens_per_slot": [
+            1536,
+            1536
+          ]
+        },
+        {
+          "height": 24,
+          "width": 32,
+          "tokens_per_slot": [
+            384,
+            384
+          ]
+        }
+      ]
+    },
+    {
+      "case": "noob-1-random-balanced",
+      "status": "success",
+      "prompt_id": "971b73e2-a659-4340-abb6-a20b1e9c9c5d",
+      "engine": "sdxl-spatial-alpha-1",
+      "image": "noob-1-random-balanced-3-0.png",
+      "sha256": "890d2b68d96fc921864cf54724d71982186fe014e76dba7776368a8d70fd38ba",
+      "count": 1,
+      "settings": {
+        "width": 1024,
+        "height": 768,
+        "seed": 1410734865,
+        "steps": 30,
+        "cfg": 5.5,
+        "sampler_name": "euler_ancestral",
+        "scheduler": "normal",
+        "region_feather": 0.04,
+        "initial_common_prior": 0.3,
+        "common_after_step3_boost": 0.1,
+        "initial_character_gain": 1.3,
+        "initial_spatial_separation": 0.5,
+        "boundary_hold_steps": 3,
+        "boundary_decrement": 0.2
+      },
+      "effective_centers": [
+        [
+          0.5,
+          0.5
+        ]
+      ],
+      "forward_calls": 30,
+      "restored_forwards": 30,
+      "cross_calls": 2100,
+      "self_calls": 2100,
+      "token_grids": [
+        {
+          "height": 48,
+          "width": 64,
+          "tokens_per_slot": [
+            3072
+          ]
+        },
+        {
+          "height": 24,
+          "width": 32,
+          "tokens_per_slot": [
+            768
+          ]
+        }
+      ]
+    },
+    {
+      "case": "noob-1-random",
+      "status": "success",
+      "prompt_id": "ba74c953-29c4-4d46-86bc-21fc4b0af748",
+      "engine": "sdxl-spatial-alpha-1",
+      "image": "noob-1-random-3-0.png",
+      "sha256": "87773e30f23190ff5d7d87e24d4450109f94c2e47add6d54f1a543c0e3b5e3d9",
+      "count": 1,
+      "settings": {
+        "width": 1024,
+        "height": 768,
+        "seed": 1410734865,
+        "steps": 30,
+        "cfg": 5.5,
+        "sampler_name": "euler_ancestral",
+        "scheduler": "normal",
+        "region_feather": 0.04,
+        "initial_common_prior": 0.05,
+        "common_after_step3_boost": 0.1,
+        "initial_character_gain": 1.7,
+        "initial_spatial_separation": 0.9,
+        "boundary_hold_steps": 3,
+        "boundary_decrement": 0.2
+      },
+      "effective_centers": [
+        [
+          0.5,
+          0.5
+        ]
+      ],
+      "forward_calls": 30,
+      "restored_forwards": 30,
+      "cross_calls": 2100,
+      "self_calls": 2100,
+      "token_grids": [
+        {
+          "height": 48,
+          "width": 64,
+          "tokens_per_slot": [
+            3072
+          ]
+        },
+        {
+          "height": 24,
+          "width": 32,
+          "tokens_per_slot": [
+            768
+          ]
+        }
+      ]
+    },
+    {
+      "case": "noob-2-random-balanced-swap",
+      "status": "success",
+      "prompt_id": "5cac172d-5e3f-476b-8fff-903067fe97e3",
+      "engine": "sdxl-spatial-alpha-1",
+      "image": "noob-2-random-balanced-swap-3-0.png",
+      "sha256": "ba422045deaabc275af48a7ef1ec92a3a99cbf296ac7affe9257184390171d46",
+      "count": 2,
+      "settings": {
+        "width": 1024,
+        "height": 768,
+        "seed": 1419951629,
+        "steps": 30,
+        "cfg": 5.5,
+        "sampler_name": "euler_ancestral",
+        "scheduler": "normal",
+        "region_feather": 0.04,
+        "initial_common_prior": 0.3,
+        "common_after_step3_boost": 0.1,
+        "initial_character_gain": 1.3,
+        "initial_spatial_separation": 0.5,
+        "boundary_hold_steps": 3,
+        "boundary_decrement": 0.2
+      },
+      "effective_centers": [
+        [
+          0.25,
+          0.5
+        ],
+        [
+          0.75,
+          0.5
+        ]
+      ],
+      "forward_calls": 30,
+      "restored_forwards": 30,
+      "cross_calls": 2100,
+      "self_calls": 2100,
+      "token_grids": [
+        {
+          "height": 48,
+          "width": 64,
+          "tokens_per_slot": [
+            1536,
+            1536
+          ]
+        },
+        {
+          "height": 24,
+          "width": 32,
+          "tokens_per_slot": [
+            384,
+            384
+          ]
+        }
+      ]
+    },
+    {
+      "case": "noob-2-random-balanced",
+      "status": "success",
+      "prompt_id": "0ff55739-7b65-4ae9-b418-644b6b81dc0b",
+      "engine": "sdxl-spatial-alpha-1",
+      "image": "noob-2-random-balanced-3-0.png",
+      "sha256": "d547baadfff8a4293928cb84c9699252a229e12441937b933351ddf8bb7f411f",
+      "count": 2,
+      "settings": {
+        "width": 1024,
+        "height": 768,
+        "seed": 1419951629,
+        "steps": 30,
+        "cfg": 5.5,
+        "sampler_name": "euler_ancestral",
+        "scheduler": "normal",
+        "region_feather": 0.04,
+        "initial_common_prior": 0.3,
+        "common_after_step3_boost": 0.1,
+        "initial_character_gain": 1.3,
+        "initial_spatial_separation": 0.5,
+        "boundary_hold_steps": 3,
+        "boundary_decrement": 0.2
+      },
+      "effective_centers": [
+        [
+          0.25,
+          0.5
+        ],
+        [
+          0.75,
+          0.5
+        ]
+      ],
+      "forward_calls": 30,
+      "restored_forwards": 30,
+      "cross_calls": 2100,
+      "self_calls": 2100,
+      "token_grids": [
+        {
+          "height": 48,
+          "width": 64,
+          "tokens_per_slot": [
+            1536,
+            1536
+          ]
+        },
+        {
+          "height": 24,
+          "width": 32,
+          "tokens_per_slot": [
+            384,
+            384
+          ]
+        }
+      ]
+    },
+    {
+      "case": "noob-2-random-swap",
+      "status": "success",
+      "prompt_id": "9d8f4b31-3209-44f0-9a87-a21167f4c616",
+      "engine": "sdxl-spatial-alpha-1",
+      "image": "noob-2-random-swap-3-0.png",
+      "sha256": "59cdcbd4eceda5d385b81a028217166df5176829af6570cc1a4a369fee1f7b8a",
+      "count": 2,
+      "settings": {
+        "width": 1024,
+        "height": 768,
+        "seed": 1419951629,
+        "steps": 30,
+        "cfg": 5.5,
+        "sampler_name": "euler_ancestral",
+        "scheduler": "normal",
+        "region_feather": 0.04,
+        "initial_common_prior": 0.05,
+        "common_after_step3_boost": 0.1,
+        "initial_character_gain": 1.7,
+        "initial_spatial_separation": 0.9,
+        "boundary_hold_steps": 3,
+        "boundary_decrement": 0.2
+      },
+      "effective_centers": [
+        [
+          0.25,
+          0.5
+        ],
+        [
+          0.75,
+          0.5
+        ]
+      ],
+      "forward_calls": 30,
+      "restored_forwards": 30,
+      "cross_calls": 2100,
+      "self_calls": 2100,
+      "token_grids": [
+        {
+          "height": 48,
+          "width": 64,
+          "tokens_per_slot": [
+            1536,
+            1536
+          ]
+        },
+        {
+          "height": 24,
+          "width": 32,
+          "tokens_per_slot": [
+            384,
+            384
+          ]
+        }
+      ]
+    },
+    {
+      "case": "noob-2-random",
+      "status": "success",
+      "prompt_id": "c13cca51-2120-480d-aebc-e46c6376b1cf",
+      "engine": "sdxl-spatial-alpha-1",
+      "image": "noob-2-random-3-0.png",
+      "sha256": "2ec20c71e19513f2b06fc176dd3f52e30db7f72381f6d15cd0b4f6a5cae2a46b",
+      "count": 2,
+      "settings": {
+        "width": 1024,
+        "height": 768,
+        "seed": 1419951629,
+        "steps": 30,
+        "cfg": 5.5,
+        "sampler_name": "euler_ancestral",
+        "scheduler": "normal",
+        "region_feather": 0.04,
+        "initial_common_prior": 0.05,
+        "common_after_step3_boost": 0.1,
+        "initial_character_gain": 1.7,
+        "initial_spatial_separation": 0.9,
+        "boundary_hold_steps": 3,
+        "boundary_decrement": 0.2
+      },
+      "effective_centers": [
+        [
+          0.25,
+          0.5
+        ],
+        [
+          0.75,
+          0.5
+        ]
+      ],
+      "forward_calls": 30,
+      "restored_forwards": 30,
+      "cross_calls": 2100,
+      "self_calls": 2100,
+      "token_grids": [
+        {
+          "height": 48,
+          "width": 64,
+          "tokens_per_slot": [
+            1536,
+            1536
+          ]
+        },
+        {
+          "height": 24,
+          "width": 32,
+          "tokens_per_slot": [
+            384,
+            384
+          ]
+        }
+      ]
+    },
+    {
+      "case": "noob-3-random-balanced",
+      "status": "success",
+      "prompt_id": "2fb43b04-0895-44ca-9885-8bdf10a13ed8",
+      "engine": "sdxl-spatial-alpha-1",
+      "image": "noob-3-random-balanced-3-0.png",
+      "sha256": "3559a5415134998439f0ad8a71bb4545701d7391f5f2f0d2256760dab07088e9",
+      "count": 3,
+      "settings": {
+        "width": 1024,
+        "height": 768,
+        "seed": 2110967251,
+        "steps": 30,
+        "cfg": 5.5,
+        "sampler_name": "euler_ancestral",
+        "scheduler": "normal",
+        "region_feather": 0.04,
+        "initial_common_prior": 0.3,
+        "common_after_step3_boost": 0.1,
+        "initial_character_gain": 1.3,
+        "initial_spatial_separation": 0.5,
+        "boundary_hold_steps": 3,
+        "boundary_decrement": 0.2
+      },
+      "effective_centers": [
+        [
+          0.16666666666666666,
+          0.5
+        ],
+        [
+          0.5,
+          0.5
+        ],
+        [
+          0.8333333333333334,
+          0.5
+        ]
+      ],
+      "forward_calls": 30,
+      "restored_forwards": 30,
+      "cross_calls": 2100,
+      "self_calls": 2100,
+      "token_grids": [
+        {
+          "height": 48,
+          "width": 64,
+          "tokens_per_slot": [
+            1056,
+            1008,
+            1008
+          ]
+        },
+        {
+          "height": 24,
+          "width": 32,
+          "tokens_per_slot": [
+            264,
+            240,
+            264
+          ]
+        }
+      ]
+    },
+    {
+      "case": "noob-3-random",
+      "status": "success",
+      "prompt_id": "63be6fc0-4d24-4e36-89ca-3d1c6df62b87",
+      "engine": "sdxl-spatial-alpha-1",
+      "image": "noob-3-random-3-0.png",
+      "sha256": "4d114f58a1841697e5f3b73fa8d621f2b81513e4e02c570c0c8c1758fcf02fe8",
+      "count": 3,
+      "settings": {
+        "width": 1024,
+        "height": 768,
+        "seed": 2110967251,
+        "steps": 30,
+        "cfg": 5.5,
+        "sampler_name": "euler_ancestral",
+        "scheduler": "normal",
+        "region_feather": 0.04,
+        "initial_common_prior": 0.05,
+        "common_after_step3_boost": 0.1,
+        "initial_character_gain": 1.7,
+        "initial_spatial_separation": 0.9,
+        "boundary_hold_steps": 3,
+        "boundary_decrement": 0.2
+      },
+      "effective_centers": [
+        [
+          0.16666666666666666,
+          0.5
+        ],
+        [
+          0.5,
+          0.5
+        ],
+        [
+          0.8333333333333334,
+          0.5
+        ]
+      ],
+      "forward_calls": 30,
+      "restored_forwards": 30,
+      "cross_calls": 2100,
+      "self_calls": 2100,
+      "token_grids": [
+        {
+          "height": 48,
+          "width": 64,
+          "tokens_per_slot": [
+            1056,
+            1008,
+            1008
+          ]
+        },
+        {
+          "height": 24,
+          "width": 32,
+          "tokens_per_slot": [
+            264,
+            240,
+            264
+          ]
+        }
+      ]
+    },
+    {
+      "case": "noob-4-random-balanced",
+      "status": "success",
+      "prompt_id": "92bc3f69-7e31-4ae7-9bbd-bfb6ec5102fd",
+      "engine": "sdxl-spatial-alpha-1",
+      "image": "noob-4-random-balanced-3-0.png",
+      "sha256": "0f280ffa1651d423d3d9e13cc728e0b09b3928057da1c6f7be9a583b95b60794",
+      "count": 4,
+      "settings": {
+        "width": 1536,
+        "height": 1024,
+        "seed": 3055422403,
+        "steps": 30,
+        "cfg": 5.5,
+        "sampler_name": "euler_ancestral",
+        "scheduler": "normal",
+        "region_feather": 0.04,
+        "initial_common_prior": 0.3,
+        "common_after_step3_boost": 0.1,
+        "initial_character_gain": 1.3,
+        "initial_spatial_separation": 0.5,
+        "boundary_hold_steps": 3,
+        "boundary_decrement": 0.2
+      },
+      "effective_centers": [
+        [
+          0.25,
+          0.25
+        ],
+        [
+          0.75,
+          0.25
+        ],
+        [
+          0.25,
+          0.75
+        ],
+        [
+          0.75,
+          0.75
+        ]
+      ],
+      "forward_calls": 30,
+      "restored_forwards": 30,
+      "cross_calls": 2100,
+      "self_calls": 2100,
+      "token_grids": [
+        {
+          "height": 64,
+          "width": 96,
+          "tokens_per_slot": [
+            1536,
+            1536,
+            1536,
+            1536
+          ]
+        },
+        {
+          "height": 32,
+          "width": 48,
+          "tokens_per_slot": [
+            384,
+            384,
+            384,
+            384
+          ]
+        }
+      ]
+    },
+    {
+      "case": "noob-4-random",
+      "status": "success",
+      "prompt_id": "c1e6f0a3-3f51-4aa8-abc5-669585081006",
+      "engine": "sdxl-spatial-alpha-1",
+      "image": "noob-4-random-3-0.png",
+      "sha256": "d565c0f495dda62700235cc52a169f47267e19b7ff8e71733daca3cfc481191e",
+      "count": 4,
+      "settings": {
+        "width": 1536,
+        "height": 1024,
+        "seed": 3055422403,
+        "steps": 30,
+        "cfg": 5.5,
+        "sampler_name": "euler_ancestral",
+        "scheduler": "normal",
+        "region_feather": 0.04,
+        "initial_common_prior": 0.05,
+        "common_after_step3_boost": 0.1,
+        "initial_character_gain": 1.7,
+        "initial_spatial_separation": 0.9,
+        "boundary_hold_steps": 3,
+        "boundary_decrement": 0.2
+      },
+      "effective_centers": [
+        [
+          0.25,
+          0.25
+        ],
+        [
+          0.75,
+          0.25
+        ],
+        [
+          0.25,
+          0.75
+        ],
+        [
+          0.75,
+          0.75
+        ]
+      ],
+      "forward_calls": 30,
+      "restored_forwards": 30,
+      "cross_calls": 2100,
+      "self_calls": 2100,
+      "token_grids": [
+        {
+          "height": 64,
+          "width": 96,
+          "tokens_per_slot": [
+            1536,
+            1536,
+            1536,
+            1536
+          ]
+        },
+        {
+          "height": 32,
+          "width": 48,
+          "tokens_per_slot": [
+            384,
+            384,
+            384,
+            384
+          ]
+        }
+      ]
+    },
+    {
+      "case": "noob-5-random-balanced",
+      "status": "success",
+      "prompt_id": "edfe23ea-85a9-4642-a353-a1198bc00d52",
+      "engine": "sdxl-spatial-alpha-1",
+      "image": "noob-5-random-balanced-3-0.png",
+      "sha256": "a642e1e6f21e1f9ed023aeb776093371fad357a65ce9ffa7f031654a59b72bdd",
+      "count": 5,
+      "settings": {
+        "width": 1536,
+        "height": 768,
+        "seed": 3895543996,
+        "steps": 30,
+        "cfg": 5.5,
+        "sampler_name": "euler_ancestral",
+        "scheduler": "normal",
+        "region_feather": 0.04,
+        "initial_common_prior": 0.3,
+        "common_after_step3_boost": 0.1,
+        "initial_character_gain": 1.3,
+        "initial_spatial_separation": 0.5,
+        "boundary_hold_steps": 3,
+        "boundary_decrement": 0.2
+      },
+      "effective_centers": [
+        [
+          0.1,
+          0.5
+        ],
+        [
+          0.3,
+          0.5
+        ],
+        [
+          0.5,
+          0.5
+        ],
+        [
+          0.7,
+          0.5
+        ],
+        [
+          0.9,
+          0.5
+        ]
+      ],
+      "forward_calls": 30,
+      "restored_forwards": 30,
+      "cross_calls": 2100,
+      "self_calls": 2100,
+      "token_grids": [
+        {
+          "height": 48,
+          "width": 96,
+          "tokens_per_slot": [
+            912,
+            960,
+            912,
+            912,
+            912
+          ]
+        },
+        {
+          "height": 24,
+          "width": 48,
+          "tokens_per_slot": [
+            216,
+            240,
+            240,
+            216,
+            240
+          ]
+        }
+      ]
+    },
+    {
+      "case": "noob-5-random",
+      "status": "success",
+      "prompt_id": "27e37677-5b83-4f1f-8084-722d1b03244b",
+      "engine": "sdxl-spatial-alpha-1",
+      "image": "noob-5-random-3-0.png",
+      "sha256": "39861e99f59b87e290229ac28d66ffe0e55d65bed9635187f66a1b5c17d9ec7d",
+      "count": 5,
+      "settings": {
+        "width": 1536,
+        "height": 768,
+        "seed": 3895543996,
+        "steps": 30,
+        "cfg": 5.5,
+        "sampler_name": "euler_ancestral",
+        "scheduler": "normal",
+        "region_feather": 0.04,
+        "initial_common_prior": 0.05,
+        "common_after_step3_boost": 0.1,
+        "initial_character_gain": 1.7,
+        "initial_spatial_separation": 0.9,
+        "boundary_hold_steps": 3,
+        "boundary_decrement": 0.2
+      },
+      "effective_centers": [
+        [
+          0.1,
+          0.5
+        ],
+        [
+          0.3,
+          0.5
+        ],
+        [
+          0.5,
+          0.5
+        ],
+        [
+          0.7,
+          0.5
+        ],
+        [
+          0.9,
+          0.5
+        ]
+      ],
+      "forward_calls": 30,
+      "restored_forwards": 30,
+      "cross_calls": 2100,
+      "self_calls": 2100,
+      "token_grids": [
+        {
+          "height": 48,
+          "width": 96,
+          "tokens_per_slot": [
+            912,
+            960,
+            912,
+            912,
+            912
+          ]
+        },
+        {
+          "height": 24,
+          "width": 48,
+          "tokens_per_slot": [
+            216,
+            240,
+            240,
+            216,
+            240
+          ]
+        }
+      ]
+    },
+    {
+      "case": "noob-6-random-balanced",
+      "status": "success",
+      "prompt_id": "14cc0630-ce69-4cbf-9cd3-9e86a02ca8f9",
+      "engine": "sdxl-spatial-alpha-1",
+      "image": "noob-6-random-balanced-3-0.png",
+      "sha256": "1da967d1b50f170f7e49983ffa22106594f6869b4f75f385836e92061bc82eba",
+      "count": 6,
+      "settings": {
+        "width": 1536,
+        "height": 768,
+        "seed": 489929501,
+        "steps": 30,
+        "cfg": 5.5,
+        "sampler_name": "euler_ancestral",
+        "scheduler": "normal",
+        "region_feather": 0.04,
+        "initial_common_prior": 0.3,
+        "common_after_step3_boost": 0.1,
+        "initial_character_gain": 1.3,
+        "initial_spatial_separation": 0.5,
+        "boundary_hold_steps": 3,
+        "boundary_decrement": 0.2
+      },
+      "effective_centers": [
+        [
+          0.08333333333333333,
+          0.5
+        ],
+        [
+          0.25,
+          0.5
+        ],
+        [
+          0.4166666666666667,
+          0.5
+        ],
+        [
+          0.5833333333333334,
+          0.5
+        ],
+        [
+          0.75,
+          0.5
+        ],
+        [
+          0.9166666666666666,
+          0.5
+        ]
+      ],
+      "forward_calls": 30,
+      "restored_forwards": 30,
+      "cross_calls": 2100,
+      "self_calls": 2100,
+      "token_grids": [
+        {
+          "height": 48,
+          "width": 96,
+          "tokens_per_slot": [
+            768,
+            768,
+            768,
+            768,
+            768,
+            768
+          ]
+        },
+        {
+          "height": 24,
+          "width": 48,
+          "tokens_per_slot": [
+            192,
+            192,
+            192,
+            192,
+            192,
+            192
+          ]
+        }
+      ]
+    },
+    {
+      "case": "noob-6-random",
+      "status": "success",
+      "prompt_id": "9d38b7c4-464c-455c-a3b8-e9b80121fb45",
+      "engine": "sdxl-spatial-alpha-1",
+      "image": "noob-6-random-3-0.png",
+      "sha256": "e694ca9d2517032abc7b15ecf2de93ad381b60f0133441d066bb3f0ed97a88c1",
+      "count": 6,
+      "settings": {
+        "width": 1536,
+        "height": 768,
+        "seed": 489929501,
+        "steps": 30,
+        "cfg": 5.5,
+        "sampler_name": "euler_ancestral",
+        "scheduler": "normal",
+        "region_feather": 0.04,
+        "initial_common_prior": 0.05,
+        "common_after_step3_boost": 0.1,
+        "initial_character_gain": 1.7,
+        "initial_spatial_separation": 0.9,
+        "boundary_hold_steps": 3,
+        "boundary_decrement": 0.2
+      },
+      "effective_centers": [
+        [
+          0.08333333333333333,
+          0.5
+        ],
+        [
+          0.25,
+          0.5
+        ],
+        [
+          0.4166666666666667,
+          0.5
+        ],
+        [
+          0.5833333333333334,
+          0.5
+        ],
+        [
+          0.75,
+          0.5
+        ],
+        [
+          0.9166666666666666,
+          0.5
+        ]
+      ],
+      "forward_calls": 30,
+      "restored_forwards": 30,
+      "cross_calls": 2100,
+      "self_calls": 2100,
+      "token_grids": [
+        {
+          "height": 48,
+          "width": 96,
+          "tokens_per_slot": [
+            768,
+            768,
+            768,
+            768,
+            768,
+            768
+          ]
+        },
+        {
+          "height": 24,
+          "width": 48,
+          "tokens_per_slot": [
+            192,
+            192,
+            192,
+            192,
+            192,
+            192
+          ]
+        }
+      ]
+    },
+    {
+      "case": "sdxl-lossless-webp-restore",
+      "status": "success",
+      "prompt_id": "6f8dca09-6661-45d8-a911-a003de72ec02",
+      "engine": "sdxl-spatial-alpha-1",
+      "image": "sdxl-lossless-webp-restore-3-0.png",
+      "sha256": "375ec54b38e43524be17726b2019c6ff08efe86e843292a272508bde79349800",
+      "count": 2,
+      "settings": {
+        "width": 1024,
+        "height": 768,
+        "steps": 30,
+        "cfg": 5.5,
+        "sampler_name": "euler_ancestral",
+        "scheduler": "normal",
+        "region_feather": 0.04,
+        "initial_common_prior": 0.3,
+        "common_after_step3_boost": 0.1,
+        "initial_character_gain": 1.3,
+        "initial_spatial_separation": 0.5,
+        "boundary_hold_steps": 3,
+        "boundary_decrement": 0.2,
+        "seed": 346751
+      },
+      "effective_centers": [
+        [
+          0.25,
+          0.5
+        ],
+        [
+          0.75,
+          0.5
+        ]
+      ],
+      "forward_calls": 30,
+      "restored_forwards": 30,
+      "cross_calls": 2100,
+      "self_calls": 2100,
+      "token_grids": [
+        {
+          "height": 48,
+          "width": 64,
+          "tokens_per_slot": [
+            1536,
+            1536
+          ]
+        },
+        {
+          "height": 24,
+          "width": 32,
+          "tokens_per_slot": [
+            384,
+            384
+          ]
+        }
+      ]
+    },
+    {
+      "case": "sdxl-odd-grid-long-text",
+      "status": "success",
+      "prompt_id": "3fcc4e50-122f-48ab-a14c-01e3b00a0814",
+      "engine": "sdxl-spatial-alpha-1",
+      "image": "sdxl-odd-grid-long-text-3-0.webp",
+      "sha256": "7cc4963dd5f4572a9a065127056c016abc798b73ee291541f68397397c96c552",
+      "count": 2,
+      "settings": {
+        "width": 784,
+        "height": 528,
+        "seed": 1481,
+        "steps": 30,
+        "cfg": 5.5,
+        "sampler_name": "euler_ancestral",
+        "scheduler": "normal",
+        "region_feather": 0.04,
+        "initial_common_prior": 0.3,
+        "common_after_step3_boost": 0.1,
+        "initial_character_gain": 1.3,
+        "initial_spatial_separation": 0.5,
+        "boundary_hold_steps": 3,
+        "boundary_decrement": 0.2
+      },
+      "effective_centers": [
+        [
+          0.25,
+          0.5
+        ],
+        [
+          0.75,
+          0.5
+        ]
+      ],
+      "forward_calls": 30,
+      "restored_forwards": 30,
+      "cross_calls": 2100,
+      "self_calls": 2100,
+      "token_grids": [
+        {
+          "height": 33,
+          "width": 49,
+          "tokens_per_slot": [
+            825,
+            792
+          ]
+        },
+        {
+          "height": 17,
+          "width": 25,
+          "tokens_per_slot": [
+            221,
+            204
+          ]
+        }
+      ]
+    }
+  ],
+  "metadata_restore": {
+    "all_record_fields_match_original": true,
+    "pixels_identical": false,
+    "mean_absolute_8bit_difference": 1.2894020080566406,
+    "changed_pixels": 646821,
+    "note": "Settings and captions match exactly; bit-exact pixel regeneration is not established."
+  }
+}
