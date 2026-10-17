@@ -1,7 +1,7 @@
 [project]
 name = "comfyui-rs-multicharacter-sampler"
 version = "0.1.6"
-description = "Anima, SDXL, Krea 2 and MOSS Zeta: multi-character regional sampling and local masked detailing, automatic character matching, detection and tagger loaders, PNG/WebP metadata and prompt restoration. Adds per-character LoRA selection, masked model hooks and metadata restoration alongside mixed point/box layouts, text regions and editable presets. SD1.5 generation is experimental and unstable."
+description = "Anima, SDXL, Krea 2 and MOSS Zeta: multi-character regional sampling and local masked detailing, automatic character matching, detection and tagger loaders, PNG/WebP metadata and prompt restoration. Adds per-character LoRA selection, shared small-factor Anima LoRA execution and metadata restoration alongside mixed point/box layouts, text regions and editable presets. SD1.5 generation is experimental and unstable."
 readme = "README.md"
 license = {file = "LICENSE"}
 requires-python = ">=3.11"

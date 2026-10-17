@@ -6,6 +6,8 @@
 
 Ordinary Anima LoRAs automatically share small factor matrices through native Bypass LoRA; other supported paths retain weight hooks. This saves expanded-weight storage, while distinct LoRA combinations still require separate predictions.
 
+[0.1.6 release notes and validation scope](docs/release-0.1.6.md).
+
 **New in Epsilon:** mixed point/box layouts, literal text regions, eight editable model-family presets, MOSS native layout mode, and two-person object-box examples for Anima and Krea 2. See [release notes and validation scope](docs/release-0.1.5.md).
 
 [한국어](README.ko.md) · [日本語](README.ja.md) · [Architecture](docs/architecture.md) · [Validation](docs/validation.md)
