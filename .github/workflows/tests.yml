@@ -1,0 +1,55 @@
+name: Compatibility tests
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: compatibility-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  cpu-integration:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: ubuntu-latest
+            comfy: v0.3.76
+          - os: ubuntu-latest
+            comfy: 5cc4b870094c89090db54bd8d12649dcaf89f2ba
+          - os: windows-latest
+            comfy: 5cc4b870094c89090db54bd8d12649dcaf89f2ba
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 20
+    env:
+      OMP_NUM_THREADS: '1'
+      OPENBLAS_NUM_THREADS: '1'
+      RS_MC_TEST_COMFYUI: ${{ github.workspace }}/_comfyui
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/checkout@v7
+        with:
+          repository: Comfy-Org/ComfyUI
+          ref: ${{ matrix.comfy }}
+          path: _comfyui
+      - uses: actions/setup-python@v7
+        with:
+          python-version: '3.12'
+      - uses: actions/setup-node@v6
+        with:
+          node-version: '22'
+      - name: Install CPU runtime and test dependencies
+        run: |
+          python -m pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cpu
+          python -m pip install -r _comfyui/requirements.txt opencv-python-headless
+      - name: Python tests and native ComfyUI integrations
+        run: python -m unittest discover -s tests -v
+      - name: UI serialization and controls
+        run: |
+          node tests/test_ui.cjs
+          node tests/test_detailer_ui.cjs

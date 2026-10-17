@@ -1,0 +1,82 @@
+{
+  "extension_commit": "56891760aa6315fce1ff2fd8573d0b85ae493b2e",
+  "comfyui_commit": "a639f187a9f6abfecbda9673034f2045148b6d85",
+  "scope": "One real two-face masked detailer execution per model. Retained result and mask file hashes rechecked during compatibility review. Not a quality or success-rate survey.",
+  "results": [
+    {
+      "prompt_id": "287bb41f-885f-4216-ac0e-72a3ec28c84d",
+      "elapsed_seconds": 36.014,
+      "mask_pixels": 43995,
+      "changed_pixels": 43687,
+      "changed_outside_mask": 0,
+      "source_sha256": "e6e8717216284b93d39199aaf80efd3b39ad3eafa4ab0705b059d31aa9f01a0b",
+      "result_sha256": "1d6416251bb8cb550a9417e58ab4b7aeb06119a1bd895c94b63c41d031951ca5",
+      "mask_sha256": "3eb1d7ffc00de0128fb3bedeff54cc1191f5e0f2263ab28046ab3eba094701c5",
+      "family": "sdxl",
+      "detected": 2,
+      "edited": 2,
+      "skipped": 0,
+      "assignments": [
+        1,
+        2
+      ],
+      "settings": {
+        "steps": 30,
+        "cfg": 5.5,
+        "denoise": 0.25,
+        "sampler_name": "euler_ancestral",
+        "scheduler": "normal"
+      }
+    },
+    {
+      "prompt_id": "b01ac557-34a8-4984-b66b-a1366d2292b9",
+      "elapsed_seconds": 33.014,
+      "mask_pixels": 55548,
+      "changed_pixels": 54664,
+      "changed_outside_mask": 0,
+      "source_sha256": "892d890af6837f1d1b0aa65b6bfa726e83cccd69025a7c8bfbad1701d0349a7c",
+      "result_sha256": "154a47ecb1f9c0cd39437a158b8085494769dffc6cdd403d919f36f5065b495d",
+      "mask_sha256": "2d1da8a0f83a3f4441340f069b72c03da4154eab2fa60efb3757aafb494cae73",
+      "family": "krea2",
+      "detected": 2,
+      "edited": 2,
+      "skipped": 0,
+      "assignments": [
+        1,
+        2
+      ],
+      "settings": {
+        "steps": 8,
+        "cfg": 1.0,
+        "denoise": 0.25,
+        "sampler_name": "euler",
+        "scheduler": "simple"
+      }
+    },
+    {
+      "prompt_id": "f60375bf-0ec2-4da2-87ad-b3ab94513d7f",
+      "elapsed_seconds": 162.087,
+      "mask_pixels": 67643,
+      "changed_pixels": 66896,
+      "changed_outside_mask": 0,
+      "source_sha256": "e30b3bacf3e858a687af000fc34ef1e495b4f47cd66fa56fa5694f17863a5e16",
+      "result_sha256": "b4914bb91cb31d8838cac8967f91cf031faf7feb13a3e2b8da018c3be179b241",
+      "mask_sha256": "10f2440992e7a116be8ac0ae3de8d8bc9a0c9afebc406a85f47ef24bed394c63",
+      "family": "moss",
+      "detected": 2,
+      "edited": 2,
+      "skipped": 0,
+      "assignments": [
+        1,
+        2
+      ],
+      "settings": {
+        "steps": 50,
+        "cfg": 3.0,
+        "denoise": 0.25,
+        "sampler_name": "euler",
+        "scheduler": "simple"
+      }
+    }
+  ]
+}

@@ -55,3 +55,22 @@ Load [the UI example](../examples/two-characters-detailer-anima.json) or submit 
 ## Scope of this evidence
 
 This report records Anima local-detailer validation before its inclusion in 0.1.2 Beta, with real generation and known matching failures. It does not establish universal 5/6-person identity matching, SDXL detailer quality or Windows runtime behavior. The tests used an isolated ComfyUI installation. Source lineage for the adapted helpers is recorded in [detailer-source-lineage.json](detailer-source-lineage.json).
+
+## Subsequent 0.1.2 model compatibility smoke checks
+
+After the Anima study above, release `5689176` was run once per family on ComfyUI
+`a639f187a9f6abfecbda9673034f2045148b6d85`. Each existing two-character image used
+WD ViT v3, SEGM face detection and denoise 0.25:
+
+| Model | Sampler / scheduler | Steps / CFG | Detected / edited / skipped | Changed pixels outside mask |
+| --- | --- | --- | --- | --- |
+| Illustrious XL v1.0 | Euler ancestral / normal | 30 / 5.5 | 2 / 2 / 0 | 0 |
+| Krea 2 Turbo | Euler / simple | 8 / 1.0 | 2 / 2 / 0 | 0 |
+| MOSS-Image SFT | Euler / simple | 50 / 3.0 | 2 / 2 / 0 | 0 |
+
+These are real execution smoke checks, not comparative quality, accuracy or
+all-sampler validation. The [compact evidence](detailer-multimodel-smoke.json)
+contains request IDs, parameters and source/result/mask hashes. The retained
+result and mask file hashes were rechecked during this compatibility review.
+No new detailer sampling was needed for the import/API fixes described in the
+[compatibility report](compatibility.md).

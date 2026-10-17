@@ -6,7 +6,6 @@ Forward replacements are restored in finally blocks. See docs/architecture.md.
 """
 
 import torch
-from comfy.model_base import Anima
 from comfy.sampler_helpers import convert_cond
 from comfy.samplers import process_conds
 

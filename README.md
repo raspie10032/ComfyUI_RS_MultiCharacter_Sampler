@@ -62,7 +62,7 @@ Start with the default face SEGM, WD ViT v3 and **denoise 0.25**. The basic view
 
 The tagger only selects an original character prompt; inferred tags never enter the correction prompt. Hole filling and notch closing are enabled by default. Crops use the original image, with separate ownership masks and feathering inside those masks. Ambiguous regions are preserved and the report explains the reason. High-confidence misidentification is still possible; inspect the reported character assignments, especially when several characters look alike. The pipe has up to **10 characters**; the detailer processes up to **10 regions by default, 64 maximum**. More processed regions do not guarantee quality.
 
-Detailer autosave keeps the original generation settings and adds a separate correction history in PNG/WebP metadata. It does not embed a workflow. PNG/lossless WebP preserve pixels outside the applied mask; lossy WebP can change pixels through compression. Current live validation is Anima; support for other model families is not established. See [detailer validation](docs/detailer-validation.md).
+Detailer autosave keeps the original generation settings and adds a separate correction history in PNG/WebP metadata. It does not embed a workflow. PNG/lossless WebP preserve pixels outside the applied mask; lossy WebP can change pixels through compression. Anima has the broader validation set. SDXL (Illustrious XL v1.0), Krea 2 Turbo and MOSS-Image SFT each also completed one two-face detailer run; these are basic execution checks, not quality or success-rate comparisons. See [detailer validation](docs/detailer-validation.md).
 
 
 ## First workflow
@@ -128,3 +128,7 @@ node tests/test_detailer_ui.cjs
 ```
 
 License: GPL-3.0-only. See [COPYING](COPYING), [third-party notices](THIRD_PARTY_NOTICES.md) and [source lineage](docs/source-lineage.json).
+
+## ComfyUI compatibility
+
+SDXL does not require Anima, Krea 2 or MOSS to exist in ComfyUI. Each newer architecture still requires a ComfyUI checkout with native support for that model. CPU API integration tests cover ComfyUI `v0.3.76` (SDXL), `15eb748` (Anima/SDXL/Krea 2) and `5cc4b87` (all four families). These are tested snapshots, not a guarantee for every intervening version or third-party model patch. The [compatibility report](docs/compatibility.md) separates real generation, small native model tests and pending Windows CI.

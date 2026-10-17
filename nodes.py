@@ -97,16 +97,14 @@ class RSMultiCharacterSampler:
         import comfy.utils
         import folder_paths
         import latent_preview
-        from comfy.model_base import Anima, SDXL
         from comfy import model_base
         from comfy.patcher_extension import WrappersMP
-        from .engine import AnimaRouting
 
         if not isinstance(character_pipe, CharacterPipe):
             raise ValueError("Connect RS MultiCharacter Prompts or Load Image. / 전용 캐릭터 파이프를 연결해 주세요.")
-        if isinstance(model.model, Anima):
+        if isinstance(model.model, getattr(model_base, "Anima", ())):
             family = "Anima"
-        elif type(model.model) is SDXL and model.model.diffusion_model.in_channels == 4:
+        elif type(model.model) is model_base.SDXL and model.model.diffusion_model.in_channels == 4:
             family = "SDXL"
         elif isinstance(model.model, getattr(model_base, "Krea2", ())):
             family = "Krea2"
@@ -165,6 +163,7 @@ class RSMultiCharacterSampler:
         audit = {}
         work = model.clone()
         if family == "Anima":
+            from .engine import AnimaRouting
             routing = AnimaRouting(conditions, masks, "character_first", audit,
                 len(positive[0][1]["t5xxl_ids"]),
                 initial_common_prior=settings["initial_common_prior"],
@@ -184,7 +183,11 @@ class RSMultiCharacterSampler:
             routing = JointRouting(family, conditions, masks, settings, audit)
             routing.install(work)
         latent = torch.zeros((1, 4, settings["height"] // 8, settings["width"] // 8), device=comfy.model_management.intermediate_device())
-        latent = comfy.sample.fix_empty_latent_channels(work, latent, downscale_ratio_spacial=8)
+        if family == "SDXL":
+            # Already 4-channel H/8 x W/8; older ComfyUI has no ratio keyword.
+            latent = comfy.sample.fix_empty_latent_channels(work, latent)
+        else:
+            latent = comfy.sample.fix_empty_latent_channels(work, latent, downscale_ratio_spacial=8)
         noise = comfy.sample.prepare_noise(latent, settings["seed"])
         samples = comfy.sample.sample(work, noise, settings["steps"], settings["cfg"],
             settings["sampler_name"], settings["scheduler"], positive, negative, latent, denoise=1.,

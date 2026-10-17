@@ -3,12 +3,15 @@
 RS_MC_TEST_COMFYUI=/path/to/ComfyUI python -m unittest discover -s tests -q
 No model downloads, CUDA context or random full-size model allocation.
 """
+import copy
 import importlib
+import json
 import os
 from pathlib import Path
 import sys
 from types import SimpleNamespace
 import unittest
+from unittest.mock import patch
 
 import torch
 
@@ -27,19 +30,70 @@ class NativeModelTests(unittest.TestCase):
         import comfy.model_management
         cls.ops = comfy.ops.manual_cast
         cls.mm = comfy.model_management
-        cls.previous_training = cls.mm.in_training
-        cls.mm.in_training = True  # differentiable CPU norm/rope kernels
+        cls.previous_training = getattr(cls.mm, "in_training", None)
+        if cls.previous_training is not None:
+            cls.mm.in_training = True  # differentiable CPU norm/rope kernels
 
     @classmethod
     def tearDownClass(cls):
-        cls.mm.in_training = cls.previous_training
+        if cls.previous_training is not None:
+            cls.mm.in_training = cls.previous_training
         sys.path.remove(os.environ['RS_MC_TEST_COMFYUI'])
+
+    def test_sdxl_node_native_sampling_without_optional_architectures(self):
+        """Run the public node through real SDXL/UNet/sampler wrappers on CPU.
+
+        A small random UNet and synthetic CLIP/VAE keep this an API integration
+        test, not image-quality evidence. This also runs on pre-Anima ComfyUI.
+        """
+        from comfy import model_base, supported_models, model_patcher
+        from comfy.cli_args import args, LatentPreviewMethod
+        nodes = importlib.import_module(PKG + '.nodes')
+        chars = importlib.import_module(PKG + '.characters')
+        torch.manual_seed(617)
+        config = supported_models.SDXL(dict(
+            image_size=32, in_channels=4, out_channels=4, model_channels=32,
+            num_res_blocks=1, channel_mult=[1, 2], use_spatial_transformer=True,
+            transformer_depth=[1, 1], transformer_depth_output=[1, 1, 1, 1],
+            transformer_depth_middle=1, context_dim=2048, num_classes='sequential',
+            adm_in_channels=2816, dtype=torch.float32))
+        config.unet_config.update(num_heads=2, num_head_channels=-1)
+        config.custom_operations = self.ops
+        base = model_base.SDXL(config, device=torch.device('cpu'))
+        for p in base.parameters():
+            p.data.uniform_(-.05, .05)
+        model = model_patcher.ModelPatcher(base, torch.device('cpu'), torch.device('cpu'))
+        original = copy.deepcopy(model.model_options)
+        contexts = {s: [[torch.randn(1, 3 + i, 2048), {'pooled_output': torch.randn(1, 1280)}]]
+                    for i, s in enumerate(('common', 'negative', 'left', 'right'))}
+        clip = SimpleNamespace(tokenize=lambda text: text,
+            encode_from_tokens_scheduled=lambda text: contexts[text])
+        vae = SimpleNamespace(decode=lambda latent: latent[:, :3].movedim(1, -1).sigmoid())
+        pipe = chars.CharacterPipe((chars.Character('left', x=.25), chars.Character('right', x=.75)))
+        with patch.object(args, 'preview_method', LatentPreviewMethod.NoPreviews), torch.no_grad():
+            output = nodes.RSMultiCharacterSampler().generate(
+                model, clip, vae, pipe, 'common', 'negative', width=64, height=64,
+                seed=617, steps=2, cfg=3., sampler_name='euler_ancestral', scheduler='normal', autosave=False)
+        image, latent, restored_pipe, info = output['result']
+        audit = json.loads(info)['routing_audit']
+        self.assertTrue(torch.isfinite(image).all())
+        self.assertEqual(latent['samples'].shape, (1, 4, 8, 8))
+        self.assertEqual(restored_pipe.characters, pipe.characters)
+        self.assertGreater(audit['cross_calls'], 0)
+        self.assertGreater(audit['self_calls'], 0)
+        self.assertEqual(audit['restored_forwards'], len(audit['forwards']))
+        self.assertEqual(model.model_options, original)
 
     def joint(self, family):
         j = importlib.import_module(PKG+'.joint_engine')
         defaults = importlib.import_module(PKG+'.nodes').DEFAULTS
-        from comfy.ldm.krea2.model import SingleStreamDiT
-        from comfy.ldm.moss_image.model import MOSSImage
+        from comfy import model_base
+        if not hasattr(model_base, "Krea2" if family == "Krea2" else "MOSSImage"):
+            self.skipTest(f"{family} is not implemented in this ComfyUI checkout")
+        if family == "Krea2":
+            from comfy.ldm.krea2.model import SingleStreamDiT
+        else:
+            from comfy.ldm.moss_image.model import MOSSImage
         torch.manual_seed(123)
         net = (SingleStreamDiT(features=128,tdim=32,txtdim=64,heads=4,kvheads=2,multiplier=2,layers=2,patch=2,channels=16,txtlayers=2,txtheads=4,txtkvheads=4,operations=self.ops,dtype=torch.float32)
             if family=='Krea2' else MOSSImage(dim=128,ffn_dim=256,num_heads=4,num_layers=2,text_dim=64,latent_channels=128,operations=self.ops,dtype=torch.float32))
@@ -73,6 +127,9 @@ class NativeModelTests(unittest.TestCase):
     def test_moss_native_rope_joint_attention_and_negative(self): self.joint('MOSS')
 
     def test_anima_native_tensor_containers_and_backend_argument(self):
+        from comfy import model_base
+        if not hasattr(model_base, "Anima"):
+            self.skipTest("Anima is not implemented in this ComfyUI checkout")
         from comfy.ldm.cosmos.predict2 import Attention
         engine = importlib.import_module(PKG+'.engine')
         torch.manual_seed(44)
