@@ -35,6 +35,10 @@ To try **two people plus one word**, use region count `3`, `layout_mode=mixed`, 
 
 **Two people plus one object:** use the existing **Anima — mixed** or **Krea 2 Turbo** preset with the [20 object workflows](examples/epsilon/objects). Slot 3 uses `character` + `box` with an object description. The ten-object trial preserved two people and recognizable objects in all 20 images, but exact bounds and scene coherence varied. Object slots are not automatically excluded from face detailing. [Images, settings and limits](docs/object-layout-validation.md).
 
+## Modular character input
+
+Use separate **all-prompts, all-LoRAs, and all-positions** nodes. Each role shows **rows 1–N together**, with matching row numbers identifying characters. **Connect these roles in any order**, then finish with **Finalize Character Pipe** for Sampler or Detailer. Positive prompts use external **STRING connections** with no character UC field. Position and Finalize show a layout guide. [Usage in English / 한국어 / 日本語](docs/modular-characters.md) · [Two-character example](examples/modular/two-characters-anima.json). The old all-in-one node remains deprecated for saved workflows.
+
 ## Install
 
 Find **RS MultiCharacter Sampler** in ComfyUI-Manager, or open the [Comfy Registry page](https://registry.comfy.org/publishers/raspie10032/nodes/comfyui-rs-multicharacter-sampler). Package ID: `comfyui-rs-multicharacter-sampler`. Restart ComfyUI after installation. If the new listing is not yet visible in your Manager cache, refresh its node list or use the Git installation below.

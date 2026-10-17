@@ -456,5 +456,461 @@
   "RSMultiCharacterLoadImage": {
     "display_name": "RS 멀티캐릭터 이미지 불러오기",
     "description": "PNG/WebP에서 캐릭터 프롬프트·좌표·영역별 LoRA 파일명과 강도를 복원합니다. 실행 시 같은 로컬 LoRA 파일을 사용합니다. 기본 모델·전체 LoRA 연결은 직접 설정하세요."
+  },
+  "RSMultiCharacterPrompt": {
+    "display_name": "RS 캐릭터 프롬프트",
+    "description": "여러 캐릭터의 긍정 STRING 연결부를 함께 봅니다. 여기의 개수가 최종 인원수를 결정하며 UC는 샘플러에서 설정합니다.",
+    "inputs": {
+      "character_count": {
+        "name": "캐릭터 수"
+      },
+      "building_pipe": {
+        "name": "조립 파이프"
+      },
+      "character1_enable": {
+        "name": "1 사용"
+      },
+      "character1_kind": {
+        "name": "1 영역 종류",
+        "tooltip": "character / text"
+      },
+      "character1_text": {
+        "name": "1 실제 글자 (STRING)"
+      },
+      "character1": {
+        "name": "캐릭터 1 긍정 (STRING)"
+      },
+      "character2_enable": {
+        "name": "2 사용"
+      },
+      "character2_kind": {
+        "name": "2 영역 종류"
+      },
+      "character2_text": {
+        "name": "2 실제 글자 (STRING)"
+      },
+      "character2": {
+        "name": "캐릭터 2 긍정 (STRING)"
+      },
+      "character3_enable": {
+        "name": "3 사용"
+      },
+      "character3_kind": {
+        "name": "3 영역 종류"
+      },
+      "character3_text": {
+        "name": "3 실제 글자 (STRING)"
+      },
+      "character3": {
+        "name": "캐릭터 3 긍정 (STRING)"
+      },
+      "character4_enable": {
+        "name": "4 사용"
+      },
+      "character4_kind": {
+        "name": "4 영역 종류"
+      },
+      "character4_text": {
+        "name": "4 실제 글자 (STRING)"
+      },
+      "character4": {
+        "name": "캐릭터 4 긍정 (STRING)"
+      },
+      "character5_enable": {
+        "name": "5 사용"
+      },
+      "character5_kind": {
+        "name": "5 영역 종류"
+      },
+      "character5_text": {
+        "name": "5 실제 글자 (STRING)"
+      },
+      "character5": {
+        "name": "캐릭터 5 긍정 (STRING)"
+      },
+      "character6_enable": {
+        "name": "6 사용"
+      },
+      "character6_kind": {
+        "name": "6 영역 종류"
+      },
+      "character6_text": {
+        "name": "6 실제 글자 (STRING)"
+      },
+      "character6": {
+        "name": "캐릭터 6 긍정 (STRING)"
+      },
+      "character7_enable": {
+        "name": "7 사용"
+      },
+      "character7_kind": {
+        "name": "7 영역 종류"
+      },
+      "character7_text": {
+        "name": "7 실제 글자 (STRING)"
+      },
+      "character7": {
+        "name": "캐릭터 7 긍정 (STRING)"
+      },
+      "character8_enable": {
+        "name": "8 사용"
+      },
+      "character8_kind": {
+        "name": "8 영역 종류"
+      },
+      "character8_text": {
+        "name": "8 실제 글자 (STRING)"
+      },
+      "character8": {
+        "name": "캐릭터 8 긍정 (STRING)"
+      },
+      "character9_enable": {
+        "name": "9 사용"
+      },
+      "character9_kind": {
+        "name": "9 영역 종류"
+      },
+      "character9_text": {
+        "name": "9 실제 글자 (STRING)"
+      },
+      "character9": {
+        "name": "캐릭터 9 긍정 (STRING)"
+      },
+      "character10_enable": {
+        "name": "10 사용"
+      },
+      "character10_kind": {
+        "name": "10 영역 종류"
+      },
+      "character10_text": {
+        "name": "10 실제 글자 (STRING)"
+      },
+      "character10": {
+        "name": "캐릭터 10 긍정 (STRING)"
+      }
+    },
+    "outputs": {
+      "0": {
+        "name": "조립 파이프"
+      }
+    }
+  },
+  "RSMultiCharacterLoRA": {
+    "display_name": "RS 캐릭터 LoRA",
+    "description": "여러 캐릭터의 LoRA를 함께 설정합니다. 프롬프트 표의 같은 번호에 적용합니다. 표시 범위 밖은 None입니다.",
+    "inputs": {
+      "character_count": {
+        "name": "설정 개수"
+      },
+      "building_pipe": {
+        "name": "조립 파이프"
+      },
+      "character1_lora": {
+        "name": "캐릭터 1 LoRA",
+        "tooltip": "해당 캐릭터 영역에 쓸 LoRA입니다. 연결한 모델 계열에 맞는 파일을 선택하세요. None은 미사용이며, 서로 다른 LoRA가 늘면 계산 시간과 메모리 사용량이 증가합니다. 스타일·가속 LoRA는 기존 전체 모델 로더를 사용하세요."
+      },
+      "character1_lora_strength": {
+        "name": "캐릭터 1 LoRA 모델 강도",
+        "tooltip": "이 영역의 확산 모델 LoRA 강도입니다. 0이면 모델 부분을 끕니다."
+      },
+      "character1_lora_clip_strength": {
+        "name": "캐릭터 1 LoRA CLIP 강도",
+        "tooltip": "파일에 대응하는 텍스트 인코더 가중치가 있을 때 이 캐릭터 문장에만 적용합니다. 0이면 텍스트 인코더 부분을 끕니다."
+      },
+      "character2_lora": {
+        "name": "캐릭터 2 LoRA",
+        "tooltip": "해당 캐릭터 영역에 쓸 LoRA입니다. 연결한 모델 계열에 맞는 파일을 선택하세요. None은 미사용이며, 서로 다른 LoRA가 늘면 계산 시간과 메모리 사용량이 증가합니다. 스타일·가속 LoRA는 기존 전체 모델 로더를 사용하세요."
+      },
+      "character2_lora_strength": {
+        "name": "캐릭터 2 LoRA 모델 강도",
+        "tooltip": "이 영역의 확산 모델 LoRA 강도입니다. 0이면 모델 부분을 끕니다."
+      },
+      "character2_lora_clip_strength": {
+        "name": "캐릭터 2 LoRA CLIP 강도",
+        "tooltip": "파일에 대응하는 텍스트 인코더 가중치가 있을 때 이 캐릭터 문장에만 적용합니다. 0이면 텍스트 인코더 부분을 끕니다."
+      },
+      "character3_lora": {
+        "name": "캐릭터 3 LoRA",
+        "tooltip": "해당 캐릭터 영역에 쓸 LoRA입니다. 연결한 모델 계열에 맞는 파일을 선택하세요. None은 미사용이며, 서로 다른 LoRA가 늘면 계산 시간과 메모리 사용량이 증가합니다. 스타일·가속 LoRA는 기존 전체 모델 로더를 사용하세요."
+      },
+      "character3_lora_strength": {
+        "name": "캐릭터 3 LoRA 모델 강도",
+        "tooltip": "이 영역의 확산 모델 LoRA 강도입니다. 0이면 모델 부분을 끕니다."
+      },
+      "character3_lora_clip_strength": {
+        "name": "캐릭터 3 LoRA CLIP 강도",
+        "tooltip": "파일에 대응하는 텍스트 인코더 가중치가 있을 때 이 캐릭터 문장에만 적용합니다. 0이면 텍스트 인코더 부분을 끕니다."
+      },
+      "character4_lora": {
+        "name": "캐릭터 4 LoRA",
+        "tooltip": "해당 캐릭터 영역에 쓸 LoRA입니다. 연결한 모델 계열에 맞는 파일을 선택하세요. None은 미사용이며, 서로 다른 LoRA가 늘면 계산 시간과 메모리 사용량이 증가합니다. 스타일·가속 LoRA는 기존 전체 모델 로더를 사용하세요."
+      },
+      "character4_lora_strength": {
+        "name": "캐릭터 4 LoRA 모델 강도",
+        "tooltip": "이 영역의 확산 모델 LoRA 강도입니다. 0이면 모델 부분을 끕니다."
+      },
+      "character4_lora_clip_strength": {
+        "name": "캐릭터 4 LoRA CLIP 강도",
+        "tooltip": "파일에 대응하는 텍스트 인코더 가중치가 있을 때 이 캐릭터 문장에만 적용합니다. 0이면 텍스트 인코더 부분을 끕니다."
+      },
+      "character5_lora": {
+        "name": "캐릭터 5 LoRA",
+        "tooltip": "해당 캐릭터 영역에 쓸 LoRA입니다. 연결한 모델 계열에 맞는 파일을 선택하세요. None은 미사용이며, 서로 다른 LoRA가 늘면 계산 시간과 메모리 사용량이 증가합니다. 스타일·가속 LoRA는 기존 전체 모델 로더를 사용하세요."
+      },
+      "character5_lora_strength": {
+        "name": "캐릭터 5 LoRA 모델 강도",
+        "tooltip": "이 영역의 확산 모델 LoRA 강도입니다. 0이면 모델 부분을 끕니다."
+      },
+      "character5_lora_clip_strength": {
+        "name": "캐릭터 5 LoRA CLIP 강도",
+        "tooltip": "파일에 대응하는 텍스트 인코더 가중치가 있을 때 이 캐릭터 문장에만 적용합니다. 0이면 텍스트 인코더 부분을 끕니다."
+      },
+      "character6_lora": {
+        "name": "캐릭터 6 LoRA",
+        "tooltip": "해당 캐릭터 영역에 쓸 LoRA입니다. 연결한 모델 계열에 맞는 파일을 선택하세요. None은 미사용이며, 서로 다른 LoRA가 늘면 계산 시간과 메모리 사용량이 증가합니다. 스타일·가속 LoRA는 기존 전체 모델 로더를 사용하세요."
+      },
+      "character6_lora_strength": {
+        "name": "캐릭터 6 LoRA 모델 강도",
+        "tooltip": "이 영역의 확산 모델 LoRA 강도입니다. 0이면 모델 부분을 끕니다."
+      },
+      "character6_lora_clip_strength": {
+        "name": "캐릭터 6 LoRA CLIP 강도",
+        "tooltip": "파일에 대응하는 텍스트 인코더 가중치가 있을 때 이 캐릭터 문장에만 적용합니다. 0이면 텍스트 인코더 부분을 끕니다."
+      },
+      "character7_lora": {
+        "name": "캐릭터 7 LoRA",
+        "tooltip": "해당 캐릭터 영역에 쓸 LoRA입니다. 연결한 모델 계열에 맞는 파일을 선택하세요. None은 미사용이며, 서로 다른 LoRA가 늘면 계산 시간과 메모리 사용량이 증가합니다. 스타일·가속 LoRA는 기존 전체 모델 로더를 사용하세요."
+      },
+      "character7_lora_strength": {
+        "name": "캐릭터 7 LoRA 모델 강도",
+        "tooltip": "이 영역의 확산 모델 LoRA 강도입니다. 0이면 모델 부분을 끕니다."
+      },
+      "character7_lora_clip_strength": {
+        "name": "캐릭터 7 LoRA CLIP 강도",
+        "tooltip": "파일에 대응하는 텍스트 인코더 가중치가 있을 때 이 캐릭터 문장에만 적용합니다. 0이면 텍스트 인코더 부분을 끕니다."
+      },
+      "character8_lora": {
+        "name": "캐릭터 8 LoRA",
+        "tooltip": "해당 캐릭터 영역에 쓸 LoRA입니다. 연결한 모델 계열에 맞는 파일을 선택하세요. None은 미사용이며, 서로 다른 LoRA가 늘면 계산 시간과 메모리 사용량이 증가합니다. 스타일·가속 LoRA는 기존 전체 모델 로더를 사용하세요."
+      },
+      "character8_lora_strength": {
+        "name": "캐릭터 8 LoRA 모델 강도",
+        "tooltip": "이 영역의 확산 모델 LoRA 강도입니다. 0이면 모델 부분을 끕니다."
+      },
+      "character8_lora_clip_strength": {
+        "name": "캐릭터 8 LoRA CLIP 강도",
+        "tooltip": "파일에 대응하는 텍스트 인코더 가중치가 있을 때 이 캐릭터 문장에만 적용합니다. 0이면 텍스트 인코더 부분을 끕니다."
+      },
+      "character9_lora": {
+        "name": "캐릭터 9 LoRA",
+        "tooltip": "해당 캐릭터 영역에 쓸 LoRA입니다. 연결한 모델 계열에 맞는 파일을 선택하세요. None은 미사용이며, 서로 다른 LoRA가 늘면 계산 시간과 메모리 사용량이 증가합니다. 스타일·가속 LoRA는 기존 전체 모델 로더를 사용하세요."
+      },
+      "character9_lora_strength": {
+        "name": "캐릭터 9 LoRA 모델 강도",
+        "tooltip": "이 영역의 확산 모델 LoRA 강도입니다. 0이면 모델 부분을 끕니다."
+      },
+      "character9_lora_clip_strength": {
+        "name": "캐릭터 9 LoRA CLIP 강도",
+        "tooltip": "파일에 대응하는 텍스트 인코더 가중치가 있을 때 이 캐릭터 문장에만 적용합니다. 0이면 텍스트 인코더 부분을 끕니다."
+      },
+      "character10_lora": {
+        "name": "캐릭터 10 LoRA",
+        "tooltip": "해당 캐릭터 영역에 쓸 LoRA입니다. 연결한 모델 계열에 맞는 파일을 선택하세요. None은 미사용이며, 서로 다른 LoRA가 늘면 계산 시간과 메모리 사용량이 증가합니다. 스타일·가속 LoRA는 기존 전체 모델 로더를 사용하세요."
+      },
+      "character10_lora_strength": {
+        "name": "캐릭터 10 LoRA 모델 강도",
+        "tooltip": "이 영역의 확산 모델 LoRA 강도입니다. 0이면 모델 부분을 끕니다."
+      },
+      "character10_lora_clip_strength": {
+        "name": "캐릭터 10 LoRA CLIP 강도",
+        "tooltip": "파일에 대응하는 텍스트 인코더 가중치가 있을 때 이 캐릭터 문장에만 적용합니다. 0이면 텍스트 인코더 부분을 끕니다."
+      }
+    },
+    "outputs": {
+      "0": {
+        "name": "조립 파이프"
+      }
+    }
+  },
+  "RSMultiCharacterPosition": {
+    "display_name": "RS 캐릭터 위치",
+    "description": "여러 캐릭터의 좌표·상자와 예상 배치를 함께 봅니다. 역할별 연결 순서는 자유이며 최종 파이프에서 완성된 배치를 확인합니다.",
+    "inputs": {
+      "character_count": {
+        "name": "설정 개수"
+      },
+      "building_pipe": {
+        "name": "조립 파이프"
+      },
+      "character1_geometry": {
+        "name": "1 위치 방식"
+      },
+      "character1_x": {
+        "name": "1 X"
+      },
+      "character1_y": {
+        "name": "1 Y"
+      },
+      "character1_width": {
+        "name": "1 상자 너비"
+      },
+      "character1_height": {
+        "name": "1 상자 높이"
+      },
+      "character2_geometry": {
+        "name": "2 위치 방식"
+      },
+      "character2_x": {
+        "name": "2 X"
+      },
+      "character2_y": {
+        "name": "2 Y"
+      },
+      "character2_width": {
+        "name": "2 상자 너비"
+      },
+      "character2_height": {
+        "name": "2 상자 높이"
+      },
+      "character3_geometry": {
+        "name": "3 위치 방식"
+      },
+      "character3_x": {
+        "name": "3 X"
+      },
+      "character3_y": {
+        "name": "3 Y"
+      },
+      "character3_width": {
+        "name": "3 상자 너비"
+      },
+      "character3_height": {
+        "name": "3 상자 높이"
+      },
+      "character4_geometry": {
+        "name": "4 위치 방식"
+      },
+      "character4_x": {
+        "name": "4 X"
+      },
+      "character4_y": {
+        "name": "4 Y"
+      },
+      "character4_width": {
+        "name": "4 상자 너비"
+      },
+      "character4_height": {
+        "name": "4 상자 높이"
+      },
+      "character5_geometry": {
+        "name": "5 위치 방식"
+      },
+      "character5_x": {
+        "name": "5 X"
+      },
+      "character5_y": {
+        "name": "5 Y"
+      },
+      "character5_width": {
+        "name": "5 상자 너비"
+      },
+      "character5_height": {
+        "name": "5 상자 높이"
+      },
+      "character6_geometry": {
+        "name": "6 위치 방식"
+      },
+      "character6_x": {
+        "name": "6 X"
+      },
+      "character6_y": {
+        "name": "6 Y"
+      },
+      "character6_width": {
+        "name": "6 상자 너비"
+      },
+      "character6_height": {
+        "name": "6 상자 높이"
+      },
+      "character7_geometry": {
+        "name": "7 위치 방식"
+      },
+      "character7_x": {
+        "name": "7 X"
+      },
+      "character7_y": {
+        "name": "7 Y"
+      },
+      "character7_width": {
+        "name": "7 상자 너비"
+      },
+      "character7_height": {
+        "name": "7 상자 높이"
+      },
+      "character8_geometry": {
+        "name": "8 위치 방식"
+      },
+      "character8_x": {
+        "name": "8 X"
+      },
+      "character8_y": {
+        "name": "8 Y"
+      },
+      "character8_width": {
+        "name": "8 상자 너비"
+      },
+      "character8_height": {
+        "name": "8 상자 높이"
+      },
+      "character9_geometry": {
+        "name": "9 위치 방식"
+      },
+      "character9_x": {
+        "name": "9 X"
+      },
+      "character9_y": {
+        "name": "9 Y"
+      },
+      "character9_width": {
+        "name": "9 상자 너비"
+      },
+      "character9_height": {
+        "name": "9 상자 높이"
+      },
+      "character10_geometry": {
+        "name": "10 위치 방식"
+      },
+      "character10_x": {
+        "name": "10 X"
+      },
+      "character10_y": {
+        "name": "10 Y"
+      },
+      "character10_width": {
+        "name": "10 상자 너비"
+      },
+      "character10_height": {
+        "name": "10 상자 높이"
+      }
+    },
+    "outputs": {
+      "0": {
+        "name": "조립 파이프"
+      }
+    }
+  },
+  "RSMultiCharacterFinalize": {
+    "display_name": "RS 최종 캐릭터 파이프",
+    "description": "번호별 설정을 모아 샘플러·디테일러에 연결합니다. 입력 순서와 무관하게 번호순으로 완성합니다. LoRA와 위치는 생략 가능하며 기본값은 None·중앙입니다. 최대 10개 영역이고 처리수가 많을수록 품질을 보장하지 못합니다.",
+    "inputs": {
+      "building_pipe": {
+        "name": "조립 파이프"
+      }
+    },
+    "outputs": {
+      "0": {
+        "name": "캐릭터 파이프"
+      }
+    }
   }
 }

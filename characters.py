@@ -87,6 +87,8 @@ class CharacterPipe:
 
 
 class RSMultiCharacterPrompts:
+    # Load old workflows without changing positional widget serialization.
+    DEPRECATED = True
     @classmethod
     def INPUT_TYPES(cls):
         import folder_paths

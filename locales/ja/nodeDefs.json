@@ -456,5 +456,461 @@
   "RSMultiCharacterLoadImage": {
     "display_name": "RS マルチキャラクター画像読込",
     "description": "PNG/WebP からキャラクター・座標・領域別 LoRA 名と強度を復元します。実行時に同名のローカル LoRA を使用します。ベースモデルと全体 LoRA は手動で接続してください。"
+  },
+  "RSMultiCharacterPrompt": {
+    "display_name": "RS キャラクタープロンプト",
+    "description": "複数キャラクターのポジティブSTRINGを一覧表示します。このノードの数で有効スロットを指定します。UCはサンプラーで設定します。",
+    "inputs": {
+      "character_count": {
+        "name": "キャラクター数"
+      },
+      "building_pipe": {
+        "name": "組み立てパイプ"
+      },
+      "character1_enable": {
+        "name": "1 有効"
+      },
+      "character1_kind": {
+        "name": "1 領域種類",
+        "tooltip": "character / text"
+      },
+      "character1_text": {
+        "name": "1 描く文字 (STRING)"
+      },
+      "character1": {
+        "name": "キャラクター 1 ポジティブ (STRING)"
+      },
+      "character2_enable": {
+        "name": "2 有効"
+      },
+      "character2_kind": {
+        "name": "2 領域種類"
+      },
+      "character2_text": {
+        "name": "2 描く文字 (STRING)"
+      },
+      "character2": {
+        "name": "キャラクター 2 ポジティブ (STRING)"
+      },
+      "character3_enable": {
+        "name": "3 有効"
+      },
+      "character3_kind": {
+        "name": "3 領域種類"
+      },
+      "character3_text": {
+        "name": "3 描く文字 (STRING)"
+      },
+      "character3": {
+        "name": "キャラクター 3 ポジティブ (STRING)"
+      },
+      "character4_enable": {
+        "name": "4 有効"
+      },
+      "character4_kind": {
+        "name": "4 領域種類"
+      },
+      "character4_text": {
+        "name": "4 描く文字 (STRING)"
+      },
+      "character4": {
+        "name": "キャラクター 4 ポジティブ (STRING)"
+      },
+      "character5_enable": {
+        "name": "5 有効"
+      },
+      "character5_kind": {
+        "name": "5 領域種類"
+      },
+      "character5_text": {
+        "name": "5 描く文字 (STRING)"
+      },
+      "character5": {
+        "name": "キャラクター 5 ポジティブ (STRING)"
+      },
+      "character6_enable": {
+        "name": "6 有効"
+      },
+      "character6_kind": {
+        "name": "6 領域種類"
+      },
+      "character6_text": {
+        "name": "6 描く文字 (STRING)"
+      },
+      "character6": {
+        "name": "キャラクター 6 ポジティブ (STRING)"
+      },
+      "character7_enable": {
+        "name": "7 有効"
+      },
+      "character7_kind": {
+        "name": "7 領域種類"
+      },
+      "character7_text": {
+        "name": "7 描く文字 (STRING)"
+      },
+      "character7": {
+        "name": "キャラクター 7 ポジティブ (STRING)"
+      },
+      "character8_enable": {
+        "name": "8 有効"
+      },
+      "character8_kind": {
+        "name": "8 領域種類"
+      },
+      "character8_text": {
+        "name": "8 描く文字 (STRING)"
+      },
+      "character8": {
+        "name": "キャラクター 8 ポジティブ (STRING)"
+      },
+      "character9_enable": {
+        "name": "9 有効"
+      },
+      "character9_kind": {
+        "name": "9 領域種類"
+      },
+      "character9_text": {
+        "name": "9 描く文字 (STRING)"
+      },
+      "character9": {
+        "name": "キャラクター 9 ポジティブ (STRING)"
+      },
+      "character10_enable": {
+        "name": "10 有効"
+      },
+      "character10_kind": {
+        "name": "10 領域種類"
+      },
+      "character10_text": {
+        "name": "10 描く文字 (STRING)"
+      },
+      "character10": {
+        "name": "キャラクター 10 ポジティブ (STRING)"
+      }
+    },
+    "outputs": {
+      "0": {
+        "name": "組み立てパイプ"
+      }
+    }
+  },
+  "RSMultiCharacterLoRA": {
+    "display_name": "RS キャラクターLoRA",
+    "description": "全キャラクターのLoRAを一覧で設定します。プロンプトと同じ番号に対応し、範囲外はNoneです。",
+    "inputs": {
+      "character_count": {
+        "name": "設定数"
+      },
+      "building_pipe": {
+        "name": "組み立てパイプ"
+      },
+      "character1_lora": {
+        "name": "キャラクター 1 LoRA",
+        "tooltip": "このキャラクター領域のLoRAです。接続モデルに対応するファイルを選択してください。Noneは無効です。異なるLoRAが増えると計算時間とメモリ使用量が増えます。全体のスタイルや高速化LoRAには通常のローダーを使います。"
+      },
+      "character1_lora_strength": {
+        "name": "キャラクター 1 LoRA モデル強度",
+        "tooltip": "この領域の拡散モデルLoRA強度です。0でモデル部分を無効にします。"
+      },
+      "character1_lora_clip_strength": {
+        "name": "キャラクター 1 LoRA CLIP強度",
+        "tooltip": "対応するテキストエンコーダーの重みが含まれる場合、このキャラクターの文章にのみ適用します。0でテキストエンコーダー部分を無効にします。"
+      },
+      "character2_lora": {
+        "name": "キャラクター 2 LoRA",
+        "tooltip": "このキャラクター領域のLoRAです。接続モデルに対応するファイルを選択してください。Noneは無効です。異なるLoRAが増えると計算時間とメモリ使用量が増えます。全体のスタイルや高速化LoRAには通常のローダーを使います。"
+      },
+      "character2_lora_strength": {
+        "name": "キャラクター 2 LoRA モデル強度",
+        "tooltip": "この領域の拡散モデルLoRA強度です。0でモデル部分を無効にします。"
+      },
+      "character2_lora_clip_strength": {
+        "name": "キャラクター 2 LoRA CLIP強度",
+        "tooltip": "対応するテキストエンコーダーの重みが含まれる場合、このキャラクターの文章にのみ適用します。0でテキストエンコーダー部分を無効にします。"
+      },
+      "character3_lora": {
+        "name": "キャラクター 3 LoRA",
+        "tooltip": "このキャラクター領域のLoRAです。接続モデルに対応するファイルを選択してください。Noneは無効です。異なるLoRAが増えると計算時間とメモリ使用量が増えます。全体のスタイルや高速化LoRAには通常のローダーを使います。"
+      },
+      "character3_lora_strength": {
+        "name": "キャラクター 3 LoRA モデル強度",
+        "tooltip": "この領域の拡散モデルLoRA強度です。0でモデル部分を無効にします。"
+      },
+      "character3_lora_clip_strength": {
+        "name": "キャラクター 3 LoRA CLIP強度",
+        "tooltip": "対応するテキストエンコーダーの重みが含まれる場合、このキャラクターの文章にのみ適用します。0でテキストエンコーダー部分を無効にします。"
+      },
+      "character4_lora": {
+        "name": "キャラクター 4 LoRA",
+        "tooltip": "このキャラクター領域のLoRAです。接続モデルに対応するファイルを選択してください。Noneは無効です。異なるLoRAが増えると計算時間とメモリ使用量が増えます。全体のスタイルや高速化LoRAには通常のローダーを使います。"
+      },
+      "character4_lora_strength": {
+        "name": "キャラクター 4 LoRA モデル強度",
+        "tooltip": "この領域の拡散モデルLoRA強度です。0でモデル部分を無効にします。"
+      },
+      "character4_lora_clip_strength": {
+        "name": "キャラクター 4 LoRA CLIP強度",
+        "tooltip": "対応するテキストエンコーダーの重みが含まれる場合、このキャラクターの文章にのみ適用します。0でテキストエンコーダー部分を無効にします。"
+      },
+      "character5_lora": {
+        "name": "キャラクター 5 LoRA",
+        "tooltip": "このキャラクター領域のLoRAです。接続モデルに対応するファイルを選択してください。Noneは無効です。異なるLoRAが増えると計算時間とメモリ使用量が増えます。全体のスタイルや高速化LoRAには通常のローダーを使います。"
+      },
+      "character5_lora_strength": {
+        "name": "キャラクター 5 LoRA モデル強度",
+        "tooltip": "この領域の拡散モデルLoRA強度です。0でモデル部分を無効にします。"
+      },
+      "character5_lora_clip_strength": {
+        "name": "キャラクター 5 LoRA CLIP強度",
+        "tooltip": "対応するテキストエンコーダーの重みが含まれる場合、このキャラクターの文章にのみ適用します。0でテキストエンコーダー部分を無効にします。"
+      },
+      "character6_lora": {
+        "name": "キャラクター 6 LoRA",
+        "tooltip": "このキャラクター領域のLoRAです。接続モデルに対応するファイルを選択してください。Noneは無効です。異なるLoRAが増えると計算時間とメモリ使用量が増えます。全体のスタイルや高速化LoRAには通常のローダーを使います。"
+      },
+      "character6_lora_strength": {
+        "name": "キャラクター 6 LoRA モデル強度",
+        "tooltip": "この領域の拡散モデルLoRA強度です。0でモデル部分を無効にします。"
+      },
+      "character6_lora_clip_strength": {
+        "name": "キャラクター 6 LoRA CLIP強度",
+        "tooltip": "対応するテキストエンコーダーの重みが含まれる場合、このキャラクターの文章にのみ適用します。0でテキストエンコーダー部分を無効にします。"
+      },
+      "character7_lora": {
+        "name": "キャラクター 7 LoRA",
+        "tooltip": "このキャラクター領域のLoRAです。接続モデルに対応するファイルを選択してください。Noneは無効です。異なるLoRAが増えると計算時間とメモリ使用量が増えます。全体のスタイルや高速化LoRAには通常のローダーを使います。"
+      },
+      "character7_lora_strength": {
+        "name": "キャラクター 7 LoRA モデル強度",
+        "tooltip": "この領域の拡散モデルLoRA強度です。0でモデル部分を無効にします。"
+      },
+      "character7_lora_clip_strength": {
+        "name": "キャラクター 7 LoRA CLIP強度",
+        "tooltip": "対応するテキストエンコーダーの重みが含まれる場合、このキャラクターの文章にのみ適用します。0でテキストエンコーダー部分を無効にします。"
+      },
+      "character8_lora": {
+        "name": "キャラクター 8 LoRA",
+        "tooltip": "このキャラクター領域のLoRAです。接続モデルに対応するファイルを選択してください。Noneは無効です。異なるLoRAが増えると計算時間とメモリ使用量が増えます。全体のスタイルや高速化LoRAには通常のローダーを使います。"
+      },
+      "character8_lora_strength": {
+        "name": "キャラクター 8 LoRA モデル強度",
+        "tooltip": "この領域の拡散モデルLoRA強度です。0でモデル部分を無効にします。"
+      },
+      "character8_lora_clip_strength": {
+        "name": "キャラクター 8 LoRA CLIP強度",
+        "tooltip": "対応するテキストエンコーダーの重みが含まれる場合、このキャラクターの文章にのみ適用します。0でテキストエンコーダー部分を無効にします。"
+      },
+      "character9_lora": {
+        "name": "キャラクター 9 LoRA",
+        "tooltip": "このキャラクター領域のLoRAです。接続モデルに対応するファイルを選択してください。Noneは無効です。異なるLoRAが増えると計算時間とメモリ使用量が増えます。全体のスタイルや高速化LoRAには通常のローダーを使います。"
+      },
+      "character9_lora_strength": {
+        "name": "キャラクター 9 LoRA モデル強度",
+        "tooltip": "この領域の拡散モデルLoRA強度です。0でモデル部分を無効にします。"
+      },
+      "character9_lora_clip_strength": {
+        "name": "キャラクター 9 LoRA CLIP強度",
+        "tooltip": "対応するテキストエンコーダーの重みが含まれる場合、このキャラクターの文章にのみ適用します。0でテキストエンコーダー部分を無効にします。"
+      },
+      "character10_lora": {
+        "name": "キャラクター 10 LoRA",
+        "tooltip": "このキャラクター領域のLoRAです。接続モデルに対応するファイルを選択してください。Noneは無効です。異なるLoRAが増えると計算時間とメモリ使用量が増えます。全体のスタイルや高速化LoRAには通常のローダーを使います。"
+      },
+      "character10_lora_strength": {
+        "name": "キャラクター 10 LoRA モデル強度",
+        "tooltip": "この領域の拡散モデルLoRA強度です。0でモデル部分を無効にします。"
+      },
+      "character10_lora_clip_strength": {
+        "name": "キャラクター 10 LoRA CLIP強度",
+        "tooltip": "対応するテキストエンコーダーの重みが含まれる場合、このキャラクターの文章にのみ適用します。0でテキストエンコーダー部分を無効にします。"
+      }
+    },
+    "outputs": {
+      "0": {
+        "name": "組み立てパイプ"
+      }
+    }
+  },
+  "RSMultiCharacterPosition": {
+    "display_name": "RS キャラクター位置",
+    "description": "各キャラクターの座標・ボックスと配置図を一覧表示します。役割の接続順は自由です。",
+    "inputs": {
+      "character_count": {
+        "name": "設定数"
+      },
+      "building_pipe": {
+        "name": "組み立てパイプ"
+      },
+      "character1_geometry": {
+        "name": "1 位置形式"
+      },
+      "character1_x": {
+        "name": "1 X"
+      },
+      "character1_y": {
+        "name": "1 Y"
+      },
+      "character1_width": {
+        "name": "1 ボックス幅"
+      },
+      "character1_height": {
+        "name": "1 ボックス高さ"
+      },
+      "character2_geometry": {
+        "name": "2 位置形式"
+      },
+      "character2_x": {
+        "name": "2 X"
+      },
+      "character2_y": {
+        "name": "2 Y"
+      },
+      "character2_width": {
+        "name": "2 ボックス幅"
+      },
+      "character2_height": {
+        "name": "2 ボックス高さ"
+      },
+      "character3_geometry": {
+        "name": "3 位置形式"
+      },
+      "character3_x": {
+        "name": "3 X"
+      },
+      "character3_y": {
+        "name": "3 Y"
+      },
+      "character3_width": {
+        "name": "3 ボックス幅"
+      },
+      "character3_height": {
+        "name": "3 ボックス高さ"
+      },
+      "character4_geometry": {
+        "name": "4 位置形式"
+      },
+      "character4_x": {
+        "name": "4 X"
+      },
+      "character4_y": {
+        "name": "4 Y"
+      },
+      "character4_width": {
+        "name": "4 ボックス幅"
+      },
+      "character4_height": {
+        "name": "4 ボックス高さ"
+      },
+      "character5_geometry": {
+        "name": "5 位置形式"
+      },
+      "character5_x": {
+        "name": "5 X"
+      },
+      "character5_y": {
+        "name": "5 Y"
+      },
+      "character5_width": {
+        "name": "5 ボックス幅"
+      },
+      "character5_height": {
+        "name": "5 ボックス高さ"
+      },
+      "character6_geometry": {
+        "name": "6 位置形式"
+      },
+      "character6_x": {
+        "name": "6 X"
+      },
+      "character6_y": {
+        "name": "6 Y"
+      },
+      "character6_width": {
+        "name": "6 ボックス幅"
+      },
+      "character6_height": {
+        "name": "6 ボックス高さ"
+      },
+      "character7_geometry": {
+        "name": "7 位置形式"
+      },
+      "character7_x": {
+        "name": "7 X"
+      },
+      "character7_y": {
+        "name": "7 Y"
+      },
+      "character7_width": {
+        "name": "7 ボックス幅"
+      },
+      "character7_height": {
+        "name": "7 ボックス高さ"
+      },
+      "character8_geometry": {
+        "name": "8 位置形式"
+      },
+      "character8_x": {
+        "name": "8 X"
+      },
+      "character8_y": {
+        "name": "8 Y"
+      },
+      "character8_width": {
+        "name": "8 ボックス幅"
+      },
+      "character8_height": {
+        "name": "8 ボックス高さ"
+      },
+      "character9_geometry": {
+        "name": "9 位置形式"
+      },
+      "character9_x": {
+        "name": "9 X"
+      },
+      "character9_y": {
+        "name": "9 Y"
+      },
+      "character9_width": {
+        "name": "9 ボックス幅"
+      },
+      "character9_height": {
+        "name": "9 ボックス高さ"
+      },
+      "character10_geometry": {
+        "name": "10 位置形式"
+      },
+      "character10_x": {
+        "name": "10 X"
+      },
+      "character10_y": {
+        "name": "10 Y"
+      },
+      "character10_width": {
+        "name": "10 ボックス幅"
+      },
+      "character10_height": {
+        "name": "10 ボックス高さ"
+      }
+    },
+    "outputs": {
+      "0": {
+        "name": "組み立てパイプ"
+      }
+    }
+  },
+  "RSMultiCharacterFinalize": {
+    "display_name": "RS 最終キャラクターパイプ",
+    "description": "番号ごとの設定をまとめてサンプラー・ディテーラーへ渡します。接続順によらず番号順で完成します。LoRA・位置は省略可能、初期値はNone・中央です。最大10領域。処理数が多いほど品質を保証できません。",
+    "inputs": {
+      "building_pipe": {
+        "name": "組み立てパイプ"
+      }
+    },
+    "outputs": {
+      "0": {
+        "name": "キャラクターパイプ"
+      }
+    }
   }
 }

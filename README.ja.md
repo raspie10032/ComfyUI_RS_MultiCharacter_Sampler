@@ -22,6 +22,10 @@ SD1.5の例は、**人物2人を区別でき、文字領域に何らかの表現
 
 **人物2人＋物体1つ**には既存の **Anima — 混合配置** または **Krea 2 Turbo** プリセットと[物体サンプル20件](examples/epsilon/objects)を使います。3番目の枠は `character` + `box` にして物体を記述します。10種類の試験では20枚すべてに人物2人と識別できる物体が現れましたが、矩形への収まりと場面の一体感には差があります。物体の枠は顔ディテイラーの候補から自動除外されません。[比較画像・設定・制限](docs/object-layout-validation.md)。
 
+## 役割別キャラクター入力
+
+**全プロンプト・全LoRA・全位置**を役割別ノードに分け、各ノードで**1～N番を同時に表示**します。**3種類の接続順は自由**で、最終パイプからサンプラー・ディテイラーへ接続します。ポジティブは外部**STRING接続**で、個別UC欄はありません。位置と最終パイプで配置の目安を確認できます。[使い方](docs/modular-characters.md) · [2人用サンプル](examples/modular/two-characters-anima.json)。旧ノードは保存済みワークフロー用に非推奨として残します。
+
 ## 使用方法
 
 ComfyUI-Manager で **RS MultiCharacter Sampler** を検索するか、[Comfy Registry](https://registry.comfy.org/publishers/raspie10032/nodes/comfyui-rs-multicharacter-sampler) からインストールします。パッケージ ID は `comfyui-rs-multicharacter-sampler` です。インストール後に ComfyUI を再起動してください。新しい項目が表示されない場合は Manager の一覧を更新するか、Git でインストールできます。

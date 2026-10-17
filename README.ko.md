@@ -22,6 +22,10 @@ SD1.5 예제는 **두 인물이 구분되고 글자 영역에 표현이 나타�
 
 **캐릭터 2명 + 물체 1개**는 기존 **Anima — 혼합 배치** 또는 **Krea 2 Turbo** 프리셋과 [물체 예제 20개](examples/epsilon/objects)를 사용합니다. 3번 슬롯은 `character` + `box`로 두고 물체를 설명하세요. 10종 시험의 20장 모두 두 사람과 물체가 나왔지만, 정확한 상자 크기와 장면 연결은 일정하지 않았습니다. 물체 슬롯은 얼굴 디테일러에서 자동 제외되지 않습니다. [비교 이미지·설정·한계](docs/object-layout-validation.md).
 
+## 역할별 캐릭터 조립
+
+**프롬프트 전체·LoRA 전체·위치 전체**를 역할별 노드로 나누고, 각 노드에서 **1~N번 설정을 동시에 표시**합니다. **세 역할의 연결 순서는 자유**이며 최종 파이프에서 완성합니다. 긍정 프롬프트는 외부 **STRING 연결 입력**, 캐릭터 UC 입력은 없습니다. 위치와 최종 파이프에서 예상 배치를 확인합니다. [사용법](docs/modular-characters.md) · [새 2인 예제](examples/modular/two-characters-anima.json). 기존 긴 노드는 구형 워크플로 호환용으로 남습니다.
+
 ## 설치와 사용
 
 ComfyUI-Manager에서 **RS MultiCharacter Sampler**를 검색해 설치하거나 [Comfy Registry 페이지](https://registry.comfy.org/publishers/raspie10032/nodes/comfyui-rs-multicharacter-sampler)를 이용하세요. 패키지 ID는 `comfyui-rs-multicharacter-sampler`입니다. 설치 후 ComfyUI를 재시작하세요. 새 항목이 아직 보이지 않으면 Manager 목록을 갱신하거나 Git으로 설치할 수 있습니다.

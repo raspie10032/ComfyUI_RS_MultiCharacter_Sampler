@@ -57,3 +57,5 @@ jobs:
         run: node tests/test_detailer_ui.cjs
       - name: Model family presets and manual settings
         run: node tests/test_presets_ui.cjs
+      - name: Modular character builder ordering and layout
+        run: node tests/test_builder_ui.cjs

@@ -1,0 +1,34 @@
+const fs=require('fs'),vm=require('vm'),assert=require('node:assert/strict');
+let extension;
+const src=fs.readFileSync('web/character_builder.js','utf8').replace(/^import[^\n]*\n/,'').replaceAll('export function','function');
+const sandbox={app:{registerExtension(e){extension=e;}}};vm.runInNewContext(src,sandbox);
+const {collectSlots,centersFor}=sandbox;
+function make(type,settings,upstream=null){return {type,widgets:Object.entries(settings).map(([name,value])=>({name,value})),inputs:[{name:'building_pipe'},{name:'character1'},{name:'character2'}],getInputNode(i){return i===0?upstream:type==='RSMultiCharacterPrompt'?{}:null;}};}
+const actions=[['RSMultiCharacterPrompt',{character_count:2}],['RSMultiCharacterPosition',{character_count:2,character1_x:.25,character2_x:.75}],['RSMultiCharacterLoRA',{character_count:2}]];
+const build=list=>list.reduce((node,[type,settings])=>make(type,settings,node),null);
+assert.deepEqual(JSON.parse(JSON.stringify(collectSlots(build(actions)))),JSON.parse(JSON.stringify(collectSlots(build([...actions].reverse())))));
+assert.equal(JSON.stringify(centersFor(collectSlots(build([actions[0]])).slots)),JSON.stringify([[.25,.5],[.75,.5]]));
+const root=build(actions),bypass=make('RSMultiCharacterPosition',{character_count:1,character1_x:.9},root);bypass.mode=4;
+assert.equal(collectSlots(bypass).slots[0].x,.25);
+assert.equal(collectSlots(make('RSMultiCharacterPrompt',{character_count:1},root)).slots.length,1);
+assert.equal(collectSlots(make('RSMultiCharacterPrompt',{character_count:2,character2_enable:false},root)).slots.length,1);
+class Node {
+ constructor(type='RSMultiCharacterPosition') {this.type=type;this.inputs=[];this.widgets=[{name:'character_count',value:2},...Array.from({length:10},(_,i)=>['geometry','x','y','width','height'].map(name=>({name:`character${i+1}_${name}`,value:name==='geometry'?'point':.5}))).flat()].map(w=>({...w,type:'number',computeSize:()=>[300,20]}));this.size=[340,200];}
+ addCustomWidget(w){this.widgets.push(w);}computeSize(){return[340,200];}setSize(s){this.size=s;}setDirtyCanvas(){}addInput(name,type){this.inputs.push({name,type,link:null});}removeInput(i){this.inputs.splice(i,1);}
+}
+(async()=>{
+ await extension.beforeRegisterNodeDef(Node,{name:'RSMultiCharacterPosition'});
+ const n=new Node();n.onNodeCreated();
+ const get=name=>n.widgets.find(w=>w.name===name);
+ assert.equal(get('character1_width').hidden,true);assert.equal(get('character2_x').hidden,undefined);assert.equal(get('character3_x').hidden,true);
+ get('character2_geometry').value='box';get('character2_geometry').callback();assert.equal(get('character2_width').type,'number');assert.equal(get('character1_width').hidden,true);
+ get('character_count').value=5;get('character_count').callback();assert.equal(get('character5_x').type,'number');
+ assert.equal(get('rs_mc_build_layout').serializeValue(),undefined);
+ class Prompt extends Node {constructor(){super('RSMultiCharacterPrompt');this.widgets=[{name:'character_count',value:2}];this.inputs=[{name:'building_pipe',link:null},...Array.from({length:10},(_,i)=>({name:`character${i+1}`,type:'STRING',link:null}))];}}
+ await extension.beforeRegisterNodeDef(Prompt,{name:'RSMultiCharacterPrompt'});
+ const p=new Prompt();p.onNodeCreated();assert.equal(p.inputs.filter(i=>i.type==='STRING').length,2);
+ p.inputs.find(i=>i.name==='character2').link=100;p.widgets[0].value=1;p.widgets[0].callback();
+ assert.equal(p.inputs.find(i=>i.name==='character2').link,100); // Never destroy a saved connection.
+ p.widgets[0].value=5;p.widgets[0].callback();assert.equal(p.inputs.filter(i=>i.type==='STRING').length,5);
+ console.log('All-row role tables, order, inactive slots, socket preservation and preview controls passed');
+})();
