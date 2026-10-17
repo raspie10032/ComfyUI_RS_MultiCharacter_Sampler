@@ -21,12 +21,13 @@ silently skipped. Old images/workflows without this extension use `None`.
 ## How it works and what it costs
 
 The sampler keeps its existing character attention routing in each model evaluation.
-Native ComfyUI weight hooks evaluate each distinct model-LoRA combination; spatial
+Native ComfyUI conditioning hooks evaluate each distinct model-LoRA combination; spatial
 masks combine the resulting positive **and negative** predictions before CFG. The
 coordinate/box masks use the existing feather and overlap policy. An uncovered box
 background or text box uses the incoming model, without additional character LoRAs.
 Identical model-LoRA combinations share a hook group. Model weights are restored by
-ComfyUI after the sampling call, including error/interruption cleanup.
+ComfyUI after the sampling call, including error/interruption cleanup. Supported
+Anima LoRAs instead use the factor-only path below without patching base weights.
 
 CLIP LoRA applies when encoding that character's positive prompt. Common positive,
 common negative and text-region prompts use the incoming CLIP. The sampler retains
@@ -34,15 +35,41 @@ its existing limitation that per-character negative captions are metadata for th
 detailer rather than independently sampled regional negatives.
 
 The detailer uses the LoRA of the character selected by its normal matching step.
-It samples one crop at a time using that character's model hook and CLIP; it retains
+It samples one crop at a time using that character's selected LoRA backend and CLIP; it retains
 the existing ownership mask and ambiguous-match skip behavior.
 
 There is no extra full checkpoint per slot, but there are extra forward passes and
 weight changes. In the initial Anima 1024×768/30-step test, a baseline/global-LoRA
 generation took about 30 seconds and two distinct regional LoRAs took about 147
-seconds. This is a measurement from one local setup, not a general performance ratio.
-The implementation uses ComfyUI's low-memory hook mode, avoiding cached full patched
+seconds. A subsequent paired test measured 150–156 seconds with weight hooks versus
+about 66 seconds with the Anima factor-only path below. These are measurements from
+one local setup, not general performance ratios.
+The fallback uses ComfyUI's low-memory hook mode, avoiding cached full patched
 weights per combination. File tensors and CLIP patches still consume memory.
+
+### Anima factor-only execution
+
+Ordinary Anima Linear LoRAs automatically use ComfyUI's native **Bypass LoRA**
+implementation: `W(x) + strength * up(down(x))`. Small factor tensors are shared
+between slots using the same file, including different strengths. It avoids storing
+merged full-size weights and repeatedly synthesizing them when switching regions.
+Distinct LoRA combinations still need separate model predictions; this does not
+combine multiple characters into one model evaluation.
+
+All model patches in a file must qualify. Other model families, older cores without
+bypass, DoRA/LoHa/LoKr/diff patches, convolution/reshape/offset patches, quantized
+layers and multi-GPU clones retain native weight hooks. CLIP LoRA still uses the
+existing CLIP patch path. No new node or workflow setting is required.
+
+Factor device copies are released after sampling, including errors or cancellation.
+Each prediction restores temporary forward dispatch, also on partial setup failure.
+The ordinary model, original file tensors and temporary activations still use memory.
+Changed floating-point operation order can change pixels even at the same seed;
+old metadata records the same LoRA settings, not a bit-identical legacy backend.
+The two rank-32 test LoRAs retain about 175 MiB of factor data instead of a potential
+6.56 GiB full merged-weight cache. That cache was already disabled in the old
+low-memory path; this is not a measured 6.56 GiB reduction in the current runtime.
+See [measured scope and limitations](regional-lora-bypass-validation.md).
 
 ## Limits
 
@@ -76,6 +103,12 @@ PNG/WebP 메타데이터에 파일명과 두 강도가 저장됩니다. 이미�
 아니므로 영역 밖의 구도·색·배경에도 변화가 생길 수 있습니다. 정확한 캐릭터 재현과
 분리 품질은 모델·LoRA·프롬프트마다 확인해야 합니다.
 
+Anima의 일반 Linear LoRA는 작은 행렬을 직접 계산하는 Bypass 경로를 자동으로
+사용합니다. 같은 파일은 강도가 달라도 행렬을 공유하고, 큰 합성 가중치 캐시는
+만들지 않습니다. 다른 모델·DoRA 등 확장 형식·양자화·다중 GPU는 기존 Hook으로
+처리합니다. 서로 다른 LoRA 조합마다 예측하는 비용은 남고, 연산 순서가 달라
+이전 버전과 같은 시드에서도 픽셀이 달라질 수 있습니다.
+
 ## 日本語
 
 キャラクターノードで **キャラクター N LoRA** を選び、モデル強度と CLIP 強度を
@@ -88,6 +121,12 @@ PNG/WebP にファイル名と強度を保存し、画像ローダーから復�
 エラーを表示します。旧画像・旧ワークフローでは無効のまま動作します。
 LoRA の組合せが増えるほど計算量も増えます。領域外への影響や境界の混ざりは
 完全には防げません。
+
+Anima の通常の Linear LoRA は、小さい行列を直接計算する Bypass 経路を自動で
+使用します。同じファイルは強度が異なっても行列を共有し、大きな合成済み重みを
+キャッシュしません。他のモデル、DoRA 等の拡張形式、量子化、複数 GPU は従来の
+Hook を使用します。組合せごとの予測は必要で、演算順序の変更により同じシード
+でも旧バージョンとはピクセルが異なる場合があります。
 
 ## Example and validation
 

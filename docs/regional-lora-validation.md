@@ -4,6 +4,9 @@
 캐릭터 파이프에 LoRA 파일명, 모델 강도, CLIP 강도를 저장한다. 기존 전역 LoRA 위에
 ComfyUI weight hook을 추가하고, 각 예측을 기존 좌표/상자 마스크로 합친다.
 
+이 문서는 최초 weight-hook 구현의 결과다. 이후 Anima Bypass 최적화의 별도 실측은
+[Bypass 검증 기록](regional-lora-bypass-validation.md)을 참조한다.
+
 ## 실제 실행
 
 Anima: 1024×768, 30 steps, CFG 4, Euler ancestral / SGM uniform, seed 250917.

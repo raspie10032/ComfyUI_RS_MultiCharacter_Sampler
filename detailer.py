@@ -31,7 +31,7 @@ def _resize(image, size):
 
 
 def _sample_crop(crop, mask, *, model, clip, vae, positive, negative, seed, steps, cfg,
-                 sampler_name, scheduler, denoise, guide_size, max_size, lora_hook=None):
+                 sampler_name, scheduler, denoise, guide_size, max_size, lora_hook=None, lora_runtime=None):
     from nodes import common_ksampler
     check_interrupted()
     height, width = crop.shape[1:3]
@@ -52,6 +52,8 @@ def _sample_crop(crop, mask, *, model, clip, vae, positive, negative, seed, step
         import comfy.hooks
         model = model.clone()
         model.hook_mode = comfy.hooks.EnumHookMode.MinVram
+        if lora_runtime is not None:
+            lora_runtime.install(model)
         positive_cond = comfy.hooks.set_hooks_for_conditioning(positive_cond, lora_hook)
         negative_cond = comfy.hooks.set_hooks_for_conditioning(negative_cond, lora_hook)
     sampled = common_ksampler(model, seed, steps, cfg, sampler_name, scheduler, positive_cond,
@@ -228,7 +230,7 @@ class RSMultiCharacterDetailer:
             if active_lora(character_pipe.characters[match.character_index]):
                 if loras is None:
                     loras = RegionalLoras(model, clip, character_pipe.characters)
-                lora_options = {"lora_hook": loras.hooks[match.character_index]}
+                lora_options = {"lora_hook": loras.hooks[match.character_index], "lora_runtime": loras}
                 item["lora"] = lora_records(character_pipe)[match.character_index]
             crop_clip = loras.clips[match.character_index] if loras else clip
             edited, size = _sample_crop(crop, mask, model=model, clip=crop_clip, vae=vae,

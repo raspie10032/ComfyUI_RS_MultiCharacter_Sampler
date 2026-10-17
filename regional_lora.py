@@ -21,6 +21,7 @@ class RegionalLoras:
         import folder_paths
 
         self.hooks, self.clips, self.audit = [], [], []
+        self.bypasses = {}
         loaded_files, model_combinations, clip_combinations = {}, {}, {}
         model_map = clip_map = None
         names = set(folder_paths.get_filename_list("loras"))
@@ -49,10 +50,17 @@ class RegionalLoras:
             if model_key not in model_combinations:
                 hook_group = None
                 if model_weights and character.lora_strength:
-                    hook = comfy.hooks.WeightHook(strength_model=character.lora_strength, strength_clip=0.)
-                    hook.weights, hook.weights_clip, hook.need_weight_init = model_weights, {}, False
-                    hook_group = comfy.hooks.HookGroup()
-                    hook_group.add(hook)
+                    if name not in self.bypasses:
+                        from .lora_bypass import prepare_bypass
+                        self.bypasses[name] = prepare_bypass(model, model_weights)
+                    bypass, _ = self.bypasses[name]
+                    if bypass is not None:
+                        hook_group = bypass.hook_group(character.lora_strength)
+                    else:
+                        hook = comfy.hooks.WeightHook(strength_model=character.lora_strength, strength_clip=0.)
+                        hook.weights, hook.weights_clip, hook.need_weight_init = model_weights, {}, False
+                        hook_group = comfy.hooks.HookGroup()
+                        hook_group.add(hook)
                 model_combinations[model_key] = hook_group
             clip_key = (name, character.lora_clip_strength)
             if clip_key not in clip_combinations:
@@ -64,15 +72,34 @@ class RegionalLoras:
             hook_group, char_clip = model_combinations[model_key], clip_combinations[clip_key]
             self.hooks.append(hook_group)
             self.clips.append(char_clip)
+            bypass, reason = self.bypasses.get(name, (None, "no_model_strength"))
             self.audit.append({"character": slot, "name": name,
                 "strength_model": character.lora_strength, "strength_clip": character.lora_clip_strength,
-                "model_keys": len(model_weights), "clip_keys": len(clip_weights)})
+                "model_keys": len(model_weights), "clip_keys": len(clip_weights),
+                "model_backend": "bypass" if bypass is not None and hook_group is not None else "weight_hooks" if hook_group is not None else "none",
+                "backend_reason": reason})
+
+    def install(self, model):
+        """Release factor copies at the outer sampling boundary, also on errors."""
+        from comfy.patcher_extension import WrappersMP
+
+        if any(plan is not None for plan, _ in self.bypasses.values()):
+            model.add_wrapper_with_key(WrappersMP.OUTER_SAMPLE, "rs_mc_lora_cleanup", self.sample)
+
+    def sample(self, executor, *args, **kwargs):
+        try:
+            return executor(*args, **kwargs)
+        finally:
+            for plan, _ in self.bypasses.values():
+                if plan is not None:
+                    plan.release()
 
     def condition_pair(self, model, positive, negative, masks, regions):
         import comfy.hooks
 
         if not any(self.hooks):
             return positive, negative
+        self.install(model)
         model.hook_mode = comfy.hooks.EnumHookMode.MinVram
         groups = grouped_masks(self.hooks, masks, regions)
         result = [], []
