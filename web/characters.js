@@ -54,7 +54,10 @@ function updateSlots(node) {
             (!boxes && /_(width|height)$/.test(widget.name)) ||
             (mode === "points" && /_kind$/.test(widget.name)) ||
             (/_text$/.test(widget.name) && !text) ||
-            (/_geometry$/.test(widget.name) && (mode !== "mixed" || text));
+            (/_geometry$/.test(widget.name) && (mode !== "mixed" || text)) ||
+            (/_lora(?:_.*)?$/.test(widget.name) && text) ||
+            (/_lora_(?:clip_)?strength$/.test(widget.name) &&
+                (value(`character${match[1]}_lora`) ?? "None") === "None");
         if (hide && !widget.rsMcVisibleState && !widget.type?.startsWith("converted-widget")) {
             widget.rsMcVisibleState = { type: widget.type, computeSize: widget.computeSize, hidden: widget.hidden };
             widget.type = "rs-mc-hidden";
@@ -82,7 +85,7 @@ app.registerExtension({
         nodeType.prototype.onNodeCreated = function () {
             const result = onCreated?.apply(this, arguments);
             addPreview(this);
-            for (const control of this.widgets?.filter(w => ["character_count", "layout_mode"].includes(w.name) || /^character\d+_(kind|geometry)$/.test(w.name)) ?? []) {
+            for (const control of this.widgets?.filter(w => ["character_count", "layout_mode"].includes(w.name) || /^character\d+_(kind|geometry|lora)$/.test(w.name)) ?? []) {
                 const callback = control.callback;
                 control.callback = (...args) => {
                     callback?.apply(control, args);

@@ -1,6 +1,8 @@
 # ComfyUI_RS_MultiCharacter_Sampler
 
-**0.1.5 Epsilon · Anima・SDXL・Krea 2・MOSS・SD1.5（実験対応・不安定）**。共通プロンプトと各キャラクターの文章・XY座標・矩形を専用パイプで渡し、領域ごとに attention を制御します。RS NAI 拡張や API キーは不要です。
+**0.1.6 Zeta · Anima・SDXL・Krea 2・MOSS・SD1.5（実験対応・不安定）**。共通プロンプトと各キャラクターの文章・XY座標・矩形を専用パイプで渡し、領域ごとに attention を制御します。RS NAI 拡張や API キーは不要です。
+
+**Zeta の変更:** キャラクターごとに LoRA ファイルとモデル・CLIP 強度を選択できます。ComfyUI の標準 Hook で領域別の予測を合成し、Detailer は一致したキャラクターの LoRA を使います。[使い方・計算コスト・制限](docs/regional-lora.md)。
 
 **Epsilonの変更点:** 座標と矩形の混合配置、文字領域、編集可能なモデル系統プリセット8種類、MOSSネイティブ配置、Anima・Krea 2の人物2人＋物体サンプルを追加しました。[変更点と検証範囲](docs/release-0.1.5.md)
 
@@ -16,7 +18,7 @@ SD1.5の例は、**人物2人を区別でき、文字領域に何らかの表現
 
 ## 使用方法
 
-ComfyUI-Manager で **RS MultiCharacter Sampler (Epsilon)** を検索するか、[Comfy Registry](https://registry.comfy.org/publishers/raspie10032/nodes/comfyui-rs-multicharacter-sampler) からインストールします。パッケージ ID は `comfyui-rs-multicharacter-sampler` です。インストール後に ComfyUI を再起動してください。新しい項目が表示されない場合は Manager の一覧を更新するか、Git でインストールできます。
+ComfyUI-Manager で **RS MultiCharacter Sampler** を検索するか、[Comfy Registry](https://registry.comfy.org/publishers/raspie10032/nodes/comfyui-rs-multicharacter-sampler) からインストールします。パッケージ ID は `comfyui-rs-multicharacter-sampler` です。インストール後に ComfyUI を再起動してください。新しい項目が表示されない場合は Manager の一覧を更新するか、Git でインストールできます。
 
 Git の場合はこのリポジトリを `ComfyUI/custom_nodes` に clone します。既存の Git インストールがある場合は重複インストールせず、そちらを更新してください。拡散モデル・テキストエンコーダー・VAEは別途用意します。ディテイラーの検出・タグローダーは、選択したカタログモデルが未導入の場合に実行時ダウンロードし、進捗を表示します。
 

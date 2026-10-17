@@ -329,8 +329,132 @@
       },
       "character10_geometry": {
         "name": "領域10の座標/矩形"
+      },
+      "character1_lora": {
+        "name": "キャラクター 1 LoRA",
+        "tooltip": "このキャラクター領域のLoRAです。接続モデルに対応するファイルを選択してください。Noneは無効です。異なるLoRAが増えると計算時間とメモリ使用量が増えます。全体のスタイルや高速化LoRAには通常のローダーを使います。"
+      },
+      "character1_lora_strength": {
+        "name": "キャラクター 1 LoRA モデル強度",
+        "tooltip": "この領域の拡散モデルLoRA強度です。0でモデル部分を無効にします。"
+      },
+      "character1_lora_clip_strength": {
+        "name": "キャラクター 1 LoRA CLIP強度",
+        "tooltip": "対応するテキストエンコーダーの重みが含まれる場合、このキャラクターの文章にのみ適用します。0でテキストエンコーダー部分を無効にします。"
+      },
+      "character2_lora": {
+        "name": "キャラクター 2 LoRA",
+        "tooltip": "このキャラクター領域のLoRAです。接続モデルに対応するファイルを選択してください。Noneは無効です。異なるLoRAが増えると計算時間とメモリ使用量が増えます。全体のスタイルや高速化LoRAには通常のローダーを使います。"
+      },
+      "character2_lora_strength": {
+        "name": "キャラクター 2 LoRA モデル強度",
+        "tooltip": "この領域の拡散モデルLoRA強度です。0でモデル部分を無効にします。"
+      },
+      "character2_lora_clip_strength": {
+        "name": "キャラクター 2 LoRA CLIP強度",
+        "tooltip": "対応するテキストエンコーダーの重みが含まれる場合、このキャラクターの文章にのみ適用します。0でテキストエンコーダー部分を無効にします。"
+      },
+      "character3_lora": {
+        "name": "キャラクター 3 LoRA",
+        "tooltip": "このキャラクター領域のLoRAです。接続モデルに対応するファイルを選択してください。Noneは無効です。異なるLoRAが増えると計算時間とメモリ使用量が増えます。全体のスタイルや高速化LoRAには通常のローダーを使います。"
+      },
+      "character3_lora_strength": {
+        "name": "キャラクター 3 LoRA モデル強度",
+        "tooltip": "この領域の拡散モデルLoRA強度です。0でモデル部分を無効にします。"
+      },
+      "character3_lora_clip_strength": {
+        "name": "キャラクター 3 LoRA CLIP強度",
+        "tooltip": "対応するテキストエンコーダーの重みが含まれる場合、このキャラクターの文章にのみ適用します。0でテキストエンコーダー部分を無効にします。"
+      },
+      "character4_lora": {
+        "name": "キャラクター 4 LoRA",
+        "tooltip": "このキャラクター領域のLoRAです。接続モデルに対応するファイルを選択してください。Noneは無効です。異なるLoRAが増えると計算時間とメモリ使用量が増えます。全体のスタイルや高速化LoRAには通常のローダーを使います。"
+      },
+      "character4_lora_strength": {
+        "name": "キャラクター 4 LoRA モデル強度",
+        "tooltip": "この領域の拡散モデルLoRA強度です。0でモデル部分を無効にします。"
+      },
+      "character4_lora_clip_strength": {
+        "name": "キャラクター 4 LoRA CLIP強度",
+        "tooltip": "対応するテキストエンコーダーの重みが含まれる場合、このキャラクターの文章にのみ適用します。0でテキストエンコーダー部分を無効にします。"
+      },
+      "character5_lora": {
+        "name": "キャラクター 5 LoRA",
+        "tooltip": "このキャラクター領域のLoRAです。接続モデルに対応するファイルを選択してください。Noneは無効です。異なるLoRAが増えると計算時間とメモリ使用量が増えます。全体のスタイルや高速化LoRAには通常のローダーを使います。"
+      },
+      "character5_lora_strength": {
+        "name": "キャラクター 5 LoRA モデル強度",
+        "tooltip": "この領域の拡散モデルLoRA強度です。0でモデル部分を無効にします。"
+      },
+      "character5_lora_clip_strength": {
+        "name": "キャラクター 5 LoRA CLIP強度",
+        "tooltip": "対応するテキストエンコーダーの重みが含まれる場合、このキャラクターの文章にのみ適用します。0でテキストエンコーダー部分を無効にします。"
+      },
+      "character6_lora": {
+        "name": "キャラクター 6 LoRA",
+        "tooltip": "このキャラクター領域のLoRAです。接続モデルに対応するファイルを選択してください。Noneは無効です。異なるLoRAが増えると計算時間とメモリ使用量が増えます。全体のスタイルや高速化LoRAには通常のローダーを使います。"
+      },
+      "character6_lora_strength": {
+        "name": "キャラクター 6 LoRA モデル強度",
+        "tooltip": "この領域の拡散モデルLoRA強度です。0でモデル部分を無効にします。"
+      },
+      "character6_lora_clip_strength": {
+        "name": "キャラクター 6 LoRA CLIP強度",
+        "tooltip": "対応するテキストエンコーダーの重みが含まれる場合、このキャラクターの文章にのみ適用します。0でテキストエンコーダー部分を無効にします。"
+      },
+      "character7_lora": {
+        "name": "キャラクター 7 LoRA",
+        "tooltip": "このキャラクター領域のLoRAです。接続モデルに対応するファイルを選択してください。Noneは無効です。異なるLoRAが増えると計算時間とメモリ使用量が増えます。全体のスタイルや高速化LoRAには通常のローダーを使います。"
+      },
+      "character7_lora_strength": {
+        "name": "キャラクター 7 LoRA モデル強度",
+        "tooltip": "この領域の拡散モデルLoRA強度です。0でモデル部分を無効にします。"
+      },
+      "character7_lora_clip_strength": {
+        "name": "キャラクター 7 LoRA CLIP強度",
+        "tooltip": "対応するテキストエンコーダーの重みが含まれる場合、このキャラクターの文章にのみ適用します。0でテキストエンコーダー部分を無効にします。"
+      },
+      "character8_lora": {
+        "name": "キャラクター 8 LoRA",
+        "tooltip": "このキャラクター領域のLoRAです。接続モデルに対応するファイルを選択してください。Noneは無効です。異なるLoRAが増えると計算時間とメモリ使用量が増えます。全体のスタイルや高速化LoRAには通常のローダーを使います。"
+      },
+      "character8_lora_strength": {
+        "name": "キャラクター 8 LoRA モデル強度",
+        "tooltip": "この領域の拡散モデルLoRA強度です。0でモデル部分を無効にします。"
+      },
+      "character8_lora_clip_strength": {
+        "name": "キャラクター 8 LoRA CLIP強度",
+        "tooltip": "対応するテキストエンコーダーの重みが含まれる場合、このキャラクターの文章にのみ適用します。0でテキストエンコーダー部分を無効にします。"
+      },
+      "character9_lora": {
+        "name": "キャラクター 9 LoRA",
+        "tooltip": "このキャラクター領域のLoRAです。接続モデルに対応するファイルを選択してください。Noneは無効です。異なるLoRAが増えると計算時間とメモリ使用量が増えます。全体のスタイルや高速化LoRAには通常のローダーを使います。"
+      },
+      "character9_lora_strength": {
+        "name": "キャラクター 9 LoRA モデル強度",
+        "tooltip": "この領域の拡散モデルLoRA強度です。0でモデル部分を無効にします。"
+      },
+      "character9_lora_clip_strength": {
+        "name": "キャラクター 9 LoRA CLIP強度",
+        "tooltip": "対応するテキストエンコーダーの重みが含まれる場合、このキャラクターの文章にのみ適用します。0でテキストエンコーダー部分を無効にします。"
+      },
+      "character10_lora": {
+        "name": "キャラクター 10 LoRA",
+        "tooltip": "このキャラクター領域のLoRAです。接続モデルに対応するファイルを選択してください。Noneは無効です。異なるLoRAが増えると計算時間とメモリ使用量が増えます。全体のスタイルや高速化LoRAには通常のローダーを使います。"
+      },
+      "character10_lora_strength": {
+        "name": "キャラクター 10 LoRA モデル強度",
+        "tooltip": "この領域の拡散モデルLoRA強度です。0でモデル部分を無効にします。"
+      },
+      "character10_lora_clip_strength": {
+        "name": "キャラクター 10 LoRA CLIP強度",
+        "tooltip": "対応するテキストエンコーダーの重みが含まれる場合、このキャラクターの文章にのみ適用します。0でテキストエンコーダー部分を無効にします。"
       }
     },
     "description": "キャラクター/文字を合計1～10領域指定。座標・矩形・混合モード。同じ座標の人物は左右に分散し、矩形の位置は維持します。文字スロットは実際の単語とスタイルを別々に入力し、ディテーラーの人数には含めません。領域数が多いほど品質の保証は難しくなります。"
+  },
+  "RSMultiCharacterLoadImage": {
+    "display_name": "RS マルチキャラクター画像読込",
+    "description": "PNG/WebP からキャラクター・座標・領域別 LoRA 名と強度を復元します。実行時に同名のローカル LoRA を使用します。ベースモデルと全体 LoRA は手動で接続してください。"
   }
 }

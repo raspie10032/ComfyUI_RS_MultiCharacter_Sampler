@@ -1,0 +1,2133 @@
+{
+  "id": "e70d2d4e-8d3b-4111-8402-5b3a90a5253d",
+  "revision": 0,
+  "last_node_id": 5,
+  "last_link_id": 4,
+  "nodes": [
+    {
+      "id": 1,
+      "type": "UNETLoader",
+      "pos": [
+        30,
+        60
+      ],
+      "size": [
+        340,
+        180
+      ],
+      "flags": {},
+      "order": 0,
+      "mode": 0,
+      "inputs": [
+        {
+          "localized_name": "UNet 모델 파일명",
+          "name": "unet_name",
+          "type": "COMBO",
+          "widget": {
+            "name": "unet_name"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "가중치 데이터 유형",
+          "name": "weight_dtype",
+          "type": "COMBO",
+          "widget": {
+            "name": "weight_dtype"
+          },
+          "link": null
+        }
+      ],
+      "outputs": [
+        {
+          "localized_name": "모델",
+          "name": "MODEL",
+          "type": "MODEL",
+          "slot_index": 0,
+          "links": [
+            1
+          ]
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "UNETLoader",
+        "cnr_id": "comfy-core"
+      },
+      "widgets_values": [
+        "anima-base-v1.0.safetensors",
+        "default"
+      ],
+      "widgets_values_named": {
+        "unet_name": "anima-base-v1.0.safetensors",
+        "weight_dtype": "default"
+      }
+    },
+    {
+      "id": 2,
+      "type": "RSMultiCharacterPrompts",
+      "pos": [
+        390,
+        60
+      ],
+      "size": [
+        500,
+        586
+      ],
+      "flags": {},
+      "order": 1,
+      "mode": 0,
+      "inputs": [
+        {
+          "localized_name": "활성 영역 수 (캐릭터 + 글자)",
+          "name": "character_count",
+          "type": "INT",
+          "widget": {
+            "name": "character_count"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "character1_enable",
+          "name": "character1_enable",
+          "type": "BOOLEAN",
+          "widget": {
+            "name": "character1_enable"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "character1",
+          "name": "character1",
+          "type": "STRING",
+          "widget": {
+            "name": "character1"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "character1_uc",
+          "name": "character1_uc",
+          "type": "STRING",
+          "widget": {
+            "name": "character1_uc"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "character1_x",
+          "name": "character1_x",
+          "type": "FLOAT",
+          "widget": {
+            "name": "character1_x"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "character1_y",
+          "name": "character1_y",
+          "type": "FLOAT",
+          "widget": {
+            "name": "character1_y"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "character2_enable",
+          "name": "character2_enable",
+          "type": "BOOLEAN",
+          "widget": {
+            "name": "character2_enable"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "character2",
+          "name": "character2",
+          "type": "STRING",
+          "widget": {
+            "name": "character2"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "character2_uc",
+          "name": "character2_uc",
+          "type": "STRING",
+          "widget": {
+            "name": "character2_uc"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "character2_x",
+          "name": "character2_x",
+          "type": "FLOAT",
+          "widget": {
+            "name": "character2_x"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "character2_y",
+          "name": "character2_y",
+          "type": "FLOAT",
+          "widget": {
+            "name": "character2_y"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "character3_enable",
+          "name": "character3_enable",
+          "type": "BOOLEAN",
+          "widget": {
+            "name": "character3_enable"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "character3",
+          "name": "character3",
+          "type": "STRING",
+          "widget": {
+            "name": "character3"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "character3_uc",
+          "name": "character3_uc",
+          "type": "STRING",
+          "widget": {
+            "name": "character3_uc"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "character3_x",
+          "name": "character3_x",
+          "type": "FLOAT",
+          "widget": {
+            "name": "character3_x"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "character3_y",
+          "name": "character3_y",
+          "type": "FLOAT",
+          "widget": {
+            "name": "character3_y"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "character4_enable",
+          "name": "character4_enable",
+          "type": "BOOLEAN",
+          "widget": {
+            "name": "character4_enable"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "character4",
+          "name": "character4",
+          "type": "STRING",
+          "widget": {
+            "name": "character4"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "character4_uc",
+          "name": "character4_uc",
+          "type": "STRING",
+          "widget": {
+            "name": "character4_uc"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "character4_x",
+          "name": "character4_x",
+          "type": "FLOAT",
+          "widget": {
+            "name": "character4_x"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "character4_y",
+          "name": "character4_y",
+          "type": "FLOAT",
+          "widget": {
+            "name": "character4_y"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "character5_enable",
+          "name": "character5_enable",
+          "type": "BOOLEAN",
+          "widget": {
+            "name": "character5_enable"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "character5",
+          "name": "character5",
+          "type": "STRING",
+          "widget": {
+            "name": "character5"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "character5_uc",
+          "name": "character5_uc",
+          "type": "STRING",
+          "widget": {
+            "name": "character5_uc"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "character5_x",
+          "name": "character5_x",
+          "type": "FLOAT",
+          "widget": {
+            "name": "character5_x"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "character5_y",
+          "name": "character5_y",
+          "type": "FLOAT",
+          "widget": {
+            "name": "character5_y"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "character6_enable",
+          "name": "character6_enable",
+          "type": "BOOLEAN",
+          "widget": {
+            "name": "character6_enable"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "character6",
+          "name": "character6",
+          "type": "STRING",
+          "widget": {
+            "name": "character6"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "character6_uc",
+          "name": "character6_uc",
+          "type": "STRING",
+          "widget": {
+            "name": "character6_uc"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "character6_x",
+          "name": "character6_x",
+          "type": "FLOAT",
+          "widget": {
+            "name": "character6_x"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "character6_y",
+          "name": "character6_y",
+          "type": "FLOAT",
+          "widget": {
+            "name": "character6_y"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "character7_enable",
+          "name": "character7_enable",
+          "type": "BOOLEAN",
+          "widget": {
+            "name": "character7_enable"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "character7",
+          "name": "character7",
+          "type": "STRING",
+          "widget": {
+            "name": "character7"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "character7_uc",
+          "name": "character7_uc",
+          "type": "STRING",
+          "widget": {
+            "name": "character7_uc"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "character7_x",
+          "name": "character7_x",
+          "type": "FLOAT",
+          "widget": {
+            "name": "character7_x"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "character7_y",
+          "name": "character7_y",
+          "type": "FLOAT",
+          "widget": {
+            "name": "character7_y"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "character8_enable",
+          "name": "character8_enable",
+          "type": "BOOLEAN",
+          "widget": {
+            "name": "character8_enable"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "character8",
+          "name": "character8",
+          "type": "STRING",
+          "widget": {
+            "name": "character8"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "character8_uc",
+          "name": "character8_uc",
+          "type": "STRING",
+          "widget": {
+            "name": "character8_uc"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "character8_x",
+          "name": "character8_x",
+          "type": "FLOAT",
+          "widget": {
+            "name": "character8_x"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "character8_y",
+          "name": "character8_y",
+          "type": "FLOAT",
+          "widget": {
+            "name": "character8_y"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "character9_enable",
+          "name": "character9_enable",
+          "type": "BOOLEAN",
+          "widget": {
+            "name": "character9_enable"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "character9",
+          "name": "character9",
+          "type": "STRING",
+          "widget": {
+            "name": "character9"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "character9_uc",
+          "name": "character9_uc",
+          "type": "STRING",
+          "widget": {
+            "name": "character9_uc"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "character9_x",
+          "name": "character9_x",
+          "type": "FLOAT",
+          "widget": {
+            "name": "character9_x"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "character9_y",
+          "name": "character9_y",
+          "type": "FLOAT",
+          "widget": {
+            "name": "character9_y"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "character10_enable",
+          "name": "character10_enable",
+          "type": "BOOLEAN",
+          "widget": {
+            "name": "character10_enable"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "character10",
+          "name": "character10",
+          "type": "STRING",
+          "widget": {
+            "name": "character10"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "character10_uc",
+          "name": "character10_uc",
+          "type": "STRING",
+          "widget": {
+            "name": "character10_uc"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "character10_x",
+          "name": "character10_x",
+          "type": "FLOAT",
+          "widget": {
+            "name": "character10_x"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "character10_y",
+          "name": "character10_y",
+          "type": "FLOAT",
+          "widget": {
+            "name": "character10_y"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "영역 지정 방식",
+          "name": "layout_mode",
+          "shape": 7,
+          "type": "COMBO",
+          "widget": {
+            "name": "layout_mode"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "영역 1 너비",
+          "name": "character1_width",
+          "shape": 7,
+          "type": "FLOAT",
+          "widget": {
+            "name": "character1_width"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "영역 1 높이",
+          "name": "character1_height",
+          "shape": 7,
+          "type": "FLOAT",
+          "widget": {
+            "name": "character1_height"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "영역 2 너비",
+          "name": "character2_width",
+          "shape": 7,
+          "type": "FLOAT",
+          "widget": {
+            "name": "character2_width"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "영역 2 높이",
+          "name": "character2_height",
+          "shape": 7,
+          "type": "FLOAT",
+          "widget": {
+            "name": "character2_height"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "영역 3 너비",
+          "name": "character3_width",
+          "shape": 7,
+          "type": "FLOAT",
+          "widget": {
+            "name": "character3_width"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "영역 3 높이",
+          "name": "character3_height",
+          "shape": 7,
+          "type": "FLOAT",
+          "widget": {
+            "name": "character3_height"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "영역 4 너비",
+          "name": "character4_width",
+          "shape": 7,
+          "type": "FLOAT",
+          "widget": {
+            "name": "character4_width"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "영역 4 높이",
+          "name": "character4_height",
+          "shape": 7,
+          "type": "FLOAT",
+          "widget": {
+            "name": "character4_height"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "영역 5 너비",
+          "name": "character5_width",
+          "shape": 7,
+          "type": "FLOAT",
+          "widget": {
+            "name": "character5_width"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "영역 5 높이",
+          "name": "character5_height",
+          "shape": 7,
+          "type": "FLOAT",
+          "widget": {
+            "name": "character5_height"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "영역 6 너비",
+          "name": "character6_width",
+          "shape": 7,
+          "type": "FLOAT",
+          "widget": {
+            "name": "character6_width"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "영역 6 높이",
+          "name": "character6_height",
+          "shape": 7,
+          "type": "FLOAT",
+          "widget": {
+            "name": "character6_height"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "영역 7 너비",
+          "name": "character7_width",
+          "shape": 7,
+          "type": "FLOAT",
+          "widget": {
+            "name": "character7_width"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "영역 7 높이",
+          "name": "character7_height",
+          "shape": 7,
+          "type": "FLOAT",
+          "widget": {
+            "name": "character7_height"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "영역 8 너비",
+          "name": "character8_width",
+          "shape": 7,
+          "type": "FLOAT",
+          "widget": {
+            "name": "character8_width"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "영역 8 높이",
+          "name": "character8_height",
+          "shape": 7,
+          "type": "FLOAT",
+          "widget": {
+            "name": "character8_height"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "영역 9 너비",
+          "name": "character9_width",
+          "shape": 7,
+          "type": "FLOAT",
+          "widget": {
+            "name": "character9_width"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "영역 9 높이",
+          "name": "character9_height",
+          "shape": 7,
+          "type": "FLOAT",
+          "widget": {
+            "name": "character9_height"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "영역 10 너비",
+          "name": "character10_width",
+          "shape": 7,
+          "type": "FLOAT",
+          "widget": {
+            "name": "character10_width"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "영역 10 높이",
+          "name": "character10_height",
+          "shape": 7,
+          "type": "FLOAT",
+          "widget": {
+            "name": "character10_height"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "영역 1 종류",
+          "name": "character1_kind",
+          "shape": 7,
+          "type": "COMBO",
+          "widget": {
+            "name": "character1_kind"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "영역 1 실제로 쓸 글자",
+          "name": "character1_text",
+          "shape": 7,
+          "type": "STRING",
+          "widget": {
+            "name": "character1_text"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "영역 2 종류",
+          "name": "character2_kind",
+          "shape": 7,
+          "type": "COMBO",
+          "widget": {
+            "name": "character2_kind"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "영역 2 실제로 쓸 글자",
+          "name": "character2_text",
+          "shape": 7,
+          "type": "STRING",
+          "widget": {
+            "name": "character2_text"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "영역 3 종류",
+          "name": "character3_kind",
+          "shape": 7,
+          "type": "COMBO",
+          "widget": {
+            "name": "character3_kind"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "영역 3 실제로 쓸 글자",
+          "name": "character3_text",
+          "shape": 7,
+          "type": "STRING",
+          "widget": {
+            "name": "character3_text"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "영역 4 종류",
+          "name": "character4_kind",
+          "shape": 7,
+          "type": "COMBO",
+          "widget": {
+            "name": "character4_kind"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "영역 4 실제로 쓸 글자",
+          "name": "character4_text",
+          "shape": 7,
+          "type": "STRING",
+          "widget": {
+            "name": "character4_text"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "영역 5 종류",
+          "name": "character5_kind",
+          "shape": 7,
+          "type": "COMBO",
+          "widget": {
+            "name": "character5_kind"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "영역 5 실제로 쓸 글자",
+          "name": "character5_text",
+          "shape": 7,
+          "type": "STRING",
+          "widget": {
+            "name": "character5_text"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "영역 6 종류",
+          "name": "character6_kind",
+          "shape": 7,
+          "type": "COMBO",
+          "widget": {
+            "name": "character6_kind"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "영역 6 실제로 쓸 글자",
+          "name": "character6_text",
+          "shape": 7,
+          "type": "STRING",
+          "widget": {
+            "name": "character6_text"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "영역 7 종류",
+          "name": "character7_kind",
+          "shape": 7,
+          "type": "COMBO",
+          "widget": {
+            "name": "character7_kind"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "영역 7 실제로 쓸 글자",
+          "name": "character7_text",
+          "shape": 7,
+          "type": "STRING",
+          "widget": {
+            "name": "character7_text"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "영역 8 종류",
+          "name": "character8_kind",
+          "shape": 7,
+          "type": "COMBO",
+          "widget": {
+            "name": "character8_kind"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "영역 8 실제로 쓸 글자",
+          "name": "character8_text",
+          "shape": 7,
+          "type": "STRING",
+          "widget": {
+            "name": "character8_text"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "영역 9 종류",
+          "name": "character9_kind",
+          "shape": 7,
+          "type": "COMBO",
+          "widget": {
+            "name": "character9_kind"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "영역 9 실제로 쓸 글자",
+          "name": "character9_text",
+          "shape": 7,
+          "type": "STRING",
+          "widget": {
+            "name": "character9_text"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "영역 10 종류",
+          "name": "character10_kind",
+          "shape": 7,
+          "type": "COMBO",
+          "widget": {
+            "name": "character10_kind"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "영역 10 실제로 쓸 글자",
+          "name": "character10_text",
+          "shape": 7,
+          "type": "STRING",
+          "widget": {
+            "name": "character10_text"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "영역 1 좌표/상자",
+          "name": "character1_geometry",
+          "shape": 7,
+          "type": "COMBO",
+          "widget": {
+            "name": "character1_geometry"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "영역 2 좌표/상자",
+          "name": "character2_geometry",
+          "shape": 7,
+          "type": "COMBO",
+          "widget": {
+            "name": "character2_geometry"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "영역 3 좌표/상자",
+          "name": "character3_geometry",
+          "shape": 7,
+          "type": "COMBO",
+          "widget": {
+            "name": "character3_geometry"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "영역 4 좌표/상자",
+          "name": "character4_geometry",
+          "shape": 7,
+          "type": "COMBO",
+          "widget": {
+            "name": "character4_geometry"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "영역 5 좌표/상자",
+          "name": "character5_geometry",
+          "shape": 7,
+          "type": "COMBO",
+          "widget": {
+            "name": "character5_geometry"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "영역 6 좌표/상자",
+          "name": "character6_geometry",
+          "shape": 7,
+          "type": "COMBO",
+          "widget": {
+            "name": "character6_geometry"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "영역 7 좌표/상자",
+          "name": "character7_geometry",
+          "shape": 7,
+          "type": "COMBO",
+          "widget": {
+            "name": "character7_geometry"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "영역 8 좌표/상자",
+          "name": "character8_geometry",
+          "shape": 7,
+          "type": "COMBO",
+          "widget": {
+            "name": "character8_geometry"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "영역 9 좌표/상자",
+          "name": "character9_geometry",
+          "shape": 7,
+          "type": "COMBO",
+          "widget": {
+            "name": "character9_geometry"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "영역 10 좌표/상자",
+          "name": "character10_geometry",
+          "shape": 7,
+          "type": "COMBO",
+          "widget": {
+            "name": "character10_geometry"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "캐릭터 1 LoRA",
+          "name": "character1_lora",
+          "shape": 7,
+          "type": "COMBO",
+          "widget": {
+            "name": "character1_lora"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "캐릭터 1 LoRA 모델 강도",
+          "name": "character1_lora_strength",
+          "shape": 7,
+          "type": "FLOAT",
+          "widget": {
+            "name": "character1_lora_strength"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "캐릭터 1 LoRA CLIP 강도",
+          "name": "character1_lora_clip_strength",
+          "shape": 7,
+          "type": "FLOAT",
+          "widget": {
+            "name": "character1_lora_clip_strength"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "캐릭터 2 LoRA",
+          "name": "character2_lora",
+          "shape": 7,
+          "type": "COMBO",
+          "widget": {
+            "name": "character2_lora"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "캐릭터 2 LoRA 모델 강도",
+          "name": "character2_lora_strength",
+          "shape": 7,
+          "type": "FLOAT",
+          "widget": {
+            "name": "character2_lora_strength"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "캐릭터 2 LoRA CLIP 강도",
+          "name": "character2_lora_clip_strength",
+          "shape": 7,
+          "type": "FLOAT",
+          "widget": {
+            "name": "character2_lora_clip_strength"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "캐릭터 3 LoRA",
+          "name": "character3_lora",
+          "shape": 7,
+          "type": "COMBO",
+          "widget": {
+            "name": "character3_lora"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "캐릭터 3 LoRA 모델 강도",
+          "name": "character3_lora_strength",
+          "shape": 7,
+          "type": "FLOAT",
+          "widget": {
+            "name": "character3_lora_strength"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "캐릭터 3 LoRA CLIP 강도",
+          "name": "character3_lora_clip_strength",
+          "shape": 7,
+          "type": "FLOAT",
+          "widget": {
+            "name": "character3_lora_clip_strength"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "캐릭터 4 LoRA",
+          "name": "character4_lora",
+          "shape": 7,
+          "type": "COMBO",
+          "widget": {
+            "name": "character4_lora"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "캐릭터 4 LoRA 모델 강도",
+          "name": "character4_lora_strength",
+          "shape": 7,
+          "type": "FLOAT",
+          "widget": {
+            "name": "character4_lora_strength"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "캐릭터 4 LoRA CLIP 강도",
+          "name": "character4_lora_clip_strength",
+          "shape": 7,
+          "type": "FLOAT",
+          "widget": {
+            "name": "character4_lora_clip_strength"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "캐릭터 5 LoRA",
+          "name": "character5_lora",
+          "shape": 7,
+          "type": "COMBO",
+          "widget": {
+            "name": "character5_lora"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "캐릭터 5 LoRA 모델 강도",
+          "name": "character5_lora_strength",
+          "shape": 7,
+          "type": "FLOAT",
+          "widget": {
+            "name": "character5_lora_strength"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "캐릭터 5 LoRA CLIP 강도",
+          "name": "character5_lora_clip_strength",
+          "shape": 7,
+          "type": "FLOAT",
+          "widget": {
+            "name": "character5_lora_clip_strength"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "캐릭터 6 LoRA",
+          "name": "character6_lora",
+          "shape": 7,
+          "type": "COMBO",
+          "widget": {
+            "name": "character6_lora"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "캐릭터 6 LoRA 모델 강도",
+          "name": "character6_lora_strength",
+          "shape": 7,
+          "type": "FLOAT",
+          "widget": {
+            "name": "character6_lora_strength"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "캐릭터 6 LoRA CLIP 강도",
+          "name": "character6_lora_clip_strength",
+          "shape": 7,
+          "type": "FLOAT",
+          "widget": {
+            "name": "character6_lora_clip_strength"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "캐릭터 7 LoRA",
+          "name": "character7_lora",
+          "shape": 7,
+          "type": "COMBO",
+          "widget": {
+            "name": "character7_lora"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "캐릭터 7 LoRA 모델 강도",
+          "name": "character7_lora_strength",
+          "shape": 7,
+          "type": "FLOAT",
+          "widget": {
+            "name": "character7_lora_strength"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "캐릭터 7 LoRA CLIP 강도",
+          "name": "character7_lora_clip_strength",
+          "shape": 7,
+          "type": "FLOAT",
+          "widget": {
+            "name": "character7_lora_clip_strength"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "캐릭터 8 LoRA",
+          "name": "character8_lora",
+          "shape": 7,
+          "type": "COMBO",
+          "widget": {
+            "name": "character8_lora"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "캐릭터 8 LoRA 모델 강도",
+          "name": "character8_lora_strength",
+          "shape": 7,
+          "type": "FLOAT",
+          "widget": {
+            "name": "character8_lora_strength"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "캐릭터 8 LoRA CLIP 강도",
+          "name": "character8_lora_clip_strength",
+          "shape": 7,
+          "type": "FLOAT",
+          "widget": {
+            "name": "character8_lora_clip_strength"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "캐릭터 9 LoRA",
+          "name": "character9_lora",
+          "shape": 7,
+          "type": "COMBO",
+          "widget": {
+            "name": "character9_lora"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "캐릭터 9 LoRA 모델 강도",
+          "name": "character9_lora_strength",
+          "shape": 7,
+          "type": "FLOAT",
+          "widget": {
+            "name": "character9_lora_strength"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "캐릭터 9 LoRA CLIP 강도",
+          "name": "character9_lora_clip_strength",
+          "shape": 7,
+          "type": "FLOAT",
+          "widget": {
+            "name": "character9_lora_clip_strength"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "캐릭터 10 LoRA",
+          "name": "character10_lora",
+          "shape": 7,
+          "type": "COMBO",
+          "widget": {
+            "name": "character10_lora"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "캐릭터 10 LoRA 모델 강도",
+          "name": "character10_lora_strength",
+          "shape": 7,
+          "type": "FLOAT",
+          "widget": {
+            "name": "character10_lora_strength"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "캐릭터 10 LoRA CLIP 강도",
+          "name": "character10_lora_clip_strength",
+          "shape": 7,
+          "type": "FLOAT",
+          "widget": {
+            "name": "character10_lora_clip_strength"
+          },
+          "link": null
+        }
+      ],
+      "outputs": [
+        {
+          "localized_name": "character_pipe",
+          "name": "character_pipe",
+          "type": "RS_MC_CHARACTER_PIPE",
+          "slot_index": 0,
+          "links": [
+            4
+          ]
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "RSMultiCharacterPrompts",
+        "cnr_id": "comfyui-rs-multicharacter-sampler",
+        "ver": "0.1.6"
+      },
+      "widgets_values": [
+        2,
+        true,
+        "An adult woman with short black bob hair, red jacket over a black shirt and black trousers, standing casually on a university garden path.",
+        "",
+        0.25,
+        0.6,
+        true,
+        "An adult woman with long blonde hair, white blouse and a blue skirt, standing casually on a university garden path.",
+        "",
+        0.75,
+        0.6,
+        true,
+        "Bold red uppercase title lettering.",
+        "",
+        0.5,
+        0.14,
+        true,
+        "",
+        "",
+        0.5,
+        0.5,
+        true,
+        "",
+        "",
+        0.5,
+        0.5,
+        true,
+        "",
+        "",
+        0.5,
+        0.5,
+        true,
+        "",
+        "",
+        0.5,
+        0.5,
+        true,
+        "",
+        "",
+        0.5,
+        0.5,
+        true,
+        "",
+        "",
+        0.5,
+        0.5,
+        true,
+        "",
+        "",
+        0.5,
+        0.5,
+        "points",
+        0.4,
+        0.7,
+        0.4,
+        0.7,
+        0.65,
+        0.2,
+        0.4,
+        0.8,
+        0.4,
+        0.8,
+        0.4,
+        0.8,
+        0.4,
+        0.8,
+        0.4,
+        0.8,
+        0.4,
+        0.8,
+        0.4,
+        0.8,
+        "character",
+        "",
+        "character",
+        "",
+        "text",
+        "HELLO",
+        "character",
+        "",
+        "character",
+        "",
+        "character",
+        "",
+        "character",
+        "",
+        "character",
+        "",
+        "character",
+        "",
+        "character",
+        "",
+        "point",
+        "point",
+        "point",
+        "point",
+        "point",
+        "point",
+        "point",
+        "point",
+        "point",
+        "point",
+        "anima_RSC.safetensors",
+        1,
+        0,
+        "anima_MyMyArtStyleLoRA.safetensors",
+        1,
+        0,
+        "None",
+        1,
+        1,
+        "None",
+        1,
+        1,
+        "None",
+        1,
+        1,
+        "None",
+        1,
+        1,
+        "None",
+        1,
+        1,
+        "None",
+        1,
+        1,
+        "None",
+        1,
+        1,
+        "None",
+        1,
+        1
+      ],
+      "widgets_values_named": {
+        "character_count": 2,
+        "character1_enable": true,
+        "character1": "An adult woman with short black bob hair, red jacket over a black shirt and black trousers, standing casually on a university garden path.",
+        "character1_uc": "",
+        "character1_x": 0.25,
+        "character1_y": 0.6,
+        "character2_enable": true,
+        "character2": "An adult woman with long blonde hair, white blouse and a blue skirt, standing casually on a university garden path.",
+        "character2_uc": "",
+        "character2_x": 0.75,
+        "character2_y": 0.6,
+        "character3_enable": true,
+        "character3": "Bold red uppercase title lettering.",
+        "character3_uc": "",
+        "character3_x": 0.5,
+        "character3_y": 0.14,
+        "character4_enable": true,
+        "character4": "",
+        "character4_uc": "",
+        "character4_x": 0.5,
+        "character4_y": 0.5,
+        "character5_enable": true,
+        "character5": "",
+        "character5_uc": "",
+        "character5_x": 0.5,
+        "character5_y": 0.5,
+        "character6_enable": true,
+        "character6": "",
+        "character6_uc": "",
+        "character6_x": 0.5,
+        "character6_y": 0.5,
+        "character7_enable": true,
+        "character7": "",
+        "character7_uc": "",
+        "character7_x": 0.5,
+        "character7_y": 0.5,
+        "character8_enable": true,
+        "character8": "",
+        "character8_uc": "",
+        "character8_x": 0.5,
+        "character8_y": 0.5,
+        "character9_enable": true,
+        "character9": "",
+        "character9_uc": "",
+        "character9_x": 0.5,
+        "character9_y": 0.5,
+        "character10_enable": true,
+        "character10": "",
+        "character10_uc": "",
+        "character10_x": 0.5,
+        "character10_y": 0.5,
+        "layout_mode": "points",
+        "character1_width": 0.4,
+        "character1_height": 0.7,
+        "character2_width": 0.4,
+        "character2_height": 0.7,
+        "character3_width": 0.65,
+        "character3_height": 0.2,
+        "character4_width": 0.4,
+        "character4_height": 0.8,
+        "character5_width": 0.4,
+        "character5_height": 0.8,
+        "character6_width": 0.4,
+        "character6_height": 0.8,
+        "character7_width": 0.4,
+        "character7_height": 0.8,
+        "character8_width": 0.4,
+        "character8_height": 0.8,
+        "character9_width": 0.4,
+        "character9_height": 0.8,
+        "character10_width": 0.4,
+        "character10_height": 0.8,
+        "character1_kind": "character",
+        "character1_text": "",
+        "character2_kind": "character",
+        "character2_text": "",
+        "character3_kind": "text",
+        "character3_text": "HELLO",
+        "character4_kind": "character",
+        "character4_text": "",
+        "character5_kind": "character",
+        "character5_text": "",
+        "character6_kind": "character",
+        "character6_text": "",
+        "character7_kind": "character",
+        "character7_text": "",
+        "character8_kind": "character",
+        "character8_text": "",
+        "character9_kind": "character",
+        "character9_text": "",
+        "character10_kind": "character",
+        "character10_text": "",
+        "character1_geometry": "point",
+        "character2_geometry": "point",
+        "character3_geometry": "point",
+        "character4_geometry": "point",
+        "character5_geometry": "point",
+        "character6_geometry": "point",
+        "character7_geometry": "point",
+        "character8_geometry": "point",
+        "character9_geometry": "point",
+        "character10_geometry": "point",
+        "character1_lora": "anima_RSC.safetensors",
+        "character1_lora_strength": 1,
+        "character1_lora_clip_strength": 0,
+        "character2_lora": "anima_MyMyArtStyleLoRA.safetensors",
+        "character2_lora_strength": 1,
+        "character2_lora_clip_strength": 0,
+        "character3_lora": "None",
+        "character3_lora_strength": 1,
+        "character3_lora_clip_strength": 1,
+        "character4_lora": "None",
+        "character4_lora_strength": 1,
+        "character4_lora_clip_strength": 1,
+        "character5_lora": "None",
+        "character5_lora_strength": 1,
+        "character5_lora_clip_strength": 1,
+        "character6_lora": "None",
+        "character6_lora_strength": 1,
+        "character6_lora_clip_strength": 1,
+        "character7_lora": "None",
+        "character7_lora_strength": 1,
+        "character7_lora_clip_strength": 1,
+        "character8_lora": "None",
+        "character8_lora_strength": 1,
+        "character8_lora_clip_strength": 1,
+        "character9_lora": "None",
+        "character9_lora_strength": 1,
+        "character9_lora_clip_strength": 1,
+        "character10_lora": "None",
+        "character10_lora_strength": 1,
+        "character10_lora_clip_strength": 1
+      }
+    },
+    {
+      "id": 3,
+      "type": "RSMultiCharacterSampler",
+      "pos": [
+        1000,
+        60
+      ],
+      "size": [
+        440,
+        1000
+      ],
+      "flags": {},
+      "order": 4,
+      "mode": 0,
+      "inputs": [
+        {
+          "localized_name": "model",
+          "name": "model",
+          "type": "MODEL",
+          "link": 1
+        },
+        {
+          "localized_name": "clip",
+          "name": "clip",
+          "type": "CLIP",
+          "link": 2
+        },
+        {
+          "localized_name": "vae",
+          "name": "vae",
+          "type": "VAE",
+          "link": 3
+        },
+        {
+          "localized_name": "character_pipe",
+          "name": "character_pipe",
+          "type": "RS_MC_CHARACTER_PIPE",
+          "link": 4
+        },
+        {
+          "localized_name": "prompt",
+          "name": "prompt",
+          "type": "STRING",
+          "widget": {
+            "name": "prompt"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "negative_prompt",
+          "name": "negative_prompt",
+          "type": "STRING",
+          "widget": {
+            "name": "negative_prompt"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "width",
+          "name": "width",
+          "type": "INT",
+          "widget": {
+            "name": "width"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "height",
+          "name": "height",
+          "type": "INT",
+          "widget": {
+            "name": "height"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "seed",
+          "name": "seed",
+          "type": "INT",
+          "widget": {
+            "name": "seed"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "steps",
+          "name": "steps",
+          "type": "INT",
+          "widget": {
+            "name": "steps"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "cfg",
+          "name": "cfg",
+          "type": "FLOAT",
+          "widget": {
+            "name": "cfg"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "sampler_name",
+          "name": "sampler_name",
+          "type": "COMBO",
+          "widget": {
+            "name": "sampler_name"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "scheduler",
+          "name": "scheduler",
+          "type": "COMBO",
+          "widget": {
+            "name": "scheduler"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "autosave",
+          "name": "autosave",
+          "type": "BOOLEAN",
+          "widget": {
+            "name": "autosave"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "save_format",
+          "name": "save_format",
+          "type": "COMBO",
+          "widget": {
+            "name": "save_format"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "webp_quality",
+          "name": "webp_quality",
+          "type": "INT",
+          "widget": {
+            "name": "webp_quality"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "prompt_syntax",
+          "name": "prompt_syntax",
+          "shape": 7,
+          "type": "COMBO",
+          "widget": {
+            "name": "prompt_syntax"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "use_image_settings",
+          "name": "use_image_settings",
+          "shape": 7,
+          "type": "BOOLEAN",
+          "widget": {
+            "name": "use_image_settings"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "region_feather",
+          "name": "region_feather",
+          "shape": 7,
+          "type": "FLOAT",
+          "widget": {
+            "name": "region_feather"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "initial_common_prior",
+          "name": "initial_common_prior",
+          "shape": 7,
+          "type": "FLOAT",
+          "widget": {
+            "name": "initial_common_prior"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "common_after_step3_boost",
+          "name": "common_after_step3_boost",
+          "shape": 7,
+          "type": "FLOAT",
+          "widget": {
+            "name": "common_after_step3_boost"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "initial_character_gain",
+          "name": "initial_character_gain",
+          "shape": 7,
+          "type": "FLOAT",
+          "widget": {
+            "name": "initial_character_gain"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "initial_spatial_separation",
+          "name": "initial_spatial_separation",
+          "shape": 7,
+          "type": "FLOAT",
+          "widget": {
+            "name": "initial_spatial_separation"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "boundary_hold_steps",
+          "name": "boundary_hold_steps",
+          "shape": 7,
+          "type": "INT",
+          "widget": {
+            "name": "boundary_hold_steps"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "boundary_decrement",
+          "name": "boundary_decrement",
+          "shape": 7,
+          "type": "FLOAT",
+          "widget": {
+            "name": "boundary_decrement"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "레이아웃 처리",
+          "name": "layout_method",
+          "shape": 7,
+          "type": "COMBO",
+          "widget": {
+            "name": "layout_method"
+          },
+          "link": null
+        }
+      ],
+      "outputs": [
+        {
+          "localized_name": "image",
+          "name": "image",
+          "type": "IMAGE",
+          "slot_index": 0,
+          "links": []
+        },
+        {
+          "localized_name": "latent",
+          "name": "latent",
+          "type": "LATENT",
+          "slot_index": 1,
+          "links": []
+        },
+        {
+          "localized_name": "character_pipe",
+          "name": "character_pipe",
+          "type": "RS_MC_CHARACTER_PIPE",
+          "slot_index": 2,
+          "links": []
+        },
+        {
+          "localized_name": "generation_info",
+          "name": "generation_info",
+          "type": "STRING",
+          "slot_index": 3,
+          "links": []
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "RSMultiCharacterSampler",
+        "cnr_id": "comfyui-rs-multicharacter-sampler",
+        "ver": "0.1.6"
+      },
+      "widgets_values": [
+        "An anime illustration of two adult women standing side by side in a sunny university garden, medium shot. Flowers, trees and a brick campus building form one continuous background.",
+        "worst quality, low quality, bad anatomy, extra arms, extra legs, extra person, watermark, nude, naked, white background, blank background, reference sheet, character sheet, collage, panels, border, extra people, extra person",
+        1024,
+        768,
+        250917,
+        "fixed",
+        30,
+        4,
+        "euler_ancestral",
+        "sgm_uniform",
+        true,
+        "PNG",
+        90,
+        "ComfyUI",
+        false,
+        0.04,
+        0.6,
+        0.1,
+        1.7,
+        0.9,
+        3,
+        0.2,
+        "regional"
+      ],
+      "widgets_values_named": {
+        "prompt": "An anime illustration of two adult women standing side by side in a sunny university garden, medium shot. Flowers, trees and a brick campus building form one continuous background.",
+        "negative_prompt": "worst quality, low quality, bad anatomy, extra arms, extra legs, extra person, watermark, nude, naked, white background, blank background, reference sheet, character sheet, collage, panels, border, extra people, extra person",
+        "width": 1024,
+        "height": 768,
+        "seed": 250917,
+        "control_after_generate": "fixed",
+        "steps": 30,
+        "cfg": 4,
+        "sampler_name": "euler_ancestral",
+        "scheduler": "sgm_uniform",
+        "autosave": true,
+        "save_format": "PNG",
+        "webp_quality": 90,
+        "prompt_syntax": "ComfyUI",
+        "use_image_settings": false,
+        "region_feather": 0.04,
+        "initial_common_prior": 0.6,
+        "common_after_step3_boost": 0.1,
+        "initial_character_gain": 1.7,
+        "initial_spatial_separation": 0.9,
+        "boundary_hold_steps": 3,
+        "boundary_decrement": 0.2,
+        "layout_method": "regional"
+      }
+    },
+    {
+      "id": 4,
+      "type": "CLIPLoader",
+      "pos": [
+        30,
+        460
+      ],
+      "size": [
+        340,
+        180
+      ],
+      "flags": {},
+      "order": 2,
+      "mode": 0,
+      "inputs": [
+        {
+          "localized_name": "CLIP 파일명",
+          "name": "clip_name",
+          "type": "COMBO",
+          "widget": {
+            "name": "clip_name"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "유형",
+          "name": "type",
+          "type": "COMBO",
+          "widget": {
+            "name": "type"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "장치",
+          "name": "device",
+          "shape": 7,
+          "type": "COMBO",
+          "widget": {
+            "name": "device"
+          },
+          "link": null
+        }
+      ],
+      "outputs": [
+        {
+          "localized_name": "CLIP",
+          "name": "CLIP",
+          "type": "CLIP",
+          "slot_index": 0,
+          "links": [
+            2
+          ]
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "CLIPLoader",
+        "cnr_id": "comfy-core"
+      },
+      "widgets_values": [
+        "qwen_3_06b_base.safetensors",
+        "stable_diffusion",
+        "default"
+      ],
+      "widgets_values_named": {
+        "clip_name": "qwen_3_06b_base.safetensors",
+        "type": "stable_diffusion",
+        "device": "default"
+      }
+    },
+    {
+      "id": 5,
+      "type": "VAELoader",
+      "pos": [
+        30,
+        250
+      ],
+      "size": [
+        340,
+        180
+      ],
+      "flags": {},
+      "order": 3,
+      "mode": 0,
+      "inputs": [
+        {
+          "localized_name": "vae 파일명",
+          "name": "vae_name",
+          "type": "COMBO",
+          "widget": {
+            "name": "vae_name"
+          },
+          "link": null
+        }
+      ],
+      "outputs": [
+        {
+          "localized_name": "VAE",
+          "name": "VAE",
+          "type": "VAE",
+          "slot_index": 0,
+          "links": [
+            3
+          ]
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "VAELoader",
+        "cnr_id": "comfy-core"
+      },
+      "widgets_values": [
+        "qwen_image_vae.safetensors"
+      ],
+      "widgets_values_named": {
+        "vae_name": "qwen_image_vae.safetensors"
+      }
+    }
+  ],
+  "links": [
+    [
+      1,
+      1,
+      0,
+      3,
+      0,
+      "MODEL"
+    ],
+    [
+      2,
+      4,
+      0,
+      3,
+      1,
+      "CLIP"
+    ],
+    [
+      3,
+      5,
+      0,
+      3,
+      2,
+      "VAE"
+    ],
+    [
+      4,
+      2,
+      0,
+      3,
+      3,
+      "RS_MC_CHARACTER_PIPE"
+    ]
+  ],
+  "groups": [],
+  "config": {},
+  "extra": {
+    "ds": {
+      "scale": 0.6,
+      "offset": [
+        480,
+        130
+      ]
+    }
+  },
+  "version": 0.4
+}

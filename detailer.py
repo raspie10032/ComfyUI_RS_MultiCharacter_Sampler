@@ -16,6 +16,7 @@ from .image_utils import tensor_to_pil, validate_single_image
 from .metadata import FORMATS, captions, graph_assets, object_json, save_image, validate_format, text_region_records
 from .prompt_syntax import parse_naiv4, to_comfyui
 from .runtime_control import check_interrupted
+from .regional_lora import RegionalLoras, active_lora, lora_records
 
 
 def _prompts(pipe):
@@ -30,7 +31,7 @@ def _resize(image, size):
 
 
 def _sample_crop(crop, mask, *, model, clip, vae, positive, negative, seed, steps, cfg,
-                 sampler_name, scheduler, denoise, guide_size, max_size):
+                 sampler_name, scheduler, denoise, guide_size, max_size, lora_hook=None):
     from nodes import common_ksampler
     check_interrupted()
     height, width = crop.shape[1:3]
@@ -47,6 +48,12 @@ def _sample_crop(crop, mask, *, model, clip, vae, positive, negative, seed, step
         raise ValueError("Use an image VAE or Anima single-frame VAE. / 이미지용 또는 Anima 단일 프레임 VAE를 연결해 주세요.")
     if not torch.isfinite(latent).all():
         raise ValueError("VAE encoding produced nonfinite values; check the VAE and its precision.")
+    if lora_hook is not None:
+        import comfy.hooks
+        model = model.clone()
+        model.hook_mode = comfy.hooks.EnumHookMode.MinVram
+        positive_cond = comfy.hooks.set_hooks_for_conditioning(positive_cond, lora_hook)
+        negative_cond = comfy.hooks.set_hooks_for_conditioning(negative_cond, lora_hook)
     sampled = common_ksampler(model, seed, steps, cfg, sampler_name, scheduler, positive_cond,
                              negative_cond, {"samples": latent, "noise_mask": noise_mask}, denoise=denoise)[0]
     decoded = vae.decode(sampled["samples"])
@@ -88,6 +95,7 @@ def detail_record(pipe, width, height, settings, assets, report):
         "assets": assets, "image_size": [width, height], "report": report}]
     local["boxes"] = [list(c.bbox) if c.bbox is not None else None for c in pipe.characters]
     local["text_regions"] = text_region_records(pipe)
+    local["character_loras"] = lora_records(pipe)
     original = local.get("settings", {})
     record = {"prompt": pipe.prompt or "", "uc": pipe.negative_prompt or "", "width": width, "height": height,
               **captions(pipe), "rs_multicharacter": local}
@@ -194,6 +202,7 @@ class RSMultiCharacterDetailer:
                 for i, score in zip(uncertain, scores):
                     matches[i] = match_characters(score, chars, match_min_score, match_min_margin)
         out, used, items = image.clone(), torch.zeros_like(image[..., 0]), []
+        loras = None
         for i, (seg, match) in enumerate(zip(regions, matches)):
             check_interrupted()
             rect = _crop_box(seg.crop_region, width, height)
@@ -215,9 +224,16 @@ class RSMultiCharacterDetailer:
             region_seed = (seed + i) % (1 << 64)
             progress.report(f"Region {i+1}/{count} → character {item['character']}", i/max(1, count), force=True)
             mask = torch.from_numpy(owns.copy()).to(crop.device)
-            edited, size = _sample_crop(crop, mask, model=model, clip=clip, vae=vae,
+            lora_options = {}
+            if active_lora(character_pipe.characters[match.character_index]):
+                if loras is None:
+                    loras = RegionalLoras(model, clip, character_pipe.characters)
+                lora_options = {"lora_hook": loras.hooks[match.character_index]}
+                item["lora"] = lora_records(character_pipe)[match.character_index]
+            crop_clip = loras.clips[match.character_index] if loras else clip
+            edited, size = _sample_crop(crop, mask, model=model, clip=crop_clip, vae=vae,
                 positive=positive, negative=uc, seed=region_seed, steps=steps, cfg=cfg,
-                sampler_name=sampler_name, scheduler=scheduler, denoise=denoise, guide_size=guide_size, max_size=max_size)
+                sampler_name=sampler_name, scheduler=scheduler, denoise=denoise, guide_size=guide_size, max_size=max_size, **lora_options)
             alpha = torch.from_numpy(inside_alpha(owns, mask_feather)).to(crop)[None, ..., None]
             target = out[:, y0:y1, x0:x1, :]
             out[:, y0:y1, x0:x1, :] = torch.where(mask[None, ..., None], crop*(1-alpha)+edited*alpha, target)

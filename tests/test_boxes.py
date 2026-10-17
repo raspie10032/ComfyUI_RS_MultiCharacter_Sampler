@@ -11,6 +11,8 @@ import unittest
 import torch
 import torch.nn.functional as F
 from PIL import Image
+from types import SimpleNamespace
+from unittest.mock import patch
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
 PKG = Path(__file__).resolve().parents[1].name
@@ -23,7 +25,8 @@ class BoxTests(unittest.TestCase):
             c.Character('blue',x=.65,y=.5,bbox=(.4,.1,.9,.9))), 'garden', 'bad')
 
     def test_input_optional_tail_preserves_legacy_and_hidden_slots(self):
-        fields=c.RSMultiCharacterPrompts.INPUT_TYPES()
+        with patch.dict(sys.modules, folder_paths=SimpleNamespace(get_filename_list=lambda _: [])):
+            fields=c.RSMultiCharacterPrompts.INPUT_TYPES()
         self.assertEqual(len(fields['required']),51)
         self.assertEqual(next(iter(fields['optional'])),'layout_mode')
         pipe,=c.RSMultiCharacterPrompts().build(1,layout_mode='boxes',character1='red',

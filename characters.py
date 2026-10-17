@@ -1,6 +1,6 @@
 # SPDX-License-Identifier: GPL-3.0-only
 """Original prompt text travels in one dedicated, immutable pipe."""
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 import math
 
 PIPE_TYPE = "RS_MC_CHARACTER_PIPE"
@@ -14,10 +14,18 @@ class Character:
     y: float = .5
     # Normalized left, top, right, bottom; absent in pre-Epsilon pipes.
     bbox: tuple | None = None
+    lora_name: str = field(default="None", kw_only=True)
+    lora_strength: float = field(default=1., kw_only=True)
+    lora_clip_strength: float = field(default=1., kw_only=True)
 
     def __post_init__(self):
         if not isinstance(self.prompt, str) or not isinstance(self.uc, str):
             raise ValueError("Character prompts must be text.")
+        if not isinstance(self.lora_name, str) or not self.lora_name:
+            raise ValueError("Choose a local LoRA file or None.")
+        for value in (self.lora_strength, self.lora_clip_strength):
+            if isinstance(value, bool) or not isinstance(value, (int, float)) or not math.isfinite(value):
+                raise ValueError("LoRA strengths must be finite numbers.")
         if any(isinstance(v, bool) or not isinstance(v, (float, int)) or
                not math.isfinite(v) or not 0 <= v <= 1 for v in (self.x, self.y)):
             raise ValueError("Character X/Y must be finite numbers from 0 to 1.")
@@ -46,6 +54,8 @@ class TextRegion(Character):
         super().__post_init__()
         if self.bbox is None or not isinstance(self.text, str) or not self.text.strip():
             raise ValueError("A text region needs a box and nonempty literal text. / 텍스트 영역에는 상자와 실제로 쓸 글자를 입력해 주세요.")
+        if self.lora_name != "None":
+            raise ValueError("Per-character LoRA is not applied to text regions.")
 
 
 @dataclass(frozen=True)
@@ -79,6 +89,7 @@ class CharacterPipe:
 class RSMultiCharacterPrompts:
     @classmethod
     def INPUT_TYPES(cls):
+        import folder_paths
         fields = {"character_count": ("INT", {"default": 5, "min": 1, "max": 10,
             "tooltip": "Only visible, enabled, nonempty slots are used. Hidden text stays saved but is not generated."})}
         for i in range(1, 11):
@@ -104,6 +115,13 @@ class RSMultiCharacterPrompts:
         for i in range(1, 11):
             boxes[f"character{i}_geometry"] = (["point", "box"], {"default": "point",
                 "tooltip": "Mixed mode: point = automatic partition from X/Y; box = explicit center and size. Text always uses a box. Boxes take priority inside their bounds."})
+        for i in range(1, 11):
+            boxes[f"character{i}_lora"] = (["None", *folder_paths.get_filename_list("loras")], {"default": "None",
+                "tooltip": "Optional LoRA for this character. Use a file for the connected model family. Separate LoRA predictions are blended in this region; more distinct LoRAs increase time and memory. Global style/acceleration LoRAs still use normal loaders."})
+            boxes[f"character{i}_lora_strength"] = ("FLOAT", {"default": 1., "min": -10., "max": 10., "step": .05,
+                "tooltip": "Diffusion-model LoRA strength in this region. Zero disables the model part."})
+            boxes[f"character{i}_lora_clip_strength"] = ("FLOAT", {"default": 1., "min": -10., "max": 10., "step": .05,
+                "tooltip": "Text-encoder LoRA strength for this character's prompt only, if the file contains compatible text-encoder weights. Zero disables that part."})
         return {"required": fields, "optional": boxes}
 
     RETURN_TYPES = (PIPE_TYPE,)
@@ -152,5 +170,8 @@ class RSMultiCharacterPrompts:
                     text_regions.append(TextRegion(text, values.get(f"character{i}_uc", ""), x, y, bbox,
                         values.get(f"character{i}_text", "")))
                 else:
-                    chars.append(Character(text, values.get(f"character{i}_uc", ""), x, y, bbox))
+                    chars.append(Character(text, values.get(f"character{i}_uc", ""), x, y, bbox,
+                        lora_name=values.get(f"character{i}_lora", "None"),
+                        lora_strength=values.get(f"character{i}_lora_strength", 1.),
+                        lora_clip_strength=values.get(f"character{i}_lora_clip_strength", 1.)))
         return (CharacterPipe(tuple(chars), text_regions=tuple(text_regions)),)

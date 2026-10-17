@@ -1,6 +1,8 @@
 # ComfyUI_RS_MultiCharacter_Sampler
 
-**0.1.5 Epsilon · Anima · SDXL · Krea 2 · MOSS · SD1.5 (experimental, unstable)** — independent prompts with X/Y, box and mixed regions for local ComfyUI generation.
+**0.1.6 Zeta · Anima · SDXL · Krea 2 · MOSS · SD1.5 (experimental, unstable)** — independent prompts with X/Y, box and mixed regions for local ComfyUI generation.
+
+**New in Zeta:** choose a LoRA and model/CLIP strengths for each character. The sampler blends masked predictions through native ComfyUI hooks; the detailer uses the matched character's LoRA. [Usage, cost and limits](docs/regional-lora.md).
 
 **New in Epsilon:** mixed point/box layouts, literal text regions, eight editable model-family presets, MOSS native layout mode, and two-person object-box examples for Anima and Krea 2. See [release notes and validation scope](docs/release-0.1.5.md).
 
@@ -29,7 +31,7 @@ To try **two people plus one word**, use region count `3`, `layout_mode=mixed`, 
 
 ## Install
 
-Find **RS MultiCharacter Sampler (Epsilon)** in ComfyUI-Manager, or open the [Comfy Registry page](https://registry.comfy.org/publishers/raspie10032/nodes/comfyui-rs-multicharacter-sampler). Package ID: `comfyui-rs-multicharacter-sampler`. Restart ComfyUI after installation. If the new listing is not yet visible in your Manager cache, refresh its node list or use the Git installation below.
+Find **RS MultiCharacter Sampler** in ComfyUI-Manager, or open the [Comfy Registry page](https://registry.comfy.org/publishers/raspie10032/nodes/comfyui-rs-multicharacter-sampler). Package ID: `comfyui-rs-multicharacter-sampler`. Restart ComfyUI after installation. If the new listing is not yet visible in your Manager cache, refresh its node list or use the Git installation below.
 
 For Git installation, clone this repository into your ComfyUI `custom_nodes` directory, then restart ComfyUI. Use one installation method; do not install a second copy alongside an existing Git checkout.
 

@@ -11,6 +11,8 @@ from pathlib import Path
 import sys
 from types import SimpleNamespace
 import unittest
+import tempfile
+from dataclasses import replace
 from unittest.mock import patch
 
 import torch
@@ -65,7 +67,10 @@ class NativeModelTests(unittest.TestCase):
     def test_sdxl_mixed_native_sampling(self): self.unet_node("SDXL", boxes="mixed")
     def test_sd15_mixed_native_sampling(self): self.unet_node("SD1.5", boxes="mixed")
 
-    def unet_node(self, family, boxes=False):
+    def test_regional_lora_uses_native_hooks_and_restores_shared_model(self):
+        self.unet_node("SD1.5", lora_trial=True)
+
+    def unet_node(self, family, boxes=False, lora_trial=False):
         """Run the public node through real SD1.5/SDXL U-Net/sampler wrappers on CPU.
 
         A small random UNet and synthetic CLIP/VAE keep this an API integration
@@ -118,6 +123,8 @@ class NativeModelTests(unittest.TestCase):
         self.assertEqual(model.model_options, original)
         self.assertEqual(audit['pooled_conditioning'], 'none' if sd15 else 'common_prompt_native_adm')
         self.assertEqual(json.loads(restored_pipe.generation_json)['engine'], family.lower() + '-spatial-alpha-1')
+        if lora_trial:
+            self.check_regional_lora(model, clip, vae, pipe, nodes)
         if sd15:
             def invoke():
                 return nodes.RSMultiCharacterSampler().generate(
@@ -133,6 +140,60 @@ class NativeModelTests(unittest.TestCase):
                 with patch.dict(contexts, common=[[torch.zeros(bad_shape), {}]]):
                     with self.assertRaisesRegex(ValueError, 'matching CLIP-L'):
                         invoke()
+
+    def check_regional_lora(self, model, clip, vae, pipe, node_module):
+        import folder_paths
+        model.model.model_config.unet_config['num_res_blocks'] = [1, 1]
+        clip.cond_stage_model = torch.nn.Linear(1, 1)
+        weights = {}
+        for key, value in model.model.state_dict().items():
+            if '.attn2.to_v.weight' in key:
+                stem = key[:-len('.weight')]
+                weights[stem + '.lora_up.weight'] = torch.randn(value.shape[0], 2) * .3
+                weights[stem + '.lora_down.weight'] = torch.randn(2, value.shape[1]) * .3
+        self.assertTrue(weights)
+        original = {k: v.clone() for k,v in model.model.state_dict().items()}
+        import latent_preview
+        first_steps = []
+        def generate(p):
+            captures = []
+            def capture(step, x0, x, total):
+                if step == 0: captures.append(x0.detach().clone())
+            with torch.no_grad(), patch.object(latent_preview, 'prepare_callback', return_value=capture):
+                result = node_module.RSMultiCharacterSampler().generate(model, clip, vae, p, 'common', 'negative',
+                    width=64, height=64, seed=771, steps=2, cfg=3., sampler_name='euler_ancestral', scheduler='normal',
+                    region_feather=0., autosave=False)['result'][1]['samples']
+            first_steps.append(captures[0])
+            return result
+        with tempfile.TemporaryDirectory() as tmp:
+            file = str(Path(tmp) / 'synthetic.pt')
+            torch.save(weights, file)
+            with patch.object(folder_paths, 'get_filename_list', return_value=['synthetic.pt']), \
+                 patch.object(folder_paths, 'get_full_path_or_raise', return_value=file):
+                base = generate(pipe)
+                left = replace(pipe, characters=(replace(pipe.characters[0],lora_name='synthetic.pt',lora_clip_strength=0.),pipe.characters[1]))
+                loader = importlib.import_module(PKG + '.regional_lora').RegionalLoras
+                repeated = loader(model, clip, (left.characters[0], replace(left.characters[0], lora_clip_strength=.8)))
+                self.assertIs(repeated.hooks[0], repeated.hooks[1])
+                right = replace(pipe, characters=(pipe.characters[0],replace(pipe.characters[1],lora_name='synthetic.pt',lora_clip_strength=0.)))
+                a,b = generate(left),generate(right)
+                self.assertFalse(torch.equal(a,base));self.assertFalse(torch.equal(b,base));self.assertFalse(torch.equal(a,b))
+                base_step, left_step, right_step = first_steps[:3]
+                torch.testing.assert_close(left_step[...,4:],base_step[...,4:],atol=1e-5,rtol=1e-5)
+                torch.testing.assert_close(right_step[...,:4],base_step[...,:4],atol=1e-5,rtol=1e-5)
+                self.assertGreater((left_step[...,:4]-base_step[...,:4]).abs().max().item(),1e-4)
+                self.assertGreater((right_step[...,4:]-base_step[...,4:]).abs().max().item(),1e-4)
+                self.assertTrue(torch.equal(generate(pipe),base))
+                zero = replace(left,characters=(replace(left.characters[0],lora_strength=0.),left.characters[1]))
+                self.assertTrue(torch.equal(generate(zero),base))
+                with patch.object(model.model, 'apply_model', side_effect=RuntimeError('injected denoising failure')):
+                    with self.assertRaisesRegex(RuntimeError, 'injected denoising failure'):
+                        generate(left)
+                self.assertTrue(torch.equal(generate(pipe),base))
+                for key,value in original.items():self.assertTrue(torch.equal(model.model.state_dict()[key],value),key)
+                missing = replace(left,characters=(replace(left.characters[0],lora_name='../outside.pt'),left.characters[1]))
+                with self.assertRaisesRegex(ValueError, 'missing'):generate(missing)
+                self.assertTrue(torch.equal(generate(pipe),base))
 
     def joint(self, family, boxes=False):
         j = importlib.import_module(PKG+'.joint_engine')

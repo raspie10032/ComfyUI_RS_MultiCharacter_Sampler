@@ -11,6 +11,7 @@ from PIL import Image, features
 from PIL.PngImagePlugin import PngInfo
 
 from .characters import Character, CharacterPipe, TextRegion
+from .regional_lora import lora_records
 
 SOFTWARE = "ComfyUI_RS_MultiCharacter_Sampler"
 FORMATS = ["PNG", "WebP lossless", "WebP lossy"]
@@ -51,6 +52,7 @@ def build_record(pipe, settings, assets, centers, audit, engine="anima-spatial-a
         "rs_multicharacter": {"version": 1, "engine": engine,
             "prompt_syntax": pipe.syntax, "settings": settings, "assets": assets,
             "boxes": [c.bbox for c in pipe.characters],
+            "character_loras": lora_records(pipe),
             "text_regions": text_region_records(pipe),
             "effective_centers": centers, "spatial_slots": audit["spatial_slots"]},
     }
@@ -128,6 +130,12 @@ def pipe_from_record(record):
                 raise ValueError("Each box must be a coordinate array or null.")
             chars = [replace(c, bbox=tuple(box) if box is not None else None) for c, box in zip(chars, boxes)]
         texts = local.get("text_regions", []) if local else []
+        if local and "character_loras" in local:
+            loras = local["character_loras"]
+            if not isinstance(loras, list) or len(loras) != len(chars) or any(not isinstance(v, dict) for v in loras):
+                raise ValueError("LoRA metadata must match the character count.")
+            chars = [replace(c, lora_name=v["name"], lora_strength=v["strength_model"],
+                             lora_clip_strength=v["strength_clip"]) for c, v in zip(chars, loras)]
         if not isinstance(texts, list) or len(texts) + len(chars) > 10:
             raise ValueError("Text metadata must be a list with at most 10 total regions.")
         text_regions = []

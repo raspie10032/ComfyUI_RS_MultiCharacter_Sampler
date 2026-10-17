@@ -15,13 +15,13 @@ NODE_CLASS_MAPPINGS = {
 }
 NODE_DISPLAY_NAME_MAPPINGS = {
     "RSMultiCharacterPrompts": "RS MultiCharacter Prompts",
-    "RSMultiCharacterSampler": "RS MultiCharacter Sampler (Epsilon)",
+    "RSMultiCharacterSampler": "RS MultiCharacter Sampler (Zeta)",
     "RSMultiCharacterLoadImage": "RS MultiCharacter Load Image",
     "RSMultiCharacterDetailer": "RS MultiCharacter Detailer",
     "RSMultiCharacterDetectionLoader": "RS Detection Combine Loader",
     "RSMultiCharacterTaggerLoader": "RS Character Tagger Loader",
 }
 WEB_DIRECTORY = "./web"
-__version__ = "0.1.5"
+__version__ = "0.1.6"
 
 __all__ = ["NODE_CLASS_MAPPINGS", "NODE_DISPLAY_NAME_MAPPINGS", "WEB_DIRECTORY"]

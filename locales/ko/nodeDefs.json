@@ -160,8 +160,8 @@
     }
   },
   "RSMultiCharacterSampler": {
-    "display_name": "RS 멀티캐릭터 샘플러 (엡실론)",
-    "description": "SD1.5는 실험 지원이며 캐릭터 수와 외형 분리가 불안정합니다. Anima / SD1.5 / SDXL / Krea2 / MOSS 엡실론. 독립 캐릭터 프롬프트와 XY 영역을 1~10개 사용합니다. 모델별 시험 범위는 예제와 검증 문서를 확인해 주세요. 좌표는 프롬프트 영역이며 정확한 인원·자세를 보장하지 않습니다. 처리수가 많을수록 품질을 보장하지 못합니다. 자동 저장은 워크플로 없이 로컬 생성 메타데이터를 기록합니다.",
+    "display_name": "RS 멀티캐릭터 샘플러 (제타)",
+    "description": "SD1.5는 실험 지원이며 캐릭터 수와 외형 분리가 불안정합니다. Anima / SD1.5 / SDXL / Krea2 / MOSS 제타. 독립 캐릭터 프롬프트와 XY 영역을 1~10개 사용합니다. 모델별 시험 범위는 예제와 검증 문서를 확인해 주세요. 좌표는 프롬프트 영역이며 정확한 인원·자세를 보장하지 않습니다. 처리수가 많을수록 품질을 보장하지 못합니다. 자동 저장은 워크플로 없이 로컬 생성 메타데이터를 기록합니다.",
     "inputs": {
       "layout_method": {
         "name": "레이아웃 처리",
@@ -329,8 +329,132 @@
       },
       "character10_geometry": {
         "name": "영역 10 좌표/상자"
+      },
+      "character1_lora": {
+        "name": "캐릭터 1 LoRA",
+        "tooltip": "해당 캐릭터 영역에 쓸 LoRA입니다. 연결한 모델 계열에 맞는 파일을 선택하세요. None은 미사용이며, 서로 다른 LoRA가 늘면 계산 시간과 메모리 사용량이 증가합니다. 스타일·가속 LoRA는 기존 전체 모델 로더를 사용하세요."
+      },
+      "character1_lora_strength": {
+        "name": "캐릭터 1 LoRA 모델 강도",
+        "tooltip": "이 영역의 확산 모델 LoRA 강도입니다. 0이면 모델 부분을 끕니다."
+      },
+      "character1_lora_clip_strength": {
+        "name": "캐릭터 1 LoRA CLIP 강도",
+        "tooltip": "파일에 대응하는 텍스트 인코더 가중치가 있을 때 이 캐릭터 문장에만 적용합니다. 0이면 텍스트 인코더 부분을 끕니다."
+      },
+      "character2_lora": {
+        "name": "캐릭터 2 LoRA",
+        "tooltip": "해당 캐릭터 영역에 쓸 LoRA입니다. 연결한 모델 계열에 맞는 파일을 선택하세요. None은 미사용이며, 서로 다른 LoRA가 늘면 계산 시간과 메모리 사용량이 증가합니다. 스타일·가속 LoRA는 기존 전체 모델 로더를 사용하세요."
+      },
+      "character2_lora_strength": {
+        "name": "캐릭터 2 LoRA 모델 강도",
+        "tooltip": "이 영역의 확산 모델 LoRA 강도입니다. 0이면 모델 부분을 끕니다."
+      },
+      "character2_lora_clip_strength": {
+        "name": "캐릭터 2 LoRA CLIP 강도",
+        "tooltip": "파일에 대응하는 텍스트 인코더 가중치가 있을 때 이 캐릭터 문장에만 적용합니다. 0이면 텍스트 인코더 부분을 끕니다."
+      },
+      "character3_lora": {
+        "name": "캐릭터 3 LoRA",
+        "tooltip": "해당 캐릭터 영역에 쓸 LoRA입니다. 연결한 모델 계열에 맞는 파일을 선택하세요. None은 미사용이며, 서로 다른 LoRA가 늘면 계산 시간과 메모리 사용량이 증가합니다. 스타일·가속 LoRA는 기존 전체 모델 로더를 사용하세요."
+      },
+      "character3_lora_strength": {
+        "name": "캐릭터 3 LoRA 모델 강도",
+        "tooltip": "이 영역의 확산 모델 LoRA 강도입니다. 0이면 모델 부분을 끕니다."
+      },
+      "character3_lora_clip_strength": {
+        "name": "캐릭터 3 LoRA CLIP 강도",
+        "tooltip": "파일에 대응하는 텍스트 인코더 가중치가 있을 때 이 캐릭터 문장에만 적용합니다. 0이면 텍스트 인코더 부분을 끕니다."
+      },
+      "character4_lora": {
+        "name": "캐릭터 4 LoRA",
+        "tooltip": "해당 캐릭터 영역에 쓸 LoRA입니다. 연결한 모델 계열에 맞는 파일을 선택하세요. None은 미사용이며, 서로 다른 LoRA가 늘면 계산 시간과 메모리 사용량이 증가합니다. 스타일·가속 LoRA는 기존 전체 모델 로더를 사용하세요."
+      },
+      "character4_lora_strength": {
+        "name": "캐릭터 4 LoRA 모델 강도",
+        "tooltip": "이 영역의 확산 모델 LoRA 강도입니다. 0이면 모델 부분을 끕니다."
+      },
+      "character4_lora_clip_strength": {
+        "name": "캐릭터 4 LoRA CLIP 강도",
+        "tooltip": "파일에 대응하는 텍스트 인코더 가중치가 있을 때 이 캐릭터 문장에만 적용합니다. 0이면 텍스트 인코더 부분을 끕니다."
+      },
+      "character5_lora": {
+        "name": "캐릭터 5 LoRA",
+        "tooltip": "해당 캐릭터 영역에 쓸 LoRA입니다. 연결한 모델 계열에 맞는 파일을 선택하세요. None은 미사용이며, 서로 다른 LoRA가 늘면 계산 시간과 메모리 사용량이 증가합니다. 스타일·가속 LoRA는 기존 전체 모델 로더를 사용하세요."
+      },
+      "character5_lora_strength": {
+        "name": "캐릭터 5 LoRA 모델 강도",
+        "tooltip": "이 영역의 확산 모델 LoRA 강도입니다. 0이면 모델 부분을 끕니다."
+      },
+      "character5_lora_clip_strength": {
+        "name": "캐릭터 5 LoRA CLIP 강도",
+        "tooltip": "파일에 대응하는 텍스트 인코더 가중치가 있을 때 이 캐릭터 문장에만 적용합니다. 0이면 텍스트 인코더 부분을 끕니다."
+      },
+      "character6_lora": {
+        "name": "캐릭터 6 LoRA",
+        "tooltip": "해당 캐릭터 영역에 쓸 LoRA입니다. 연결한 모델 계열에 맞는 파일을 선택하세요. None은 미사용이며, 서로 다른 LoRA가 늘면 계산 시간과 메모리 사용량이 증가합니다. 스타일·가속 LoRA는 기존 전체 모델 로더를 사용하세요."
+      },
+      "character6_lora_strength": {
+        "name": "캐릭터 6 LoRA 모델 강도",
+        "tooltip": "이 영역의 확산 모델 LoRA 강도입니다. 0이면 모델 부분을 끕니다."
+      },
+      "character6_lora_clip_strength": {
+        "name": "캐릭터 6 LoRA CLIP 강도",
+        "tooltip": "파일에 대응하는 텍스트 인코더 가중치가 있을 때 이 캐릭터 문장에만 적용합니다. 0이면 텍스트 인코더 부분을 끕니다."
+      },
+      "character7_lora": {
+        "name": "캐릭터 7 LoRA",
+        "tooltip": "해당 캐릭터 영역에 쓸 LoRA입니다. 연결한 모델 계열에 맞는 파일을 선택하세요. None은 미사용이며, 서로 다른 LoRA가 늘면 계산 시간과 메모리 사용량이 증가합니다. 스타일·가속 LoRA는 기존 전체 모델 로더를 사용하세요."
+      },
+      "character7_lora_strength": {
+        "name": "캐릭터 7 LoRA 모델 강도",
+        "tooltip": "이 영역의 확산 모델 LoRA 강도입니다. 0이면 모델 부분을 끕니다."
+      },
+      "character7_lora_clip_strength": {
+        "name": "캐릭터 7 LoRA CLIP 강도",
+        "tooltip": "파일에 대응하는 텍스트 인코더 가중치가 있을 때 이 캐릭터 문장에만 적용합니다. 0이면 텍스트 인코더 부분을 끕니다."
+      },
+      "character8_lora": {
+        "name": "캐릭터 8 LoRA",
+        "tooltip": "해당 캐릭터 영역에 쓸 LoRA입니다. 연결한 모델 계열에 맞는 파일을 선택하세요. None은 미사용이며, 서로 다른 LoRA가 늘면 계산 시간과 메모리 사용량이 증가합니다. 스타일·가속 LoRA는 기존 전체 모델 로더를 사용하세요."
+      },
+      "character8_lora_strength": {
+        "name": "캐릭터 8 LoRA 모델 강도",
+        "tooltip": "이 영역의 확산 모델 LoRA 강도입니다. 0이면 모델 부분을 끕니다."
+      },
+      "character8_lora_clip_strength": {
+        "name": "캐릭터 8 LoRA CLIP 강도",
+        "tooltip": "파일에 대응하는 텍스트 인코더 가중치가 있을 때 이 캐릭터 문장에만 적용합니다. 0이면 텍스트 인코더 부분을 끕니다."
+      },
+      "character9_lora": {
+        "name": "캐릭터 9 LoRA",
+        "tooltip": "해당 캐릭터 영역에 쓸 LoRA입니다. 연결한 모델 계열에 맞는 파일을 선택하세요. None은 미사용이며, 서로 다른 LoRA가 늘면 계산 시간과 메모리 사용량이 증가합니다. 스타일·가속 LoRA는 기존 전체 모델 로더를 사용하세요."
+      },
+      "character9_lora_strength": {
+        "name": "캐릭터 9 LoRA 모델 강도",
+        "tooltip": "이 영역의 확산 모델 LoRA 강도입니다. 0이면 모델 부분을 끕니다."
+      },
+      "character9_lora_clip_strength": {
+        "name": "캐릭터 9 LoRA CLIP 강도",
+        "tooltip": "파일에 대응하는 텍스트 인코더 가중치가 있을 때 이 캐릭터 문장에만 적용합니다. 0이면 텍스트 인코더 부분을 끕니다."
+      },
+      "character10_lora": {
+        "name": "캐릭터 10 LoRA",
+        "tooltip": "해당 캐릭터 영역에 쓸 LoRA입니다. 연결한 모델 계열에 맞는 파일을 선택하세요. None은 미사용이며, 서로 다른 LoRA가 늘면 계산 시간과 메모리 사용량이 증가합니다. 스타일·가속 LoRA는 기존 전체 모델 로더를 사용하세요."
+      },
+      "character10_lora_strength": {
+        "name": "캐릭터 10 LoRA 모델 강도",
+        "tooltip": "이 영역의 확산 모델 LoRA 강도입니다. 0이면 모델 부분을 끕니다."
+      },
+      "character10_lora_clip_strength": {
+        "name": "캐릭터 10 LoRA CLIP 강도",
+        "tooltip": "파일에 대응하는 텍스트 인코더 가중치가 있을 때 이 캐릭터 문장에만 적용합니다. 0이면 텍스트 인코더 부분을 끕니다."
       }
     },
     "description": "캐릭터/텍스트 합계 1~10개 영역. 좌표・상자・혼합 모드를 지원합니다. 같은 좌표의 캐릭터는 좌우로 분산하고 상자는 위치를 유지합니다. 텍스트 슬롯은 실제 단어와 글씨 설명을 별도로 입력하며 디테일러 인물 수에서 제외됩니다. 처리수가 많을수록 품질을 보장하지 못합니다."
+  },
+  "RSMultiCharacterLoadImage": {
+    "display_name": "RS 멀티캐릭터 이미지 불러오기",
+    "description": "PNG/WebP에서 캐릭터 프롬프트·좌표·영역별 LoRA 파일명과 강도를 복원합니다. 실행 시 같은 로컬 LoRA 파일을 사용합니다. 기본 모델·전체 LoRA 연결은 직접 설정하세요."
   }
 }

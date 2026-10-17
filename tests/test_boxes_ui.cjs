@@ -6,7 +6,7 @@ vm.runInNewContext(fs.readFileSync('web/characters.js', 'utf8').replace(/^import
 class Node {
     constructor() {
         this.widgets = [{name:'character_count', value:2}, {name:'layout_mode', value:'points'}];
-        for(let i=1;i<=10;i++) for(const [suffix,value] of Object.entries({enable:true, prompt:`char${i}`, x:.5, y:.5, width:.4, height:.8, kind:'character', text:'', geometry:'point'}))
+        for(let i=1;i<=10;i++) for(const [suffix,value] of Object.entries({enable:true, prompt:`char${i}`, x:.5, y:.5, width:.4, height:.8, kind:'character', text:'', geometry:'point', lora:'None', lora_strength:.8, lora_clip_strength:1.}))
             this.widgets.push({name:`character${i}${suffix==='prompt'?'':'_'+suffix}`, value, type:'number', computeSize:()=>[200,20]});
         this.size=[400,100];
     }
@@ -26,9 +26,15 @@ class Node {
     const labels=[];
     const ctx=new Proxy({}, {get:(_,k)=>k==='fillText'?(s)=>labels.push(s):()=>{},set:()=>true});
     preview.draw(ctx,n,400,20); assert(labels.includes('1')&&labels.includes('2')); assert(!labels.includes('3'));
+    assert.equal(w('character1_lora_strength').hidden,true);
+    w('character1_lora').value='character-a.safetensors'; w('character1_lora').callback();
+    assert.notEqual(w('character1_lora_strength').hidden,true);
+    assert.notEqual(w('character1_lora_clip_strength').hidden,true);
+    assert.equal(w('character3_lora').hidden,true);
     assert.equal(w('character2_text').hidden,true);
     w('character2_kind').value='text'; w('character2_text').value='HELLO'; w('character2_kind').callback();
     assert.equal(w('character2_text').type,'number');
+    assert.equal(w('character2_lora').hidden,true);
     preview.draw(ctx,n,400,20); assert(labels.includes('2: HELLO'));
     w('layout_mode').value='mixed'; w('layout_mode').callback();
     assert.equal(w('character1_width').hidden,true);

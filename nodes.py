@@ -163,9 +163,15 @@ class RSMultiCharacterSampler:
         masks = character_masks(pipe.regions, centers, settings["width"], settings["height"], settings["region_feather"])
         convert = (lambda text: to_comfyui(parse_naiv4(text))) if prompt_syntax == "NovelAI" else (lambda text: text)
 
-        def encode(text, converted=False):
+        from .regional_lora import RegionalLoras, active_lora
+        loras = RegionalLoras(model, clip, pipe.characters) if any(active_lora(c) for c in pipe.characters) else None
+        if native_prompt is not None and loras is not None and any(c is not clip for c in loras.clips):
+            raise ValueError("MOSS native layout uses one text encoding. Use regional layout for per-character CLIP LoRA, or set each CLIP strength to zero.")
+
+        def encode(text, converted=False, encoder=None):
             comfy.model_management.throw_exception_if_processing_interrupted()
-            result = clip.encode_from_tokens_scheduled(clip.tokenize(text if converted else convert(text)))
+            encoder = clip if encoder is None else encoder
+            result = encoder.encode_from_tokens_scheduled(encoder.tokenize(text if converted else convert(text)))
             if len(result) != 1:
                 raise ValueError("Scheduled text is unsupported in this beta.")
             t, meta = result[0]
@@ -189,8 +195,8 @@ class RSMultiCharacterSampler:
 
         positive, negative = encode(native_prompt if native_prompt is not None else prompt), encode(negative_prompt)
         conditions = [encode(text_region_caption(c, convert, family not in ("Krea2", "MOSS")), converted=True)[0]
-                      if isinstance(c, TextRegion) else encode(c.prompt)[0]
-                      for c in pipe.regions] if native_prompt is None else []
+                      if isinstance(c, TextRegion) else encode(c.prompt, encoder=loras.clips[i] if loras else clip)[0]
+                      for i, c in enumerate(pipe.regions)] if native_prompt is None else []
         audit = {"layout_method": layout_method,
                  "region_geometry": "boxes" if all(geometry) else "mixed" if any(geometry) else "points",
                  "box_slots": [i+1 for i, is_box in enumerate(geometry) if is_box]}
@@ -219,6 +225,9 @@ class RSMultiCharacterSampler:
             from .joint_engine import JointRouting
             routing = JointRouting(family, conditions, masks, settings, audit, boxes=boxes)
             routing.install(work)
+        if loras is not None:
+            positive, negative = loras.condition_pair(work, positive, negative, masks, pipe.regions)
+            audit["regional_loras"] = loras.audit
         latent = torch.zeros((1, 4, settings["height"] // 8, settings["width"] // 8), device=comfy.model_management.intermediate_device())
         if family in ("SD1.5", "SDXL"):
             # Already 4-channel H/8 x W/8; older ComfyUI has no ratio keyword.
@@ -241,7 +250,7 @@ class RSMultiCharacterSampler:
             json.dumps(record["rs_multicharacter"], ensure_ascii=True), text_regions=pipe.text_regions)
         summary = {**record, "auto_layout_groups": moved, "cross_attention_calls": audit["cross_calls"],
                    "self_attention_calls": audit["self_calls"], "restored_forwards": audit["restored_forwards"], "routing_audit": audit}
-        ui = {"text": [f"{len(pipe.characters)} characters + {len(pipe.text_regions)} text regions · seed {settings['seed']} · {family} epsilon"]}
+        ui = {"text": [f"{len(pipe.characters)} characters + {len(pipe.text_regions)} text regions · seed {settings['seed']} · {family} zeta"]}
         if autosave:
             folder, filename, counter, subfolder, _ = folder_paths.get_save_image_path(
                 "RS_MultiCharacter/RS_MC", folder_paths.get_output_directory(), settings["width"], settings["height"])
@@ -265,7 +274,7 @@ class RSMultiCharacterLoadImage:
     RETURN_NAMES = ("image", "mask", "character_pipe", "generation_info")
     FUNCTION = "load"
     CATEGORY = "RS MultiCharacter"
-    DESCRIPTION = "Loads NAI-shaped character metadata from original PNG/WebP into the dedicated character pipe. Model files are shown as information and never loaded automatically. Use sampler 'use_image_settings' to restore local seed/settings as well."
+    DESCRIPTION = "Loads character metadata from PNG/WebP into the dedicated pipe, including per-character LoRA filenames and strengths. Matching local LoRAs are used when sampling; missing files give an error. Base model/global LoRA files are informational and must be connected manually. Use sampler 'use_image_settings' to restore seed/settings as well."
 
     def load(self, image):
         import folder_paths
