@@ -1,0 +1,373 @@
+{
+  "last_node_id": 21,
+  "last_link_id": 5,
+  "nodes": [
+    {
+      "id": 1,
+      "type": "UNETLoader",
+      "pos": [
+        40,
+        60
+      ],
+      "size": [
+        340,
+        150
+      ],
+      "flags": {},
+      "order": 0,
+      "mode": 0,
+      "inputs": [],
+      "outputs": [
+        {
+          "name": "MODEL",
+          "type": "MODEL",
+          "links": [
+            5
+          ],
+          "slot_index": 0
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "UNETLoader"
+      },
+      "widgets_values": [
+        "moss_image_sft_bf16.safetensors",
+        "default"
+      ]
+    },
+    {
+      "id": 2,
+      "type": "RSMultiCharacterPrompts",
+      "pos": [
+        440,
+        60
+      ],
+      "size": [
+        440,
+        850
+      ],
+      "flags": {},
+      "order": 1,
+      "mode": 0,
+      "inputs": [],
+      "outputs": [
+        {
+          "name": "character_pipe",
+          "type": "RS_MC_CHARACTER_PIPE",
+          "links": [
+            4
+          ],
+          "slot_index": 0
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "RSMultiCharacterPrompts"
+      },
+      "widgets_values": [
+        4,
+        true,
+        "A single adult woman with a short black bob haircut, red eyes, and a red jacket over a black shirt, holding a white ceramic cup.",
+        "",
+        0.25,
+        0.25,
+        true,
+        "A single adult woman with long blonde hair, blue eyes, and a white blouse with a blue skirt, holding a blue ceramic cup.",
+        "",
+        0.75,
+        0.25,
+        true,
+        "A single adult woman with green hair in a high ponytail, purple eyes, wearing an orange sweater and holding a green ceramic cup.",
+        "",
+        0.25,
+        0.75,
+        true,
+        "A single adult woman with long purple hair in twin braids, green eyes, wearing a yellow cardigan and holding a pink ceramic cup.",
+        "",
+        0.75,
+        0.75,
+        true,
+        "",
+        "",
+        0.5,
+        0.5,
+        true,
+        "",
+        "",
+        0.5,
+        0.5,
+        true,
+        "",
+        "",
+        0.5,
+        0.5,
+        true,
+        "",
+        "",
+        0.5,
+        0.5,
+        true,
+        "",
+        "",
+        0.5,
+        0.5,
+        true,
+        "",
+        "",
+        0.5,
+        0.5
+      ]
+    },
+    {
+      "id": 11,
+      "type": "CLIPLoader",
+      "pos": [
+        40,
+        480
+      ],
+      "size": [
+        340,
+        150
+      ],
+      "flags": {},
+      "order": 2,
+      "mode": 0,
+      "inputs": [],
+      "outputs": [
+        {
+          "name": "CLIP",
+          "type": "CLIP",
+          "links": [
+            2
+          ],
+          "slot_index": 0
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "CLIPLoader"
+      },
+      "widgets_values": [
+        "qwen3.5_9b_int8_convrot.safetensors",
+        "moss_image",
+        "default"
+      ]
+    },
+    {
+      "id": 12,
+      "type": "VAELoader",
+      "pos": [
+        40,
+        700
+      ],
+      "size": [
+        340,
+        150
+      ],
+      "flags": {},
+      "order": 3,
+      "mode": 0,
+      "inputs": [],
+      "outputs": [
+        {
+          "name": "VAE",
+          "type": "VAE",
+          "links": [
+            3
+          ],
+          "slot_index": 0
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "VAELoader"
+      },
+      "widgets_values": [
+        "flux2-vae.safetensors"
+      ]
+    },
+    {
+      "id": 20,
+      "type": "RSMultiCharacterSampler",
+      "pos": [
+        960,
+        60
+      ],
+      "size": [
+        440,
+        900
+      ],
+      "flags": {},
+      "order": 5,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "model",
+          "type": "MODEL",
+          "link": 1
+        },
+        {
+          "name": "clip",
+          "type": "CLIP",
+          "link": 2
+        },
+        {
+          "name": "vae",
+          "type": "VAE",
+          "link": 3
+        },
+        {
+          "name": "character_pipe",
+          "type": "RS_MC_CHARACTER_PIPE",
+          "link": 4
+        }
+      ],
+      "outputs": [
+        {
+          "name": "image",
+          "type": "IMAGE",
+          "links": null,
+          "slot_index": 0
+        },
+        {
+          "name": "latent",
+          "type": "LATENT",
+          "links": null,
+          "slot_index": 1
+        },
+        {
+          "name": "character_pipe",
+          "type": "RS_MC_CHARACTER_PIPE",
+          "links": null,
+          "slot_index": 2
+        },
+        {
+          "name": "generation_info",
+          "type": "STRING",
+          "links": null,
+          "slot_index": 3
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "RSMultiCharacterSampler"
+      },
+      "widgets_values": [
+        "A colorful anime group photograph of exactly four adult women in a university garden. Two women stand in the back row, two women sit in the front row. Four clearly visible faces, a single continuous campus scene with trees, soft natural daylight. No panels or collage.",
+        "",
+        1024,
+        1024,
+        942185,
+        "fixed",
+        8,
+        3.0,
+        "euler",
+        "simple",
+        true,
+        "PNG",
+        90,
+        "ComfyUI",
+        false,
+        0.04,
+        0.6,
+        0.1,
+        1.2,
+        0.35,
+        3,
+        0.2
+      ],
+      "title": "RS MultiCharacter Sampler (Delta)"
+    },
+    {
+      "id": 21,
+      "type": "LoraLoaderModelOnly",
+      "title": "MOSS 8-step LoRA",
+      "pos": [
+        40,
+        250
+      ],
+      "size": [
+        340,
+        180
+      ],
+      "flags": {},
+      "order": 4,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "model",
+          "type": "MODEL",
+          "link": 5
+        }
+      ],
+      "outputs": [
+        {
+          "name": "MODEL",
+          "type": "MODEL",
+          "links": [
+            1
+          ],
+          "slot_index": 0
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "LoraLoaderModelOnly"
+      },
+      "widgets_values": [
+        "moss/lodestones_8step_latest_f95df83.safetensors",
+        0.7
+      ]
+    }
+  ],
+  "links": [
+    [
+      1,
+      21,
+      0,
+      20,
+      0,
+      "MODEL"
+    ],
+    [
+      2,
+      11,
+      0,
+      20,
+      1,
+      "CLIP"
+    ],
+    [
+      3,
+      12,
+      0,
+      20,
+      2,
+      "VAE"
+    ],
+    [
+      4,
+      2,
+      0,
+      20,
+      3,
+      "RS_MC_CHARACTER_PIPE"
+    ],
+    [
+      5,
+      1,
+      0,
+      21,
+      0,
+      "MODEL"
+    ]
+  ],
+  "groups": [],
+  "config": {},
+  "extra": {
+    "ds": {
+      "scale": 0.65,
+      "offset": [
+        40,
+        40
+      ]
+    }
+  },
+  "version": 0.4,
+  "id": "c3ebec47-a9c4-4d1c-82e0-90750a5472b0"
+}

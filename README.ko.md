@@ -1,12 +1,12 @@
 # ComfyUI_RS_MultiCharacter_Sampler
 
-**0.1.3 감마 · Anima · SDXL · Krea 2 · MOSS · SD1.5(실험 지원·불안정)**입니다. 공통 프롬프트와 캐릭터별 프롬프트·XY를 전용 파이프로 전달하고, 로컬 모델 내부에서 영역별 attention을 조절합니다. RS NAI 확장이나 API 키는 필요 없습니다.
+**0.1.4 델타 · Anima · SDXL · Krea 2 · MOSS · SD1.5(실험 지원·불안정)**입니다. 공통 프롬프트와 캐릭터별 프롬프트·XY를 전용 파이프로 전달하고, 로컬 모델 내부에서 영역별 attention을 조절합니다. RS NAI 확장이나 API 키는 필요 없습니다.
 
-**0.1.3 감마 업데이트:** 구버전 ComfyUI의 SDXL 호환성을 개선하고, 선택한 모델에 필요한 구현만 검사하도록 수정했습니다. SD1.5 생성도 실험 지원하며, 인원수와 외형 분리는 불안정합니다. [변경 내역과 검증 범위](docs/release-0.1.3.md)
+**0.1.4 델타 업데이트:** MOSS-Image SFT 8스텝 LoRA의 2인·4인 XY 예제, CFG 1/3 비교 결과와 설치 방법을 추가했습니다. 기존 샘플러와 기본 LoRA 로더로 사용합니다. [변경 내역과 검증 범위](docs/release-0.1.4.md)
 
 ## 설치와 사용
 
-ComfyUI-Manager에서 **RS MultiCharacter Sampler (Gamma)**를 검색해 설치하거나 [Comfy Registry 페이지](https://registry.comfy.org/publishers/raspie10032/nodes/comfyui-rs-multicharacter-sampler)를 이용하세요. 패키지 ID는 `comfyui-rs-multicharacter-sampler`입니다. 설치 후 ComfyUI를 재시작하세요. 새 항목이 아직 보이지 않으면 Manager 목록을 갱신하거나 Git으로 설치할 수 있습니다.
+ComfyUI-Manager에서 **RS MultiCharacter Sampler (Delta)**를 검색해 설치하거나 [Comfy Registry 페이지](https://registry.comfy.org/publishers/raspie10032/nodes/comfyui-rs-multicharacter-sampler)를 이용하세요. 패키지 ID는 `comfyui-rs-multicharacter-sampler`입니다. 설치 후 ComfyUI를 재시작하세요. 새 항목이 아직 보이지 않으면 Manager 목록을 갱신하거나 Git으로 설치할 수 있습니다.
 
 Git 설치는 이 저장소를 `ComfyUI/custom_nodes` 안에 복제하면 됩니다. 기존 Git 설치본이 있다면 중복 설치하지 말고 그 설치본을 업데이트하세요. 확산 모델·텍스트 인코더·VAE는 직접 준비합니다. 디테일러의 감지·태거 로더는 선택한 카탈로그 모델이 없을 때 실행 중 내려받으며 진행도를 표시합니다.
 
@@ -46,6 +46,14 @@ MODEL·CLIP·VAE와 기존 캐릭터 파이프를 연결합니다. 공통 칸에
 
 샘플러는 **2~100스텝**을 받습니다. Anima·SDXL의 기존 30스텝 기본값은 유지합니다. 두 새 모델에서도 XY는 프롬프트 영역이며 정확한 인원·자세·복잡한 상호작용을 보장하지 않습니다. 이번 지원 범위는 T2I이며 참조 이미지 편집과 새 모델의 디테일러 품질은 검증 범위에 포함하지 않습니다. 모델 파일·사용 조건·시험 범위는 [지원 문서](docs/krea-moss-validation.md)를 보세요.
 
+
+## MOSS 8스텝 LoRA
+
+[2인 예제](examples/moss-8step/two-cfg3.json) 또는 [4인 XY 예제](examples/moss-8step/four-xy-cfg3.json)를 불러오세요. 저장된 값은 **LoRA 0.7 · 8스텝 · CFG 3 · Euler / simple**입니다. [lodestones/MOSS-Image-SFT-8-steps-dmd](https://huggingface.co/lodestones/MOSS-Image-SFT-8-steps-dmd)의 `lora_latest.safetensors`를 `ComfyUI/models/loras/`에 넣고 목록을 새로고침한 뒤 **Load LoRA (Model Only)**에서 실제 파일명을 선택하세요. 연결은 `Load Diffusion Model → Load LoRA (Model Only) → RS MultiCharacter Sampler`이며 CLIP·VAE는 기존대로 연결합니다.
+
+MOSS-Image SFT·Qwen3.5 9B 인코더(`Load CLIP` 타입 `moss_image`)·Flux2 VAE가 필요합니다. **확장만 업데이트하면 구버전 ComfyUI 코어에 MOSS 지원이 생기지는 않습니다.** 코어와 해당 Python 환경의 의존성을 업데이트하고 재시작하세요. LoRA 시험에는 ComfyUI 0.41.0을 사용했습니다.
+
+이번 두 장면에서는 CFG 3의 캐릭터 특징이 더 선명했고, CFG 1은 빠르지만 일부 색 구분이 약해졌습니다. 8스텝에서 CFG 3은 모델 평가 16회, CFG 1은 8회입니다. 인원수·소품 재현을 보장하는 값은 아닙니다. [CFG 1 예제·정확한 모델 파일·비교 결과·제한](docs/moss-8step.md).
 
 ## 로컬 멀티캐릭터 디테일러
 

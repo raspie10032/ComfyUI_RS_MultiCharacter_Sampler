@@ -84,7 +84,7 @@ class RSMultiCharacterSampler:
     FUNCTION = "generate"
     CATEGORY = "RS MultiCharacter"
     OUTPUT_NODE = True
-    DESCRIPTION = "Anima / SDXL / Krea2 / MOSS Gamma; SD1.5 generation is experimental and unstable. 1–10 independent character prompts and X/Y regions. Validation coverage differs by model; see the examples and validation docs. Horizontal arrangements work best. Coordinates control prompt regions, not exact body positions. More characters do not guarantee quality. Autosaves NAI-shaped metadata without a workflow."
+    DESCRIPTION = "Anima / SDXL / Krea2 / MOSS Delta; SD1.5 generation is experimental and unstable. 1–10 independent character prompts and X/Y regions. Validation coverage differs by model; see the examples and validation docs. Horizontal arrangements work best. Coordinates control prompt regions, not exact body positions. More characters do not guarantee quality. Autosaves NAI-shaped metadata without a workflow."
 
     def generate(self, model, clip, vae, character_pipe, prompt, negative_prompt, width=1536, height=768,
                  seed=0, steps=30, cfg=4., sampler_name="euler_ancestral", scheduler="sgm_uniform",

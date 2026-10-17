@@ -1,7 +1,7 @@
 [project]
 name = "comfyui-rs-multicharacter-sampler"
-version = "0.1.3"
-description = "Anima, SDXL, Krea 2 and MOSS Gamma: multi-character regional sampling and local masked detailing, automatic character matching, detection and tagger loaders, PNG/WebP metadata and prompt restoration. SD1.5 generation is experimental and unstable."
+version = "0.1.4"
+description = "Anima, SDXL, Krea 2 and MOSS Delta: multi-character regional sampling and local masked detailing, automatic character matching, detection and tagger loaders, PNG/WebP metadata and prompt restoration. Includes validated MOSS 8-step LoRA examples. SD1.5 generation is experimental and unstable."
 readme = "README.md"
 license = {file = "LICENSE"}
 requires-python = ">=3.11"
@@ -18,4 +18,4 @@ Documentation = "https://github.com/raspie10032/ComfyUI_RS_MultiCharacter_Sample
 
 [tool.comfy]
 PublisherId = "raspie10032"
-DisplayName = "RS MultiCharacter Sampler (Gamma)"
+DisplayName = "RS MultiCharacter Sampler (Delta)"

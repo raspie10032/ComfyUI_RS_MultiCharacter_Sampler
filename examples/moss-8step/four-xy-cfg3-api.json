@@ -1,0 +1,132 @@
+{
+  "1": {
+    "class_type": "UNETLoader",
+    "inputs": {
+      "unet_name": "moss_image_sft_bf16.safetensors",
+      "weight_dtype": "default"
+    }
+  },
+  "2": {
+    "class_type": "RSMultiCharacterPrompts",
+    "inputs": {
+      "character_count": 4,
+      "character1": "A single adult woman with a short black bob haircut, red eyes, and a red jacket over a black shirt, holding a white ceramic cup.",
+      "character1_uc": "",
+      "character1_enable": true,
+      "character1_x": 0.25,
+      "character1_y": 0.25,
+      "character2": "A single adult woman with long blonde hair, blue eyes, and a white blouse with a blue skirt, holding a blue ceramic cup.",
+      "character2_uc": "",
+      "character2_enable": true,
+      "character2_x": 0.75,
+      "character2_y": 0.25,
+      "character3": "A single adult woman with green hair in a high ponytail, purple eyes, wearing an orange sweater and holding a green ceramic cup.",
+      "character3_uc": "",
+      "character3_enable": true,
+      "character3_x": 0.25,
+      "character3_y": 0.75,
+      "character4": "A single adult woman with long purple hair in twin braids, green eyes, wearing a yellow cardigan and holding a pink ceramic cup.",
+      "character4_uc": "",
+      "character4_enable": true,
+      "character4_x": 0.75,
+      "character4_y": 0.75,
+      "character5": "",
+      "character5_uc": "",
+      "character5_enable": true,
+      "character5_x": 0.5,
+      "character5_y": 0.5,
+      "character6": "",
+      "character6_uc": "",
+      "character6_enable": true,
+      "character6_x": 0.5,
+      "character6_y": 0.5,
+      "character7": "",
+      "character7_uc": "",
+      "character7_enable": true,
+      "character7_x": 0.5,
+      "character7_y": 0.5,
+      "character8": "",
+      "character8_uc": "",
+      "character8_enable": true,
+      "character8_x": 0.5,
+      "character8_y": 0.5,
+      "character9": "",
+      "character9_uc": "",
+      "character9_enable": true,
+      "character9_x": 0.5,
+      "character9_y": 0.5,
+      "character10": "",
+      "character10_uc": "",
+      "character10_enable": true,
+      "character10_x": 0.5,
+      "character10_y": 0.5
+    }
+  },
+  "3": {
+    "class_type": "RSMultiCharacterSampler",
+    "inputs": {
+      "model": [
+        "6",
+        0
+      ],
+      "clip": [
+        "4",
+        0
+      ],
+      "vae": [
+        "5",
+        0
+      ],
+      "character_pipe": [
+        "2",
+        0
+      ],
+      "prompt": "A colorful anime group photograph of exactly four adult women in a university garden. Two women stand in the back row, two women sit in the front row. Four clearly visible faces, a single continuous campus scene with trees, soft natural daylight. No panels or collage.",
+      "negative_prompt": "",
+      "width": 1024,
+      "height": 1024,
+      "seed": 942185,
+      "steps": 8,
+      "cfg": 3.0,
+      "sampler_name": "euler",
+      "scheduler": "simple",
+      "autosave": true,
+      "save_format": "PNG",
+      "webp_quality": 90,
+      "prompt_syntax": "ComfyUI",
+      "use_image_settings": false,
+      "region_feather": 0.04,
+      "initial_common_prior": 0.6,
+      "common_after_step3_boost": 0.1,
+      "initial_character_gain": 1.2,
+      "initial_spatial_separation": 0.35,
+      "boundary_hold_steps": 3,
+      "boundary_decrement": 0.2
+    }
+  },
+  "4": {
+    "class_type": "CLIPLoader",
+    "inputs": {
+      "clip_name": "qwen3.5_9b_int8_convrot.safetensors",
+      "type": "moss_image",
+      "device": "default"
+    }
+  },
+  "5": {
+    "class_type": "VAELoader",
+    "inputs": {
+      "vae_name": "flux2-vae.safetensors"
+    }
+  },
+  "6": {
+    "class_type": "LoraLoaderModelOnly",
+    "inputs": {
+      "model": [
+        "1",
+        0
+      ],
+      "lora_name": "moss/lodestones_8step_latest_f95df83.safetensors",
+      "strength_model": 0.7
+    }
+  }
+}

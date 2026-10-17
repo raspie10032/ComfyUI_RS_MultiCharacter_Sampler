@@ -1,12 +1,12 @@
 # ComfyUI_RS_MultiCharacter_Sampler
 
-**0.1.3 ガンマ · Anima・SDXL・Krea 2・MOSS・SD1.5（実験対応・不安定）**。共通プロンプトと各キャラクターの文章・XY座標を専用パイプで渡し、領域ごとに attention を制御します。RS NAI 拡張や API キーは不要です。
+**0.1.4 デルタ · Anima・SDXL・Krea 2・MOSS・SD1.5（実験対応・不安定）**。共通プロンプトと各キャラクターの文章・XY座標を専用パイプで渡し、領域ごとに attention を制御します。RS NAI 拡張や API キーは不要です。
 
-**0.1.3 ガンマ更新:** 古い ComfyUI での SDXL 互換性を改善し、モデル系列ごとに必要な実装を個別に確認します。SD1.5 の生成を実験対応に追加しましたが、人数と特徴の分離は不安定です。[変更点と検証範囲](docs/release-0.1.3.md)
+**0.1.4 デルタ更新:** MOSS-Image SFT 8ステップ LoRA の2人・4人XYサンプル、CFG 1/3の比較結果と導入手順を追加しました。既存のサンプラーと標準 LoRA ローダーで使用します。[変更点と検証範囲](docs/release-0.1.4.md)
 
 ## 使用方法
 
-ComfyUI-Manager で **RS MultiCharacter Sampler (Gamma)** を検索するか、[Comfy Registry](https://registry.comfy.org/publishers/raspie10032/nodes/comfyui-rs-multicharacter-sampler) からインストールします。パッケージ ID は `comfyui-rs-multicharacter-sampler` です。インストール後に ComfyUI を再起動してください。新しい項目が表示されない場合は Manager の一覧を更新するか、Git でインストールできます。
+ComfyUI-Manager で **RS MultiCharacter Sampler (Delta)** を検索するか、[Comfy Registry](https://registry.comfy.org/publishers/raspie10032/nodes/comfyui-rs-multicharacter-sampler) からインストールします。パッケージ ID は `comfyui-rs-multicharacter-sampler` です。インストール後に ComfyUI を再起動してください。新しい項目が表示されない場合は Manager の一覧を更新するか、Git でインストールできます。
 
 Git の場合はこのリポジトリを `ComfyUI/custom_nodes` に clone します。既存の Git インストールがある場合は重複インストールせず、そちらを更新してください。拡散モデル・テキストエンコーダー・VAEは別途用意します。ディテイラーの検出・タグローダーは、選択したカタログモデルが未導入の場合に実行時ダウンロードし、進捗を表示します。
 
@@ -49,6 +49,14 @@ MODEL・CLIP・VAE と既存のキャラクターパイプを接続します。�
 
 サンプラーは **2～100ステップ** に対応し、Anima / SDXL の既定値は30のままです。XY はプロンプトの領域指定であり、正確な人数・姿勢・複雑な相互作用を保証しません。対応範囲は T2I です。参照画像の編集と新モデルでのディテーラー品質は未検証です。[モデルファイル・利用条件・検証範囲](docs/krea-moss-validation.md)も参照してください。
 
+
+## MOSS 8ステップ LoRA
+
+[2人サンプル](examples/moss-8step/two-cfg3.json) または [4人XYサンプル](examples/moss-8step/four-xy-cfg3.json) を読み込みます。保存値は **LoRA 0.7 · 8ステップ · CFG 3 · Euler / simple** です。[lodestones/MOSS-Image-SFT-8-steps-dmd](https://huggingface.co/lodestones/MOSS-Image-SFT-8-steps-dmd) の `lora_latest.safetensors` を `ComfyUI/models/loras/` に置き、モデル一覧を更新して **Load LoRA (Model Only)** で実際のファイル名を選択します。接続は `Load Diffusion Model → Load LoRA (Model Only) → RS MultiCharacter Sampler`。CLIP・VAE は通常どおり接続します。
+
+MOSS-Image SFT、Qwen3.5 9B エンコーダー（`Load CLIP` タイプ `moss_image`）、Flux2 VAE が必要です。**拡張の更新だけでは古い ComfyUI コアに MOSS 対応は追加されません。** コアと Python 環境の依存関係を更新し、再起動してください。LoRA 試験には ComfyUI 0.41.0 を使用しました。
+
+今回の2場面では CFG 3 の特徴がより鮮明で、CFG 1 は高速ですが一部の色の分離が弱まりました。8ステップで CFG 3 はモデル評価16回、CFG 1 は8回です。人数・小物の再現を保証する設定ではありません。[CFG 1サンプル・モデルファイル・比較結果・制限](docs/moss-8step.md)。
 
 ## ローカルのマルチキャラクター・ディテイラー
 

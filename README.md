@@ -1,8 +1,8 @@
 # ComfyUI_RS_MultiCharacter_Sampler
 
-**0.1.3 Gamma · Anima · SDXL · Krea 2 · MOSS · SD1.5 (experimental, unstable)** — independent character prompts and X/Y prompt regions for local ComfyUI generation.
+**0.1.4 Delta · Anima · SDXL · Krea 2 · MOSS · SD1.5 (experimental, unstable)** — independent character prompts and X/Y prompt regions for local ComfyUI generation.
 
-**New in 0.1.3 Gamma:** SDXL compatibility with older ComfyUI versions, independent checks for optional model architectures, and experimental SD1.5 generation with explicitly unstable character counts and attribute separation. See [release notes and validation scope](docs/release-0.1.3.md).
+**New in 0.1.4 Delta:** MOSS-Image SFT 8-step LoRA examples for two characters and four-character XY layouts, CFG 1/3 comparisons, and setup instructions. Uses the existing sampler and standard LoRA loader. See [release notes and validation scope](docs/release-0.1.4.md).
 
 [한국어](README.ko.md) · [日本語](README.ja.md) · [Architecture](docs/architecture.md) · [Validation](docs/validation.md)
 
@@ -19,7 +19,7 @@ This extension contains six nodes. It does not require the RS NovelAI extension,
 
 ## Install
 
-Find **RS MultiCharacter Sampler (Gamma)** in ComfyUI-Manager, or open the [Comfy Registry page](https://registry.comfy.org/publishers/raspie10032/nodes/comfyui-rs-multicharacter-sampler). Package ID: `comfyui-rs-multicharacter-sampler`. Restart ComfyUI after installation. If the new listing is not yet visible in your Manager cache, refresh its node list or use the Git installation below.
+Find **RS MultiCharacter Sampler (Delta)** in ComfyUI-Manager, or open the [Comfy Registry page](https://registry.comfy.org/publishers/raspie10032/nodes/comfyui-rs-multicharacter-sampler). Package ID: `comfyui-rs-multicharacter-sampler`. Restart ComfyUI after installation. If the new listing is not yet visible in your Manager cache, refresh its node list or use the Git installation below.
 
 For Git installation, clone this repository into your ComfyUI `custom_nodes` directory, then restart ComfyUI. Use one installation method; do not install a second copy alongside an existing Git checkout.
 
@@ -57,6 +57,14 @@ Connect MODEL, CLIP, VAE and the existing character pipe. Write the scene in the
 
 The sampler accepts **2–100 steps**; Anima/SDXL retain their 30-step defaults. XY selects prompt regions and does not guarantee exact counts, poses or complex interactions. This support covers T2I. Reference-image editing and detailer quality on these new models have not been validated. See [model files, terms and validation scope](docs/krea-moss-validation.md).
 
+
+## MOSS 8-step LoRA
+
+Use the [two-character](examples/moss-8step/two-cfg3.json) or [four-character XY](examples/moss-8step/four-xy-cfg3.json) workflow with **LoRA 0.7 · 8 steps · CFG 3 · Euler / simple**. Download `lora_latest.safetensors` from [lodestones/MOSS-Image-SFT-8-steps-dmd](https://huggingface.co/lodestones/MOSS-Image-SFT-8-steps-dmd) into `ComfyUI/models/loras/`, refresh the model list, then select the downloaded filename in **Load LoRA (Model Only)**. Connect `Load Diffusion Model → Load LoRA (Model Only) → RS MultiCharacter Sampler`; CLIP and VAE keep their normal connections.
+
+Use MOSS-Image SFT, a Qwen3.5 9B encoder (`Load CLIP` type `moss_image`), and Flux2 VAE. **Updating this extension alone does not add MOSS to an older ComfyUI core.** Update the core and its Python dependencies, then restart. ComfyUI 0.41.0 was used for the LoRA trial.
+
+CFG 3 gave clearer character attributes in the two tested scenes; CFG 1 was faster but weakened some colors. Eight steps at CFG 3 used 16 model evaluations; CFG 1 used 8. Neither setting guarantees counts or props. [CFG 1 workflows, exact assets, comparisons and limits](docs/moss-8step.md).
 
 ## Local multi-character detailing
 
