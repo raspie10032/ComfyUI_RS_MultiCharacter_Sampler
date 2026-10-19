@@ -17,6 +17,10 @@ from .lora_bypass import linear_layer
 from .regional_lora import grouped_masks
 
 
+class SharedLoraUnsupported(ValueError):
+    """A known capability limit; safe to select independent predictions."""
+
+
 def layer_role(path):
     """Classify by model semantics, never by coincident tensor dimensions."""
     if re.fullmatch(r"blocks\.\d+\.cross_attn\.[kv]_proj", path):
@@ -27,7 +31,7 @@ def layer_role(path):
         return "text"
     if re.fullmatch(r"(?:input_blocks\.\d+\.\d+|middle_block\.\d+|output_blocks\.\d+\.\d+)\.(?:proj_(?:in|out)|transformer_blocks\.\d+\.(?:attn[12]\.(?:to_[qkv]|to_out\.0)|ff\.net\.(?:0\.proj|2)))", path):
         return "image"
-    raise ValueError(f"Shared regional LoRA does not support layer {path!r}; use the original backend.")
+    raise SharedLoraUnsupported(f"Shared regional LoRA does not support layer {path!r}.")
 
 
 class SharedRegionalLora:
@@ -39,7 +43,7 @@ class SharedRegionalLora:
 
         self.is_sdxl = isinstance(model.model, SDXL)
         if not isinstance(model.model, (Anima, SDXL)):
-            raise ValueError("Shared regional LoRA requires Anima or SDXL.")
+            raise SharedLoraUnsupported("Shared regional LoRA requires Anima or SDXL.")
         wrappers = model.get_all_wrappers(WrappersMP.DIFFUSION_MODEL)
         routers = [w.__self__ for w in wrappers if isinstance(getattr(w, '__self__', None), (AnimaRouting, SDXLRouting))]
         if len(routers) != 1:
@@ -57,7 +61,7 @@ class SharedRegionalLora:
             name = record['name']
             plan, reason = loras.bypasses[name]
             if plan is None:
-                raise ValueError(f"Shared regional LoRA requires plain linear adapters: {name}: {reason}.")
+                raise SharedLoraUnsupported(f"Shared regional LoRA requires plain linear adapters: {name}: {reason}.")
             if name not in by_name:
                 by_name[name] = [plan, torch.zeros_like(masks[0]), [0.] * len(regions), set()]
             entry = by_name[name]

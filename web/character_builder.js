@@ -81,6 +81,79 @@ function labels() {
     return ["Layout guide · XY 0–1", "By number · composition is approximate", "Linked values: layout resolved at execution", "Prompt connection missing: "];
 }
 
+export function loraModeHelp(node) {
+    const lang = app.extensionManager?.setting?.get?.("Comfy.Locale") ?? globalThis.navigator?.language ?? "en";
+    const normal = value(node, "lora_application_mode", "precision") === "normal";
+    if (lang.startsWith("ko")) return normal ? [
+        "일반 적용 · 빠른 계산 공유",
+        "Anima·SDXL의 지원되는 선형 LoRA는 레이어 계산을 공유합니다. 정밀 모드와 세부 결과가 달라질 수 있습니다.",
+        "미지원 모델·LoRA는 정밀 방식으로 처리하며 생성 정보에 이유를 표시합니다.",
+        "모든 캐릭터 슬롯에 적용합니다. 디테일러는 두 모드 모두 한 캐릭터씩 정밀 방식으로 보정합니다.",
+    ] : [
+        "정밀 적용 · 캐릭터별 독립 계산",
+        "캐릭터의 LoRA 설정마다 모델 예측을 분리합니다. 지원되는 LoRA는 작은 행렬 최적화를 사용합니다.",
+        "서로 다른 LoRA 설정이 많으면 일반 모드보다 느립니다. 더 좋은 그림이나 완전한 특징 분리를 보장하지 않습니다.",
+        "기존 워크플로의 기본 방식입니다. 모든 캐릭터 슬롯에 적용하며 디테일러도 이 방식으로 보정합니다.",
+    ];
+    if (lang.startsWith("ja")) return normal ? [
+        "通常適用 · 高速なレイヤー共有",
+        "対応するAnima・SDXLの線形LoRAはレイヤー計算を共有します。精密モードとは細部が変わる場合があります。",
+        "未対応のモデル・LoRAは精密方式で処理し、生成情報に理由を表示します。",
+        "全スロットに適用します。Detailerは両モードとも1人ずつ精密方式で補正します。",
+    ] : [
+        "精密適用 · キャラクター別の独立計算",
+        "LoRA設定ごとにモデル予測を分離します。対応LoRAには低ランク行列の最適化を使います。",
+        "異なるLoRA設定が多いほど通常モードより遅くなります。画質向上や完全な特徴分離は保証しません。",
+        "既存ワークフローの既定方式です。全スロットに適用し、Detailerもこの方式で補正します。",
+    ];
+    return normal ? [
+        "Normal · Fast layer sharing",
+        "Supported Anima/SDXL linear LoRAs share layer calculations. Details can differ from Precision.",
+        "Unsupported models/adapters use Precision and report the reason in generation info.",
+        "Applies to every character slot. Detailer corrects one character at a time using Precision in both modes.",
+    ] : [
+        "Precision · Independent character predictions",
+        "Each LoRA setting gets separate model predictions. Supported LoRAs use low-rank optimization.",
+        "More distinct LoRA settings take longer than Normal. This does not guarantee better artwork or complete separation.",
+        "Compatibility default for existing workflows. Applies to every character slot; Detailer uses this method too.",
+    ];
+}
+
+function helpLines(node, width) {
+    const limit = Math.max(240, width - 32), lines = [];
+    for (const text of loraModeHelp(node)) {
+        let line = "", used = 0;
+        for (const token of text.match(/[A-Za-z0-9][A-Za-z0-9/'·.-]*|\s+|[^\s]/gu) ?? []) {
+            const size = [...token].reduce((sum, ch) => sum + (/[\u1100-\uffff]/.test(ch) ? 12 : 7), 0);
+            if (line && used + size > limit) { lines.push(line.trimEnd()); line = ""; used = 0; }
+            if (!line && !token.trim()) continue;
+            line += token; used += size;
+        }
+        if (line) lines.push(line);
+        lines.push("");
+    }
+    return lines;
+}
+
+function addLoraModeHelp(node) {
+    node.addCustomWidget({
+        name: "rs_mc_lora_mode_help", type: "rs_mc_display", serialize: false,
+        options: { serialize: false }, serializeValue: () => undefined,
+        computeSize: (width = node.size?.[0] ?? 340) => [300, helpLines(node, width).length * 17 + 16],
+        draw(ctx, node, width, y) {
+            const lines = helpLines(node, width);
+            ctx.save();
+            ctx.fillStyle = "#171d27"; ctx.fillRect(8, y + 2, width - 16, lines.length * 17 + 10);
+            ctx.font = "12px sans-serif";
+            lines.forEach((line, i) => {
+                ctx.fillStyle = i === 0 ? "#d1e3ff" : "#b4bdcc";
+                ctx.fillText(line, 16, y + 19 + i * 17, width - 32);
+            });
+            ctx.restore();
+        },
+    });
+}
+
 function addDiagram(node) {
     node.addCustomWidget({
         name: "rs_mc_build_layout", type: "rs_mc_display", serialize: false,
@@ -184,6 +257,7 @@ app.registerExtension({
         nodeType.prototype.onNodeCreated=function(){
             const result=created?.apply(this,arguments);
             if(nodeData.name==="RSMultiCharacterPosition" || nodeData.name===finalType) addDiagram(this);
+            if(nodeData.name==="RSMultiCharacterLoRA") addLoraModeHelp(this);
             for(const widget of this.widgets ?? []) {
                 const callback=widget.callback;
                 widget.callback=(...args)=>{callback?.apply(widget,args);visibility(this);};

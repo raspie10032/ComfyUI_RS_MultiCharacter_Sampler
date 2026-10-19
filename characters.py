@@ -4,6 +4,12 @@ from dataclasses import dataclass, field
 import math
 
 PIPE_TYPE = "RS_MC_CHARACTER_PIPE"
+LORA_MODES = ["normal", "precision"]
+
+
+def validate_lora_mode(mode):
+    if mode not in LORA_MODES:
+        raise ValueError("Choose normal or precision for LoRA application. / LoRA 적용 모드는 일반 또는 정밀을 선택해 주세요. / LoRA適用は通常または精密を選んでください。")
 
 
 @dataclass(frozen=True)
@@ -68,12 +74,14 @@ class CharacterPipe:
     generation_json: str | None = None
     # Text regions never enter character matching or NAI character captions.
     text_regions: tuple = ()
+    lora_application_mode: str = field(default="precision", kw_only=True)
 
     @property
     def regions(self):
         return self.characters + self.text_regions
 
     def __post_init__(self):
+        validate_lora_mode(self.lora_application_mode)
         if not isinstance(self.characters, tuple) or not isinstance(self.text_regions, tuple) or not 1 <= len(self.regions) <= 10:
             raise ValueError("Use 1–10 active regions in total. / 활성 캐릭터와 텍스트 영역을 합쳐 1~10개 입력해 주세요.")
         if any(type(c) is not Character or not c.prompt.strip() for c in self.characters):

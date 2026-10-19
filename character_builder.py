@@ -2,7 +2,7 @@
 """Order-independent, immutable editing of numbered character slots."""
 from dataclasses import dataclass, replace
 
-from .characters import Character, CharacterPipe, TextRegion, PIPE_TYPE
+from .characters import Character, CharacterPipe, TextRegion, PIPE_TYPE, LORA_MODES, validate_lora_mode
 
 BUILD_PIPE_TYPE = "RS_MC_BUILD_PIPE"
 
@@ -28,6 +28,7 @@ class Slot:
 class BuildPipe:
     slots: tuple = ()
     prompt_count: int | None = None
+    lora_application_mode: str = "precision"
 
 
 def update_slot(pipe, character_id, **changes):
@@ -80,7 +81,7 @@ def finalize(pipe):
                                    lora_strength=s.strength_model, lora_clip_strength=s.strength_clip))
     if not chars and not texts:
         raise ValueError("Enable at least one nonempty prompt. / 최소 한 개의 프롬프트를 켜 주세요. / 少なくとも1つのプロンプトを有効にしてください。")
-    return CharacterPipe(tuple(chars), text_regions=tuple(texts))
+    return CharacterPipe(tuple(chars), text_regions=tuple(texts), lora_application_mode=pipe.lora_application_mode)
 
 
 def count_input():
@@ -163,15 +164,19 @@ class RSMultiCharacterLoRA(BuilderNode):
             fields[f"character{i}_lora"] = (files, {"default": "None"})
             fields[f"character{i}_lora_strength"] = ("FLOAT", {"default": 1., "min": -10., "max": 10., "step": .05})
             fields[f"character{i}_lora_clip_strength"] = ("FLOAT", {"default": 1., "min": -10., "max": 10., "step": .05})
-        return {"required": fields, "optional": {"building_pipe": (BUILD_PIPE_TYPE,)}}
+        return {"required": fields, "optional": {"building_pipe": (BUILD_PIPE_TYPE,),
+            "lora_application_mode": (LORA_MODES, {"default": "precision",
+                "tooltip": "Normal shares layer calculations for supported Anima/SDXL linear LoRAs. Precision keeps independent predictions per LoRA setting with low-rank optimization. Precision is the compatibility default, not a quality guarantee. Unsupported normal mode uses precision and reports why. Applies to all slots in this pipe; the sampler reads it automatically. Detailing samples one matched character at a time using precision in both modes."})}}
 
     DESCRIPTION = "View and set all character LoRAs together. Numbers match the prompt table. Unlisted slots use None. Models load at generation/detailing; use files for the connected model family."
 
-    def apply(self, character_count=2, building_pipe=None, **values):
-        return (apply_role(building_pipe, "lora", character_count, lambda i: dict(
+    def apply(self, character_count=2, building_pipe=None, lora_application_mode="precision", **values):
+        validate_lora_mode(lora_application_mode)
+        pipe = apply_role(building_pipe, "lora", character_count, lambda i: dict(
             lora_name=values.get(f"character{i}_lora", "None"),
             strength_model=values.get(f"character{i}_lora_strength", 1.),
-            strength_clip=values.get(f"character{i}_lora_clip_strength", 1.))),)
+            strength_clip=values.get(f"character{i}_lora_clip_strength", 1.)))
+        return (replace(pipe, lora_application_mode=lora_application_mode),)
 
 
 class RSMultiCharacterPosition(BuilderNode):

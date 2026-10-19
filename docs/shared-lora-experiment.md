@@ -1,6 +1,18 @@
 # Shared-layer regional LoRA experiment
 
-This clone-only experiment adds an explicit `model_options['rs_mc_lora_execution'] = 'shared_layers'` path for Anima and SDXL. It also enables ordinary linear LoRA bypass on SDXL, retaining independent predictions in the default path. This document describes a candidate, not a released version.
+This clone-only experiment exposes **Normal / Precision** on **RS Character LoRA**. The selection travels through the dedicated pipe and is saved/restored with PNG/WebP metadata. Normal requests shared layer execution for supported Anima/SDXL linear LoRAs; Precision retains independent predictions and small-factor optimization. Existing workflows and images without a mode default to Precision. This document describes a candidate, not a released version.
+
+The description panel below the LoRA controls changes immediately with the selection
+and follows ComfyUI's English, Korean or Japanese locale. It explains the execution
+method, speed/compatibility tradeoffs and scope. It is display only and never enters
+workflow widgets or image metadata. The mode applies to all slots in that pipe.
+Detailer corrects one matched character at a time using Precision in either mode.
+
+Normal falls back to Precision when the model/adapter is unsupported, recording the
+requested mode, effective mode and reason in generation information and image
+metadata. Runtime failures still propagate as errors. No model-side LoRA means no
+model execution difference. The private benchmarking option described in earlier
+experiments remains separate from the product interface.
 
 The shared path evaluates the base model once and adds the appropriate LoRA contribution inside each linear layer. Image features receive spatially weighted deltas. Cross-attention K/V receive their own character-caption deltas; common and negative captions use spatially averaged strengths. Layer roles are identified by model paths rather than matching tensor dimensions. Unsupported patch shapes are rejected in the explicit shared path; ordinary automatic execution retains native weight-hook fallback.
 
@@ -42,4 +54,36 @@ The local experiment harness uses a private `RSBypassBenchmarkSampler` in a sepa
 
 Native ComfyUI CPU tests: 151 passed with no skips, using `RS_MC_TEST_COMFYUI` and setting `comfy.cli_args.args.cpu = True` before discovery. The ordinary GPU-installed interpreter without early CPU setup produced mixed-device test-fixture failures; `ilxl-tests-cpu.log` records the successful complete run. All five JavaScript UI suites passed.
 
-Anima's preceding experiment also compared independent and shared execution. The present ILXL evidence concerns two plain linear character LoRAs and one fixed seed. Other SDXL checkpoints, convolutional/extended adapters, larger casts, external patches and image-quality consistency across seeds remain outside this generation comparison. Existing installed and published extensions are unchanged.
+Anima's preceding experiment also compared independent and shared execution. The timing comparison above concerns two plain linear character LoRAs and one fixed seed. Other SDXL checkpoints, convolutional/extended adapters, larger casts and external patches remain outside this generation comparison. Existing installed and published extensions are unchanged.
+
+## Additional character and UI validation, 2026-10-19
+
+The clone's `validation/ilxl-leakage/manifest.json` contains 41 successful image
+generations with Changli/Zani and Shorekeeper/Carlotta. Controls include three seeds
+per pair with explicit appearance prompts, swapped LoRA assignments, one-sided and
+disabled LoRAs, native weight hooks, and trigger-only prompts. Comparison sheets and
+individual original images are in `validation/ilxl-leakage/index.html`.
+
+Visual review with appearance prompts did not show obvious duplication of the main
+hair colours, eye colours or signature ornaments in those three seeds. This is a
+limited visual observation, not a leakage benchmark. Trigger-only prompts also
+weakened identity in Precision; matching a hair colour alone does not establish
+successful LoRA isolation. Shared hidden states continue to change pose, faces and
+clothing details compared with independent evaluation.
+
+Two further live ILXL generations used the actual split Prompt → LoRA → Position →
+Finalize pipe with no benchmarking override of the selected mode. Normal recorded
+`requested=normal, effective=normal`, 30 model forwards, and 9.59 seconds sampling;
+Precision recorded `requested=precision, effective=precision`, 60 forwards, and
+12.40 seconds. These are single local runs at 1024×768, 30 steps, CFG 5.5,
+Euler ancestral / SGM uniform with Camellya/Phoebe LoRAs. Both restored runtime
+forwards and released temporary factor copies after sampling. Original auto-saved
+PNGs were then read by the real Load Image node: the mode and both LoRA filenames
+returned in the character pipe. Evidence is `validation/lora-node-mode-*.json`.
+
+Python checks: 157 passed. Five JavaScript check suites passed, including mode help
+for all three locales, mode changes, width/height bounds, slot-count changes and
+nonserialization. Firefox on the isolated ComfyUI server additionally confirmed
+the actual Korean Normal/Precision panels below the LoRA controls; screenshots are
+`validation/lora-mode-help-{normal,precision}-ko.png`. Source tests cover unsupported
+mode fallback; the two live ILXL runs above did not require fallback.

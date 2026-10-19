@@ -98,6 +98,7 @@ def detail_record(pipe, width, height, settings, assets, report):
     local["boxes"] = [list(c.bbox) if c.bbox is not None else None for c in pipe.characters]
     local["text_regions"] = text_region_records(pipe)
     local["character_loras"] = lora_records(pipe)
+    local["lora_application_mode"] = pipe.lora_application_mode
     original = local.get("settings", {})
     record = {"prompt": pipe.prompt or "", "uc": pipe.negative_prompt or "", "width": width, "height": height,
               **captions(pipe), "rs_multicharacter": local}
@@ -247,7 +248,8 @@ class RSMultiCharacterDetailer:
                   "detected": len(regions), "edited": edited_count, "skipped": len(regions)-edited_count, "regions": items}
         record = detail_record(character_pipe, width, height, settings, graph_assets(workflow_prompt, unique_id), report)
         enriched = CharacterPipe(character_pipe.characters, character_pipe.prompt, character_pipe.negative_prompt,
-                                 character_pipe.syntax, json.dumps(record["rs_multicharacter"], ensure_ascii=True, allow_nan=False), text_regions=character_pipe.text_regions)
+                                 character_pipe.syntax, json.dumps(record["rs_multicharacter"], ensure_ascii=True, allow_nan=False),
+                                 text_regions=character_pipe.text_regions, lora_application_mode=character_pipe.lora_application_mode)
         text = f"{edited_count}/{len(regions)} regions corrected · {report['skipped']} preserved"
         ui = {"text": [text], "rs_mc_report": [report]}
         if autosave:

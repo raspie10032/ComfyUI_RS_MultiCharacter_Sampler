@@ -24,6 +24,34 @@ class Node {
  get('character2_geometry').value='box';get('character2_geometry').callback();assert.equal(get('character2_width').type,'number');assert.equal(get('character1_width').hidden,true);
  get('character_count').value=5;get('character_count').callback();assert.equal(get('character5_x').type,'number');
  assert.equal(get('rs_mc_build_layout').serializeValue(),undefined);
+ class LoRA extends Node {constructor(){super('RSMultiCharacterLoRA');this.widgets=[{name:'character_count',value:2},{name:'lora_application_mode',value:'normal'},...Array.from({length:10},(_,i)=>({name:`character${i+1}_lora`,value:'None'}))];}}
+ await extension.beforeRegisterNodeDef(LoRA,{name:'RSMultiCharacterLoRA'});
+ const lora=new LoRA();lora.onNodeCreated();
+ const help=lora.widgets.find(w=>w.name==='rs_mc_lora_mode_help');
+ assert.ok(help);assert.equal(lora.widgets.at(-1),help);
+ assert.equal(help.serialize,false);assert.equal(help.options.serialize,false);
+ assert.equal(help.serializeValue(),undefined);
+ let locale='en';sandbox.app.extensionManager={setting:{get:()=>locale}};
+ for(const [language,normal,precision] of [['en','Normal','Precision'],['ko','일반 적용','정밀 적용'],['ja','通常適用','精密適用']]) {
+  locale=language;
+  for(const [mode,heading] of [['normal',normal],['precision',precision]]) {
+   lora.widgets[1].value=mode;lora.widgets[1].callback();
+   const lines=[];
+   const ctx={save(){},restore(){},fillRect(){},fillText(text,x,y,maxWidth){lines.push({text,x,y,maxWidth});}};
+   const height=help.computeSize(340)[1];
+   help.draw(ctx,lora,340,0);
+   assert.ok(lines[0].text.startsWith(heading));
+   assert.ok(lines.every(line=>line.y<height && line.x>=0 && line.maxWidth===308));
+   assert.ok(sandbox.loraModeHelp(lora).some(line=>/Detailer|디테일러/.test(line)));
+   assert.ok(help.computeSize(600)[1]<=height);
+  }
+ }
+ lora.widgets[1].value='normal';
+ for(const count of [1,10,2]) {
+  lora.widgets[0].value=count;lora.widgets[0].callback();
+  assert.equal(lora.widgets[1].value,'normal');
+  assert.equal(lora.widgets[1].hidden,undefined);
+ }
  class Prompt extends Node {constructor(){super('RSMultiCharacterPrompt');this.widgets=[{name:'character_count',value:2},...Array.from({length:10},(_,i)=>({name:`character${i+1}_kind`,value:'character'}))];this.inputs=[{name:'building_pipe',link:null},...Array.from({length:10},(_,i)=>['','_text'].map(suffix=>({name:`character${i+1}${suffix}`,type:'STRING',link:null}))).flat()];}}
  await extension.beforeRegisterNodeDef(Prompt,{name:'RSMultiCharacterPrompt'});
  const p=new Prompt();p.onNodeCreated();assert.equal(p.inputs.filter(i=>i.type==='STRING').length,2);

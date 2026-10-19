@@ -33,6 +33,23 @@ class BuilderTests(unittest.TestCase):
             self.assertEqual(self.assemble(actions), expected)
         self.assertEqual([ch.uc for ch in expected.characters], ['', ''])
 
+    def test_lora_mode_follows_pipe_in_all_orders_and_immutable_branches(self):
+        for mode in ('normal', 'precision'):
+            actions = self.actions()
+            actions[1][1]['lora_application_mode'] = mode
+            for order in itertools.permutations(actions):
+                self.assertEqual(self.assemble(order).lora_application_mode, mode)
+        root, = b.RSMultiCharacterPrompt().apply(1, character1='person')
+        normal, = b.RSMultiCharacterLoRA().apply(1, building_pipe=root, lora_application_mode='normal')
+        precision, = b.RSMultiCharacterLoRA().apply(1, building_pipe=root, lora_application_mode='precision')
+        self.assertEqual(b.finalize(normal).lora_application_mode, 'normal')
+        self.assertEqual(b.finalize(precision).lora_application_mode, 'precision')
+        self.assertEqual(b.finalize(root).lora_application_mode, 'precision')
+        repeated, = b.RSMultiCharacterLoRA().apply(1, building_pipe=normal)
+        self.assertEqual(b.finalize(repeated).lora_application_mode, 'precision')
+        with self.assertRaises(ValueError):
+            b.RSMultiCharacterLoRA().apply(lora_application_mode='unknown')
+
     def test_old_node_produces_identical_generation_inputs(self):
         old, = c.RSMultiCharacterPrompts().build(2, layout_mode='mixed',
             character1='1girl, blonde hair', character1_x=.25,

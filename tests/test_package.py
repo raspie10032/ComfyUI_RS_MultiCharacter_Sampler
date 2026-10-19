@@ -91,6 +91,39 @@ class PackageTests(unittest.TestCase):
                                     engine=family+'-spatial-alpha-1')
             restored = m.pipe_from_record(record)
             self.assertEqual(json.loads(restored.generation_json)['settings']['flux_guidance'], 2.7)
+
+    def test_lora_mode_belongs_to_lora_node_and_is_saved_in_png_and_webp(self):
+        from dataclasses import replace
+        builder = importlib.import_module(pkg.__name__ + '.character_builder')
+        host = SimpleNamespace(KSampler=SimpleNamespace(SAMPLERS=['euler_ancestral'], SCHEDULERS=['sgm_uniform']))
+        with patch.dict(sys.modules, {'comfy.samplers': host}):
+            optional = n.RSMultiCharacterSampler.INPUT_TYPES()['optional']
+        self.assertNotIn('lora_application_mode', optional)
+        with patch.dict(sys.modules, {'folder_paths': SimpleNamespace(get_filename_list=lambda _: [])}):
+            lora_inputs = builder.RSMultiCharacterLoRA.INPUT_TYPES()
+        self.assertEqual(list(lora_inputs['required'])[-1], 'character10_lora_clip_strength')
+        self.assertEqual(lora_inputs['optional']['lora_application_mode'][0], ['normal', 'precision'])
+        self.assertEqual(lora_inputs['optional']['lora_application_mode'][1]['default'], 'precision')
+        with tempfile.TemporaryDirectory() as folder:
+            for mode in ('normal', 'precision'):
+                pipe = replace(self.pipe, lora_application_mode=mode)
+                record = m.build_record(pipe, self.settings, {}, [[.8,.2],[.2,.8]], {'spatial_slots':2})
+                for fmt in m.FORMATS:
+                    path = m.save_image(Image.new('RGB', (48, 32)), Path(folder)/fmt, record, fmt)
+                    with Image.open(path) as image:
+                        restored = m.pipe_from_record(m.read_record(image))
+                    self.assertEqual(restored.lora_application_mode, mode)
+                    self.assertEqual(restored.characters, pipe.characters)
+
+    def test_old_images_default_to_precision_and_invalid_metadata_is_rejected(self):
+        record = copy.deepcopy(self.record)
+        record['rs_multicharacter'].pop('lora_application_mode', None)
+        self.assertEqual(m.pipe_from_record(record).lora_application_mode, 'precision')
+        for invalid in ('fastest', None, True, []):
+            record['rs_multicharacter']['lora_application_mode'] = invalid
+            with self.assertRaisesRegex(ValueError, 'normal or precision'):
+                m.pipe_from_record(record)
+
     def test_malformed_metadata_rejected(self):
         for record in ({}, {"v4_prompt":None}):
             with self.assertRaises(ValueError):

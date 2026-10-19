@@ -14,7 +14,7 @@ Each slot uses **one STRING**: a character prompt or the literal words to draw, 
 
 **New in Zeta:** choose a LoRA and model/CLIP strengths for each character. The sampler blends masked predictions through native ComfyUI hooks; the detailer uses the matched character's LoRA. [Usage, cost and limits](docs/regional-lora.md).
 
-Ordinary Anima LoRAs automatically share small factor matrices through native Bypass LoRA; other supported paths retain weight hooks. This saves expanded-weight storage, while distinct LoRA combinations still require separate predictions.
+**Clone candidate — LoRA application mode:** `normal` shares layer calculations for supported Anima/SDXL linear adapters; `precision` keeps independent predictions per LoRA setting with low-rank optimization where supported. Precision is the compatibility default, not a guarantee of better artwork. Normal may change character details; unsupported models/adapters use precision and report the reason. [Modes, comparisons and limitations](docs/shared-lora-experiment.md).
 
 [0.1.6 release notes and validation scope](docs/release-0.1.6.md).
 

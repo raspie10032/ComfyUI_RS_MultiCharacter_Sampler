@@ -1,5 +1,15 @@
 # Per-character LoRA — Zeta
 
+The optimization clone exposes **normal / precision** on **RS MultiCharacter LoRAs**.
+The choice travels through the building and character pipes to the sampler, applies
+to every slot, and is saved/restored with image metadata. A description panel below
+the LoRA settings updates with the selected mode in English, Korean or Japanese.
+Precision is the compatibility default for existing workflows. Detailer samples
+one matched character at a time using precision in either mode.
+The description below of independent predictions applies to precision. Normal shares
+intermediate layers for supported Anima/SDXL linear adapters, which changes the
+algorithm. See [mode selection and evidence](shared-lora-experiment.md).
+
 Use **0.1.7 Zeta Fix or later** for Anima with dynamic VRAM. Version 0.1.6 could
 save the correct LoRA selections while applying them to an unused model instance.
 The fix resolves the actual inference layers for each call and retains the shared
@@ -52,19 +62,20 @@ one local setup, not general performance ratios.
 The fallback uses ComfyUI's low-memory hook mode, avoiding cached full patched
 weights per combination. File tensors and CLIP patches still consume memory.
 
-### Anima factor-only execution
+### Factor-only execution
 
-Ordinary Anima Linear LoRAs automatically use ComfyUI's native **Bypass LoRA**
+Ordinary Anima and SDXL Linear LoRAs automatically use ComfyUI's native **Bypass LoRA**
 implementation: `W(x) + strength * up(down(x))`. Small factor tensors are shared
 between slots using the same file, including different strengths. It avoids storing
 merged full-size weights and repeatedly synthesizing them when switching regions.
 Distinct LoRA combinations still need separate model predictions; this does not
 combine multiple characters into one model evaluation.
 
-All model patches in a file must qualify. Other model families, older cores without
-bypass, DoRA/LoHa/LoKr/diff patches, convolution/reshape/offset patches, quantized
-layers and multi-GPU clones retain native weight hooks. CLIP LoRA still uses the
-existing CLIP patch path. No new node or workflow setting is required.
+All model patches in a file must qualify. Older cores without bypass,
+DoRA/LoHa/LoKr/diff patches, convolutional adapters and multi-GPU clones retain
+native weight hooks. Supported FLUX linear/quantized adapters retain the existing
+FLUX bypass path; unsupported packed checkpoints report an error. CLIP LoRA still
+uses the existing CLIP patch path. Bypass selection is automatic in precision mode.
 
 Factor device copies are released after sampling, including errors or cancellation.
 Each prediction restores temporary forward dispatch, also on partial setup failure.

@@ -145,3 +145,70 @@ class SharedLoraTests(unittest.TestCase):
         got = self.shared.sdxl_layer_forward(layer, [(self.adapter, self.mask, [1., 0.])], 'text', (2, 4), [2, 3, 3], x)
         expected = layer(x) + F.linear(F.linear(x, self.down), self.up) * x.new_tensor([.5, .5, 1., 1., 1., 0., 0., 0.])[None, :, None]
         torch.testing.assert_close(got, expected)
+
+    def test_modes_select_shared_or_independent_without_mutating_sources(self):
+        from unittest.mock import Mock
+        from comfy.hooks import HookGroup, WeightHook
+        from comfy.model_base import Anima
+        regional = importlib.import_module(PKG + '.regional_lora')
+        loras = regional.RegionalLoras.__new__(regional.RegionalLoras)
+        loras.hooks = [HookGroup(), HookGroup()]
+        for group in loras.hooks:
+            group.add(WeightHook())
+        loras.install = Mock()
+        model = SimpleNamespace(model=Anima.__new__(Anima))
+        masks = torch.stack((self.mask, 1 - self.mask))
+        regions = [SimpleNamespace(bbox=None), SimpleNamespace(bbox=None)]
+        positive, negative = [[torch.randn(1, 3, 8), {}]], [[torch.randn(1, 2, 8), {}]]
+        with patch.object(self.s, 'SharedRegionalLora') as shared:
+            got = loras.condition_pair(model, positive, negative, masks, regions, mode='normal')
+            self.assertIs(got[0], positive)
+            shared.return_value.install.assert_called_once_with(model)
+            loras.install.assert_not_called()
+            self.assertEqual(loras.execution['effective'], 'normal')
+        with patch.object(self.s, 'SharedRegionalLora', side_effect=AssertionError('must not share')):
+            got = loras.condition_pair(model, positive, negative, masks, regions, mode='precision')
+        self.assertEqual(loras.execution['effective'], 'precision')
+        self.assertEqual(len(got[0]), 2)
+        for cond, hook in zip(got[0], loras.hooks):
+            self.assertIs(cond[1]['hooks'], hook)
+        torch.testing.assert_close(sum(v[1]['mask'] for v in got[0]), torch.ones_like(masks[:1]))
+        self.assertEqual(positive[0][1], {})
+        self.assertEqual(negative[0][1], {})
+
+    def test_normal_falls_back_for_capability_limits_but_not_runtime_bugs(self):
+        from unittest.mock import Mock
+        from comfy.hooks import HookGroup, WeightHook
+        regional = importlib.import_module(PKG + '.regional_lora')
+        loras = regional.RegionalLoras.__new__(regional.RegionalLoras)
+        loras.hooks = [HookGroup()]
+        loras.hooks[0].add(WeightHook())
+        loras.install = Mock()
+        model = SimpleNamespace()
+        cond = [[torch.randn(1, 3, 8), {}]]
+        masks = torch.ones(1, 2, 4)
+        regions = [SimpleNamespace(bbox=None)]
+        with patch.object(self.s, 'SharedRegionalLora', side_effect=self.s.SharedLoraUnsupported('unsupported adapter')):
+            got = loras.condition_pair(model, cond, cond, masks, regions, mode='normal')
+        self.assertEqual(loras.execution, {'requested': 'normal', 'effective': 'precision', 'fallback_reason': 'unsupported adapter'})
+        self.assertIs(got[0][0][1]['hooks'], loras.hooks[0])
+        for error in [RuntimeError('runtime failure'), ValueError('router mismatch')]:
+            with patch.object(self.s, 'SharedRegionalLora', side_effect=error):
+                with self.assertRaisesRegex(type(error), str(error)):
+                    loras.condition_pair(model, cond, cond, masks, regions, mode='normal')
+
+    def test_clip_only_and_invalid_modes_do_not_install_model_wrappers(self):
+        from unittest.mock import Mock
+        regional = importlib.import_module(PKG + '.regional_lora')
+        loras = regional.RegionalLoras.__new__(regional.RegionalLoras)
+        loras.hooks = [None]
+        loras.install = Mock()
+        positive, negative = [], []
+        for mode in regional.LORA_MODES:
+            got = loras.condition_pair(None, positive, negative, None, None, mode=mode)
+            self.assertIs(got[0], positive)
+            self.assertIs(got[1], negative)
+            self.assertEqual(loras.execution['effective'], 'none')
+        loras.install.assert_not_called()
+        with self.assertRaises(ValueError):
+            loras.condition_pair(None, positive, negative, None, None, mode='typo')

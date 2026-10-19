@@ -2,6 +2,7 @@
 """Per-execution LoRA hooks, with the existing regional attention in every pass."""
 import torch
 import logging
+from .characters import LORA_MODES, validate_lora_mode
 
 
 def lora_records(pipe):
@@ -103,19 +104,28 @@ class RegionalLoras:
                 if plan is not None:
                     plan.release()
 
-    def condition_pair(self, model, positive, negative, masks, regions):
+    def condition_pair(self, model, positive, negative, masks, regions, mode="precision"):
         import comfy.hooks
 
+        validate_lora_mode(mode)
+        self.execution = {"requested": mode, "effective": "none", "fallback_reason": None}
         if not any(self.hooks):
             return positive, negative
-        # Research-only opt-in on an isolated model clone. Public behavior stays
-        # on independent predictions until image comparisons justify a release.
-        if model.model_options.get("rs_mc_lora_execution") == "shared_layers":
-            from .shared_lora import SharedRegionalLora
-            shared = SharedRegionalLora(self, model, masks, regions)
-            shared.install(model)
-            self.shared = shared
-            return positive, negative
+        if mode == "normal":
+            from .shared_lora import SharedRegionalLora, SharedLoraUnsupported
+            try:
+                shared = SharedRegionalLora(self, model, masks, regions)
+            except SharedLoraUnsupported as error:
+                # Capability detection completes before any runtime patches.
+                # Programming/runtime errors still propagate to the user.
+                self.execution["fallback_reason"] = str(error)
+                logging.info("RS MC normal LoRA uses precision fallback: %s", error)
+            else:
+                shared.install(model)
+                self.shared = shared
+                self.execution["effective"] = "normal"
+                return positive, negative
+        self.execution["effective"] = "precision"
         self.install(model)
         model.hook_mode = comfy.hooks.EnumHookMode.MinVram
         groups = grouped_masks(self.hooks, masks, regions)

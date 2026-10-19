@@ -150,6 +150,8 @@ class RSMultiCharacterSampler:
             settings = {k: stored[k] for k in (*DEFAULTS, "seed")}
             layout_method = stored.get("layout_method", "regional")
             flux_guidance = stored.get("flux_guidance", 3.5)
+        lora_application_mode = character_pipe.lora_application_mode
+        settings["lora_application_mode"] = lora_application_mode
         if layout_method not in ("regional", "moss_native"):
             raise ValueError("Choose regional or moss_native for the layout method.")
         if layout_method == "moss_native" and family != "MOSS":
@@ -163,7 +165,8 @@ class RSMultiCharacterSampler:
         validate_format(save_format, webp_quality)
         if not isinstance(prompt, str) or not isinstance(negative_prompt, str) or prompt_syntax not in ("ComfyUI", "NovelAI"):
             raise ValueError("Choose valid prompt text and syntax.")
-        pipe = CharacterPipe(character_pipe.characters, prompt, negative_prompt, prompt_syntax, text_regions=character_pipe.text_regions)
+        pipe = CharacterPipe(character_pipe.characters, prompt, negative_prompt, prompt_syntax,
+                             text_regions=character_pipe.text_regions, lora_application_mode=lora_application_mode)
         centers, moved = effective_centers(pipe.regions)
         geometry = tuple(c.bbox is not None for c in pipe.regions)
         boxes = geometry if any(geometry) else False
@@ -248,8 +251,12 @@ class RSMultiCharacterSampler:
             routing = JointRouting(family, conditions, masks, settings, audit, boxes=boxes)
             routing.install(work)
         if loras is not None:
-            positive, negative = loras.condition_pair(work, positive, negative, masks, pipe.regions)
+            positive, negative = loras.condition_pair(work, positive, negative, masks, pipe.regions,
+                                                     mode=lora_application_mode)
             audit["regional_loras"] = loras.audit
+            audit["lora_application"] = loras.execution
+        else:
+            audit["lora_application"] = {"requested": lora_application_mode, "effective": "none", "fallback_reason": None}
         latent = torch.zeros((1, 4, settings["height"] // 8, settings["width"] // 8), device=comfy.model_management.intermediate_device())
         if family in ("SD1.5", "SDXL"):
             # Already 4-channel H/8 x W/8; older ComfyUI has no ratio keyword.
@@ -268,11 +275,16 @@ class RSMultiCharacterSampler:
             raise RuntimeError("The decoder returned invalid images.")
         assets = graph_assets(workflow_prompt, unique_id)
         record = build_record(pipe, settings, assets, centers, audit, engine=family.lower()+"-spatial-alpha-1")
+        record["rs_multicharacter"]["lora_application"] = audit["lora_application"]
         enriched = CharacterPipe(pipe.characters, prompt, negative_prompt, prompt_syntax,
-            json.dumps(record["rs_multicharacter"], ensure_ascii=True), text_regions=pipe.text_regions)
+            json.dumps(record["rs_multicharacter"], ensure_ascii=True), text_regions=pipe.text_regions,
+            lora_application_mode=lora_application_mode)
         summary = {**record, "auto_layout_groups": moved, "cross_attention_calls": audit["cross_calls"],
                    "self_attention_calls": audit["self_calls"], "restored_forwards": audit["restored_forwards"], "routing_audit": audit}
         ui = {"text": [f"{len(pipe.characters)} characters + {len(pipe.text_regions)} text regions · seed {settings['seed']} · {family} zeta"]}
+        execution = audit["lora_application"]
+        ui["text"].append(f"Character LoRA: {execution['requested']} → {execution['effective']}"
+                          + (f" ({execution['fallback_reason']})" if execution["fallback_reason"] else ""))
         if autosave:
             folder, filename, counter, subfolder, _ = folder_paths.get_save_image_path(
                 "RS_MultiCharacter/RS_MC", folder_paths.get_output_directory(), settings["width"], settings["height"])

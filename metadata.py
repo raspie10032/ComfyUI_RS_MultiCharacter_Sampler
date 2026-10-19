@@ -55,6 +55,7 @@ def build_record(pipe, settings, assets, centers, audit, engine="anima-spatial-a
             "prompt_syntax": pipe.syntax, "settings": settings, "assets": assets,
             "boxes": [c.bbox for c in pipe.characters],
             "character_loras": lora_records(pipe),
+            "lora_application_mode": pipe.lora_application_mode,
             "text_regions": text_region_records(pipe),
             "effective_centers": centers, "spatial_slots": audit["spatial_slots"]},
     }
@@ -147,7 +148,8 @@ def pipe_from_record(record):
             text_regions.append(TextRegion(item["caption"], item.get("negative", ""),
                 item["center"]["x"], item["center"]["y"], tuple(item["bbox"]), item["text"]))
         return CharacterPipe(tuple(chars), pos["base_caption"], neg["base_caption"], syntax,
-            json.dumps(local, ensure_ascii=True, allow_nan=False) if local else None, tuple(text_regions))
+            json.dumps(local, ensure_ascii=True, allow_nan=False) if local else None, tuple(text_regions),
+            lora_application_mode=local.get("lora_application_mode", "precision") if local else "precision")
     except (KeyError, TypeError, IndexError) as error:
         raise ValueError("Incomplete character metadata: common prompts, character captions and X/Y are required.") from error
 
