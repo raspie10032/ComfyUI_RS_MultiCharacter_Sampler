@@ -48,6 +48,10 @@ To try **two people plus one word**, use region count `3`, `layout_mode=mixed`, 
 
 Use separate **all-prompts, all-LoRAs, and all-positions** nodes. Each role shows **rows 1–N together**, with matching row numbers identifying characters. **Connect these roles in any order**, then finish with **Finalize Character Pipe** for Sampler or Detailer. Positive prompts use external **STRING connections** with no character UC field. Position and Finalize show a layout guide. [Usage in English / 한국어 / 日本語](docs/modular-characters.md) · [Two-character example](examples/modular/two-characters-anima.json). The old all-in-one node remains deprecated for saved workflows.
 
+The main nodes include **inline help for the current selections**: character/text slots, XY/box placement, image setting restoration, save formats, tagging and detection. Panels follow ComfyUI's English, Korean or Japanese locale and are excluded from workflow inputs. Connected control values are resolved at execution; panels describe the node's local selections.
+
+Hover over a control for **2 seconds** to see a short tooltip. Dragging or scrolling dismisses it. Other extensions keep their own tooltip timing, and disabling tooltips in ComfyUI also disables these hints.
+
 ## Install
 
 Find **RS MultiCharacter Sampler** in ComfyUI-Manager, or open the [Comfy Registry page](https://registry.comfy.org/publishers/raspie10032/nodes/comfyui-rs-multicharacter-sampler). Package ID: `comfyui-rs-multicharacter-sampler`. Restart ComfyUI after installation. If the new listing is not yet visible in your Manager cache, refresh its node list or use the Git installation below.

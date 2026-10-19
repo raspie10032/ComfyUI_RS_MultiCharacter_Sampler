@@ -34,6 +34,10 @@ SD1.5 예제는 **두 인물이 구분되고 글자 영역에 표현이 나타�
 
 **프롬프트 전체·LoRA 전체·위치 전체**를 역할별 노드로 나누고, 각 노드에서 **1~N번 설정을 동시에 표시**합니다. **세 역할의 연결 순서는 자유**이며 최종 파이프에서 완성합니다. 긍정 프롬프트는 외부 **STRING 연결 입력**, 캐릭터 UC 입력은 없습니다. 위치와 최종 파이프에서 예상 배치를 확인합니다. [사용법](docs/modular-characters.md) · [새 2인 예제](examples/modular/two-characters-anima.json). 기존 긴 노드는 구형 워크플로 호환용으로 남습니다.
 
+주요 노드 하단에는 **현재 선택에 맞는 설명창**이 표시됩니다. 프롬프트의 캐릭터/텍스트 구분, XY/박스 배치, 이미지 설정 복원, 저장 형식, 태거와 감지 방식 등을 안내합니다. ComfyUI 언어 설정에 따라 한국어·일본어·영어로 표시되며 설명은 워크플로 입력값에 저장되지 않습니다. 연결선으로 받은 설정값은 실행 시 결정되므로 안내창은 노드에서 직접 선택한 값을 기준으로 설명합니다.
+
+조절 항목에 마우스를 **2초** 올려두면 짧은 도움말이 표시됩니다. 값을 드래그하거나 화면을 스크롤하면 닫히며, 다른 확장 노드의 툴팁 시간은 바꾸지 않습니다. ComfyUI 설정에서 툴팁을 끄면 이 도움말도 숨겨집니다.
+
 ## 설치와 사용
 
 ComfyUI-Manager에서 **RS MultiCharacter Sampler**를 검색해 설치하거나 [Comfy Registry 페이지](https://registry.comfy.org/publishers/raspie10032/nodes/comfyui-rs-multicharacter-sampler)를 이용하세요. 패키지 ID는 `comfyui-rs-multicharacter-sampler`입니다. 설치 후 ComfyUI를 재시작하세요. 새 항목이 아직 보이지 않으면 Manager 목록을 갱신하거나 Git으로 설치할 수 있습니다.

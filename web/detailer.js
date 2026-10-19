@@ -7,9 +7,14 @@ const labels = {
     ko: ["SEGM 모델", "BBOX 모델", "SAM 모델", "현재 선택의 실행 방식", "SEGM만 사용합니다. BBOX·SAM은 건너뜁니다.", "BBOX로 감지하고 SAM으로 마스크를 만듭니다.", "BBOX 사각 영역을 사용합니다 (SAM OFF).", "SEGM 또는 BBOX를 선택하세요. SAM만으로는 영역을 감지할 수 없습니다.", "연결된 모델 입력은 실행할 때 결정됩니다."],
     ja: ["SEGM モデル", "BBOX モデル", "SAM モデル", "現在の選択での実行方法", "SEGMのみ使用。BBOX・SAMはスキップします。", "BBOXで検出し、SAMでマスクを作成します。", "BBOXの矩形領域を使用（SAM OFF）。", "SEGMまたはBBOXを選択してください。SAM単独では領域を検出できません。", "接続されたモデル入力は実行時に決まります。"],
 };
+const loaderNotes = {
+    en: "Missing catalog SEGM/BBOX models download on execution; cached files are reused. SAM must already be installed. OFF does not load that model.\nChoose a detector for the area to edit: face, eyes, hands, clothes or person. Folding optional controls keeps their values active.",
+    ko: "목록의 SEGM·BBOX 모델이 없으면 실행할 때 받고 캐시를 재사용합니다. SAM은 미리 설치해야 합니다. OFF 모델은 불러오지 않습니다.\n얼굴·눈·손·옷·인물 등 보정할 부위에 맞는 모델을 고르세요. 옵션을 접어도 선택값은 유지됩니다.",
+    ja: "カタログのSEGM・BBOXモデルがなければ実行時に取得し、キャッシュを再利用します。SAMは事前インストールが必要です。OFFのモデルは読み込みません。\n顔・目・手・服・人物など修正対象に合うモデルを選んでください。折り畳んでも選択値は有効です。",
+};
 
 function updateLoader(node, clearProgress = false) {
-    const locale = String(app.ui?.settings?.getSettingValue("Comfy.Locale") ?? "en").slice(0, 2);
+    const locale = String(app.extensionManager?.setting?.get?.("Comfy.Locale") ?? app.ui?.settings?.getSettingValue("Comfy.Locale") ?? "en").slice(0, 2);
     const text = labels[locale] ?? labels.en;
     const enabled = name => {
         const value = node.widgets?.find(w => w.name === name)?.value;
@@ -26,10 +31,12 @@ function updateLoader(node, clearProgress = false) {
         plan.serialize = false;
         plan.serializeValue = () => undefined;
         plan.inputEl.readOnly = true;
+        plan.computeSize = () => [320, 180];
     }
     plan.label = text[3];
     const connected = node.inputs?.some(input => modelFields.includes(input.name) && input.link != null);
-    plan.value = connected ? text[8] : text[enabled("face_segm_model") ? 4 : enabled("face_bbox_model") ? (enabled("sam_model") ? 5 : 6) : 7];
+    plan.value = (connected ? text[8] : text[enabled("face_segm_model") ? 4 : enabled("face_bbox_model") ? (enabled("sam_model") ? 5 : 6) : 7])
+        + "\n\n" + (loaderNotes[locale] ?? loaderNotes.en);
     if (clearProgress) {
         const status = node.widgets?.find(w => w.name === "rs_tagger_status");
         if (status) {

@@ -87,3 +87,32 @@ nonserialization. Firefox on the isolated ComfyUI server additionally confirmed
 the actual Korean Normal/Precision panels below the LoRA controls; screenshots are
 `validation/lora-mode-help-{normal,precision}-ko.png`. Source tests cover unsupported
 mode fallback; the two live ILXL runs above did not require fallback.
+
+## Selection panels and delayed field help
+
+The candidate also adds nonserialized selection panels to Prompt, Position,
+Finalize, Sampler, Load Image, Detailer and Tagger. LoRA retains its mode panel;
+the Detection loader's existing precedence panel now explains model downloads,
+OFF selections and optional controls. Panels follow local control values and warn
+when connected values will instead be resolved at execution.
+
+Individual controls have short English/Korean/Japanese hints after a 2000 ms hover.
+The delay belongs to this extension only, respects ComfyUI's tooltip setting and
+suppresses duplicate native tooltips while hovering its controls. Leaving a field,
+dragging, scrolling, switching graphs or losing focus cancels the tooltip. Moving
+within the same control does not keep restarting the wait. The catalogue covers
+289 current schema controls, including legacy slots, plus client-side preset and
+seed controls. Read-only panels do not receive control tooltips.
+
+All seven JavaScript suites passed, including cancellation, field changes,
+deleted nodes, native-title restoration, canvas/DOM/Vue row adapters, localization,
+schema coverage and serialization. The earlier Python run remains 157 passed;
+this addition changes JavaScript and documentation only. Firefox on the isolated
+8201 server confirmed no tooltip at 1.9 s, a Korean tooltip after 2 s, no duplicate
+native bubble, scroll/leave cancellation, real multiline DOM help and workflow
+serialization without tooltip text. Vue row adapters have automated coverage;
+the live browser checks used the canvas renderer and DOM textareas. Browser
+evidence is `validation/widget-tooltips-live.txt` and
+`validation/widget-tooltips-live-ko.png` in the experiment directory. The temporary
+browser probe was removed after validation. No image generation was needed for
+these help-only changes.
