@@ -1,0 +1,41 @@
+{
+  "summary": {
+    "canvas": "single",
+    "caption": "A beautiful colorful anime illustration of exactly two Genshin Impact characters, Nahida on the left and Sigewinne on the right, standing together in a sunlit flower garden. Both wear elegant modest layered chiffon dresses with opaque lining, high necklines and long flowing skirts. Gentle breeze moving the flowing fabric, delicate lace and ribbons, cheerful friendly smiles, both characters clearly visible, three-quarter view from head to below the knees, one continuous background, soft pastel colors and detailed eyes. At the bottom, inside generous margins, a complete centered two-line title in medium-sized legible serif letters: first line \"Arcalive\", second line \"AI ART Channel\". All words are fully visible, including Channel, with space beneath the text. The characters remain clearly visible above the title."
+  },
+  "items": [
+    {
+      "label": "object",
+      "caption": "Nahida from Genshin Impact, a petite fantasy elf girl with white hair, a side ponytail with soft light-green tips, vivid green eyes and pointed elf ears, a green leaf-shaped hair ornament. She wears an elegant white and pale mint-green layered chiffon dress, opaque lining, high neckline, short puff sleeves, leaf embroidery and green ribbons, long flowing skirt. Her recognizable Nahida hairstyle and facial features, gently smiling, standing on the left.",
+      "bbox": [
+        -354,
+        -492,
+        185,
+        -20
+      ]
+    },
+    {
+      "label": "object",
+      "caption": "Sigewinne from Genshin Impact, a petite fantasy Melusine girl with pastel light-blue hair, pink undersides and pink tips, large pinkish-red eyes, her distinctive long upright pink-and-blue ear-like antennae and side locks. She wears an elegant pastel pink and powder-blue layered chiffon dress, opaque lining, high neckline, puff sleeves, lace trim and a blue bow, long flowing skirt. Her recognizable Sigewinne hairstyle and facial features, gently smiling, standing on the right.",
+      "bbox": [
+        -354,
+        20,
+        185,
+        492
+      ]
+    },
+    {
+      "label": "text",
+      "caption": "Clear legible lettering",
+      "bbox": [
+        184,
+        -451,
+        361,
+        451
+      ],
+      "text": "Arcalive\nAI ART Channel"
+    }
+  ],
+  "bbox_coord_space": "abs_centralized",
+  "bbox_format": "yxyx"
+}

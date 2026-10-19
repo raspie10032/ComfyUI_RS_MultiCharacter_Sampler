@@ -1,0 +1,200 @@
+{
+  "1": {
+    "class_type": "UNETLoader",
+    "inputs": {
+      "unet_name": "moss_image_sft_bf16.safetensors",
+      "weight_dtype": "default"
+    }
+  },
+  "3": {
+    "class_type": "RSMultiCharacterSampler",
+    "inputs": {
+      "model": [
+        "1",
+        0
+      ],
+      "clip": [
+        "4",
+        0
+      ],
+      "vae": [
+        "5",
+        0
+      ],
+      "character_pipe": [
+        "22",
+        0
+      ],
+      "prompt": "A beautiful colorful anime illustration of exactly two Genshin Impact characters, Nahida on the left and Sigewinne on the right, standing together in a sunlit flower garden. Both wear elegant modest layered chiffon dresses with opaque lining, high necklines and long flowing skirts. Gentle breeze moving the flowing fabric, delicate lace and ribbons, cheerful friendly smiles, both characters clearly visible, three-quarter view from head to below the knees, one continuous background, soft pastel colors and detailed eyes. At the bottom, inside generous margins, a complete centered two-line title in medium-sized legible serif letters: first line \"Arcalive\", second line \"AI ART Channel\". All words are fully visible, including Channel, with space beneath the text. The characters remain clearly visible above the title.",
+      "negative_prompt": "",
+      "width": 1024,
+      "height": 768,
+      "seed": 145451379171813,
+      "steps": 50,
+      "cfg": 3.0,
+      "sampler_name": "euler",
+      "scheduler": "simple",
+      "autosave": true,
+      "save_format": "PNG",
+      "webp_quality": 90,
+      "prompt_syntax": "ComfyUI",
+      "use_image_settings": false,
+      "region_feather": 0.04,
+      "initial_common_prior": 0.6,
+      "common_after_step3_boost": 0.1,
+      "initial_character_gain": 1.2,
+      "initial_spatial_separation": 0.35,
+      "boundary_hold_steps": 3,
+      "boundary_decrement": 0.2,
+      "layout_method": "moss_native"
+    }
+  },
+  "4": {
+    "class_type": "CLIPLoader",
+    "inputs": {
+      "clip_name": "qwen3.5_9b_int8_convrot.safetensors",
+      "type": "moss_image",
+      "device": "default"
+    }
+  },
+  "5": {
+    "class_type": "VAELoader",
+    "inputs": {
+      "vae_name": "flux2-vae.safetensors"
+    }
+  },
+  "20": {
+    "class_type": "RSMultiCharacterPrompt",
+    "inputs": {
+      "character_count": 3,
+      "character1_enable": true,
+      "character1_kind": "text",
+      "character2_enable": true,
+      "character2_kind": "character",
+      "character3_enable": true,
+      "character3_kind": "character",
+      "character4_enable": true,
+      "character4_kind": "character",
+      "character5_enable": true,
+      "character5_kind": "character",
+      "character6_enable": true,
+      "character6_kind": "character",
+      "character7_enable": true,
+      "character7_kind": "character",
+      "character8_enable": true,
+      "character8_kind": "character",
+      "character9_enable": true,
+      "character9_kind": "character",
+      "character10_enable": true,
+      "character10_kind": "character",
+      "character1": [
+        "32",
+        0
+      ],
+      "character2": [
+        "30",
+        0
+      ],
+      "character3": [
+        "31",
+        0
+      ]
+    }
+  },
+  "21": {
+    "class_type": "RSMultiCharacterPosition",
+    "inputs": {
+      "character_count": 3,
+      "character1_geometry": "box",
+      "character1_x": 0.5,
+      "character1_y": 0.855,
+      "character1_width": 0.88,
+      "character1_height": 0.23,
+      "character2_geometry": "box",
+      "character2_x": 0.25,
+      "character2_y": 0.39,
+      "character2_width": 0.46,
+      "character2_height": 0.7,
+      "character3_geometry": "box",
+      "character3_x": 0.75,
+      "character3_y": 0.39,
+      "character3_width": 0.46,
+      "character3_height": 0.7,
+      "character4_geometry": "point",
+      "character4_x": 0.5,
+      "character4_y": 0.5,
+      "character4_width": 0.4,
+      "character4_height": 0.8,
+      "character5_geometry": "point",
+      "character5_x": 0.5,
+      "character5_y": 0.5,
+      "character5_width": 0.4,
+      "character5_height": 0.8,
+      "character6_geometry": "point",
+      "character6_x": 0.5,
+      "character6_y": 0.5,
+      "character6_width": 0.4,
+      "character6_height": 0.8,
+      "character7_geometry": "point",
+      "character7_x": 0.5,
+      "character7_y": 0.5,
+      "character7_width": 0.4,
+      "character7_height": 0.8,
+      "character8_geometry": "point",
+      "character8_x": 0.5,
+      "character8_y": 0.5,
+      "character8_width": 0.4,
+      "character8_height": 0.8,
+      "character9_geometry": "point",
+      "character9_x": 0.5,
+      "character9_y": 0.5,
+      "character9_width": 0.4,
+      "character9_height": 0.8,
+      "character10_geometry": "point",
+      "character10_x": 0.5,
+      "character10_y": 0.5,
+      "character10_width": 0.4,
+      "character10_height": 0.8,
+      "building_pipe": [
+        "20",
+        0
+      ]
+    }
+  },
+  "30": {
+    "class_type": "PrimitiveStringMultiline",
+    "inputs": {
+      "value": "Nahida from Genshin Impact, a petite fantasy elf girl with white hair, a side ponytail with soft light-green tips, vivid green eyes and pointed elf ears, a green leaf-shaped hair ornament. She wears an elegant white and pale mint-green layered chiffon dress, opaque lining, high neckline, short puff sleeves, leaf embroidery and green ribbons, long flowing skirt. Her recognizable Nahida hairstyle and facial features, gently smiling, standing on the left."
+    }
+  },
+  "31": {
+    "class_type": "PrimitiveStringMultiline",
+    "inputs": {
+      "value": "Sigewinne from Genshin Impact, a petite fantasy Melusine girl with pastel light-blue hair, pink undersides and pink tips, large pinkish-red eyes, her distinctive long upright pink-and-blue ear-like antennae and side locks. She wears an elegant pastel pink and powder-blue layered chiffon dress, opaque lining, high neckline, puff sleeves, lace trim and a blue bow, long flowing skirt. Her recognizable Sigewinne hairstyle and facial features, gently smiling, standing on the right."
+    }
+  },
+  "22": {
+    "class_type": "RSMultiCharacterFinalize",
+    "inputs": {
+      "building_pipe": [
+        "21",
+        0
+      ]
+    }
+  },
+  "90": {
+    "class_type": "PreviewImage",
+    "inputs": {
+      "images": [
+        "3",
+        0
+      ]
+    }
+  },
+  "32": {
+    "class_type": "PrimitiveStringMultiline",
+    "inputs": {
+      "value": "Arcalive\nAI ART Channel"
+    }
+  }
+}

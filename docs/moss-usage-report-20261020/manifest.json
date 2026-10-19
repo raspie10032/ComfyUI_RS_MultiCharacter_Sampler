@@ -1,0 +1,164 @@
+[
+  {
+    "group": "4step",
+    "seed": 145451379171813,
+    "mode": "moss_native",
+    "image": "4step/145451379171813-moss_native.png",
+    "sha256": "563d9714d352cc9bb9dedd05d653ce84db9921764f45122906a73dec13e6571d",
+    "cross_calls": 0,
+    "self_calls": 0
+  },
+  {
+    "group": "4step",
+    "seed": 145451379171813,
+    "mode": "regional",
+    "image": "4step/145451379171813-regional.png",
+    "sha256": "28387e6bdfd36eb0039791f4330ff252f57b0147f253a9728238964071b12268",
+    "cross_calls": 168,
+    "self_calls": 168
+  },
+  {
+    "group": "4step",
+    "seed": 145451379171813,
+    "mode": "moss_hybrid",
+    "image": "4step/145451379171813-moss_hybrid.png",
+    "sha256": "0df41f783b10dfe8015150849f0d0a4116613520fcf52482a1573c046b2bae3b",
+    "cross_calls": 168,
+    "self_calls": 168
+  },
+  {
+    "group": "4step",
+    "seed": 145451379171814,
+    "mode": "moss_native",
+    "image": "4step/145451379171814-moss_native.png",
+    "sha256": "492dd45b1e643c3ef4dade07d1b406c913c326e20575672c7b11c4e68df91ada",
+    "cross_calls": 0,
+    "self_calls": 0
+  },
+  {
+    "group": "4step",
+    "seed": 145451379171814,
+    "mode": "regional",
+    "image": "4step/145451379171814-regional.png",
+    "sha256": "925969c06722bdca6a5347de4b945fea1a1d77854bce9ef567eb0206e8c114a9",
+    "cross_calls": 168,
+    "self_calls": 168
+  },
+  {
+    "group": "4step",
+    "seed": 145451379171814,
+    "mode": "moss_hybrid",
+    "image": "4step/145451379171814-moss_hybrid.png",
+    "sha256": "e14ad0a3c6730cc15373b58ab9ac86edfc691011ea80546ee190ba8288b3bf38",
+    "cross_calls": 168,
+    "self_calls": 168
+  },
+  {
+    "group": "4step",
+    "seed": 145451379171815,
+    "mode": "moss_native",
+    "image": "4step/145451379171815-moss_native.png",
+    "sha256": "b41b08b67bf3cb699b2fbdb76c6dcdd91f55bf0fbc60918ea613f9e9af1e95b0",
+    "cross_calls": 0,
+    "self_calls": 0
+  },
+  {
+    "group": "4step",
+    "seed": 145451379171815,
+    "mode": "regional",
+    "image": "4step/145451379171815-regional.png",
+    "sha256": "6e429afd23a1049d71cc7b2a2eff9b7eab23b18f9fe7056dc7850af35751f7bb",
+    "cross_calls": 168,
+    "self_calls": 168
+  },
+  {
+    "group": "4step",
+    "seed": 145451379171815,
+    "mode": "moss_hybrid",
+    "image": "4step/145451379171815-moss_hybrid.png",
+    "sha256": "054c9d5ad89ca65bf6796d848de71388e8ad73b9a350d8e93aa444a90e4a5fa7",
+    "cross_calls": 168,
+    "self_calls": 168
+  },
+  {
+    "group": "50step",
+    "seed": 145451379171813,
+    "mode": "moss_native",
+    "image": "50step/145451379171813-moss_native.png",
+    "sha256": "ed9bde17387900c96aad4c5d124c91ab468c7576f67708b23fc86b735b4cf3eb",
+    "cross_calls": 0,
+    "self_calls": 0
+  },
+  {
+    "group": "50step",
+    "seed": 145451379171813,
+    "mode": "regional",
+    "image": "50step/145451379171813-regional.png",
+    "sha256": "42bb7fae93ba63f5b92a5fded1f73468efda39283ebf4e3197477c6ba57213fe",
+    "cross_calls": 2100,
+    "self_calls": 2100
+  },
+  {
+    "group": "50step",
+    "seed": 145451379171813,
+    "mode": "moss_hybrid",
+    "image": "50step/145451379171813-moss_hybrid.png",
+    "sha256": "aab316861a7094da9457798bad1696cb7ce3f4015c4224930e0f1e3fc064855a",
+    "cross_calls": 2100,
+    "self_calls": 2100
+  },
+  {
+    "group": "50step",
+    "seed": 145451379171814,
+    "mode": "moss_native",
+    "image": "50step/145451379171814-moss_native.png",
+    "sha256": "944255d124df414c45f7e9ab5f941a56c0fba44d9f5fa5a2d9c9b4ac4c881a61",
+    "cross_calls": 0,
+    "self_calls": 0
+  },
+  {
+    "group": "50step",
+    "seed": 145451379171814,
+    "mode": "regional",
+    "image": "50step/145451379171814-regional.png",
+    "sha256": "6b3b635325460622e67c995b83e81c4b9a5387671ef864731574c2655d9325c6",
+    "cross_calls": 2100,
+    "self_calls": 2100
+  },
+  {
+    "group": "50step",
+    "seed": 145451379171814,
+    "mode": "moss_hybrid",
+    "image": "50step/145451379171814-moss_hybrid.png",
+    "sha256": "099065e1fb49c85d1bdf41ffcee9650a410a0cf07fced2f88e6550a4cc88ef5b",
+    "cross_calls": 2100,
+    "self_calls": 2100
+  },
+  {
+    "group": "50step",
+    "seed": 145451379171815,
+    "mode": "moss_native",
+    "image": "50step/145451379171815-moss_native.png",
+    "sha256": "6efc3c9ec491f369deb3777ac9b49946c8ad49a6b971ee1ddf769991816a8746",
+    "cross_calls": 0,
+    "self_calls": 0
+  },
+  {
+    "group": "50step",
+    "seed": 145451379171815,
+    "mode": "regional",
+    "image": "50step/145451379171815-regional.png",
+    "sha256": "8c0b3cba6badc659bd1595cc1b2819f08d811225c4d276271b25a5edfa4e9a9e",
+    "cross_calls": 2100,
+    "self_calls": 2100
+  },
+  {
+    "group": "50step",
+    "seed": 145451379171815,
+    "mode": "moss_hybrid",
+    "image": "50step/145451379171815-moss_hybrid.png",
+    "sha256": "76d287d76dc69de5c1aa9d565262a0b447b6ce0016245601a36efa32ae25bc6a",
+    "cross_calls": 2100,
+    "self_calls": 2100
+  }
+]
