@@ -1,8 +1,10 @@
 # ComfyUI_RS_MultiCharacter_Sampler
 
+**New in 0.2.3 Digeut (디귿):** choose Normal or Precision on the character LoRA node. Supported Anima/SDXL linear LoRAs share layer calculations in Normal; Precision retains independent predictions with low-rank optimization where supported. Adds localized selection panels and short tooltips after a two-second hover. [Release notes](docs/release-0.2.3.md) · [Comparisons and limits](docs/shared-lora-experiment.md).
+
 **New in 0.2.2 Nieun (니은):** native FLUX.1/2/3 regional generation and local masked detailing. All eight tested variants completed two-person generation, same-seed caption swaps and detailing. Includes quantized regional LoRA fixes, embedded guidance, settings replay, eight FLUX presets and model-specific examples. [Release notes](docs/release-0.2.2.md) · [Evidence and limits](docs/flux-validation.md) · [FLUX examples](examples/flux).
 
-**0.2.2 Nieun (니은) · FLUX.1/2/3 · Anima · SDXL · Krea 2 · MOSS · SD1.5 (experimental, unstable)** — independent prompts with X/Y, box and mixed regions for local ComfyUI generation.
+**0.2.3 Digeut (디귿) · FLUX.1/2/3 · Anima · SDXL · Krea 2 · MOSS · SD1.5 (experimental, unstable)** — independent prompts with X/Y, box and mixed regions for local ComfyUI generation.
 
 **Giyeok Fix:** fixes character and text inputs appearing together. Each slot now uses one shared STRING socket, preserving its connection when kind changes. Old workflows move their literal-text connection to that socket. [Fix and compatibility](docs/release-0.2.1.md).
 
@@ -14,7 +16,7 @@ Each slot uses **one STRING**: a character prompt or the literal words to draw, 
 
 **New in Zeta:** choose a LoRA and model/CLIP strengths for each character. The sampler blends masked predictions through native ComfyUI hooks; the detailer uses the matched character's LoRA. [Usage, cost and limits](docs/regional-lora.md).
 
-**Clone candidate — LoRA application mode:** `normal` shares layer calculations for supported Anima/SDXL linear adapters; `precision` keeps independent predictions per LoRA setting with low-rank optimization where supported. Precision is the compatibility default, not a guarantee of better artwork. Normal may change character details; unsupported models/adapters use precision and report the reason. [Modes, comparisons and limitations](docs/shared-lora-experiment.md).
+**LoRA application mode:** `normal` shares layer calculations for supported Anima/SDXL linear adapters; `precision` keeps independent predictions per LoRA setting with low-rank optimization where supported. Precision is the compatibility default, not a guarantee of better artwork. Normal may change character details; unsupported models/adapters use precision and report the reason. [Modes, comparisons and limitations](docs/shared-lora-experiment.md).
 
 [0.1.6 release notes and validation scope](docs/release-0.1.6.md).
 

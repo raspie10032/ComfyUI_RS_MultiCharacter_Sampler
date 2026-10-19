@@ -1,6 +1,6 @@
-# Shared-layer regional LoRA experiment
+# Regional LoRA execution modes and validation
 
-This clone-only experiment exposes **Normal / Precision** on **RS Character LoRA**. The selection travels through the dedicated pipe and is saved/restored with PNG/WebP metadata. Normal requests shared layer execution for supported Anima/SDXL linear LoRAs; Precision retains independent predictions and small-factor optimization. Existing workflows and images without a mode default to Precision. This document describes a candidate, not a released version.
+Version 0.2.3 Digeut exposes **Normal / Precision** on **RS Character LoRA**. The selection travels through the dedicated pipe and is saved/restored with PNG/WebP metadata. Normal requests shared layer execution for supported Anima/SDXL linear LoRAs; Precision retains independent predictions and small-factor optimization. Existing workflows and images without a mode default to Precision. This document records the algorithms, local comparison evidence and limits for 0.2.3.
 
 The description panel below the LoRA controls changes immediately with the selection
 and follows ComfyUI's English, Korean or Japanese locale. It explains the execution
@@ -50,11 +50,11 @@ The initial cold-model disabled control differed from subsequent disabled output
 
 ## Reproduction and checks
 
-The local experiment harness uses a private `RSBypassBenchmarkSampler` in a separate server on port 8201. It is not an extension node shipped in this candidate. `run_ilxl_comparison.py` records requests, history, node summaries and timing counters; `scripts/summarize_ilxl.py` builds the comparison images and metrics. Four controls can be repeated with `RS_MC_ILXL_PREFIX=ilxl-warm- RS_MC_ILXL_CASES=none-before,shared-ab,shared-zero,none-after`.
+The local experiment harness uses a private `RSBypassBenchmarkSampler` in a separate server on port 8201. It is not an extension node shipped in this package. `run_ilxl_comparison.py` records requests, history, node summaries and timing counters; `scripts/summarize_ilxl.py` builds the comparison images and metrics. Four controls can be repeated with `RS_MC_ILXL_PREFIX=ilxl-warm- RS_MC_ILXL_CASES=none-before,shared-ab,shared-zero,none-after`.
 
 Native ComfyUI CPU tests: 151 passed with no skips, using `RS_MC_TEST_COMFYUI` and setting `comfy.cli_args.args.cpu = True` before discovery. The ordinary GPU-installed interpreter without early CPU setup produced mixed-device test-fixture failures; `ilxl-tests-cpu.log` records the successful complete run. All five JavaScript UI suites passed.
 
-Anima's preceding experiment also compared independent and shared execution. The timing comparison above concerns two plain linear character LoRAs and one fixed seed. Other SDXL checkpoints, convolutional/extended adapters, larger casts and external patches remain outside this generation comparison. Existing installed and published extensions are unchanged.
+Anima's preceding experiment also compared independent and shared execution. The timing comparison above concerns two plain linear character LoRAs and one fixed seed. Other SDXL checkpoints, convolutional/extended adapters, larger casts and external patches remain outside this generation comparison. These comparisons were made in an isolated clone before the 0.2.3 release.
 
 ## Additional character and UI validation, 2026-10-19
 
@@ -90,7 +90,7 @@ mode fallback; the two live ILXL runs above did not require fallback.
 
 ## Selection panels and delayed field help
 
-The candidate also adds nonserialized selection panels to Prompt, Position,
+Version 0.2.3 also adds nonserialized selection panels to Prompt, Position,
 Finalize, Sampler, Load Image, Detailer and Tagger. LoRA retains its mode panel;
 the Detection loader's existing precedence panel now explains model downloads,
 OFF selections and optional controls. Panels follow local control values and warn

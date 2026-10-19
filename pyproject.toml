@@ -1,7 +1,7 @@
 [project]
 name = "comfyui-rs-multicharacter-sampler"
-version = "0.2.2"
-description = "Nieun: native FLUX.1, FLUX.2 and FLUX 3 regional generation and local masked detailing, with quantized per-character LoRAs, embedded guidance and PNG/WebP settings restoration. Modular prompt, LoRA and position nodes assemble order-independent character pipes for Anima, SDXL, Krea 2 and MOSS as well. SD1.5 generation is experimental and unstable."
+version = "0.2.3"
+description = "Digeut: Normal/Precision regional LoRA execution, shared-layer acceleration for supported Anima/SDXL linear adapters, localized node help and two-second tooltips. Modular character prompts, LoRAs and positions support local regional generation and detailing for Anima, SDXL, Krea 2, MOSS and FLUX.1/2/3, with PNG/WebP settings restoration. SD1.5 is experimental and unstable."
 readme = "README.md"
 license = {file = "LICENSE"}
 requires-python = ">=3.11"
@@ -18,4 +18,4 @@ Documentation = "https://github.com/raspie10032/ComfyUI_RS_MultiCharacter_Sample
 
 [tool.comfy]
 PublisherId = "raspie10032"
-DisplayName = "RS MultiCharacter Sampler (Nieun)"
+DisplayName = "RS MultiCharacter Sampler (Digeut)"

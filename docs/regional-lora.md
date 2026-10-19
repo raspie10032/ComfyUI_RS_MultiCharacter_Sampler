@@ -1,6 +1,6 @@
-# Per-character LoRA — Zeta
+# Per-character LoRA — Digeut
 
-The optimization clone exposes **normal / precision** on **RS MultiCharacter LoRAs**.
+Version 0.2.3 exposes **normal / precision** on **RS Character LoRA**.
 The choice travels through the building and character pipes to the sampler, applies
 to every slot, and is saved/restored with image metadata. A description panel below
 the LoRA settings updates with the selected mode in English, Korean or Japanese.
@@ -15,7 +15,7 @@ save the correct LoRA selections while applying them to an unused model instance
 The fix resolves the actual inference layers for each call and retains the shared
 small-factor backend. [Controlled comparisons and scope](release-0.1.7.md).
 
-In **RS MultiCharacter Prompts**, each active character has `characterN_lora`,
+In **RS Character LoRA** (or the legacy combined prompt node), each active character has `characterN_lora`,
 `characterN_lora_strength` (model), and `characterN_lora_clip_strength` (text encoder).
 Choose an installed file from `models/loras`; subfolders are supported. `None` disables
 that slot's LoRA. Strength controls appear after selecting a file. Text slots hide
@@ -42,7 +42,7 @@ coordinate/box masks use the existing feather and overlap policy. An uncovered b
 background or text box uses the incoming model, without additional character LoRAs.
 Identical model-LoRA combinations share a hook group. Model weights are restored by
 ComfyUI after the sampling call, including error/interruption cleanup. Supported
-Anima LoRAs instead use the factor-only path below without patching base weights.
+Anima/SDXL linear LoRAs instead use the factor-only path below without patching base weights.
 
 CLIP LoRA applies when encoding that character's positive prompt. Common positive,
 common negative and text-region prompts use the incoming CLIP. The sampler retains
@@ -105,7 +105,7 @@ See [measured scope and limitations](regional-lora-bypass-validation.md).
 
 ## 한국어
 
-캐릭터 노드 하단에서 **캐릭터 N LoRA**를 고르고 **모델 강도 / CLIP 강도**를
+**RS Character LoRA**에서 **캐릭터 N LoRA**를 고르고 **모델 강도 / CLIP 강도**를
 설정합니다. 파일을 선택하면 강도 입력이 나타납니다. `None`은 미사용이며 글자
 영역에는 적용되지 않습니다. 기존 캐릭터 파이프만 연결하면 샘플러와 디테일러가
 함께 사용합니다. 전체 스타일·가속 LoRA는 기존 전체 로더에 연결하세요.
@@ -119,15 +119,17 @@ PNG/WebP 메타데이터에 파일명과 두 강도가 저장됩니다. 이미�
 아니므로 영역 밖의 구도·색·배경에도 변화가 생길 수 있습니다. 정확한 캐릭터 재현과
 분리 품질은 모델·LoRA·프롬프트마다 확인해야 합니다.
 
-Anima의 일반 Linear LoRA는 작은 행렬을 직접 계산하는 Bypass 경로를 자동으로
-사용합니다. 같은 파일은 강도가 달라도 행렬을 공유하고, 큰 합성 가중치 캐시는
-만들지 않습니다. 다른 모델·DoRA 등 확장 형식·양자화·다중 GPU는 기존 Hook으로
-처리합니다. 서로 다른 LoRA 조합마다 예측하는 비용은 남고, 연산 순서가 달라
-이전 버전과 같은 시드에서도 픽셀이 달라질 수 있습니다.
+0.2.3의 **일반 적용**은 지원되는 Anima·SDXL 선형 LoRA의 레이어 계산을 공유합니다.
+**정밀 적용**은 LoRA 설정별 예측을 분리하고, 지원되는 선형 LoRA는 작은 행렬을 직접
+계산해 반복 가중치 합성 비용을 줄입니다. 기본값과 모드가 없는 기존 이미지는 정밀입니다.
+일반에서 미지원 구성은 이유를 표시하고 정밀로 처리하며, 디테일러는 항상 정밀을 씁니다.
+기본 모델 계산을 공유하면 얼굴·의상·구도와 특징 섞임 정도가 달라질 수 있습니다.
+일부 FLUX 선형·양자화 어댑터는 기존 전용 Bypass 경로를 사용하고, 확장 형식과
+그 밖의 구성은 호환되는 기존 경로로 처리합니다. [모드별 시험과 한계](shared-lora-experiment.md).
 
 ## 日本語
 
-キャラクターノードで **キャラクター N LoRA** を選び、モデル強度と CLIP 強度を
+**RS Character LoRA** で **キャラクター N LoRA** を選び、モデル強度と CLIP 強度を
 設定します。`None` は無効です。文字領域には適用しません。既存の専用パイプで
 Sampler と Detailer に渡します。全体の画風・高速化 LoRA は通常のローダーへ
 接続してください。
@@ -138,11 +140,13 @@ PNG/WebP にファイル名と強度を保存し、画像ローダーから復�
 LoRA の組合せが増えるほど計算量も増えます。領域外への影響や境界の混ざりは
 完全には防げません。
 
-Anima の通常の Linear LoRA は、小さい行列を直接計算する Bypass 経路を自動で
-使用します。同じファイルは強度が異なっても行列を共有し、大きな合成済み重みを
-キャッシュしません。他のモデル、DoRA 等の拡張形式、量子化、複数 GPU は従来の
-Hook を使用します。組合せごとの予測は必要で、演算順序の変更により同じシード
-でも旧バージョンとはピクセルが異なる場合があります。
+0.2.3の**通常適用**は、対応するAnima・SDXL線形LoRAのレイヤー計算を共有します。
+**精密適用**は設定ごとの予測を分離し、対応する線形LoRAを小行列で計算して重みの
+再合成を減らします。初期値と旧画像は精密です。通常の非対応構成は理由を記録して
+精密に切り替え、ディテイラーは常に精密を使用します。共有方式では顔・服・構図や
+特徴の混ざり方が変わる場合があります。一部のFLUX線形・量子化アダプターは既存の
+専用Bypass経路を使用し、拡張形式などは対応する従来経路を使います。
+[モード別の試験と制限](shared-lora-experiment.md)。
 
 ## Example and validation
 
