@@ -1,8 +1,8 @@
 # ComfyUI_RS_MultiCharacter_Sampler
 
-**FLUX development candidate:** eight native FLUX.1/2/3 variants have completed real two-person generation, same-seed caption swaps and local masked detailing. Klein 4B also has text-box, XY and image-replay evidence. Trained regional LoRA and further regression trials are documented in the validation report. [Exact status and limits](docs/flux-validation.md) · [Klein 4B example](examples/flux/klein4-two.json). This is not a published FLUX release.
+**New in 0.2.2 Nieun (니은):** native FLUX.1/2/3 regional generation and local masked detailing. All eight tested variants completed two-person generation, same-seed caption swaps and detailing. Includes quantized regional LoRA fixes, embedded guidance, settings replay, eight FLUX presets and model-specific examples. [Release notes](docs/release-0.2.2.md) · [Evidence and limits](docs/flux-validation.md) · [FLUX examples](examples/flux).
 
-**0.2.1 Giyeok Fix (기역 픽스) · Anima · SDXL · Krea 2 · MOSS · SD1.5 (experimental, unstable)** — independent prompts with X/Y, box and mixed regions for local ComfyUI generation.
+**0.2.2 Nieun (니은) · FLUX.1/2/3 · Anima · SDXL · Krea 2 · MOSS · SD1.5 (experimental, unstable)** — independent prompts with X/Y, box and mixed regions for local ComfyUI generation.
 
 **Giyeok Fix:** fixes character and text inputs appearing together. Each slot now uses one shared STRING socket, preserving its connection when kind changes. Old workflows move their literal-text connection to that socket. [Fix and compatibility](docs/release-0.2.1.md).
 
@@ -22,10 +22,11 @@ Ordinary Anima LoRAs automatically share small factor matrices through native By
 
 [한국어](README.ko.md) · [日本語](README.ja.md) · [Architecture](docs/architecture.md) · [Validation](docs/validation.md)
 
-This extension contains six nodes. It does not require the RS NovelAI extension, an API key, or a ControlNet model. It uses your supported local model and matching text encoder.
+This extension registers ten nodes, including four modular character-building nodes and the legacy combined prompt node. It does not require the RS NovelAI extension, an API key, or a ControlNet model. It uses your supported local model and matching text encoder.
 
 | Node | Purpose |
 | --- | --- |
+| **RS Character Prompt / LoRA / Position / Finalize Character Pipe** | Four role-based nodes; connect prompt, LoRA and position in any order, then finalize the dedicated pipe. |
 | **RS MultiCharacter Prompts** | 1–10 regions with original text, enable switch, normalized X/Y and optional boxes or literal text. One dedicated `RS_MC_CHARACTER_PIPE` output. |
 | **RS MultiCharacter Sampler** | Common positive/negative prompts, local sampling, optional autosave, image/latent/pipe/info outputs. |
 | **RS MultiCharacter Load Image** | PNG/WebP image and mask, restored character pipe and generation information. |
@@ -149,7 +150,7 @@ The loader also accepts NAI V4-style character captions with one center per char
 
 ## Current limits
 
-- **Anima, SDXL, Krea 2, MOSS and unstable experimental SD1.5 support**, plus native FLUX.1/2/3 in the development candidate, one image per execution. The sampler is text-to-image; the detailer runs masked img2img crops. SD1.5 has only been tested for generation, not detailing. SD2, FLUX Fill/Control/reference-image editing, inpainting/refiner checkpoints, ControlNet and other attention patches are not supported by the regional sampler.
+- **Anima, SDXL, Krea 2, MOSS and unstable experimental SD1.5 support**, plus native FLUX.1/2/3, one image per execution. The sampler is text-to-image; the detailer runs masked img2img crops. SD1.5 has only been tested for generation, not detailing. SD2, FLUX Fill/Control/reference-image editing, inpainting/refiner checkpoints, ControlNet and other attention patches are not supported by the regional sampler.
 - **1–10 input slots.** Actual image tests cover Anima 1–6, SDXL 2–6, Krea 2 / MOSS 2–4, and SD1.5 two-character requests. More characters do not guarantee quality. Horizontal layouts are the strongest tested use case; successful new-model 2x2 examples do not establish a general success rate.
 - Coordinates choose prompt regions; they do **not** lock a head/body to a point or enforce exactly one person per region. A single character owns the whole image, so moving that one center does not move the person.
 - Multiple rows, dense interactions and crossing props can duplicate or omit people. Four requested people in a 2×2 experiment became 12 and 10. Six people in two rows became 7 and 11. Do not treat count or identity as guaranteed.

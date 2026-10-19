@@ -1,7 +1,8 @@
-# FLUX development validation — 2026-10-19
+# FLUX validation for 0.2.2 Nieun — 2026-10-19
 
-This is a locally validated development candidate, not a published FLUX release.
-The everyday 0.2.1 installation has not been replaced by this validation campaign.
+These results cover the FLUX implementation included in 0.2.2 Nieun.
+The full-weight campaign ran in an isolated ComfyUI before release; installation
+and remote CI checks are separate release steps.
 
 ## Architecture
 
@@ -30,7 +31,7 @@ take precedence over these compatibility aliases.
 separate from CFG and is saved/restored in generation metadata. Schnell, Klein,
 and FLUX 3 do not use this embedded-guidance value. FLUX 3 Base uses ordinary CFG.
 
-The candidate supports native text-to-image model routing. FLUX Fill/Control,
+The release supports native text-to-image model routing. FLUX Fill/Control,
 reference-image editing, and GGUF/custom model implementations are not verified
 by this work. Fill/Control and reference inputs are explicitly rejected rather
 than silently routed as ordinary text-to-image models. Update ComfyUI for the
@@ -55,7 +56,7 @@ Current local results: 141 Python tests and five JavaScript test files pass. The
 include real ComfyUI FP8/INT8 linear layers, expected low-rank residuals, sliced
 adapters, cleanup, native regional routing and FLUX 3 flow-map timesteps. Old
 ComfyUI integrations skip native model tests for architectures they do not contain.
-No public CI run or release is claimed by these local results.
+These local test counts do not establish the status of remote CI.
 
 Image-settings replay was also tested on Klein 4B, FLUX.1 Dev, FLUX.2 Dev,
 FLUX 3 Klein and FLUX 3 Base. Each restored image matched its source RGB pixels
@@ -146,7 +147,7 @@ character gain 1.2 / separation 0.6.
 
 These are one scene/seed and diagnostic variants, not a multi-seed quality survey.
 The native CPU tests, actual generation, metadata replay and resident installation
-are distinct evidence. FLUX support is not installed into the everyday runtime yet.
+are distinct evidence. The full-weight campaign itself does not prove resident installation.
 Additional trained-LoRA, metadata replay, mixed-layout and prior-model regression
 results are recorded in the local campaign report. Only the exact cases listed
 there are covered; architecture support does not establish compatibility with
