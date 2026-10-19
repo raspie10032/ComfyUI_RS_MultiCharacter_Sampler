@@ -108,6 +108,14 @@ class RegionalLoras:
 
         if not any(self.hooks):
             return positive, negative
+        # Research-only opt-in on an isolated model clone. Public behavior stays
+        # on independent predictions until image comparisons justify a release.
+        if model.model_options.get("rs_mc_lora_execution") == "shared_layers":
+            from .shared_lora import SharedRegionalLora
+            shared = SharedRegionalLora(self, model, masks, regions)
+            shared.install(model)
+            self.shared = shared
+            return positive, negative
         self.install(model)
         model.hook_mode = comfy.hooks.EnumHookMode.MinVram
         groups = grouped_masks(self.hooks, masks, regions)

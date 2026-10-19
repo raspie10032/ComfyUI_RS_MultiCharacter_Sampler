@@ -44,7 +44,10 @@ def prepare_bypass(model, weights):
     flux_types = tuple(t for name in ("Flux", "Flux3")
                        if isinstance((t := getattr(model_base, name, None)), type))
     is_flux = isinstance(model.model, flux_types)
-    if not is_flux and not isinstance(model.model, getattr(model_base, "Anima", ())):
+    # Clone experiment: SDXL's ordinary linear adapters use the same factor
+    # path; unsupported convolutional/extended patches retain native hooks.
+    is_sdxl = isinstance(model.model, getattr(model_base, "SDXL", ()))
+    if not is_flux and not is_sdxl and not isinstance(model.model, getattr(model_base, "Anima", ())):
         return None, "model_family"
     if getattr(model, "get_additional_models_with_key", lambda key: [])("multigpu"):
         return None, "multigpu_clones"
