@@ -126,6 +126,10 @@ class NativeModelTests(unittest.TestCase):
         if lora_trial:
             self.check_regional_lora(model, clip, vae, pipe, nodes)
         if sd15:
+            for mode in ("moss_native", "moss_hybrid"):
+                with self.assertRaisesRegex(ValueError, 'require MOSS-Image'):
+                    nodes.RSMultiCharacterSampler().generate(
+                        model, clip, vae, pipe, 'common', 'negative', layout_method=mode, autosave=False)
             def invoke():
                 return nodes.RSMultiCharacterSampler().generate(
                     model, clip, vae, pipe, 'common', 'negative',
@@ -194,6 +198,56 @@ class NativeModelTests(unittest.TestCase):
                 missing = replace(left,characters=(replace(left.characters[0],lora_name='../outside.pt'),left.characters[1]))
                 with self.assertRaisesRegex(ValueError, 'missing'):generate(missing)
                 self.assertTrue(torch.equal(generate(pipe),base))
+
+    def test_moss_node_json_and_hybrid_replay(self):
+        """Real tiny MOSS/sampler; synthetic text and VAE do not prove quality."""
+        from comfy import model_base, supported_models, model_patcher
+        from comfy.cli_args import args, LatentPreviewMethod
+        if not hasattr(model_base, 'MOSSImage'):
+            self.skipTest('MOSSImage is not available in this ComfyUI')
+        n = importlib.import_module(PKG + '.nodes')
+        c = importlib.import_module(PKG + '.characters')
+        torch.manual_seed(41)
+        config = supported_models.MOSSImage(dict(
+            dim=128, ffn_dim=256, num_heads=4, num_layers=2, text_dim=4096, latent_channels=128))
+        config.custom_operations = self.ops
+        config.unet_config['dtype'] = torch.float32
+        base = model_base.MOSSImage(config, device=torch.device('cpu'))
+        for p in base.parameters():
+            p.data.uniform_(-.05, .05)
+        model = model_patcher.ModelPatcher(base, torch.device('cpu'), torch.device('cpu'))
+        original = copy.deepcopy(model.model_options)
+        encoded = []
+        def encode(text):
+            encoded.append(text)
+            return [[torch.ones(1, 9 if text.startswith('{') else 3, 4096) * .01, {}]]
+        clip = SimpleNamespace(tokenize=lambda text: text, encode_from_tokens_scheduled=encode)
+        vae = SimpleNamespace(decode=lambda latent: latent[:, :3].movedim(1, -1).sigmoid())
+        pipe = c.CharacterPipe((c.Character('left', x=.25, bbox=(0, 0, .5, 1)),
+                                c.Character('right', x=.75, bbox=(.5, 0, 1, 1))))
+        for mode in ('moss_native', 'regional', 'moss_hybrid'):
+            encoded.clear()
+            with patch.object(args, 'preview_method', LatentPreviewMethod.NoPreviews), torch.no_grad():
+                output = n.RSMultiCharacterSampler().generate(
+                    model, clip, vae, pipe, 'garden', '', width=64, height=64,
+                    seed=41, steps=2, cfg=1., sampler_name='euler', scheduler='simple',
+                    layout_method=mode, autosave=False)['result']
+            self.assertTrue(torch.isfinite(output[0]).all())
+            audit = json.loads(output[3])['routing_audit']
+            self.assertEqual(audit['regional_controls_applied'], mode != 'moss_native')
+            self.assertEqual(audit['cross_calls'] > 0, mode != 'moss_native')
+            self.assertEqual(model.model_options, original)
+            if mode != 'regional':
+                self.assertEqual(json.loads(encoded[0])['summary']['caption'], 'garden')
+            if mode == 'moss_hybrid':
+                self.assertEqual(encoded[2:], ['left', 'right'])
+                self.assertEqual(audit['forwards'][0]['text_lengths'], [9, 3, 3])
+                # The saved mode wins over the sampler's default on replay.
+                with patch.object(args, 'preview_method', LatentPreviewMethod.NoPreviews), torch.no_grad():
+                    replay = n.RSMultiCharacterSampler().generate(
+                        model, clip, vae, output[2], 'ignored', 'ignored',
+                        use_image_settings=True, autosave=False)['result']
+                torch.testing.assert_close(replay[1]['samples'], output[1]['samples'], rtol=0, atol=0)
 
     def joint(self, family, boxes=False):
         j = importlib.import_module(PKG+'.joint_engine')

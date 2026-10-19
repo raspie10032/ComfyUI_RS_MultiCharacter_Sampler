@@ -86,8 +86,8 @@ class RSMultiCharacterSampler:
             "initial_spatial_separation": ("FLOAT", {"default": .9, "min": 0., "max": .99, "step": .05}),
             "boundary_hold_steps": ("INT", {"default": 3, "min": 1, "max": 30}),
             "boundary_decrement": ("FLOAT", {"default": .2, "min": .01, "max": 1., "step": .01}),
-            "layout_method": (["regional", "moss_native"], {"default": "regional",
-                "tooltip": "Regional routes attention for all supported models. MOSS native sends one official layout JSON prompt, requires boxes and MOSS, and ignores regional strength/boundary/feather settings. Experimental: exact object bounds are not guaranteed."}),
+            "layout_method": (["regional", "moss_native", "moss_hybrid"], {"default": "regional",
+                "tooltip": "Regional routes attention. MOSS native uses layout JSON without routing. Experimental MOSS hybrid uses the same JSON as common conditioning plus separate regional captions. Both MOSS modes require boxes for every region."}),
             "flux_guidance": ("FLOAT", {"default": 3.5, "min": 0., "max": 20., "step": .1,
                 "tooltip": "Embedded guidance for FLUX.1 Dev / FLUX.2 Dev; separate from CFG. Schnell, Klein and FLUX 3 ignore this value. FLUX 3 Base uses ordinary CFG."}),
         }, "hidden": {"workflow_prompt": "PROMPT", "unique_id": "UNIQUE_ID"}}
@@ -152,10 +152,10 @@ class RSMultiCharacterSampler:
             flux_guidance = stored.get("flux_guidance", 3.5)
         lora_application_mode = character_pipe.lora_application_mode
         settings["lora_application_mode"] = lora_application_mode
-        if layout_method not in ("regional", "moss_native"):
-            raise ValueError("Choose regional or moss_native for the layout method.")
-        if layout_method == "moss_native" and family != "MOSS":
-            raise ValueError("MOSS native layout requires MOSS-Image. Choose regional for this model. / 이 모델은 regional 모드를 사용해 주세요.")
+        if layout_method not in ("regional", "moss_native", "moss_hybrid"):
+            raise ValueError("Choose regional, moss_native or moss_hybrid for the layout method.")
+        if layout_method in ("moss_native", "moss_hybrid") and family != "MOSS":
+            raise ValueError("MOSS JSON layout modes require MOSS-Image. Choose regional for this model. / 이 모델은 regional 모드를 사용해 주세요.")
         settings["layout_method"] = layout_method
         if family.startswith("FLUX"):
             if isinstance(flux_guidance, bool) or not isinstance(flux_guidance, (int, float)) or not math.isfinite(flux_guidance) or not 0 <= flux_guidance <= 20:
@@ -170,7 +170,8 @@ class RSMultiCharacterSampler:
         centers, moved = effective_centers(pipe.regions)
         geometry = tuple(c.bbox is not None for c in pipe.regions)
         boxes = geometry if any(geometry) else False
-        native_prompt = moss_layout_prompt(pipe, settings["width"], settings["height"]) if layout_method == "moss_native" else None
+        native_prompt = moss_layout_prompt(pipe, settings["width"], settings["height"]) if layout_method in ("moss_native", "moss_hybrid") else None
+        regional_controls = layout_method != "moss_native"
         if native_prompt is not None and prompt_syntax != "ComfyUI":
             raise ValueError("MOSS native layout uses literal captions. Choose ComfyUI syntax and remove prompt-weight syntax. / MOSS 레이아웃에는 가중치 문법 없는 일반 문장을 사용해 주세요.")
         masks = character_masks(pipe.regions, centers, settings["width"], settings["height"], settings["region_feather"])
@@ -217,12 +218,15 @@ class RSMultiCharacterSampler:
         positive, negative = encode(native_prompt if native_prompt is not None else prompt), encode(negative_prompt)
         conditions = [encode(text_region_caption(c, convert, family not in ("Krea2", "MOSS", "FLUX1", "FLUX2", "FLUX3")), converted=True)[0]
                       if isinstance(c, TextRegion) else encode(c.prompt, encoder=loras.clips[i] if loras else clip)[0]
-                      for i, c in enumerate(pipe.regions)] if native_prompt is None else []
+                      for i, c in enumerate(pipe.regions)] if regional_controls else []
         audit = {"layout_method": layout_method,
+                 "regional_controls_applied": regional_controls,
                  "region_geometry": "boxes" if all(geometry) else "mixed" if any(geometry) else "points",
                  "box_slots": [i+1 for i, is_box in enumerate(geometry) if is_box]}
-        work = model.clone()
         if native_prompt is not None:
+            audit["native_layout_json"] = native_prompt
+        work = model.clone()
+        if not regional_controls:
             audit.update(spatial_slots=len(pipe.regions), cross_calls=0, self_calls=0,
                          restored_forwards=0, native_layout_json=native_prompt,
                          regional_controls_applied=False)
