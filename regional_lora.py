@@ -1,6 +1,7 @@
 # SPDX-License-Identifier: GPL-3.0-only
 """Per-execution LoRA hooks, with the existing regional attention in every pass."""
 import torch
+import logging
 
 
 def lora_records(pipe):
@@ -38,6 +39,9 @@ class RegionalLoras:
                 weights = comfy.lora_convert.convert_lora(comfy.utils.load_torch_file(path, safe_load=True))
                 if model_map is None:
                     model_map = comfy.lora.model_lora_keys_unet(model.model, {})
+                    from .flux_engine import flux_family, extend_flux3_lora_map
+                    if flux_family(model) == 'FLUX3':
+                        extend_flux3_lora_map(model_map)
                     clip_map = comfy.lora.model_lora_keys_clip(clip.cond_stage_model, {})
                 loaded_files[name] = (comfy.lora.load_lora(weights, model_map, log_missing=False),
                                       comfy.lora.load_lora(weights, clip_map, log_missing=False))
@@ -54,9 +58,14 @@ class RegionalLoras:
                         from .lora_bypass import prepare_bypass
                         self.bypasses[name] = prepare_bypass(model, model_weights)
                     bypass, _ = self.bypasses[name]
+                    logging.info("RS MC character %s LoRA backend: %s (%s)", slot,
+                                 "bypass" if bypass is not None else "weight_hooks", self.bypasses[name][1])
                     if bypass is not None:
                         hook_group = bypass.hook_group(character.lora_strength)
                     else:
+                        from .lora_bypass import requires_quantized_bypass
+                        if requires_quantized_bypass(model):
+                            raise ValueError(f"Character {slot}: this LoRA format cannot be applied regionally to this packed FLUX checkpoint ({self.bypasses[name][1]}). Use a plain linear LoRA for this model, or a non-quantized checkpoint. / 캐릭터 {slot}: 이 양자화 FLUX 모델에는 일반 선형 LoRA가 필요합니다. 해당 모델용 일반 LoRA 또는 비양자화 체크포인트를 사용해 주세요.")
                         hook = comfy.hooks.WeightHook(strength_model=character.lora_strength, strength_clip=0.)
                         hook.weights, hook.weights_clip, hook.need_weight_init = model_weights, {}, False
                         hook_group = comfy.hooks.HookGroup()

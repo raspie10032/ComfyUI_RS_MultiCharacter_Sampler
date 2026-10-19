@@ -60,6 +60,33 @@ class BypassTests(unittest.TestCase):
         self.assertIsNotNone(plan)
         return plan
 
+    def test_flux_fused_output_and_input_offsets_match_merged_factors(self):
+        from comfy import model_base
+        base = model_base.Flux2.__new__(model_base.Flux2)
+        torch.nn.Module.__init__(base)
+        base.diffusion_model = copy.deepcopy(self.model.model.diffusion_model)
+        original = base.diffusion_model[0].weight.detach().clone()
+        weights = {}
+        expected_weight = original.clone()
+        for start in (0, 4):
+            up = torch.randn(4, 2) * .2
+            weights[('diffusion_model.0.weight', (0, start, 4))] = self.adapter_type(set(), (up, self.down, 1., None, None, None))
+            expected_weight[start:start+4] += up @ self.down * .5
+        plan, reason = self.bypass.prepare_bypass(SimpleNamespace(model=base), weights)
+        self.assertEqual(reason, 'plain_linear_lora')
+        expected = F.linear(self.x, expected_weight, base.diffusion_model[0].bias)
+        torch.testing.assert_close(self.run_plan(plan, 1., base.diffusion_model), expected)
+        self.assertTrue(torch.equal(original, base.diffusion_model[0].weight))
+        self.assertNotIn('forward', base.diffusion_model[0].__dict__)
+        down = torch.randn(2, 4) * .2
+        weights = {('diffusion_model.0.weight', (1, 2, 4)): self.adapter_type(set(), (self.up, down, 1., None, None, None))}
+        plan, reason = self.bypass.prepare_bypass(SimpleNamespace(model=base), weights)
+        self.assertEqual(reason, 'plain_linear_lora')
+        expected_weight = original.clone()
+        expected_weight[:, 2:6] += self.up @ down * .5
+        expected = F.linear(self.x, expected_weight, base.diffusion_model[0].bias)
+        torch.testing.assert_close(self.run_plan(plan, 1., base.diffusion_model), expected)
+
     def run_plan(self, plan, strength, runtime=None, call=None):
         from comfy.patcher_extension import WrapperExecutor
         runtime = self.model.model.diffusion_model if runtime is None else runtime
@@ -175,4 +202,67 @@ class BypassTests(unittest.TestCase):
             self.assertEqual(self.bypass.prepare_bypass(self.model,self.weights)[1], 'multigpu_clones')
         self.layer.comfy_force_forward = True
         self.assertEqual(self.bypass.prepare_bypass(self.model,self.weights)[1], 'custom_or_quantized_layer')
+
+    def test_flux_fp8_bypass_changes_output_and_preserves_base_weight(self):
+        from comfy import model_base
+        for family in (model_base.Flux, model_base.Flux2, model_base.Flux3):
+            base = family.__new__(family)
+            torch.nn.Module.__init__(base)
+            base.diffusion_model = copy.deepcopy(self.model.model.diffusion_model)
+            layer = base.diffusion_model[0]
+            layer.weight = torch.nn.Parameter(layer.weight.to(torch.float8_e4m3fn), requires_grad=False)
+            model = SimpleNamespace(model=base)
+            plan, reason = self.bypass.prepare_bypass(model, self.weights)
+            self.assertEqual(reason, 'plain_linear_lora')
+            original = layer.weight.detach().clone()
+            before = base.diffusion_model(self.x)
+            expected = before + F.linear(F.linear(self.x, self.down), self.up) * .5
+            result = self.run_plan(plan, 1., base.diffusion_model)
+            torch.testing.assert_close(result, expected)
+            self.assertTrue(torch.equal(original.float(), layer.weight.float()))
+            self.assertTrue(torch.equal(before, base.diffusion_model(self.x)))
+
+    def test_flux_native_int8_tensor_is_accepted_without_scale_attributes(self):
+        from comfy import model_base
+        from comfy import ops
+        from comfy.quant_ops import QuantizedTensor
+        base = model_base.Flux2.__new__(model_base.Flux2)
+        torch.nn.Module.__init__(base)
+        layer = ops.mixed_precision_ops({}, compute_dtype=torch.float32).Linear(8, 8)
+        layer.bias = torch.nn.Parameter(self.layer.bias.detach().clone())
+        base.diffusion_model = torch.nn.Sequential(layer)
+        layer = base.diffusion_model[0]
+        quantized = QuantizedTensor.from_float(self.layer.weight.detach(), 'TensorWiseINT8Layout')
+        layer.weight = torch.nn.Parameter(quantized, requires_grad=False)
+        self.assertFalse(hasattr(layer, 'weight_scale'))
+        self.assertTrue(self.bypass.requires_quantized_bypass(SimpleNamespace(model=base)))
+        self.assertFalse(self.bypass.requires_quantized_bypass(self.model))
+        plan, reason = self.bypass.prepare_bypass(SimpleNamespace(model=base), self.weights)
+        self.assertEqual(reason, 'plain_linear_lora')
+        self.assertIsNotNone(plan)
+        before = base.diffusion_model(self.x)
+        expected = before + F.linear(F.linear(self.x, self.down), self.up) * .5
+        torch.testing.assert_close(self.run_plan(plan, 1., base.diffusion_model), expected)
+        self.assertTrue(torch.equal(before, base.diffusion_model(self.x)))
+
+    def test_flux_lora_surrounds_early_text_refinement(self):
+        from comfy import model_base
+        from comfy.patcher_extension import WrappersMP, get_all_wrappers, merge_nested_dicts
+        f = importlib.import_module(PKG + '.flux_engine')
+        base = model_base.Flux3.__new__(model_base.Flux3)
+        torch.nn.Module.__init__(base)
+        base.diffusion_model = self.model.model.diffusion_model
+        plan, _ = self.bypass.prepare_bypass(SimpleNamespace(model=base), self.weights)
+        options = {}
+        def add(kind, key, wrapper):
+            options.setdefault('wrappers', {}).setdefault(kind, {}).setdefault(key, []).append(wrapper)
+        work = SimpleNamespace(model_options={'transformer_options': options}, add_wrapper_with_key=add)
+        routing = f.FluxRouting.__new__(f.FluxRouting)
+        routing.family = 'FLUX3'
+        routing.install(work)
+        hook_options = plan.hook_group(1.).hooks[0].transformers_dict
+        merged = merge_nested_dicts(options, hook_options)
+        wrappers = get_all_wrappers(WrappersMP.DIFFUSION_MODEL, merged)
+        self.assertEqual(wrappers[0].func, plan.forward)
+        self.assertEqual(wrappers[1], routing.flux3_forward)
 

@@ -242,5 +242,201 @@
       "boundary_decrement": 0.2,
       "flux_guidance": 3.5
     }
+  },
+  {
+    "id": "flux1_schnell",
+    "label": {
+      "en": "FLUX.1 Schnell — 4 steps",
+      "ko": "FLUX.1 Schnell — 4 steps",
+      "ja": "FLUX.1 Schnell — 4 steps"
+    },
+    "note": {
+      "en": "Real-checkpoint two-person and caption-swap settings, not a quality guarantee. Use the matching model, text encoder and VAE shown in the example. Embedded guidance affects only FLUX.1 Dev / FLUX.2 Dev. See the FLUX validation document for limitations.",
+      "ko": "실제 모델로 2인 생성과 문장 교환을 시험한 설정입니다. 품질 보장은 아니며 예제의 모델·텍스트 인코더·VAE를 함께 사용하세요. 내장 가이던스는 FLUX.1 Dev·FLUX.2 Dev에만 적용됩니다. 한계는 FLUX 검증 문서를 확인하세요.",
+      "ja": "実モデルで2人生成と文章交換を試した設定です。品質は保証しません。例のモデル・テキストエンコーダー・VAEを組み合わせてください。内蔵ガイダンスはFLUX.1 Dev・FLUX.2 Devのみ有効です。制限はFLUX検証文書を参照してください。"
+    },
+    "source": "examples/flux/flux1-schnell-two.json",
+    "settings": {
+      "steps": 4,
+      "cfg": 1.0,
+      "sampler_name": "euler",
+      "scheduler": "simple",
+      "region_feather": 0.04,
+      "initial_common_prior": 0.6,
+      "common_after_step3_boost": 0.1,
+      "initial_character_gain": 1.2,
+      "initial_spatial_separation": 0.35,
+      "boundary_hold_steps": 3,
+      "boundary_decrement": 0.2,
+      "flux_guidance": 3.5
+    }
+  },
+  {
+    "id": "flux1_dev",
+    "label": {
+      "en": "FLUX.1 Dev — 20 steps",
+      "ko": "FLUX.1 Dev — 20 steps",
+      "ja": "FLUX.1 Dev — 20 steps"
+    },
+    "note": {
+      "en": "Real-checkpoint two-person and caption-swap settings, not a quality guarantee. Use the matching model, text encoder and VAE shown in the example. Embedded guidance affects only FLUX.1 Dev / FLUX.2 Dev. See the FLUX validation document for limitations.",
+      "ko": "실제 모델로 2인 생성과 문장 교환을 시험한 설정입니다. 품질 보장은 아니며 예제의 모델·텍스트 인코더·VAE를 함께 사용하세요. 내장 가이던스는 FLUX.1 Dev·FLUX.2 Dev에만 적용됩니다. 한계는 FLUX 검증 문서를 확인하세요.",
+      "ja": "実モデルで2人生成と文章交換を試した設定です。品質は保証しません。例のモデル・テキストエンコーダー・VAEを組み合わせてください。内蔵ガイダンスはFLUX.1 Dev・FLUX.2 Devのみ有効です。制限はFLUX検証文書を参照してください。"
+    },
+    "source": "examples/flux/flux1-dev-two.json",
+    "settings": {
+      "steps": 20,
+      "cfg": 1.0,
+      "sampler_name": "euler",
+      "scheduler": "simple",
+      "region_feather": 0.04,
+      "initial_common_prior": 0.6,
+      "common_after_step3_boost": 0.1,
+      "initial_character_gain": 1.2,
+      "initial_spatial_separation": 0.35,
+      "boundary_hold_steps": 3,
+      "boundary_decrement": 0.2,
+      "flux_guidance": 3.5
+    }
+  },
+  {
+    "id": "flux2_klein4_base",
+    "label": {
+      "en": "FLUX.2 Klein Base 4B — 50 steps",
+      "ko": "FLUX.2 Klein Base 4B — 50 steps",
+      "ja": "FLUX.2 Klein Base 4B — 50 steps"
+    },
+    "note": {
+      "en": "Real-checkpoint two-person and caption-swap settings, not a quality guarantee. Use the matching model, text encoder and VAE shown in the example. Embedded guidance affects only FLUX.1 Dev / FLUX.2 Dev. See the FLUX validation document for limitations.",
+      "ko": "실제 모델로 2인 생성과 문장 교환을 시험한 설정입니다. 품질 보장은 아니며 예제의 모델·텍스트 인코더·VAE를 함께 사용하세요. 내장 가이던스는 FLUX.1 Dev·FLUX.2 Dev에만 적용됩니다. 한계는 FLUX 검증 문서를 확인하세요.",
+      "ja": "実モデルで2人生成と文章交換を試した設定です。品質は保証しません。例のモデル・テキストエンコーダー・VAEを組み合わせてください。内蔵ガイダンスはFLUX.1 Dev・FLUX.2 Devのみ有効です。制限はFLUX検証文書を参照してください。"
+    },
+    "source": "examples/flux/klein4-base-two.json",
+    "settings": {
+      "steps": 50,
+      "cfg": 4.0,
+      "sampler_name": "euler",
+      "scheduler": "simple",
+      "region_feather": 0.04,
+      "initial_common_prior": 0.6,
+      "common_after_step3_boost": 0.1,
+      "initial_character_gain": 1.2,
+      "initial_spatial_separation": 0.35,
+      "boundary_hold_steps": 3,
+      "boundary_decrement": 0.2,
+      "flux_guidance": 3.5
+    }
+  },
+  {
+    "id": "flux2_klein9",
+    "label": {
+      "en": "FLUX.2 Klein 9B — 4 steps",
+      "ko": "FLUX.2 Klein 9B — 4 steps",
+      "ja": "FLUX.2 Klein 9B — 4 steps"
+    },
+    "note": {
+      "en": "Real-checkpoint two-person and caption-swap settings, not a quality guarantee. Use the matching model, text encoder and VAE shown in the example. Embedded guidance affects only FLUX.1 Dev / FLUX.2 Dev. See the FLUX validation document for limitations.",
+      "ko": "실제 모델로 2인 생성과 문장 교환을 시험한 설정입니다. 품질 보장은 아니며 예제의 모델·텍스트 인코더·VAE를 함께 사용하세요. 내장 가이던스는 FLUX.1 Dev·FLUX.2 Dev에만 적용됩니다. 한계는 FLUX 검증 문서를 확인하세요.",
+      "ja": "実モデルで2人生成と文章交換を試した設定です。品質は保証しません。例のモデル・テキストエンコーダー・VAEを組み合わせてください。内蔵ガイダンスはFLUX.1 Dev・FLUX.2 Devのみ有効です。制限はFLUX検証文書を参照してください。"
+    },
+    "source": "examples/flux/klein9-two.json",
+    "settings": {
+      "steps": 4,
+      "cfg": 1.0,
+      "sampler_name": "euler",
+      "scheduler": "simple",
+      "region_feather": 0.04,
+      "initial_common_prior": 0.6,
+      "common_after_step3_boost": 0.1,
+      "initial_character_gain": 1.2,
+      "initial_spatial_separation": 0.35,
+      "boundary_hold_steps": 3,
+      "boundary_decrement": 0.2,
+      "flux_guidance": 3.5
+    }
+  },
+  {
+    "id": "flux2_dev",
+    "label": {
+      "en": "FLUX.2 Dev — 50 steps",
+      "ko": "FLUX.2 Dev — 50 steps",
+      "ja": "FLUX.2 Dev — 50 steps"
+    },
+    "note": {
+      "en": "Real-checkpoint two-person and caption-swap settings, not a quality guarantee. Use the matching model, text encoder and VAE shown in the example. Embedded guidance affects only FLUX.1 Dev / FLUX.2 Dev. See the FLUX validation document for limitations.",
+      "ko": "실제 모델로 2인 생성과 문장 교환을 시험한 설정입니다. 품질 보장은 아니며 예제의 모델·텍스트 인코더·VAE를 함께 사용하세요. 내장 가이던스는 FLUX.1 Dev·FLUX.2 Dev에만 적용됩니다. 한계는 FLUX 검증 문서를 확인하세요.",
+      "ja": "実モデルで2人生成と文章交換を試した設定です。品質は保証しません。例のモデル・テキストエンコーダー・VAEを組み合わせてください。内蔵ガイダンスはFLUX.1 Dev・FLUX.2 Devのみ有効です。制限はFLUX検証文書を参照してください。"
+    },
+    "source": "examples/flux/flux2-dev-two.json",
+    "settings": {
+      "steps": 50,
+      "cfg": 1.0,
+      "sampler_name": "euler",
+      "scheduler": "simple",
+      "region_feather": 0.04,
+      "initial_common_prior": 0.6,
+      "common_after_step3_boost": 0.1,
+      "initial_character_gain": 1.2,
+      "initial_spatial_separation": 0.35,
+      "boundary_hold_steps": 3,
+      "boundary_decrement": 0.2,
+      "flux_guidance": 4.0
+    }
+  },
+  {
+    "id": "flux3_klein",
+    "label": {
+      "en": "FLUX 3 Klein — 16 steps",
+      "ko": "FLUX 3 Klein — 16 steps",
+      "ja": "FLUX 3 Klein — 16 steps"
+    },
+    "note": {
+      "en": "Real-checkpoint two-person and caption-swap settings, not a quality guarantee. Use the matching model, text encoder and VAE shown in the example. Embedded guidance affects only FLUX.1 Dev / FLUX.2 Dev. See the FLUX validation document for limitations.",
+      "ko": "실제 모델로 2인 생성과 문장 교환을 시험한 설정입니다. 품질 보장은 아니며 예제의 모델·텍스트 인코더·VAE를 함께 사용하세요. 내장 가이던스는 FLUX.1 Dev·FLUX.2 Dev에만 적용됩니다. 한계는 FLUX 검증 문서를 확인하세요.",
+      "ja": "実モデルで2人生成と文章交換を試した設定です。品質は保証しません。例のモデル・テキストエンコーダー・VAEを組み合わせてください。内蔵ガイダンスはFLUX.1 Dev・FLUX.2 Devのみ有効です。制限はFLUX検証文書を参照してください。"
+    },
+    "source": "examples/flux/flux3-two.json",
+    "settings": {
+      "steps": 16,
+      "cfg": 1.0,
+      "sampler_name": "euler",
+      "scheduler": "simple",
+      "region_feather": 0.04,
+      "initial_common_prior": 0.6,
+      "common_after_step3_boost": 0.1,
+      "initial_character_gain": 1.2,
+      "initial_spatial_separation": 0.35,
+      "boundary_hold_steps": 3,
+      "boundary_decrement": 0.2,
+      "flux_guidance": 3.5
+    }
+  },
+  {
+    "id": "flux3_klein_base",
+    "label": {
+      "en": "FLUX 3 Klein Base — 50 steps",
+      "ko": "FLUX 3 Klein Base — 50 steps",
+      "ja": "FLUX 3 Klein Base — 50 steps"
+    },
+    "note": {
+      "en": "Real-checkpoint two-person and caption-swap settings, not a quality guarantee. Use the matching model, text encoder and VAE shown in the example. Embedded guidance affects only FLUX.1 Dev / FLUX.2 Dev. See the FLUX validation document for limitations.",
+      "ko": "실제 모델로 2인 생성과 문장 교환을 시험한 설정입니다. 품질 보장은 아니며 예제의 모델·텍스트 인코더·VAE를 함께 사용하세요. 내장 가이던스는 FLUX.1 Dev·FLUX.2 Dev에만 적용됩니다. 한계는 FLUX 검증 문서를 확인하세요.",
+      "ja": "実モデルで2人生成と文章交換を試した設定です。品質は保証しません。例のモデル・テキストエンコーダー・VAEを組み合わせてください。内蔵ガイダンスはFLUX.1 Dev・FLUX.2 Devのみ有効です。制限はFLUX検証文書を参照してください。"
+    },
+    "source": "examples/flux/flux3-base-two.json",
+    "settings": {
+      "steps": 50,
+      "cfg": 3.5,
+      "sampler_name": "euler",
+      "scheduler": "simple",
+      "region_feather": 0.04,
+      "initial_common_prior": 0.6,
+      "common_after_step3_boost": 0.1,
+      "initial_character_gain": 1.2,
+      "initial_spatial_separation": 0.35,
+      "boundary_hold_steps": 3,
+      "boundary_decrement": 0.2,
+      "flux_guidance": 3.5
+    }
   }
 ]

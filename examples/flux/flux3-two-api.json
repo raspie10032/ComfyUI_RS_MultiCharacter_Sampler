@@ -1,0 +1,116 @@
+{
+  "1": {
+    "class_type": "UNETLoader",
+    "inputs": {
+      "unet_name": "flux3-image-klein-int8-convrot.safetensors",
+      "weight_dtype": "default"
+    }
+  },
+  "2": {
+    "class_type": "CLIPLoader",
+    "inputs": {
+      "clip_name": "qwen3vl_4b_int8_convrot.safetensors",
+      "type": "flux3",
+      "device": "default"
+    }
+  },
+  "3": {
+    "class_type": "VAELoader",
+    "inputs": {
+      "vae_name": "flux2-vae.safetensors"
+    }
+  },
+  "4": {
+    "class_type": "RSMultiCharacterPrompts",
+    "inputs": {
+      "character_count": 2,
+      "character1_enable": true,
+      "character1": "A single adult woman with long red hair, green eyes and a red jacket, holding a white coffee mug.",
+      "character1_uc": "",
+      "character1_x": 0.25,
+      "character1_y": 0.5,
+      "character2_enable": true,
+      "character2": "A single adult woman with short blue hair, brown eyes and a blue jacket, holding a yellow book.",
+      "character2_uc": "",
+      "character2_x": 0.75,
+      "character2_y": 0.5,
+      "character3_enable": true,
+      "character3": "",
+      "character3_uc": "",
+      "character3_x": 0.5,
+      "character3_y": 0.5,
+      "character4_enable": true,
+      "character4": "",
+      "character4_uc": "",
+      "character4_x": 0.5,
+      "character4_y": 0.5,
+      "character5_enable": true,
+      "character5": "",
+      "character5_uc": "",
+      "character5_x": 0.5,
+      "character5_y": 0.5,
+      "character6_enable": true,
+      "character6": "",
+      "character6_uc": "",
+      "character6_x": 0.5,
+      "character6_y": 0.5,
+      "character7_enable": true,
+      "character7": "",
+      "character7_uc": "",
+      "character7_x": 0.5,
+      "character7_y": 0.5,
+      "character8_enable": true,
+      "character8": "",
+      "character8_uc": "",
+      "character8_x": 0.5,
+      "character8_y": 0.5,
+      "character9_enable": true,
+      "character9": "",
+      "character9_uc": "",
+      "character9_x": 0.5,
+      "character9_y": 0.5,
+      "character10_enable": true,
+      "character10": "",
+      "character10_uc": "",
+      "character10_x": 0.5,
+      "character10_y": 0.5
+    }
+  },
+  "5": {
+    "class_type": "RSMultiCharacterSampler",
+    "inputs": {
+      "prompt": "A detailed editorial illustration of a sunny university courtyard cafe, framed as a waist-up two-shot of exactly two adult women seated at one wooden table. The women sit close enough to share one scene but their heads, torsos and arms remain separate and clearly visible. Soft golden sunlight comes from the upper left, green trees form a leafy canopy behind them, and red brick university buildings with tall windows recede into the background. Natural proportions, friendly relaxed expressions, clean color boundaries, a warm cohesive palette and gentle shadows unify the image.",
+      "negative_prompt": "",
+      "width": 768,
+      "height": 512,
+      "seed": 20261019,
+      "steps": 16,
+      "cfg": 1.0,
+      "sampler_name": "euler",
+      "scheduler": "simple",
+      "autosave": true,
+      "save_format": "PNG",
+      "webp_quality": 90,
+      "model": [
+        "1",
+        0
+      ],
+      "clip": [
+        "2",
+        0
+      ],
+      "vae": [
+        "3",
+        0
+      ],
+      "character_pipe": [
+        "4",
+        0
+      ],
+      "initial_common_prior": 0.6,
+      "flux_guidance": 3.5,
+      "initial_character_gain": 1.2,
+      "initial_spatial_separation": 0.35
+    }
+  }
+}

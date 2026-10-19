@@ -14,6 +14,22 @@ defaults = importlib.import_module(pkg + '.nodes').DEFAULTS
 
 
 class PositionTests(unittest.TestCase):
+    def test_flux3_diffusers_lora_names_preserve_native_fused_offsets(self):
+        fused = ('diffusion_model.content_mode_blocks.image.0.qkv.weight', (0, 8, 8))
+        mapping = {
+            'diffusion_model.content_mode_blocks.image.0.k_proj': fused,
+            'diffusion_model.txt_mode_blocks.2.q_proj': 'native_text.weight',
+            'diffusion_model.single_blocks.3.attn_out': 'native_output.weight',
+            'diffusion_model.unrelated.q_proj': 'unrelated.weight',
+            'transformer.txt_mode_blocks.2.attn.to_q': 'future_core_override',
+        }
+        f.extend_flux3_lora_map(mapping)
+        self.assertIs(mapping['transformer.mode_blocks.image.0.attn.to_k'], fused)
+        self.assertEqual(mapping['transformer.single_transformer_blocks.3.attn.to_out.0'], 'native_output.weight')
+        self.assertEqual(mapping['transformer.txt_mode_blocks.2.attn.to_q'], 'future_core_override')
+        self.assertNotIn('transformer.unrelated.attn.to_q', mapping)
+        self.assertEqual(mapping['diffusion_model.content_mode_blocks.image.0.k_proj'], fused)
+
     def test_flux3_positions_match_independently_encoded_captions(self):
         torch.manual_seed(3)
         raw = torch.randn(1, 17, 2, 128)
@@ -54,6 +70,30 @@ class NativeFluxTests(unittest.TestCase):
             cls.mm.in_training = cls.old_training
         sys.path.remove(os.environ['RS_MC_TEST_COMFYUI'])
 
+    def test_flux3_diffusers_adapters_match_native_fused_and_separate_weights(self):
+        from types import SimpleNamespace
+        from comfy import model_base, lora
+        if not hasattr(model_base, 'Flux3'):
+            self.skipTest('FLUX3 is not available in this ComfyUI')
+        from comfy.ldm.flux3.model import Flux3
+        for fused in (False, True):
+            model = model_base.Flux3.__new__(model_base.Flux3)
+            torch.nn.Module.__init__(model)
+            model.model_config = SimpleNamespace(unet_config={})
+            model.diffusion_model = Flux3(hidden_size=256, num_heads=2, depth=1,
+                depth_single_blocks=1, fused_qkv=fused, dtype=torch.float32, operations=self.ops)
+            mapping = f.extend_flux3_lora_map(lora.model_lora_keys_unet(model, {}))
+            weights = {}
+            for prefix in ('transformer.mode_blocks.image.0', 'transformer.txt_mode_blocks.0',
+                           'transformer.single_transformer_blocks.0'):
+                for projection in ('to_q', 'to_k', 'to_v', 'to_out.0'):
+                    key = prefix + '.attn.' + projection
+                    weights[key + '.lora_A.weight'] = torch.randn(2, 256)
+                    weights[key + '.lora_B.weight'] = torch.randn(256, 2)
+            patches = lora.load_lora(weights, mapping, log_missing=False)
+            self.assertEqual(len(patches), 12)
+            self.assertEqual(sum(isinstance(k, tuple) for k in patches), 9 if fused else 0)
+
     def run_native(self, family, flow_map=False, boxes=False):
         from comfy import model_base
         if not hasattr(model_base, {'FLUX1':'Flux', 'FLUX2':'Flux2', 'FLUX3':'Flux3'}[family]):
@@ -83,7 +123,12 @@ class NativeFluxTests(unittest.TestCase):
         conditions = [(torch.randn(1,i,features), {}) for i in (4,5)]
         masks = torch.zeros(2,4,8)
         masks[0,:,:4], masks[1,:,4:] = 1, 1
-        if boxes:
+        if boxes == 'mixed':
+            masks[0] = 1
+            masks[1].zero_()
+            masks[1, 1:3, 3:7] = 1
+            boxes = (False, True)
+        elif boxes:
             masks.zero_()
             masks[0,1:3,1:5], masks[1,1:3,3:7] = 1, 1
         audit = dict(forwards=[],cross_calls=0,self_calls=0,text_refiner_calls=0,restored_forwards=0)
@@ -122,6 +167,15 @@ class NativeFluxTests(unittest.TestCase):
                 refined, _ = net.preprocess_conds(common)
                 cached = forward(executor,x,t,None,txt_states=refined,transformer_options=options)
                 torch.testing.assert_close(out,cached,atol=0,rtol=0)
+            def broken(*args, **kwargs):
+                executor(*args, **kwargs)
+                raise RuntimeError('injected denoising failure')
+            broken.class_obj = net
+            with self.assertRaisesRegex(RuntimeError, 'injected denoising failure'):
+                forward(broken, x, t, common, transformer_options=options, **kwargs)
+            self.assertIsNone(routing.state)
+            recovered = forward(executor, x, t, common, transformer_options=options, **kwargs)
+            torch.testing.assert_close(out, recovered, atol=0, rtol=0)
             self.assertIs(routing.conditions, conditions)
 
     def test_flux1(self): self.run_native('FLUX1')
@@ -131,6 +185,10 @@ class NativeFluxTests(unittest.TestCase):
     def test_flux1_boxes(self): self.run_native('FLUX1',boxes=True)
     def test_flux2_boxes(self): self.run_native('FLUX2',boxes=True)
     def test_flux3_boxes(self): self.run_native('FLUX3',boxes=True)
+    def test_flux1_mixed(self): self.run_native('FLUX1',boxes='mixed')
+    def test_flux2_mixed(self): self.run_native('FLUX2',boxes='mixed')
+    def test_flux3_mixed(self): self.run_native('FLUX3',boxes='mixed')
+    def test_flux3_flow_map_mixed(self): self.run_native('FLUX3',flow_map=True,boxes='mixed')
 
 
 if __name__ == '__main__':

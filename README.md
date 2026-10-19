@@ -1,6 +1,6 @@
 # ComfyUI_RS_MultiCharacter_Sampler
 
-**FLUX development candidate:** native FLUX.1/2/3 routing is being validated. Klein 4B has real two-person, text-box, XY and image-replay evidence; other downloaded variants, detailing and regional LoRA are pending. [Exact status and limits](docs/flux-validation.md) · [Klein 4B example](examples/flux/klein4-two.json). This is not a published FLUX release.
+**FLUX development candidate:** eight native FLUX.1/2/3 variants have completed real two-person generation, same-seed caption swaps and local masked detailing. Klein 4B also has text-box, XY and image-replay evidence. Trained regional LoRA and further regression trials are documented in the validation report. [Exact status and limits](docs/flux-validation.md) · [Klein 4B example](examples/flux/klein4-two.json). This is not a published FLUX release.
 
 **0.2.1 Giyeok Fix (기역 픽스) · Anima · SDXL · Krea 2 · MOSS · SD1.5 (experimental, unstable)** — independent prompts with X/Y, box and mixed regions for local ComfyUI generation.
 
@@ -149,7 +149,7 @@ The loader also accepts NAI V4-style character captions with one center per char
 
 ## Current limits
 
-- **Anima, SDXL, Krea 2, MOSS and unstable experimental SD1.5 support**, one image per execution. The sampler is text-to-image; the detailer runs masked img2img crops. SD1.5 has only been tested for generation, not detailing. SD2, Flux, inpainting/refiner checkpoints, ControlNet and other attention patches are not supported by the regional sampler.
+- **Anima, SDXL, Krea 2, MOSS and unstable experimental SD1.5 support**, plus native FLUX.1/2/3 in the development candidate, one image per execution. The sampler is text-to-image; the detailer runs masked img2img crops. SD1.5 has only been tested for generation, not detailing. SD2, FLUX Fill/Control/reference-image editing, inpainting/refiner checkpoints, ControlNet and other attention patches are not supported by the regional sampler.
 - **1–10 input slots.** Actual image tests cover Anima 1–6, SDXL 2–6, Krea 2 / MOSS 2–4, and SD1.5 two-character requests. More characters do not guarantee quality. Horizontal layouts are the strongest tested use case; successful new-model 2x2 examples do not establish a general success rate.
 - Coordinates choose prompt regions; they do **not** lock a head/body to a point or enforce exactly one person per region. A single character owns the whole image, so moving that one center does not move the person.
 - Multiple rows, dense interactions and crossing props can duplicate or omit people. Four requested people in a 2×2 experiment became 12 and 10. Six people in two rows became 7 and 11. Do not treat count or identity as guaranteed.

@@ -10,6 +10,30 @@ import torch.nn.functional as F
 from .joint_engine import JointRouting
 
 
+def extend_flux3_lora_map(mapping):
+    """Map diffusers FLUX 3 attention names onto existing native/sliced targets."""
+    for key, target in list(mapping.items()):
+        alias = key
+        for native, external in (
+            ('diffusion_model.content_mode_blocks.', 'transformer.mode_blocks.'),
+            ('diffusion_model.txt_mode_blocks.', 'transformer.txt_mode_blocks.'),
+            ('diffusion_model.single_blocks.', 'transformer.single_transformer_blocks.'),
+        ):
+            if key.startswith(native):
+                alias = external + key[len(native):]
+                break
+        if alias == key:
+            continue
+        for native, external in (
+            ('.q_proj', '.attn.to_q'), ('.k_proj', '.attn.to_k'),
+            ('.v_proj', '.attn.to_v'), ('.attn_out', '.attn.to_out.0'),
+        ):
+            if alias.endswith(native):
+                mapping.setdefault(alias[:-len(native)] + external, target)
+                break
+    return mapping
+
+
 def flux_family(model):
     from comfy import model_base
     for name, family in (("Flux3", "FLUX3"), ("Flux2", "FLUX2"), ("Flux", "FLUX1")):
@@ -53,6 +77,10 @@ class FluxRouting(JointRouting):
         options = work.model_options['transformer_options']
         if options.get('optimized_attention_override'):
             raise ValueError('Disconnect other attention overrides before regional sampling.')
+        # Reserve the bypass key before routing. Conditioning hooks merge their
+        # wrappers later, preserving insertion order: LoRA must also surround
+        # FLUX 3's early text preprocessing inside our routing wrapper.
+        options.setdefault('wrappers', {}).setdefault(WrappersMP.DIFFUSION_MODEL, {}).setdefault('rs_mc_lora_bypass', [])
         options['optimized_attention_override'] = self.attention
         if self.family != 'FLUX3':
             options.setdefault('patches', {}).setdefault('post_input', []).append(self.text_positions)

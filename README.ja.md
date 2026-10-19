@@ -1,6 +1,6 @@
 # ComfyUI_RS_MultiCharacter_Sampler
 
-**FLUX開発候補:** FLUX.1・2・3の領域制御を検証中です。Klein 4Bは実際の2人生成・文字枠・XY配置・画像設定の復元を確認しました。他のモデル、ディテーラー、領域別LoRAは未検証です。[現状と検証範囲](docs/flux-validation.md) · [Klein 4B例](examples/flux/klein4-two.json)。FLUX正式リリースではありません。
+**FLUX開発候補:** FLUX.1・2・3の8モデルで実際の2人生成・同じシードでの文章交換・ローカルマスクディテーラーの実行を確認しました。Klein 4Bは文字枠・XY配置・画像設定の復元も確認済みです。学習済みの領域別LoRAと追加の回帰試験は検証記録を参照してください。[現状と検証範囲](docs/flux-validation.md) · [Klein 4B例](examples/flux/klein4-two.json)。FLUX正式リリースではありません。
 
 **0.2.1 Giyeok Fix（기역 픽스・キヨク修正版）· Anima・SDXL・Krea 2・MOSS・SD1.5（実験対応・不安定）**。共通プロンプトと各キャラクターの文章・XY座標・矩形を専用パイプで渡し、領域ごとに attention を制御します。RS NAI 拡張や API キーは不要です。
 

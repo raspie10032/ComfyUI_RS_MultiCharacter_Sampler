@@ -1,0 +1,182 @@
+{
+  "families": {
+    "klein4": {
+      "two_person_execution": true,
+      "same_effective_settings_on_swap": true,
+      "detailer_execution": true
+    },
+    "klein4-base": {
+      "two_person_execution": true,
+      "same_effective_settings_on_swap": true,
+      "detailer_execution": true
+    },
+    "klein9": {
+      "two_person_execution": true,
+      "same_effective_settings_on_swap": true,
+      "detailer_execution": true
+    },
+    "flux1-schnell": {
+      "two_person_execution": true,
+      "same_effective_settings_on_swap": true,
+      "detailer_execution": true
+    },
+    "flux1-dev": {
+      "two_person_execution": true,
+      "same_effective_settings_on_swap": true,
+      "detailer_execution": true
+    },
+    "flux2-dev": {
+      "two_person_execution": true,
+      "same_effective_settings_on_swap": true,
+      "detailer_execution": true
+    },
+    "flux3": {
+      "two_person_execution": true,
+      "same_effective_settings_on_swap": true,
+      "detailer_execution": true
+    },
+    "flux3-base": {
+      "two_person_execution": true,
+      "same_effective_settings_on_swap": true,
+      "detailer_execution": true
+    }
+  },
+  "regional_lora": {
+    "klein4": {
+      "1": {
+        "changed_pixels": 343105,
+        "left_mae": 16.675466537475586,
+        "right_mae": 2.886133909225464
+      },
+      "2": {
+        "changed_pixels": 383889,
+        "left_mae": 7.21656608581543,
+        "right_mae": 41.33168411254883
+      },
+      "zero": {
+        "changed_pixels": 0,
+        "left_mae": 0.0,
+        "right_mae": 0.0
+      }
+    },
+    "flux1-dev": {
+      "1": {
+        "changed_pixels": 393146,
+        "left_mae": 31.41402816772461,
+        "right_mae": 21.142488479614258
+      },
+      "2": {
+        "changed_pixels": 393204,
+        "left_mae": 25.3033390045166,
+        "right_mae": 34.30995559692383
+      },
+      "zero": {
+        "changed_pixels": 0,
+        "left_mae": 0.0,
+        "right_mae": 0.0
+      }
+    },
+    "flux3": {
+      "1": {
+        "changed_pixels": 392728,
+        "left_mae": 19.768321990966797,
+        "right_mae": 12.356660842895508
+      },
+      "2": {
+        "changed_pixels": 391432,
+        "left_mae": 5.437822341918945,
+        "right_mae": 25.148176193237305
+      },
+      "zero": {
+        "changed_pixels": 0,
+        "left_mae": 0.0,
+        "right_mae": 0.0
+      }
+    },
+    "flux3-base": {
+      "1": {
+        "changed_pixels": 393043,
+        "left_mae": 14.010796546936035,
+        "right_mae": 18.0609188079834
+      },
+      "2": {
+        "changed_pixels": 391936,
+        "left_mae": 6.260884761810303,
+        "right_mae": 16.637245178222656
+      },
+      "zero": {
+        "changed_pixels": 0,
+        "left_mae": 0.0,
+        "right_mae": 0.0
+      }
+    }
+  },
+  "replays": {
+    "klein4": {
+      "rgb_identical": true,
+      "metadata_identical": true
+    },
+    "flux1-dev": {
+      "rgb_identical": true,
+      "metadata_identical": true
+    },
+    "flux2-dev": {
+      "rgb_identical": true,
+      "metadata_identical": true
+    },
+    "flux3": {
+      "rgb_identical": true,
+      "metadata_identical": true
+    },
+    "flux3-base": {
+      "rgb_identical": true,
+      "metadata_identical": true
+    }
+  },
+  "regressions": {
+    "anima": "actual checkpoint generation success",
+    "sdxl": "actual checkpoint generation success"
+  },
+  "mixed_text": [
+    "klein4",
+    "flux1-dev",
+    "flux3",
+    "flux3-base"
+  ],
+  "trained_loras": [
+    {
+      "repo": "Limbicnation/pixel-art-lora",
+      "revision": "0ac8e5c3400af68228811edc324721e25fc26777",
+      "file": "pytorch_lora_weights.comfyui.safetensors",
+      "sha256": "24e938f510f5dd0c890ac8b1078f4abb87a50c9c053b2e85c44821c0f30011ad",
+      "size": 325276656
+    },
+    {
+      "repo": "UmeAiRT/FLUX.1-dev-LoRA-Modern_Pixel_art",
+      "revision": "1566f08eeeb3c4ca49eb7c13bcf8351c0be86644",
+      "file": "ume_modern_pixelart.safetensors",
+      "sha256": "ed226c149dca6286ae345b6900d807f791a52b1746ed8f524af41efdfda6f0a4",
+      "size": 343805539
+    },
+    {
+      "repo": "SimpleTuner/flux-3-klein-image-photo-aesthetics-distilled-assisted-512",
+      "revision": "ffa2b38b053e8232b7f6e14bcdb7b86ba8c09b4d",
+      "file": "pytorch_lora_weights.safetensors",
+      "sha256": "6ad0bf2d52306fff28e8793b8ce2a860b500b87bae2f10d0368b29cb8a3b77a5",
+      "size": 67679512
+    }
+  ],
+  "test_results": {
+    "python": 141,
+    "javascript_files": 5
+  },
+  "evidence_scope": "Single scene/seed per family, four trained-LoRA family cases, explicit text/replay diagnostics and two prior-model smoke tests. Not a general quality/sampler success rate.",
+  "detailer_summary": {
+    "models": 8,
+    "detected_faces": 16,
+    "edited_faces": 10,
+    "tagger_skipped_faces": 6,
+    "outside_mask_changed_pixels": 0
+  },
+  "regional_lora_scope": "Seven of eight active tests changed the selected half more; FLUX 3 Base character 1 changed the opposite half more. Not complete regional isolation."
+}

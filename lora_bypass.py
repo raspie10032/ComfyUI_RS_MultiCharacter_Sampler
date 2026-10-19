@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: GPL-3.0-only
-"""Execution-scoped, factor-only LoRA for ordinary Anima Linear layers.
+"""Execution-scoped, factor-only LoRA for Anima and native FLUX Linear layers.
 
 Conditioning hooks still select separate predictions. Only the weight application
 changes: ComfyUI's native bypass evaluates W(x) + up(down(x)), without expanding
@@ -9,6 +9,28 @@ import copy
 from functools import partial
 
 import torch
+import torch.nn.functional as F
+
+
+def linear_layer(module):
+    if isinstance(module, torch.nn.Linear):
+        return True
+    from comfy import ops
+    return (isinstance(module, getattr(ops, 'MixedPrecisionOp', ()))
+            and type(getattr(module, 'in_features', None)) is int
+            and type(getattr(module, 'out_features', None)) is int)
+
+
+def requires_quantized_bypass(model):
+    """Native weight hooks cannot address a packed FLUX tensor's scale keys."""
+    from comfy import model_base
+    flux_types = tuple(t for name in ("Flux", "Flux3")
+                       if isinstance((t := getattr(model_base, name, None)), type))
+    if not isinstance(model.model, flux_types):
+        return False
+    from comfy.quant_ops import QuantizedTensor
+    return any(isinstance(getattr(layer, 'weight', None), QuantizedTensor)
+               for layer in model.model.modules())
 
 
 def prepare_bypass(model, weights):
@@ -19,7 +41,10 @@ def prepare_bypass(model, weights):
     """
     from comfy import model_base
 
-    if not isinstance(model.model, getattr(model_base, "Anima", ())):
+    flux_types = tuple(t for name in ("Flux", "Flux3")
+                       if isinstance((t := getattr(model_base, name, None)), type))
+    is_flux = isinstance(model.model, flux_types)
+    if not is_flux and not isinstance(model.model, getattr(model_base, "Anima", ())):
         return None, "model_family"
     if getattr(model, "get_additional_models_with_key", lambda key: [])("multigpu"):
         return None, "multigpu_clones"
@@ -33,8 +58,17 @@ def prepare_bypass(model, weights):
         return None, "no_model_weights"
     layers, layer_paths = [], []
     for key, adapter in weights.items():
-        # Tuple keys can represent offsets/functions; DoRA, LoHa, LoKr, diff,
-        # reshape and convolutional patches need the existing weight path.
+        # Diffusers FLUX Q/K/V factors address slices of a fused Linear layer.
+        # Other tuple functions and extended adapters keep the native path.
+        offset = None
+        if is_flux and isinstance(key, tuple) and len(key) in (2, 3):
+            if len(key) == 3 and key[2] is not None:
+                return None, "patch_function"
+            key, offset = key[:2]
+            if (not isinstance(offset, tuple) or len(offset) != 3
+                    or not all(type(v) is int for v in offset)
+                    or offset[0] not in (0, 1) or offset[1] < 0 or offset[2] <= 0):
+                return None, "patch_offset"
         if not isinstance(key, str) or not key.endswith(".weight") or type(adapter) is not LoRAAdapter:
             return None, "patch_type"
         if not key.startswith("diffusion_model."):
@@ -53,21 +87,46 @@ def prepare_bypass(model, weights):
             module = model.model.get_submodule(key[:-len(".weight")])
         except AttributeError:
             return None, "missing_layer"
-        if not isinstance(module, torch.nn.Linear):
+        if not linear_layer(module):
             return None, "nonlinear_layer"
         weight = module.weight
-        if (type(weight) not in (torch.Tensor, torch.nn.Parameter)
-                or weight.dtype not in (torch.float32, torch.float16, torch.bfloat16)
-                or getattr(module, "comfy_force_forward", False)):
+        # Native FLUX checkpoints use FP8/INT8 QuantizedTensor weights. The
+        # bypass runs the original quantized forward and adds float factors;
+        # it never reads/replaces the serialized weight_scale pseudo-keys.
+        supported = type(weight) in (torch.Tensor, torch.nn.Parameter) and weight.is_floating_point()
+        if is_flux:
+            from comfy.quant_ops import QuantizedTensor
+            supported = supported or isinstance(weight, QuantizedTensor)
+        elif weight.dtype not in (torch.float32, torch.float16, torch.bfloat16):
+            supported = False
+        if not supported or getattr(module, "comfy_force_forward", False):
             return None, "custom_or_quantized_layer"
+        shape = list(weight.shape)
+        if offset is not None:
+            dim, start, length = offset
+            if start + length > shape[dim]:
+                return None, "patch_offset"
+            shape[dim] = length
         if (up.shape[1] != down.shape[0] or down.shape[0] == 0
-                or tuple(weight.shape) != (up.shape[0], down.shape[1])):
+                or tuple(shape) != (up.shape[0], down.shape[1])):
             return None, "factor_shape"
         # A shallow copy shares the original CPU factors. Strength combinations
         # use this same adapter/GPU storage; only its scalar multiplier changes.
-        layers.append((module, copy.copy(adapter), adapter.weights))
+        local = copy.copy(adapter)
+        local.rs_mc_full_shape = tuple(weight.shape)
+        if offset is not None:
+            local.h = partial(offset_delta, native_h=local.h, offset=offset)
+        layers.append((module, local, adapter.weights))
         layer_paths.append(key[len("diffusion_model."):-len(".weight")])
     return BypassLora(layers, layer_paths, BypassForwardHook, TransformerOptionsHook), "plain_linear_lora"
+
+
+def offset_delta(x, base_out, *, native_h, offset):
+    dim, start, length = offset
+    if dim == 1:
+        return native_h(x[..., start:start+length], base_out)
+    delta = native_h(x, base_out[..., start:start+length])
+    return F.pad(delta, (start, base_out.shape[-1] - start - length))
 
 
 class BypassLora:
@@ -102,8 +161,8 @@ class BypassLora:
         for path, (_, adapter, _) in zip(self.layer_paths, self.layers):
             module = runtime_model.get_submodule(path)
             up, down = adapter.weights[:2]
-            if (not isinstance(module, torch.nn.Linear)
-                    or tuple(module.weight.shape) != (up.shape[0], down.shape[1])):
+            if (not linear_layer(module)
+                    or tuple(module.weight.shape) != adapter.rs_mc_full_shape):
                 raise RuntimeError(f"Regional LoRA: incompatible runtime layer {path!r}.")
             modules.append(module)
         installed = []

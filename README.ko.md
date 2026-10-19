@@ -1,6 +1,6 @@
 # ComfyUI_RS_MultiCharacter_Sampler
 
-**FLUX 개발 후보:** FLUX.1·2·3의 내부 영역 제어를 검증 중입니다. Klein 4B는 실제 2인·글자 상자·XY·이미지 설정 복원까지 확인했으며, 다른 변형과 디테일러·캐릭터별 LoRA는 검증 전입니다. [현황·검증 범위](docs/flux-validation.md) · [Klein 4B 예제](examples/flux/klein4-two.json). 아직 FLUX 정식 배포본이 아닙니다.
+**FLUX 개발 후보:** FLUX.1·2·3의 8개 변형에서 실제 2인 생성·같은 시드의 캐릭터 문장 교환·로컬 마스크 디테일러 실행을 확인했습니다. Klein 4B는 글자 상자·XY·이미지 설정 복원도 확인했습니다. 실제 학습된 캐릭터별 LoRA와 추가 회귀 시험은 검증 기록을 참조하세요. [현황·검증 범위](docs/flux-validation.md) · [Klein 4B 예제](examples/flux/klein4-two.json). 아직 FLUX 정식 배포본이 아닙니다.
 
 **0.2.1 기역 픽스 · Anima · SDXL · Krea 2 · MOSS · SD1.5(실험 지원·불안정)**입니다. 공통 프롬프트와 캐릭터별 프롬프트·XY·상자를 전용 파이프로 전달하고, 로컬 모델 내부에서 영역별 attention을 조절합니다. RS NAI 확장이나 API 키는 필요 없습니다.
 
@@ -122,7 +122,7 @@ Manager에서 **ComfyUI-Impact-Pack**, **ComfyUI-Impact-Subpack**을 설치하�
 
 ## 확인된 범위
 
-- 지원하는 Anima·SDXL·Krea 2·MOSS 및 실험 지원하는 SD1.5 모델로 한 번에 1장입니다. **SD1.5는 불안정하며 생성만 시험했고 디테일러는 미검증입니다.** 샘플러는 T2I, 디테일러는 마스크가 있는 크롭의 img2img를 수행합니다. 리저널 샘플러는 SD2·Flux·인페인트/Refiner 체크포인트·ControlNet·외부 attention 패치를 지원하지 않습니다.
+- 지원하는 Anima·SDXL·Krea 2·MOSS 및 실험 지원하는 SD1.5 모델, 개발 후보의 네이티브 FLUX.1·2·3에서 한 번에 1장입니다. **SD1.5는 불안정하며 생성만 시험했고 디테일러는 미검증입니다.** 샘플러는 T2I, 디테일러는 마스크가 있는 크롭의 img2img를 수행합니다. 리저널 샘플러는 SD2·FLUX Fill/Control/참조 이미지 편집·인페인트/Refiner 체크포인트·ControlNet·외부 attention 패치를 지원하지 않습니다.
 - 입력은 최대 10명입니다. 실제 생성 시험은 Anima 1~6명, SDXL 2~6명, Krea 2·MOSS 2~4명, SD1.5 2인 요청입니다. **처리수가 많을수록 품질을 보장하지 못합니다.** 가로 배치가 비교적 잘 맞으며, 새 모델의 2×2 성공 사례도 일반적인 성공률을 뜻하지 않습니다.
 - 좌표는 프롬프트 영역입니다. 정확한 인물 위치나 인원수 보장은 아닙니다. 1명은 전 화면이 한 영역이므로 좌표 이동 효과가 없습니다.
 - 두 줄·격자 배치는 인물이 늘거나 빠지는 실패가 큽니다. 여러 번 생성해 고를 필요가 있습니다.

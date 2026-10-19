@@ -1,0 +1,728 @@
+{
+  "last_node_id": 90,
+  "last_link_id": 10,
+  "nodes": [
+    {
+      "id": 1,
+      "type": "UNETLoader",
+      "pos": [
+        1260,
+        640
+      ],
+      "size": [
+        350,
+        400
+      ],
+      "flags": {},
+      "order": 0,
+      "mode": 0,
+      "inputs": [],
+      "outputs": [
+        {
+          "name": "MODEL",
+          "type": "MODEL",
+          "links": [
+            1
+          ]
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "UNETLoader"
+      },
+      "widgets_values": [
+        "flux-2-klein-base-4b-fp8.safetensors",
+        "default"
+      ]
+    },
+    {
+      "id": 3,
+      "type": "RSMultiCharacterSampler",
+      "pos": [
+        1680,
+        40
+      ],
+      "size": [
+        350,
+        400
+      ],
+      "flags": {},
+      "order": 1,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "model",
+          "type": "MODEL",
+          "link": 1
+        },
+        {
+          "name": "clip",
+          "type": "CLIP",
+          "link": 2
+        },
+        {
+          "name": "vae",
+          "type": "VAE",
+          "link": 3
+        },
+        {
+          "name": "character_pipe",
+          "type": "RS_MC_CHARACTER_PIPE",
+          "link": 4
+        }
+      ],
+      "outputs": [
+        {
+          "name": "image",
+          "type": "IMAGE",
+          "links": [
+            5
+          ]
+        },
+        {
+          "name": "latent",
+          "type": "LATENT",
+          "links": []
+        },
+        {
+          "name": "character_pipe",
+          "type": "RS_MC_CHARACTER_PIPE",
+          "links": []
+        },
+        {
+          "name": "generation_info",
+          "type": "STRING",
+          "links": []
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "RSMultiCharacterSampler",
+        "rs_mc_preset": "flux2_klein4_base"
+      },
+      "widgets_values": [
+        "A colorful detailed illustration of exactly two adult women sitting together at an outdoor cafe on a university campus. Waist-up two shot, both women visible. A sunny courtyard with green trees and university buildings behind them. Consistent natural sunlight, soft shadows, lively friendly expressions.",
+        "",
+        768,
+        512,
+        20261019,
+        "fixed",
+        50,
+        4.0,
+        "euler",
+        "simple",
+        true,
+        "PNG",
+        90,
+        "ComfyUI",
+        false,
+        0.04,
+        0.6,
+        0.1,
+        1.2,
+        0.35,
+        3,
+        0.2,
+        "regional",
+        3.5
+      ]
+    },
+    {
+      "id": 4,
+      "type": "CLIPLoader",
+      "pos": [
+        1260,
+        920
+      ],
+      "size": [
+        350,
+        400
+      ],
+      "flags": {},
+      "order": 2,
+      "mode": 0,
+      "inputs": [],
+      "outputs": [
+        {
+          "name": "CLIP",
+          "type": "CLIP",
+          "links": [
+            2
+          ]
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "CLIPLoader"
+      },
+      "widgets_values": [
+        "qwen_3_4b.safetensors",
+        "flux2",
+        "default"
+      ]
+    },
+    {
+      "id": 5,
+      "type": "VAELoader",
+      "pos": [
+        1260,
+        1170
+      ],
+      "size": [
+        350,
+        400
+      ],
+      "flags": {},
+      "order": 3,
+      "mode": 0,
+      "inputs": [],
+      "outputs": [
+        {
+          "name": "VAE",
+          "type": "VAE",
+          "links": [
+            3
+          ]
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "VAELoader"
+      },
+      "widgets_values": [
+        "flux2-vae.safetensors"
+      ]
+    },
+    {
+      "id": 90,
+      "type": "PreviewImage",
+      "pos": [
+        2120,
+        40
+      ],
+      "size": [
+        350,
+        400
+      ],
+      "flags": {},
+      "order": 4,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "images",
+          "type": "IMAGE",
+          "link": 5
+        }
+      ],
+      "outputs": [
+        {
+          "name": "images",
+          "type": "IMAGE",
+          "links": []
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "PreviewImage"
+      },
+      "widgets_values": []
+    },
+    {
+      "id": 30,
+      "type": "PrimitiveStringMultiline",
+      "pos": [
+        0,
+        640
+      ],
+      "size": [
+        350,
+        240
+      ],
+      "flags": {},
+      "order": 5,
+      "mode": 0,
+      "inputs": [],
+      "outputs": [
+        {
+          "name": "STRING",
+          "type": "STRING",
+          "links": [
+            8
+          ]
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "PrimitiveStringMultiline"
+      },
+      "widgets_values": [
+        "A single adult woman with long red hair, green eyes and a red jacket, holding a white coffee mug."
+      ]
+    },
+    {
+      "id": 31,
+      "type": "PrimitiveStringMultiline",
+      "pos": [
+        360,
+        640
+      ],
+      "size": [
+        350,
+        240
+      ],
+      "flags": {},
+      "order": 6,
+      "mode": 0,
+      "inputs": [],
+      "outputs": [
+        {
+          "name": "STRING",
+          "type": "STRING",
+          "links": [
+            9
+          ]
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "PrimitiveStringMultiline"
+      },
+      "widgets_values": [
+        "A single adult woman with short blue hair, brown eyes and a blue jacket, holding a yellow book."
+      ]
+    },
+    {
+      "id": 10,
+      "type": "RSMultiCharacterPosition",
+      "pos": [
+        0,
+        40
+      ],
+      "size": [
+        350,
+        400
+      ],
+      "flags": {},
+      "order": 7,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "building_pipe",
+          "type": "RS_MC_BUILD_PIPE",
+          "link": null
+        }
+      ],
+      "outputs": [
+        {
+          "name": "building_pipe",
+          "type": "RS_MC_BUILD_PIPE",
+          "links": [
+            6
+          ]
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "RSMultiCharacterPosition"
+      },
+      "widgets_values": [
+        2,
+        "point",
+        0.25,
+        0.5,
+        0.4,
+        0.8,
+        "point",
+        0.75,
+        0.5,
+        0.4,
+        0.8,
+        "point",
+        0.5,
+        0.5,
+        0.4,
+        0.8,
+        "point",
+        0.5,
+        0.5,
+        0.4,
+        0.8,
+        "point",
+        0.5,
+        0.5,
+        0.4,
+        0.8,
+        "point",
+        0.5,
+        0.5,
+        0.4,
+        0.8,
+        "point",
+        0.5,
+        0.5,
+        0.4,
+        0.8,
+        "point",
+        0.5,
+        0.5,
+        0.4,
+        0.8,
+        "point",
+        0.5,
+        0.5,
+        0.4,
+        0.8,
+        "point",
+        0.5,
+        0.5,
+        0.4,
+        0.8
+      ]
+    },
+    {
+      "id": 11,
+      "type": "RSMultiCharacterLoRA",
+      "pos": [
+        360,
+        40
+      ],
+      "size": [
+        350,
+        400
+      ],
+      "flags": {},
+      "order": 8,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "building_pipe",
+          "type": "RS_MC_BUILD_PIPE",
+          "link": 6
+        }
+      ],
+      "outputs": [
+        {
+          "name": "building_pipe",
+          "type": "RS_MC_BUILD_PIPE",
+          "links": [
+            7
+          ]
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "RSMultiCharacterLoRA"
+      },
+      "widgets_values": [
+        2,
+        "None",
+        1.0,
+        0.0,
+        "None",
+        1.0,
+        0.0,
+        "None",
+        1.0,
+        1.0,
+        "None",
+        1.0,
+        1.0,
+        "None",
+        1.0,
+        1.0,
+        "None",
+        1.0,
+        1.0,
+        "None",
+        1.0,
+        1.0,
+        "None",
+        1.0,
+        1.0,
+        "None",
+        1.0,
+        1.0,
+        "None",
+        1.0,
+        1.0
+      ]
+    },
+    {
+      "id": 12,
+      "type": "RSMultiCharacterPrompt",
+      "pos": [
+        720,
+        40
+      ],
+      "size": [
+        350,
+        400
+      ],
+      "flags": {},
+      "order": 9,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "building_pipe",
+          "type": "RS_MC_BUILD_PIPE",
+          "link": 7
+        },
+        {
+          "name": "character1",
+          "type": "STRING",
+          "link": 8
+        },
+        {
+          "name": "character1_text",
+          "type": "STRING",
+          "link": null
+        },
+        {
+          "name": "character2",
+          "type": "STRING",
+          "link": 9
+        },
+        {
+          "name": "character2_text",
+          "type": "STRING",
+          "link": null
+        },
+        {
+          "name": "character3",
+          "type": "STRING",
+          "link": null
+        },
+        {
+          "name": "character3_text",
+          "type": "STRING",
+          "link": null
+        },
+        {
+          "name": "character4",
+          "type": "STRING",
+          "link": null
+        },
+        {
+          "name": "character4_text",
+          "type": "STRING",
+          "link": null
+        },
+        {
+          "name": "character5",
+          "type": "STRING",
+          "link": null
+        },
+        {
+          "name": "character5_text",
+          "type": "STRING",
+          "link": null
+        },
+        {
+          "name": "character6",
+          "type": "STRING",
+          "link": null
+        },
+        {
+          "name": "character6_text",
+          "type": "STRING",
+          "link": null
+        },
+        {
+          "name": "character7",
+          "type": "STRING",
+          "link": null
+        },
+        {
+          "name": "character7_text",
+          "type": "STRING",
+          "link": null
+        },
+        {
+          "name": "character8",
+          "type": "STRING",
+          "link": null
+        },
+        {
+          "name": "character8_text",
+          "type": "STRING",
+          "link": null
+        },
+        {
+          "name": "character9",
+          "type": "STRING",
+          "link": null
+        },
+        {
+          "name": "character9_text",
+          "type": "STRING",
+          "link": null
+        },
+        {
+          "name": "character10",
+          "type": "STRING",
+          "link": null
+        },
+        {
+          "name": "character10_text",
+          "type": "STRING",
+          "link": null
+        }
+      ],
+      "outputs": [
+        {
+          "name": "building_pipe",
+          "type": "RS_MC_BUILD_PIPE",
+          "links": [
+            10
+          ]
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "RSMultiCharacterPrompt"
+      },
+      "widgets_values": [
+        2,
+        true,
+        "character",
+        true,
+        "character",
+        true,
+        "character",
+        true,
+        "character",
+        true,
+        "character",
+        true,
+        "character",
+        true,
+        "character",
+        true,
+        "character",
+        true,
+        "character",
+        true,
+        "character"
+      ]
+    },
+    {
+      "id": 16,
+      "type": "RSMultiCharacterFinalize",
+      "pos": [
+        1080,
+        40
+      ],
+      "size": [
+        350,
+        400
+      ],
+      "flags": {},
+      "order": 10,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "building_pipe",
+          "type": "RS_MC_BUILD_PIPE",
+          "link": 10
+        }
+      ],
+      "outputs": [
+        {
+          "name": "character_pipe",
+          "type": "RS_MC_CHARACTER_PIPE",
+          "links": [
+            4
+          ]
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "RSMultiCharacterFinalize"
+      },
+      "widgets_values": []
+    }
+  ],
+  "links": [
+    [
+      1,
+      1,
+      0,
+      3,
+      0,
+      "MODEL"
+    ],
+    [
+      2,
+      4,
+      0,
+      3,
+      1,
+      "CLIP"
+    ],
+    [
+      3,
+      5,
+      0,
+      3,
+      2,
+      "VAE"
+    ],
+    [
+      4,
+      16,
+      0,
+      3,
+      3,
+      "RS_MC_CHARACTER_PIPE"
+    ],
+    [
+      5,
+      3,
+      0,
+      90,
+      0,
+      "IMAGE"
+    ],
+    [
+      6,
+      10,
+      0,
+      11,
+      0,
+      "RS_MC_BUILD_PIPE"
+    ],
+    [
+      7,
+      11,
+      0,
+      12,
+      0,
+      "RS_MC_BUILD_PIPE"
+    ],
+    [
+      8,
+      30,
+      0,
+      12,
+      1,
+      "STRING"
+    ],
+    [
+      9,
+      31,
+      0,
+      12,
+      3,
+      "STRING"
+    ],
+    [
+      10,
+      12,
+      0,
+      16,
+      0,
+      "RS_MC_BUILD_PIPE"
+    ]
+  ],
+  "groups": [],
+  "config": {},
+  "extra": {
+    "ds": {
+      "scale": 0.63,
+      "offset": [
+        120,
+        210
+      ]
+    }
+  },
+  "version": 0.4
+}
