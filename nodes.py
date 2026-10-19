@@ -88,6 +88,8 @@ class RSMultiCharacterSampler:
             "boundary_decrement": ("FLOAT", {"default": .2, "min": .01, "max": 1., "step": .01}),
             "layout_method": (["regional", "moss_native"], {"default": "regional",
                 "tooltip": "Regional routes attention for all supported models. MOSS native sends one official layout JSON prompt, requires boxes and MOSS, and ignores regional strength/boundary/feather settings. Experimental: exact object bounds are not guaranteed."}),
+            "flux_guidance": ("FLOAT", {"default": 3.5, "min": 0., "max": 20., "step": .1,
+                "tooltip": "Embedded guidance for FLUX.1 Dev / FLUX.2 Dev; separate from CFG. Schnell, Klein and FLUX 3 ignore this value. FLUX 3 Base uses ordinary CFG."}),
         }, "hidden": {"workflow_prompt": "PROMPT", "unique_id": "UNIQUE_ID"}}
 
     RETURN_TYPES = ("IMAGE", "LATENT", PIPE_TYPE, "STRING")
@@ -103,7 +105,7 @@ class RSMultiCharacterSampler:
                  use_image_settings=False, region_feather=.04, initial_common_prior=.05,
                  common_after_step3_boost=.1, initial_character_gain=1.7, initial_spatial_separation=.9,
                  boundary_hold_steps=3, boundary_decrement=.2, workflow_prompt=None, unique_id=None,
-                 layout_method="regional"):
+                 layout_method="regional", flux_guidance=3.5):
         import comfy.model_management
         import comfy.sample
         import comfy.utils
@@ -111,6 +113,7 @@ class RSMultiCharacterSampler:
         import latent_preview
         from comfy import model_base, supported_models
         from comfy.patcher_extension import WrappersMP
+        from .flux_engine import flux_family
 
         if not isinstance(character_pipe, CharacterPipe):
             raise ValueError("Connect RS MultiCharacter Prompts or Load Image. / 전용 캐릭터 파이프를 연결해 주세요.")
@@ -126,8 +129,10 @@ class RSMultiCharacterSampler:
             family = "Krea2"
         elif isinstance(model.model, getattr(model_base, "MOSSImage", ())):
             family = "MOSS"
+        elif (flux_kind := flux_family(model)) is not None:
+            family = flux_kind
         else:
-            raise ValueError("Connect Anima, SD1.5 base, SDXL base, Krea2 or MOSS-Image. Krea2/MOSS need a current ComfyUI with native model support. SD2, Refiner, inpainting, instruct-pix2pix and Flux are unsupported.")
+            raise ValueError("Connect Anima, SD1.5 base, SDXL base, Krea2, MOSS-Image or native FLUX.1/2/3. FLUX Fill/Control, SD2, Refiner, inpainting and instruct-pix2pix models need different inputs and are unsupported here.")
         transformer_options = model.model_options.get("transformer_options", {})
         if any(transformer_options.get(k) for k in ("patches", "patches_replace", "optimized_attention_override")):
             raise ValueError("Use an unpatched model, optionally with ordinary LoRA loaders. Other attention patches are unsupported.")
@@ -144,11 +149,16 @@ class RSMultiCharacterSampler:
                 raise ValueError("Image generation settings are incomplete.")
             settings = {k: stored[k] for k in (*DEFAULTS, "seed")}
             layout_method = stored.get("layout_method", "regional")
+            flux_guidance = stored.get("flux_guidance", 3.5)
         if layout_method not in ("regional", "moss_native"):
             raise ValueError("Choose regional or moss_native for the layout method.")
         if layout_method == "moss_native" and family != "MOSS":
             raise ValueError("MOSS native layout requires MOSS-Image. Choose regional for this model. / 이 모델은 regional 모드를 사용해 주세요.")
         settings["layout_method"] = layout_method
+        if family.startswith("FLUX"):
+            if isinstance(flux_guidance, bool) or not isinstance(flux_guidance, (int, float)) or not math.isfinite(flux_guidance) or not 0 <= flux_guidance <= 20:
+                raise ValueError("FLUX guidance must be a finite number from 0 to 20.")
+            settings["flux_guidance"] = flux_guidance
         validate_settings(settings)
         validate_format(save_format, webp_quality)
         if not isinstance(prompt, str) or not isinstance(negative_prompt, str) or prompt_syntax not in ("ComfyUI", "NovelAI"):
@@ -191,10 +201,18 @@ class RSMultiCharacterSampler:
                 if t.ndim != 3 or t.shape[0] != 1 or t.shape[-1] != expected:
                     kind = "krea2" if family == "Krea2" else "moss_image"
                     raise ValueError(f"Connect the matching {family} text encoder with CLIPLoader type {kind!r}.")
+            if family.startswith("FLUX"):
+                expected = 20480 if family == "FLUX3" else model.model.diffusion_model.params.context_in_dim
+                if t.ndim != 3 or t.shape[0] != 1 or t.shape[-1] != expected:
+                    raise ValueError(f"Connect the matching {family} text encoder ({expected} features); FLUX generations do not share encoders.")
+                if family == "FLUX1" and (meta.get("pooled_output") is None or meta["pooled_output"].shape[-1] != 768):
+                    raise ValueError("FLUX.1 needs both CLIP-L and T5, with the pooled CLIP-L output.")
+                if family != "FLUX3":
+                    meta = {**meta, "guidance": flux_guidance}
             return [[t, dict(meta)]]
 
         positive, negative = encode(native_prompt if native_prompt is not None else prompt), encode(negative_prompt)
-        conditions = [encode(text_region_caption(c, convert, family not in ("Krea2", "MOSS")), converted=True)[0]
+        conditions = [encode(text_region_caption(c, convert, family not in ("Krea2", "MOSS", "FLUX1", "FLUX2", "FLUX3")), converted=True)[0]
                       if isinstance(c, TextRegion) else encode(c.prompt, encoder=loras.clips[i] if loras else clip)[0]
                       for i, c in enumerate(pipe.regions)] if native_prompt is None else []
         audit = {"layout_method": layout_method,
@@ -220,6 +238,10 @@ class RSMultiCharacterSampler:
         elif family in ("SD1.5", "SDXL"):
             from .sdxl_engine import SDXLRouting
             routing = SDXLRouting(conditions, masks, settings, audit, family=family, boxes=boxes)
+            routing.install(work)
+        elif family.startswith("FLUX"):
+            from .flux_engine import FluxRouting
+            routing = FluxRouting(family, conditions, masks, settings, audit, boxes=boxes, regional_loras=loras is not None)
             routing.install(work)
         else:
             from .joint_engine import JointRouting

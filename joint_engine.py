@@ -117,7 +117,7 @@ class JointRouting:
         try:
             for batch, kind in enumerate(kinds):
                 cb = context[batch:batch+1]
-                branch_options = {**options, 'cond_or_uncond': [kind]}
+                branch_options = {**options, 'cond_or_uncond': [kind], 'rs_mc_batch': batch}
                 tb = timesteps[batch:batch+1] if timesteps.shape[0] == len(kinds) else timesteps
                 if kind == 1:
                     self.state = None
@@ -161,8 +161,8 @@ class JointRouting:
         if joint and self.family == "MOSS":
             q, k = [moss_caption_positions(t, heads, state["lengths"], total_image, pre_shaped) for t in (q,k)]
             state["record"]["moss_text_positions"] = "independent_caption_tail_aligned"
-        text_start = total_image if joint and self.family == 'MOSS' else 0
-        image_start = 0 if self.family == 'MOSS' else total_text
+        text_start = total_image if joint and self.family in ('MOSS', 'FLUX3') else 0
+        image_start = 0 if self.family in ('MOSS', 'FLUX3') else total_text
         text = []
         offset = text_start
         for length in state['lengths']:

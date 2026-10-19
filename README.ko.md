@@ -1,5 +1,7 @@
 # ComfyUI_RS_MultiCharacter_Sampler
 
+**FLUX 개발 후보:** FLUX.1·2·3의 내부 영역 제어를 검증 중입니다. Klein 4B는 실제 2인·글자 상자·XY·이미지 설정 복원까지 확인했으며, 다른 변형과 디테일러·캐릭터별 LoRA는 검증 전입니다. [현황·검증 범위](docs/flux-validation.md) · [Klein 4B 예제](examples/flux/klein4-two.json). 아직 FLUX 정식 배포본이 아닙니다.
+
 **0.2.1 기역 픽스 · Anima · SDXL · Krea 2 · MOSS · SD1.5(실험 지원·불안정)**입니다. 공통 프롬프트와 캐릭터별 프롬프트·XY·상자를 전용 파이프로 전달하고, 로컬 모델 내부에서 영역별 attention을 조절합니다. RS NAI 확장이나 API 키는 필요 없습니다.
 
 **기역 픽스:** 캐릭터·텍스트 입력부가 함께 보이던 문제를 고쳤습니다. 번호별 공용 STRING 하나를 사용하고, 종류를 바꿔도 연결선을 유지합니다. 예전 워크플로는 실제 글자 연결을 공용 입력으로 옮깁니다. [수정 내용·호환성](docs/release-0.2.1.md).

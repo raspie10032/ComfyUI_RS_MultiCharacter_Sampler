@@ -1,5 +1,7 @@
 # ComfyUI_RS_MultiCharacter_Sampler
 
+**FLUX development candidate:** native FLUX.1/2/3 routing is being validated. Klein 4B has real two-person, text-box, XY and image-replay evidence; other downloaded variants, detailing and regional LoRA are pending. [Exact status and limits](docs/flux-validation.md) · [Klein 4B example](examples/flux/klein4-two.json). This is not a published FLUX release.
+
 **0.2.1 Giyeok Fix (기역 픽스) · Anima · SDXL · Krea 2 · MOSS · SD1.5 (experimental, unstable)** — independent prompts with X/Y, box and mixed regions for local ComfyUI generation.
 
 **Giyeok Fix:** fixes character and text inputs appearing together. Each slot now uses one shared STRING socket, preserving its connection when kind changes. Old workflows move their literal-text connection to that socket. [Fix and compatibility](docs/release-0.2.1.md).

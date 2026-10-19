@@ -84,6 +84,13 @@ class PackageTests(unittest.TestCase):
         self.assertEqual(restored.syntax,"NovelAI")
         self.assertIsNone(restored.generation_json)
 
+    def test_flux_guidance_round_trip(self):
+        for family in ('flux1', 'flux2', 'flux3'):
+            record = m.build_record(self.pipe, {**self.settings, 'flux_guidance': 2.7},
+                                    {'loaders': [], 'unresolved': []}, [[.8,.2],[.2,.8]], {'spatial_slots': 2},
+                                    engine=family+'-spatial-alpha-1')
+            restored = m.pipe_from_record(record)
+            self.assertEqual(json.loads(restored.generation_json)['settings']['flux_guidance'], 2.7)
     def test_malformed_metadata_rejected(self):
         for record in ({}, {"v4_prompt":None}):
             with self.assertRaises(ValueError):

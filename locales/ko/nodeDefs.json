@@ -166,6 +166,10 @@
       "layout_method": {
         "name": "레이아웃 처리",
         "tooltip": "regional: 각 모델의 영역 attention 제어. moss_native: MOSS 전용 공식 레이아웃 JSON. boxes 입력이 필요하며 영역 강도 설정은 적용하지 않습니다."
+      },
+      "flux_guidance": {
+        "name": "FLUX 가이던스",
+        "tooltip": "FLUX.1 Dev·FLUX.2 Dev의 내장 가이던스입니다. CFG와 별개입니다. Schnell·Klein·FLUX 3에는 적용되지 않습니다. FLUX 3 Base는 CFG를 사용합니다."
       }
     }
   },

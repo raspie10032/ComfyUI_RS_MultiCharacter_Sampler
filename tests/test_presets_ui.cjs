@@ -12,7 +12,7 @@ class Node {
     constructor() {
         this.widgets=[]; this.properties={}; this.inputs=[]; this.changes=0;
         this.graph={beforeChange:()=>this.changes++, afterChange:()=>this.changes++};
-        for(const [name,value] of Object.entries({...presets[0].settings,seed:123,width:1536,height:768,prompt:'my prompt',negative_prompt:'bad',prompt_syntax:'NovelAI',autosave:false,use_image_settings:false,layout_method:'regional'}))
+        for(const [name,value] of Object.entries({...presets[0].settings,seed:123,width:1536,height:768,prompt:'my prompt',negative_prompt:'bad',prompt_syntax:'NovelAI',autosave:false,use_image_settings:false,layout_method:'regional',flux_guidance:3.5}))
             this.addWidget(typeof value==='number'?'number':'combo', name, value, ()=>{});
         this.w('sampler_name').options.values=['euler_ancestral','euler'];
         this.w('scheduler').options.values=['sgm_uniform','normal','simple'];
@@ -58,7 +58,7 @@ class Node {
     }
     a.properties.rs_mc_preset='unknown-future-preset';before=a.values();a.onConfigure();a.apply();assert.deepEqual(a.values(),before);
     // The shipped presets must reproduce their published examples, including old widget ordering.
-    const ordered=['prompt','negative_prompt','width','height','seed','control_after_generate','steps','cfg','sampler_name','scheduler','autosave','save_format','webp_quality','prompt_syntax','use_image_settings','region_feather','initial_common_prior','common_after_step3_boost','initial_character_gain','initial_spatial_separation','boundary_hold_steps','boundary_decrement','layout_method'];
+    const ordered=['prompt','negative_prompt','width','height','seed','control_after_generate','steps','cfg','sampler_name','scheduler','autosave','save_format','webp_quality','prompt_syntax','use_image_settings','region_feather','initial_common_prior','common_after_step3_boost','initial_character_gain','initial_spatial_separation','boundary_hold_steps','boundary_decrement','layout_method','flux_guidance'];
     for(const p of presets){
         const source=JSON.parse(fs.readFileSync(p.source));
         const values=source.nodes.find(n=>n.type==='RSMultiCharacterSampler').widgets_values;

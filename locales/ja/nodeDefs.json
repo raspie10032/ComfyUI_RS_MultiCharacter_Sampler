@@ -166,6 +166,10 @@
       "layout_method": {
         "name": "レイアウト処理",
         "tooltip": "regional: 各モデルの領域attention制御。moss_native: MOSS専用の公式レイアウトJSON。boxes入力が必要で、領域の強度設定は使用しません。"
+      },
+      "flux_guidance": {
+        "name": "FLUXガイダンス",
+        "tooltip": "FLUX.1 Dev・FLUX.2 Devの内蔵ガイダンスです。CFGとは別です。Schnell・Klein・FLUX 3には適用されません。FLUX 3 BaseはCFGを使用します。"
       }
     }
   },
