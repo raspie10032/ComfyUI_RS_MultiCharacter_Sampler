@@ -24,6 +24,13 @@ class SharedLoraTests(unittest.TestCase):
         cls.s = importlib.import_module(PKG + '.shared_lora')
         cls.b = importlib.import_module(PKG + '.lora_bypass')
         from comfy.weight_adapter.lora import LoRAAdapter
+        try:
+            from comfy.weight_adapter.bypass import BypassForwardHook
+            from comfy.model_base import Anima
+        except ImportError:
+            raise unittest.SkipTest('This core predates native shared LoRA support')
+        if not callable(getattr(LoRAAdapter, 'h', None)):
+            raise unittest.SkipTest('This core predates native LoRA delta support')
         cls.adapter_type = LoRAAdapter
 
     def setUp(self):
@@ -212,3 +219,49 @@ class SharedLoraTests(unittest.TestCase):
         loras.install.assert_not_called()
         with self.assertRaises(ValueError):
             loras.condition_pair(None, positive, negative, None, None, mode='typo')
+
+
+@unittest.skipUnless(os.environ.get('RS_MC_TEST_COMFYUI'), 'Requires native ComfyUI')
+class SharedLoraCoreCompatibilityTests(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls):
+        sys.path.insert(0, os.environ['RS_MC_TEST_COMFYUI'])
+        from comfy.cli_args import args
+        args.cpu = True
+        cls.regional = importlib.import_module(PKG + '.regional_lora')
+
+    def test_missing_native_bypass_falls_back_before_model_or_router_setup(self):
+        from unittest.mock import Mock
+        from comfy.hooks import HookGroup, WeightHook
+        loras = self.regional.RegionalLoras.__new__(self.regional.RegionalLoras)
+        loras.hooks = [HookGroup()]
+        loras.hooks[0].add(WeightHook())
+        loras.install = Mock()
+        model = SimpleNamespace()
+        cond = [[torch.randn(1, 3, 8), {}]]
+        masks = torch.ones(1, 2, 4)
+        regions = [SimpleNamespace(bbox=None)]
+        with patch.dict(sys.modules, {'comfy.weight_adapter.bypass': None}):
+            got = loras.condition_pair(model, cond, cond, masks, regions, mode='normal')
+        self.assertEqual(loras.execution['effective'], 'precision')
+        self.assertIn('native LoRA bypass', loras.execution['fallback_reason'])
+        loras.install.assert_called_once_with(model)
+        self.assertIs(got[0][0][1]['hooks'], loras.hooks[0])
+        self.assertIs(got[1][0][1]['hooks'], loras.hooks[0])
+        self.assertEqual(cond[0][1], {})
+
+    def test_actual_core_without_native_bypass_uses_weight_hooks(self):
+        from comfy.model_base import SDXL
+        from comfy.weight_adapter.lora import LoRAAdapter
+        bypass = importlib.import_module(PKG + '.lora_bypass')
+        try:
+            from comfy.weight_adapter.bypass import BypassForwardHook
+        except ImportError:
+            pass
+        else:
+            self.skipTest('This core provides native bypass')
+        model = SimpleNamespace(model=SDXL.__new__(SDXL))
+        adapter = LoRAAdapter(set(), (torch.ones(8, 2), torch.ones(2, 8), 2., None, None, None))
+        plan, reason = bypass.prepare_bypass(model, {'diffusion_model.0.weight': adapter})
+        self.assertIsNone(plan)
+        self.assertEqual(reason, 'core_without_bypass')

@@ -8,6 +8,7 @@
 - **일반 적용:** 지원되는 Anima·SDXL 선형 LoRA는 기본 모델의 레이어 계산을 공유하고 영역별 변화량을 적용합니다. 정밀 방식과 구도·표정·의상 세부가 달라질 수 있으며 특징이 다른 영역으로 퍼질 수 있습니다.
 - **정밀 적용:** LoRA 설정마다 독립적으로 모델을 계산합니다. 지원되는 작은 행렬 최적화로 반복 가중치 합성 비용을 줄입니다. 서로 다른 설정이 많을수록 느려지며, 이름이 더 좋은 그림이나 완벽한 분리를 보장하지는 않습니다.
 - 기본값과 모드가 없는 기존 워크플로·이미지는 **정밀 적용**입니다. 일반에서 미지원 모델·어댑터는 이유를 기록하고 정밀로 처리합니다. 실행 오류는 오류로 전달합니다.
+- 새 LoRA API가 없는 구버전 ComfyUI에서도 일반 선택 시 정밀로 전환합니다. ComfyUI v0.3.76에서 API 감지와 기존 가중치 경로를 별도로 검사했습니다.
 - 모드와 캐릭터 LoRA 설정을 PNG/WebP 생성 정보에 저장·복원합니다. 디테일러는 두 모드 모두 매칭된 캐릭터를 정밀 방식으로 처리합니다.
 - 주요 노드 하단에 선택에 따른 설명창을 추가했습니다. 설명은 한국어·일본어·영어를 지원하며 입력이나 저장값으로 들어가지 않습니다.
 - 조절 항목에 마우스를 **2초** 올리면 짧은 설명을 표시합니다. 이동·드래그·스크롤 등으로 닫히며 ComfyUI의 툴팁 설정을 따릅니다.
@@ -31,6 +32,8 @@ Anima/SDXL linear LoRAs. Precision retains independent predictions and uses low-
 optimization where supported. Existing workflows and images default to Precision.
 Unsupported Normal configurations fall back to Precision with a recorded reason;
 runtime failures remain errors. The detailer uses Precision for each matched character.
+Older ComfyUI cores without the native LoRA bypass API also fall back to Precision;
+API detection and native weight-hook fallback are checked against v0.3.76.
 
 Normal changes the algorithm and can change character details or spread features between
 regions. Precision does not guarantee better artwork or perfect isolation. One local
@@ -52,6 +55,8 @@ Anima・SDXL線形LoRAのレイヤー計算を共有し、精密は独立した�
 最適化を使用します。旧ワークフローとモードを持たない画像の初期値は精密です。
 通常の非対応構成は理由を記録して精密に切り替えます。実行エラーはそのまま通知します。
 ディテイラーはどちらの選択でも各キャラクターを精密方式で処理します。
+新しいLoRA APIを持たない旧ComfyUIでも精密に切り替えます。v0.3.76でAPI検出と
+従来のウェイトフックへのフォールバックを検査しました。
 
 通常は計算方法が異なるため、顔・服・構図が変わり、別領域へ特徴が広がる場合も
 あります。精密も画質や完全な分離を保証しません。ILXLの2人・30ステップの単回測定は

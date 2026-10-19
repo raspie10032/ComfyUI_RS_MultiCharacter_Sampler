@@ -36,13 +36,22 @@ def layer_role(path):
 
 class SharedRegionalLora:
     def __init__(self, loras, model, masks, regions):
-        from comfy.model_base import Anima, SDXL
+        try:
+            from comfy.weight_adapter.bypass import BypassForwardHook
+            from comfy.weight_adapter.lora import LoRAAdapter
+        except ImportError as error:
+            raise SharedLoraUnsupported("Shared regional LoRA requires native LoRA bypass support in ComfyUI.") from error
+        if not callable(getattr(LoRAAdapter, 'h', None)):
+            raise SharedLoraUnsupported("Shared regional LoRA requires native LoRA delta support in ComfyUI.")
+        from comfy import model_base
         from comfy.patcher_extension import WrappersMP
         from .engine import AnimaRouting
         from .sdxl_engine import SDXLRouting
 
-        self.is_sdxl = isinstance(model.model, SDXL)
-        if not isinstance(model.model, (Anima, SDXL)):
+        self.is_sdxl = isinstance(model.model, model_base.SDXL)
+        model_types = tuple(t for name in ('Anima', 'SDXL')
+                            if isinstance((t := getattr(model_base, name, None)), type))
+        if not isinstance(model.model, model_types):
             raise SharedLoraUnsupported("Shared regional LoRA requires Anima or SDXL.")
         wrappers = model.get_all_wrappers(WrappersMP.DIFFUSION_MODEL)
         routers = [w.__self__ for w in wrappers if isinstance(getattr(w, '__self__', None), (AnimaRouting, SDXLRouting))]
