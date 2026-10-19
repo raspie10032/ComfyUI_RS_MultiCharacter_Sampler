@@ -110,12 +110,16 @@ class NativeFluxTests(unittest.TestCase):
         else:
             from comfy.ldm.flux.model import Flux
             features, channels = 64, 16
+            # Older native FLUX implementations select text IDs from axes_dim
+            # and do not expose the newer txt_ids_dims constructor option.
+            position_options = ({'txt_ids_dims': [] if family == 'FLUX1' else [0]}
+                                if 'txt_ids_dims' in FluxParams.__annotations__ else {})
             net = Flux(in_channels=channels, out_channels=channels, vec_in_dim=32 if family=='FLUX1' else None,
                        context_in_dim=features, hidden_size=128, mlp_ratio=2., num_heads=2,
                        depth=1, depth_single_blocks=1, axes_dim=[16,24,24], theta=10000,
                        patch_size=2, qkv_bias=True, guidance_embed=family=='FLUX1',
-                       txt_ids_dims=[] if family=='FLUX1' else [0], global_modulation=family=='FLUX2',
-                       operations=self.ops, dtype=torch.float32)
+                       global_modulation=family=='FLUX2',
+                       operations=self.ops, dtype=torch.float32, **position_options)
         for p in net.parameters():
             p.data.uniform_(-.03, .03)
         x, t = torch.randn(1,channels,4,8), torch.tensor([.5])
