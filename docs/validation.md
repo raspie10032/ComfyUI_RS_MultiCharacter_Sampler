@@ -1,6 +1,6 @@
 # Alpha validation — 2026-10-16
 
-For the current **0.1.2 Beta**, see [release notes](release-0.1.2.md), [detailer validation](detailer-validation.md), [SDXL validation](sdxl-validation.md), and [Krea 2 / MOSS validation](krea-moss-validation.md). The original alpha evidence below is retained with its original scope.
+For the current **0.2.4 Rieul**, see [release notes and mask validation scope](release-0.2.4.md). For historical **0.1.2 Beta**, see [release notes](release-0.1.2.md), [detailer validation](detailer-validation.md), [SDXL validation](sdxl-validation.md), and [Krea 2 / MOSS validation](krea-moss-validation.md). The original alpha evidence below is retained with its original scope.
 
 This report separates inherited research evidence, standalone runtime checks, source tests and UI checks. It does not claim universal success rates or equivalence to NovelAI.
 

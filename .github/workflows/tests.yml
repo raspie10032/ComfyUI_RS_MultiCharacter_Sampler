@@ -63,3 +63,7 @@ jobs:
         run: node tests/test_node_help_ui.cjs
       - name: Delayed localized control tooltips
         run: node tests/test_widget_tooltips_ui.cjs
+      - name: Character mask previews and input invalidation
+        run: node tests/test_mask_preview_ui.cjs
+      - name: Numbered point box and mask placement editor
+        run: node tests/test_position_editor_ui.cjs
