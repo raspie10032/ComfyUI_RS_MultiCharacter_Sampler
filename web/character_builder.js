@@ -1,6 +1,9 @@
 import { app } from "../../scripts/app.js";
+import { maskPreview, rememberMaskPreview, placedSupport } from "./mask_preview.js";
+import { drawingSupports } from "./mask_drawing.js";
+import { addPositionEditor } from "./position_editor.js";
 
-const roles = new Set(["RSMultiCharacterPrompt", "RSMultiCharacterLoRA", "RSMultiCharacterPosition"]);
+const roles = new Set(["RSMultiCharacterPrompt", "RSMultiCharacterLoRA", "RSMultiCharacterPosition", "RSMultiCharacterMask", "RSMultiCharacterMaskDraw"]);
 const finalType = "RSMultiCharacterFinalize";
 const colors = ["#ff8d91", "#81bcff", "#94dd9d", "#ffd27f", "#c3a0ff", "#7fe5df", "#f5a6d8", "#cedd78", "#c7b6a2", "#e0e5ed"];
 const typeOf = node => node.comfyClass ?? node.type;
@@ -32,6 +35,28 @@ export function collectSlots(node) {
         const count = Number(value(item, "character_count", 2));
         lastCount = Math.max(lastCount, count);
         const type = typeOf(item);
+        if (type === "RSMultiCharacterMaskDraw") {
+            const masks = drawingSupports(item);
+            for (let id = 1; id <= 10; id++) {
+                const slot = slots.get(id) ?? {id, enabled:true, kind:"character", geometry:"point", x:.5, y:.5, width:.4, height:.8};
+                slot.masked = masks.has(id);
+                slot.maskSupport = masks.get(id) ?? null;
+                slots.set(id, slot);
+            }
+            if (inputNode(item, "drawing") || inputNode(item, "margin")) unknown = true;
+            lastCount = Math.max(lastCount, ...masks.keys());
+            continue;
+        }
+        if (type === "RSMultiCharacterMask") {
+            const id = Number(value(item, "character_id", 1));
+            const slot = slots.get(id) ?? {id, enabled:true, kind:"character", geometry:"point", x:.5, y:.5, width:.4, height:.8};
+            slot.masked = !!value(item, "enabled", true);
+            slot.maskSupport = slot.masked ? maskPreview(item) : null;
+            if (inputNode(item, "character_id") || inputNode(item, "enabled")) unknown = true;
+            slots.set(id, slot);
+            lastCount = Math.max(lastCount, id);
+            continue;
+        }
         if (type === "RSMultiCharacterPrompt") promptCount = count;
         if (inputNode(item, "character_count") || item.mode === 2) unknown = true;
         for (let id=1; id<=10; id++) {
@@ -46,16 +71,23 @@ export function collectSlots(node) {
             if (type === "RSMultiCharacterPosition") {
                 for (const [k,d] of Object.entries({geometry:"point",x:.5,y:.5,width:.4,height:.8})) slot[k] = id<=count ? value(item,key("_"+k),d) : d;
                 slot.dynamic = id<=count && ["geometry","x","y","width","height"].some(k=>!!inputNode(item,key("_"+k)));
+                try { slot.maskTransform = id <= count ? JSON.parse(value(item, "mask_transforms", "{}"))[id] ?? [0,0,1] : [0,0,1]; }
+                catch { unknown = true; slot.maskTransform = [0,0,1]; }
+                if (inputNode(item, "mask_transforms")) unknown = true;
             }
             slots.set(id,slot);
         }
+    }
+    for (const slot of slots.values()) if (slot.masked && slot.maskSupport) {
+        slot.maskOriginal = slot.maskSupport;
+        slot.maskSupport = placedSupport(slot.maskOriginal, slot.maskTransform);
     }
     return {slots:[...slots.values()].filter(s=>s.id<=(promptCount??lastCount) && s.enabled),unknown};
 }
 
 export function centersFor(slots) {
-    const centers = slots.map(s => [Number(s.x), Number(s.y)]);
-    const points = slots.map((s,i) => s.geometry === "point" ? i : -1).filter(i => i >= 0);
+    const centers = slots.map(s => s.masked && s.maskSupport ? s.maskSupport.center : [Number(s.x), Number(s.y)]);
+    const points = slots.map((s,i) => s.geometry === "point" && !s.masked ? i : -1).filter(i => i >= 0);
     const groups = new Map();
     for (const i of points) {
         const key = JSON.stringify(centers[i]);
@@ -76,9 +108,9 @@ export function centersFor(slots) {
 
 function labels() {
     const lang = app.extensionManager?.setting?.get?.("Comfy.Locale") ?? globalThis.navigator?.language ?? "en";
-    if (lang.startsWith("ko")) return ["예상 배치 · XY 0–1", "번호별 설정 · 최종 구도 보장 아님", "연결값 확인 필요: 생성 시 좌표 결정", "프롬프트 연결 대기: "];
-    if (lang.startsWith("ja")) return ["配置の目安 · XY 0–1", "番号別設定 · 最終構図の保証ではありません", "接続値の確認が必要です", "プロンプト未接続: "];
-    return ["Layout guide · XY 0–1", "By number · composition is approximate", "Linked values: layout resolved at execution", "Prompt connection missing: "];
+    if (lang.startsWith("ko")) return ["예상 배치 · XY 0–1", "번호별 설정 · 최종 구도 보장 아님", "연결값 확인 필요: 생성 시 좌표 결정", "프롬프트 연결 대기: ", "마스크 표시 · 캔버스 밖은 자동 잘림", "마스크 연결·실행 필요: "];
+    if (lang.startsWith("ja")) return ["配置の目安 · XY 0–1", "番号別設定 · 最終構図の保証ではありません", "接続値の確認が必要です", "プロンプト未接続: ", "マスク表示 · キャンバス外は切り取り", "マスク接続・実行が必要: "];
+    return ["Layout guide · XY 0–1", "By number · composition is approximate", "Linked values: layout resolved at execution", "Prompt connection missing: ", "Mask guide · overflow is clipped", "Connect/run mask nodes: "];
 }
 
 export function loraModeHelp(node) {
@@ -166,11 +198,17 @@ function addDiagram(node) {
             ctx.font = "12px sans-serif"; ctx.fillStyle = "#d1d8e2"; ctx.fillText(text[0], left, y+16);
             ctx.fillStyle = "#171d27"; ctx.fillRect(left, top, w, h);
             const dynamic = unknown || slots.some(s => s.dynamic);
-            const points = slots.map((s,i) => s.geometry === "point" ? i : -1).filter(i => i>=0);
+            const points = slots.map((s,i) => s.geometry === "point" && !s.masked ? i : -1).filter(i => i>=0);
             // Schematic partitions. Box coverage overrides point coverage, as in sampling.
             if (!dynamic) for (let row=0; row<32; row++) for (let col=0; col<48; col++) {
                 const x=(col+.5)/48, cy=(row+.5)/32;
-                let ids=slots.map((s,i) => s.geometry === "box" && Math.abs(x-s.x)<=s.width/2 && Math.abs(cy-s.y)<=s.height/2 ? i : -1).filter(i=>i>=0);
+                let ids=slots.map((s,i) => {
+                    if (s.masked) {
+                        const m = s.maskSupport;
+                        return m && m.data[Math.min(m.height-1,Math.floor(cy*m.height))*m.width+Math.min(m.width-1,Math.floor(x*m.width))] ? i : -1;
+                    }
+                    return s.geometry === "box" && Math.abs(x-s.x)<=s.width/2 && Math.abs(cy-s.y)<=s.height/2 ? i : -1;
+                }).filter(i=>i>=0);
                 if (!ids.length && points.length) ids=[points.reduce((a,b)=>Math.hypot(x-centers[a][0],cy-centers[a][1])<=Math.hypot(x-centers[b][0],cy-centers[b][1])?a:b)];
                 for (const i of ids) {
                     ctx.fillStyle=colors[(slots[i].id-1)%10]; ctx.globalAlpha=.22/ids.length;
@@ -179,14 +217,16 @@ function addDiagram(node) {
             }
             ctx.globalAlpha=1; ctx.strokeStyle="#66768f"; ctx.strokeRect(left,top,w,h);
             if (!dynamic) slots.forEach((s,i)=>{
-                const [x,cy]=centers[i], box=s.geometry==="box";
+                if (s.masked && (!s.maskSupport || s.maskSupport.empty)) return;
+                const [x,cy]=centers[i], box=s.geometry==="box" && !s.masked;
                 const invalid=box && (x-s.width/2<0 || x+s.width/2>1 || cy-s.height/2<0 || cy+s.height/2>1);
                 ctx.strokeStyle=ctx.fillStyle=invalid?"#ff4b4b":colors[(s.id-1)%10];
                 if (box) ctx.strokeRect(left+(x-s.width/2)*w,top+(cy-s.height/2)*h,s.width*w,s.height*h);
                 ctx.beginPath();ctx.arc(left+x*w,top+cy*h,3,0,Math.PI*2);ctx.fill();
-                ctx.fillText(`${s.id}${s.kind==="text"?" T":""}`,Math.min(left+x*w+6,left+w-24),Math.max(top+12,top+cy*h-6));
+                ctx.fillText(`${s.id}${s.kind==="text"?" T":s.masked?" M":""}`,Math.min(left+x*w+6,left+w-24),Math.max(top+12,top+cy*h-6));
             });
-            ctx.fillStyle="#b4bdcc";ctx.fillText(dynamic?text[2]:text[1],left,top+h+18,width-32);
+            const pending=slots.filter(s=>s.masked && (!s.maskSupport || s.maskSupport.empty)).map(s=>s.id);
+            ctx.fillStyle="#b4bdcc";ctx.fillText(dynamic?text[2]:pending.length?text[5]+pending.join(", "):slots.some(s=>s.masked)?text[4]:text[1],left,top+h+18,width-32);
             const missing=slots.filter(s=>!s.promptConnected).map(s=>s.id);
             if(missing.length) {ctx.fillStyle="#ffd27f";ctx.fillText(text[3]+missing.join(", "),left,top+h+36,width-32);}
             ctx.restore();
@@ -252,11 +292,12 @@ function visibility(node, updateSockets = true) {
 app.registerExtension({
     name:"RS.MultiCharacter.Builder",
     async beforeRegisterNodeDef(nodeType,nodeData) {
-        if(!roles.has(nodeData.name) && nodeData.name!==finalType) return;
+        if(nodeData.name === "RSMultiCharacterMaskDraw" || (!roles.has(nodeData.name) && nodeData.name!==finalType)) return;
         const created=nodeType.prototype.onNodeCreated;
         nodeType.prototype.onNodeCreated=function(){
             const result=created?.apply(this,arguments);
-            if(nodeData.name==="RSMultiCharacterPosition" || nodeData.name===finalType) addDiagram(this);
+            if(nodeData.name==="RSMultiCharacterPosition" && this.addDOMWidget) addPositionEditor(this, { collectSlots, centersFor, colors });
+            else if(nodeData.name==="RSMultiCharacterPosition" || nodeData.name===finalType || nodeData.name==="RSMultiCharacterMask") addDiagram(this);
             if(nodeData.name==="RSMultiCharacterLoRA") addLoraModeHelp(this);
             for(const widget of this.widgets ?? []) {
                 const callback=widget.callback;
@@ -264,6 +305,15 @@ app.registerExtension({
             }
             visibility(this);return result;
         };
+        if (nodeData.name === "RSMultiCharacterMask") {
+            const executed = nodeType.prototype.onExecuted;
+            nodeType.prototype.onExecuted = function(message) {
+                const result = executed?.apply(this, arguments);
+                rememberMaskPreview(this, message);
+                this.setDirtyCanvas(true, true);
+                return result;
+            };
+        }
         const configured=nodeType.prototype.onConfigure;
         nodeType.prototype.onConfigure=function(){
             const result=configured?.apply(this,arguments);

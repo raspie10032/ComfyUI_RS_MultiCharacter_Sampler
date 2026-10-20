@@ -746,7 +746,7 @@
   },
   "RSMultiCharacterPosition": {
     "display_name": "RS キャラクター位置",
-    "description": "各キャラクターの座標・ボックスと配置図を一覧表示します。役割の接続順は自由です。",
+    "description": "配置図の上で番号・種類を選び、点・ボックス・マスクをドラッグ。ボックス・マスクは角や−/+で拡縮し、キャンバス外のマスクだけ切り取ります。番号と元の形は保持。役割の接続順は自由です。",
     "inputs": {
       "character_count": {
         "name": "設定数"
@@ -922,6 +922,62 @@
     "outputs": {
       "0": {
         "name": "キャラクターパイプ"
+      }
+    }
+  },
+  "RSMultiCharacterMask": {
+    "display_name": "RS キャラクターマスク",
+    "description": "シルエットや描いたMASKを番号ごとのキャラクター領域に使います。座標・ボックスを置き換え、ノード順は自由です。ポーズ固定ではありません。",
+    "inputs": {
+      "character_id": {
+        "name": "キャラクター番号"
+      },
+      "enabled": {
+        "name": "マスクを使う"
+      },
+      "margin": {
+        "name": "余白 (元画像px)"
+      },
+      "threshold": {
+        "name": "二値化しきい値"
+      },
+      "building_pipe": {
+        "name": "組立パイプ"
+      },
+      "mask": {
+        "name": "入力マスク"
+      },
+      "offset_x": {
+        "name": "横移動比率"
+      },
+      "offset_y": {
+        "name": "縦移動比率"
+      },
+      "scale": {
+        "name": "マスク倍率"
+      }
+    },
+    "outputs": {
+      "0": {
+        "name": "組立パイプ"
+      },
+      "1": {
+        "name": "拡張マスク"
+      }
+    }
+  },
+  "RSMultiCharacterMaskDraw": {
+    "display_name": "RS キャラクターマスク描画",
+    "description": "参照画像の上に番号別の領域を描きます。同じ番号のPrompt・LoRAを使い、下絵は生成には渡しません。移動・倍率の外側は切り取ります。",
+    "inputs": {
+      "drawing": {
+        "name": "drawing"
+      },
+      "margin": {
+        "name": "余白"
+      },
+      "building_pipe": {
+        "name": "building_pipe"
       }
     }
   }

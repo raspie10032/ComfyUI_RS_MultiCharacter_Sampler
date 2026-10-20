@@ -70,6 +70,9 @@ class NativeModelTests(unittest.TestCase):
     def test_regional_lora_uses_native_hooks_and_restores_shared_model(self):
         self.unet_node("SD1.5", lora_trial=True)
 
+    def test_sdxl_shape_mask_native_sampling(self): self.unet_node("SDXL", boxes="shape")
+    def test_sd15_shape_mask_native_sampling(self): self.unet_node("SD1.5", boxes="shape")
+
     def unet_node(self, family, boxes=False, lora_trial=False):
         """Run the public node through real SD1.5/SDXL U-Net/sampler wrappers on CPU.
 
@@ -108,6 +111,10 @@ class NativeModelTests(unittest.TestCase):
         pipe = chars.CharacterPipe((chars.Character('left', x=.3 if boxes else .25, bbox=(.1,.1,.5,.9) if boxes else None), chars.Character('right', x=.65 if boxes else .75, bbox=(.4,.1,.9,.9) if boxes else None)))
         if boxes == "mixed":
             pipe = chars.CharacterPipe((chars.Character('left', x=.25), chars.Character('right', x=.75, bbox=(.6,.2,.9,.8))))
+        if boxes == "shape":
+            mask = torch.zeros(1,64,64); mask[:,8:56,8:24]=1; mask[:,8:24,24:48]=1
+            region = importlib.import_module(PKG+'.region_mask').prepare_mask(mask, margin=0)
+            pipe = chars.CharacterPipe((chars.Character('left', region_mask=region), chars.Character('right', x=.75)))
         with patch.object(args, 'preview_method', LatentPreviewMethod.NoPreviews), torch.no_grad():
             output = nodes.RSMultiCharacterSampler().generate(
                 model, clip, vae, pipe, 'common', 'negative', width=64, height=64,
@@ -123,6 +130,9 @@ class NativeModelTests(unittest.TestCase):
         self.assertEqual(model.model_options, original)
         self.assertEqual(audit['pooled_conditioning'], 'none' if sd15 else 'common_prompt_native_adm')
         self.assertEqual(json.loads(restored_pipe.generation_json)['engine'], family.lower() + '-spatial-alpha-1')
+        if boxes == "shape":
+            self.assertEqual(audit['mask_slots'], [1])
+            self.assertEqual(json.loads(restored_pipe.generation_json)['character_masks'][0], region.record())
         if lora_trial:
             self.check_regional_lora(model, clip, vae, pipe, nodes)
         if sd15:
@@ -222,6 +232,11 @@ class NativeModelTests(unittest.TestCase):
             masks[1].zero_()
             masks[1,1:3,3:7]=1
             boxes = (False, True)
+        elif boxes == "shape":
+            masks.zero_()
+            masks[0,0:3,0:2]=1; masks[0,1,2:5]=1
+            masks[1,1:4,6:8]=1; masks[1,1,3:6]=1
+            boxes = (True, True)
         elif boxes:
             masks.zero_()
             masks[0,1:3,1:5]=1
@@ -250,6 +265,8 @@ class NativeModelTests(unittest.TestCase):
 
     def test_krea_boxes_native_attention_and_negative(self): self.joint('Krea2',boxes=True)
     def test_moss_boxes_native_attention_and_negative(self): self.joint('MOSS',boxes=True)
+    def test_krea_shape_native_attention_and_negative(self): self.joint('Krea2',boxes='shape')
+    def test_moss_shape_native_attention_and_negative(self): self.joint('MOSS',boxes='shape')
 
     def test_anima_native_tensor_containers_and_backend_argument(self):
         from comfy import model_base

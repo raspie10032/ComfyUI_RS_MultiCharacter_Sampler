@@ -5,6 +5,16 @@ import { app } from "../../scripts/app.js";
 // The frontend's native delay is global; do not change other nodes' settings.
 export const HOVER_DELAY = 2000;
 const tips = {
+    mask_transforms: ["Saved mask placement. Select a numbered region above the layout to move or resize it.", "마스크 배치 저장값입니다. 배치도 위에서 번호를 선택해 이동·크기를 조절하세요.", "マスク配置の保存値。配置図の上で番号を選び移動・拡縮します。"],
+    drawing: ["Select a character number and paint over the reference. The image is a guide only; numbered masks are saved in the workflow.", "번호를 고르고 밑그림 위에 칠하세요. 이미지는 참조용이며 번호별 마스크는 워크플로에 저장됩니다.", "番号を選び下絵の上に塗ります。画像は参照のみで番号別マスクはワークフローに保存されます。"],
+    character_id: ["Character Prompt row number. Attach one mask to each character you want to shape.", "프롬프트 노드의 캐릭터 번호입니다. 모양을 정할 캐릭터마다 마스크 하나를 붙이세요.", "Promptのキャラクター番号です。形を指定するキャラクターごとに1枚接続します。"],
+    enabled: ["Off clears this character's mask and restores its XY/box; other characters keep their masks.", "끄면 이 번호의 마스크를 지우고 좌표·상자로 돌아갑니다. 다른 번호는 유지합니다.", "OFFでこの番号のマスクを消し、座標・ボックスに戻します。他の番号は保持します。"],
+    margin: ["Expand white by this many source pixels. Leave space for hair, clothing and contact.", "원본 마스크에서 흰 영역을 이 픽셀 수만큼 확장합니다. 머리·옷·접촉에 여유를 주세요.", "元マスクの白領域をこのピクセル数だけ拡張します。髪・服・接触に余白を残します。"],
+    threshold: ["Pixels above this value select the character region. Gray is converted to black or white.", "이 값보다 밝은 픽셀을 캐릭터 영역으로 씁니다. 회색은 흑백으로 바꿉니다.", "この値より明るい画素をキャラクター領域にします。グレーは白黒に変換します。"],
+    mask: ["One full-canvas MASK: white selects the region. Shift/scale overflow is clipped; pose remains approximate.", "전체 캔버스 MASK 한 장: 흰색이 영역입니다. 이동·확대로 넘친 부분은 잘리며 자세는 대략 유도합니다.", "全キャンバスのMASK1枚：白が領域。移動・拡大で外に出る部分は切り取り、ポーズは目安です。"],
+    offset_x: ["Shift by a fraction of canvas width: +0.1 moves right 10%. Overflow is clipped.", "캔버스 가로 대비 이동량입니다. +0.1은 오른쪽 10%이며, 밖으로 나가면 잘립니다.", "幅に対する移動比率。+0.1で右へ10%。外側は切り取ります。"],
+    offset_y: ["Shift by a fraction of canvas height: +0.1 moves down 10%. Overflow is clipped.", "캔버스 세로 대비 이동량입니다. +0.1은 아래 10%이며, 밖으로 나가면 잘립니다.", "高さに対する移動比率。+0.1で下へ10%。外側は切り取ります。"],
+    scale: ["Uniform size about the canvas centre: 0.5 half, 1 original, 2 double. Overflow is clipped.", "캔버스 중심 기준 크기 비율입니다. 0.5 절반·1 원본·2 두 배이며, 넘친 부분은 잘립니다.", "キャンバス中央基準の倍率。0.5半分・1元・2倍。外側は切り取ります。"],
     character_count: ["Active slots (1–10), including text. Prompt excludes slots above this count; match numbers across role nodes.", "사용할 슬롯 수(1–10)로 텍스트도 포함합니다. 프롬프트에서 줄인 번호 밖은 제외되므로 노드별 번호를 맞추세요.", "使用するスロット数（1–10）で文字も含みます。Promptで指定数を超えた番号は除外されるため、ノード間で番号を合わせてください。"],
     enable: ["Enable this numbered slot. Disabled slots are excluded from generation.", "이 번호를 생성에 사용할지 선택합니다. 끄면 해당 슬롯을 제외합니다.", "この番号を生成に使うか選びます。OFFのスロットは除外されます。"],
     kind: ["Character uses the STRING as a prompt; Text uses it as literal lettering. Text needs box geometry.", "같은 STRING을 캐릭터 프롬프트 또는 실제 글자로 사용합니다. 텍스트는 위치 노드에서 박스를 선택하세요.", "同じSTRINGをキャラクタープロンプトまたは描く文字に使います。Textの位置はBoxにしてください。"],

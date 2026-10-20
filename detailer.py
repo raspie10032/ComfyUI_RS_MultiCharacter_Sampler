@@ -95,6 +95,8 @@ def detail_record(pipe, width, height, settings, assets, report):
         raise ValueError("Invalid detail history in character metadata.")
     local["detail_history"] = [*history, {"engine": "local-masked-img2img-v1", "settings": settings,
         "assets": assets, "image_size": [width, height], "report": report}]
+    from .region_mask import mask_records
+    local["character_masks"] = mask_records(pipe)
     local["boxes"] = [list(c.bbox) if c.bbox is not None else None for c in pipe.characters]
     local["text_regions"] = text_region_records(pipe)
     local["character_loras"] = lora_records(pipe)

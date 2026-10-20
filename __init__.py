@@ -1,16 +1,19 @@
 # SPDX-License-Identifier: GPL-3.0-only
 from .characters import RSMultiCharacterPrompts
 from .character_builder import (RSMultiCharacterPrompt, RSMultiCharacterLoRA,
-                                RSMultiCharacterPosition, RSMultiCharacterFinalize)
+                                RSMultiCharacterPosition, RSMultiCharacterFinalize, RSMultiCharacterMask)
 from .nodes import RSMultiCharacterSampler, RSMultiCharacterLoadImage
 from .detailer import RSMultiCharacterDetailer
 from .detector_bundle import RSMultiCharacterDetectionLoader
 from .wd_tagger import RSMultiCharacterTaggerLoader
+from .mask_drawing import RSMultiCharacterMaskDraw
 
 NODE_CLASS_MAPPINGS = {
     "RSMultiCharacterPrompt": RSMultiCharacterPrompt,
     "RSMultiCharacterLoRA": RSMultiCharacterLoRA,
     "RSMultiCharacterPosition": RSMultiCharacterPosition,
+    "RSMultiCharacterMask": RSMultiCharacterMask,
+    "RSMultiCharacterMaskDraw": RSMultiCharacterMaskDraw,
     "RSMultiCharacterFinalize": RSMultiCharacterFinalize,
     "RSMultiCharacterPrompts": RSMultiCharacterPrompts,
     "RSMultiCharacterSampler": RSMultiCharacterSampler,
@@ -23,6 +26,8 @@ NODE_DISPLAY_NAME_MAPPINGS = {
     "RSMultiCharacterPrompt": "RS Character Prompt",
     "RSMultiCharacterLoRA": "RS Character LoRA",
     "RSMultiCharacterPosition": "RS Character Position",
+    "RSMultiCharacterMask": "RS Character Mask",
+    "RSMultiCharacterMaskDraw": "RS Character Mask Drawing",
     "RSMultiCharacterFinalize": "RS Finalize Character Pipe",
     "RSMultiCharacterPrompts": "RS MultiCharacter Prompts",
     "RSMultiCharacterSampler": "RS MultiCharacter Sampler (Digeut)",

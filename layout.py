@@ -3,12 +3,13 @@ import math
 import json
 import torch
 import torch.nn.functional as F
+from .region_mask import explicit_region
 
 def effective_centers(characters):
     """Keep unique points; spread coincident groups horizontally in slot order."""
     points = [(c.x, c.y) for c in characters]
-    if any(c.bbox is not None for c in characters):
-        indices = [i for i, c in enumerate(characters) if c.bbox is None]
+    if any(explicit_region(c) for c in characters):
+        indices = [i for i, c in enumerate(characters) if not explicit_region(c)]
         if not indices:
             return tuple(points), []  # Coincident boxes are intentional overlaps.
         adjusted, moved = effective_centers([characters[i] for i in indices])
@@ -62,15 +63,23 @@ def region_masks(centers, width, height, feather):
 
 
 def character_masks(characters, centers, width, height, feather):
-    if not any(c.bbox is not None for c in characters):
+    if not any(explicit_region(c) for c in characters):
         return region_masks(centers, width, height, feather)
     region_masks((), width, height, feather)  # Shared dimension validation.
-    point_ids = [i for i, c in enumerate(characters) if c.bbox is None]
+    point_ids = [i for i, c in enumerate(characters) if not explicit_region(c)]
     points = iter(region_masks([centers[i] for i in point_ids], width, height, feather)) if point_ids else iter(())
     h, w = height // 8, width // 8
     xx, yy = torch.arange(w) / w, torch.arange(h) / h
     masks = []
     for c in characters:
+        if c.region_mask is not None:
+            # Binary support at latent resolution, then use the same membership
+            # and overlap routing as explicit boxes at each attention scale.
+            support = F.interpolate(c.region_mask.tensor()[None, None], (h, w), mode="area")[0, 0] > .5
+            if not support.any():
+                raise ValueError("A character mask is too small at this output size. Enlarge the white region or its margin. / 마스크 영역이 너무 작습니다. 흰 영역이나 여유 폭을 늘려 주세요. / マスク領域か余白を広げてください。")
+            masks.append(support.float())
+            continue
         if c.bbox is None:
             masks.append(next(points))
             continue
@@ -84,6 +93,8 @@ def character_masks(characters, centers, width, height, feather):
 
 
 def moss_layout_prompt(pipe, width, height):
+    if any(c.region_mask is not None for c in pipe.regions):
+        raise ValueError("Character masks require regional layout. MOSS native JSON uses boxes. / 마스크를 쓰려면 regional을 선택해 주세요. / マスクにはregionalを選んでください。")
     if not all(c.bbox is not None for c in pipe.regions):
         raise ValueError("MOSS native layout needs boxes for every region. Choose boxes, or use regional for mixed point/box layouts. / 좌표와 상자를 함께 쓰려면 regional을 선택해 주세요. MOSS 공식 모드는 모든 영역에 상자가 필요합니다.")
     items = []

@@ -1,5 +1,7 @@
 # ComfyUI_RS_MultiCharacter_Sampler
 
+**캐릭터 모양 마스크:** 새 **RS 캐릭터 마스크** 노드에 실루엣·직접 칠한 MASK를 연결하고 캐릭터 번호를 맞추세요. Prompt·LoRA·Position과 순서에 상관없이 조립하며 크기 비율·가로세로 이동·캔버스 밖 자동 자르기·여유 폭·컬러 배치 미리보기·점/상자 혼용·PNG/WebP 영역 복원을 지원합니다. 자세 고정 기능은 아닙니다. [사용법](docs/character-masks.md) · [예제](examples/character-masks).
+
 **0.2.3 디귿 변경 사항:** 캐릭터 LoRA 노드에서 일반/정밀 적용을 선택합니다. 일반은 지원되는 Anima·SDXL 선형 LoRA의 레이어 계산을 공유하고, 정밀은 설정별 독립 계산과 지원되는 작은 행렬 최적화를 사용합니다. 노드별 선택 설명창과 2초 마우스오버 설명을 한국어·일본어·영어로 제공합니다. [변경 내역](docs/release-0.2.3.md) · [비교 결과·한계](docs/shared-lora-experiment.md).
 
 **0.2.2 니은 변경 사항:** FLUX.1·2·3의 네이티브 리저널 생성과 로컬 마스크 디테일러를 지원합니다. 시험한 8종 모두 실제 2인 생성·같은 시드의 문장 교환·디테일러를 완료했습니다. 양자화 모델의 캐릭터별 LoRA 수정, 내장 가이던스, 이미지 설정 복원, FLUX 프리셋 8개와 모델별 예제를 포함합니다. [변경 내역](docs/release-0.2.2.md) · [검증 범위·한계](docs/flux-validation.md) · [FLUX 예제](examples/flux).

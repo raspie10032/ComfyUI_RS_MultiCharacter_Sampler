@@ -27,7 +27,8 @@ class PackageTests(unittest.TestCase):
         self.record = m.build_record(self.pipe, self.settings, {"loaders": [], "unresolved": []}, [[.8,.2],[.2,.8]], {"spatial_slots":2})
 
     def test_independent_nodes_and_legacy_schema(self):
-        self.assertEqual(len(pkg.NODE_CLASS_MAPPINGS), 10)
+        self.assertIn("RSMultiCharacterMask", pkg.NODE_CLASS_MAPPINGS)
+        self.assertEqual(len(pkg.NODE_CLASS_MAPPINGS), 12)
         self.assertFalse(any("NAI_API" in key for key in sys.modules))
         self.assertEqual(len(c.RSMultiCharacterPrompts.INPUT_TYPES()["required"]), 51)
 

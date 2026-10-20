@@ -7,6 +7,7 @@ const specs = {
   RSMultiCharacterPrompt: {character_count:2,character1_kind:'character',character2_kind:'text'},
   RSMultiCharacterPosition: {character_count:2,character1_geometry:'point',character2_geometry:'box'},
   RSMultiCharacterFinalize: {},
+  RSMultiCharacterMask: {character_id:1,enabled:true,margin:24,threshold:.5},
   RSMultiCharacterSampler: {layout_method:'regional',use_image_settings:false,autosave:true,save_format:'PNG',sampler_name:'euler',scheduler:'simple'},
   RSMultiCharacterLoadImage: {image:'example.png'},
   RSMultiCharacterDetailer: {show_advanced:false,autosave:true,save_format:'PNG'},

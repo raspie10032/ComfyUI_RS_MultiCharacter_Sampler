@@ -1,7 +1,10 @@
 const fs=require('fs'),vm=require('vm'),assert=require('node:assert/strict');
 let extension;
-const src=fs.readFileSync('web/character_builder.js','utf8').replace(/^import[^\n]*\n/,'').replaceAll('export function','function');
-const sandbox={queueMicrotask,app:{registerExtension(e){extension=e;}}};vm.runInNewContext(src,sandbox);
+const src=fs.readFileSync('web/character_builder.js','utf8').replace(/^import[^\n]*\n/gm,'').replaceAll('export function','function');
+const sandbox={queueMicrotask,maskPreview:node=>node.testMask??null,rememberMaskPreview(){},app:{registerExtension(e){extension=e;}}};vm.runInNewContext(src,sandbox);
+const previewSandbox={app:{},api:{apiURL:s=>s},URLSearchParams};
+vm.runInNewContext(fs.readFileSync('web/mask_preview.js','utf8').replace(/^import[^\n]*\n/gm,'').replaceAll('export function','function'),previewSandbox);
+sandbox.placedSupport=previewSandbox.placedSupport;
 const {collectSlots,centersFor}=sandbox;
 function make(type,settings,upstream=null){return {type,widgets:Object.entries(settings).map(([name,value])=>({name,value})),inputs:[{name:'building_pipe'},{name:'character1'},{name:'character2'}],getInputNode(i){return i===0?upstream:type==='RSMultiCharacterPrompt'?{}:null;}};}
 const actions=[['RSMultiCharacterPrompt',{character_count:2}],['RSMultiCharacterPosition',{character_count:2,character1_x:.25,character2_x:.75}],['RSMultiCharacterLoRA',{character_count:2}]];
@@ -12,6 +15,23 @@ const root=build(actions),bypass=make('RSMultiCharacterPosition',{character_coun
 assert.equal(collectSlots(bypass).slots[0].x,.25);
 assert.equal(collectSlots(make('RSMultiCharacterPrompt',{character_count:1},root)).slots.length,1);
 assert.equal(collectSlots(make('RSMultiCharacterPrompt',{character_count:2,character2_enable:false},root)).slots.length,1);
+const mask=make('RSMultiCharacterMask',{character_id:1,enabled:true},build([actions[0]]));
+const masked=collectSlots(mask);
+assert.equal(masked.slots[0].masked,true);assert.equal(masked.unknown,false);
+mask.testMask={width:2,height:2,data:[1,0,1,0],center:[.25,.5]};
+assert.equal(collectSlots(mask).slots[0].maskSupport,mask.testMask);
+assert.equal(JSON.stringify(centersFor(collectSlots(mask).slots)),JSON.stringify([[.25,.5],[.5,.5]]));
+assert.equal(JSON.stringify(centersFor(masked.slots)),JSON.stringify([[.5,.5],[.5,.5]]));
+const cleared=collectSlots(make('RSMultiCharacterMask',{character_id:1,enabled:false},mask));
+assert.equal(cleared.slots[0].masked,false);
+assert.equal(JSON.stringify(centersFor(cleared.slots)),JSON.stringify([[.25,.5],[.75,.5]]));
+const positioned=make('RSMultiCharacterPosition',{character_count:2,mask_transforms:'{"1":[0.5,0,1]}'},mask);
+assert.deepEqual(Array.from(collectSlots(positioned).slots[0].maskSupport.data),[0,1,0,1]);
+assert.equal(collectSlots(positioned).slots[0].maskSupport,collectSlots(positioned).slots[0].maskSupport); // Cached raster, not per-frame allocation.
+assert.equal(collectSlots(positioned).slots[0].maskOriginal,mask.testMask);
+const before=make('RSMultiCharacterMask',{character_id:1,enabled:true},make('RSMultiCharacterPosition',{character_count:2,mask_transforms:'{"1":[0.5,0,1]}'},build([actions[0]])));
+before.testMask=mask.testMask;
+assert.deepEqual(Array.from(collectSlots(before).slots[0].maskSupport.data),Array.from(collectSlots(positioned).slots[0].maskSupport.data));
 class Node {
  constructor(type='RSMultiCharacterPosition') {this.type=type;this.inputs=[];this.widgets=[{name:'character_count',value:2},...Array.from({length:10},(_,i)=>['geometry','x','y','width','height'].map(name=>({name:`character${i+1}_${name}`,value:name==='geometry'?'point':.5}))).flat()].map(w=>({...w,type:'number',computeSize:()=>[300,20]}));this.size=[340,200];}
  addCustomWidget(w){this.widgets.push(w);}computeSize(){return[340,200];}setSize(s){this.size=s;}setDirtyCanvas(){}addInput(name,type){this.inputs.push({name,type,link:null});}removeInput(i){this.inputs.splice(i,1);}

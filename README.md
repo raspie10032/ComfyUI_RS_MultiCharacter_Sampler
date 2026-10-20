@@ -1,5 +1,7 @@
 # ComfyUI_RS_MultiCharacter_Sampler
 
+**Character silhouette masks:** connect a painted or silhouette MASK to the new **RS Character Mask** node, match the character number, and assemble it in any order with Prompt/LoRA/Position. Includes uniform size ratio, XY offsets, clipped overflow, margin, colored layout previews, mixed point/box regions and PNG/WebP shape restoration. This guides prompt attention, not exact pose. [Usage](docs/character-masks.md) · [Example workflow](examples/character-masks).
+
 **New in 0.2.3 Digeut (디귿):** choose Normal or Precision on the character LoRA node. Supported Anima/SDXL linear LoRAs share layer calculations in Normal; Precision retains independent predictions with low-rank optimization where supported. Adds localized selection panels and short tooltips after a two-second hover. [Release notes](docs/release-0.2.3.md) · [Comparisons and limits](docs/shared-lora-experiment.md).
 
 **New in 0.2.2 Nieun (니은):** native FLUX.1/2/3 regional generation and local masked detailing. All eight tested variants completed two-person generation, same-seed caption swaps and detailing. Includes quantized regional LoRA fixes, embedded guidance, settings replay, eight FLUX presets and model-specific examples. [Release notes](docs/release-0.2.2.md) · [Evidence and limits](docs/flux-validation.md) · [FLUX examples](examples/flux).

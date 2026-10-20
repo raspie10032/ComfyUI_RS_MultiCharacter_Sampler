@@ -1,0 +1,621 @@
+{
+  "last_node_id": 62,
+  "last_link_id": 11,
+  "nodes": [
+    {
+      "id": 1,
+      "type": "UNETLoader",
+      "pos": [
+        20,
+        40
+      ],
+      "size": [
+        350,
+        100
+      ],
+      "flags": {},
+      "order": 0,
+      "mode": 0,
+      "inputs": [],
+      "outputs": [
+        {
+          "name": "MODEL",
+          "type": "MODEL",
+          "links": [
+            4
+          ]
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "UNETLoader"
+      },
+      "widgets_values": [
+        "anima-aesthetic-v1.1.safetensors",
+        "default"
+      ]
+    },
+    {
+      "id": 11,
+      "type": "CLIPLoader",
+      "pos": [
+        20,
+        210
+      ],
+      "size": [
+        350,
+        130
+      ],
+      "flags": {},
+      "order": 1,
+      "mode": 0,
+      "inputs": [],
+      "outputs": [
+        {
+          "name": "CLIP",
+          "type": "CLIP",
+          "links": [
+            5
+          ]
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "CLIPLoader"
+      },
+      "widgets_values": [
+        "qwen_3_06b_base.safetensors",
+        "stable_diffusion",
+        "default"
+      ]
+    },
+    {
+      "id": 12,
+      "type": "VAELoader",
+      "pos": [
+        20,
+        410
+      ],
+      "size": [
+        350,
+        90
+      ],
+      "flags": {},
+      "order": 2,
+      "mode": 0,
+      "inputs": [],
+      "outputs": [
+        {
+          "name": "VAE",
+          "type": "VAE",
+          "links": [
+            6
+          ]
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "VAELoader"
+      },
+      "widgets_values": [
+        "qwen_image_vae.safetensors"
+      ]
+    },
+    {
+      "id": 2,
+      "type": "RSMultiCharacterPrompt",
+      "pos": [
+        790,
+        40
+      ],
+      "size": [
+        350,
+        520
+      ],
+      "flags": {},
+      "order": 3,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "character1",
+          "type": "STRING",
+          "link": 1
+        },
+        {
+          "name": "character2",
+          "type": "STRING",
+          "link": 2
+        }
+      ],
+      "outputs": [
+        {
+          "name": "building_pipe",
+          "type": "RS_MC_BUILD_PIPE",
+          "links": [
+            9
+          ]
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "RSMultiCharacterPrompt"
+      },
+      "widgets_values": [
+        2,
+        true,
+        "character",
+        true,
+        "character",
+        false,
+        "character",
+        false,
+        "character",
+        false,
+        "character",
+        false,
+        "character",
+        false,
+        "character",
+        false,
+        "character",
+        false,
+        "character",
+        false,
+        "character"
+      ]
+    },
+    {
+      "id": 4,
+      "type": "RSMultiCharacterFinalize",
+      "pos": [
+        1960,
+        40
+      ],
+      "size": [
+        350,
+        400
+      ],
+      "flags": {},
+      "order": 4,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "building_pipe",
+          "type": "RS_MC_BUILD_PIPE",
+          "link": 3
+        }
+      ],
+      "outputs": [
+        {
+          "name": "character_pipe",
+          "type": "RS_MC_CHARACTER_PIPE",
+          "links": [
+            7
+          ]
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "RSMultiCharacterFinalize"
+      },
+      "widgets_values": []
+    },
+    {
+      "id": 20,
+      "type": "RSMultiCharacterSampler",
+      "pos": [
+        2350,
+        40
+      ],
+      "size": [
+        410,
+        1050
+      ],
+      "flags": {},
+      "order": 5,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "model",
+          "type": "MODEL",
+          "link": 4
+        },
+        {
+          "name": "clip",
+          "type": "CLIP",
+          "link": 5
+        },
+        {
+          "name": "vae",
+          "type": "VAE",
+          "link": 6
+        },
+        {
+          "name": "character_pipe",
+          "type": "RS_MC_CHARACTER_PIPE",
+          "link": 7
+        }
+      ],
+      "outputs": [
+        {
+          "name": "image",
+          "type": "IMAGE",
+          "links": []
+        },
+        {
+          "name": "latent",
+          "type": "LATENT",
+          "links": []
+        },
+        {
+          "name": "character_pipe",
+          "type": "RS_MC_CHARACTER_PIPE",
+          "links": []
+        },
+        {
+          "name": "generation_info",
+          "type": "STRING",
+          "links": []
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "RSMultiCharacterSampler"
+      },
+      "widgets_values": [
+        "masterpiece, best quality, anime illustration, 2girls, sunlit university courtyard, two friends facing each other, high five, their raised palms touching at the center, joyful expressions, medium wide shot, both characters in one continuous scene, coherent perspective, natural anatomy, expressive faces, detailed environment, soft cinematic lighting",
+        "low quality, worst quality, bad anatomy, extra limbs, fused bodies, duplicate character, nude, naked, nsfw, text, watermark, signature, split screen, comic panels, separate panels, disconnected interaction, floating objects, extra fingers, fused hands",
+        1536,
+        1024,
+        2894422816479251,
+        "fixed",
+        30,
+        4.0,
+        "euler_ancestral",
+        "sgm_uniform",
+        true,
+        "PNG",
+        90,
+        "ComfyUI",
+        false,
+        0.04,
+        0.05,
+        0.1,
+        1.7,
+        0.9,
+        3,
+        0.2,
+        "regional",
+        3.5
+      ]
+    },
+    {
+      "id": 31,
+      "type": "LoadImageMask",
+      "pos": [
+        400,
+        700
+      ],
+      "size": [
+        350,
+        400
+      ],
+      "flags": {},
+      "order": 6,
+      "mode": 0,
+      "inputs": [],
+      "outputs": [
+        {
+          "name": "MASK",
+          "type": "MASK",
+          "links": [
+            8
+          ]
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "LoadImageMask"
+      },
+      "widgets_values": [
+        "character-1.png",
+        "red"
+      ]
+    },
+    {
+      "id": 41,
+      "type": "RSMultiCharacterMask",
+      "pos": [
+        1180,
+        40
+      ],
+      "size": [
+        350,
+        680
+      ],
+      "flags": {},
+      "order": 7,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "building_pipe",
+          "type": "RS_MC_BUILD_PIPE",
+          "link": 9
+        },
+        {
+          "name": "mask",
+          "type": "MASK",
+          "link": 8
+        }
+      ],
+      "outputs": [
+        {
+          "name": "building_pipe",
+          "type": "RS_MC_BUILD_PIPE",
+          "links": [
+            11
+          ]
+        },
+        {
+          "name": "region_mask",
+          "type": "MASK",
+          "links": []
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "RSMultiCharacterMask"
+      },
+      "widgets_values": [
+        1,
+        true,
+        24,
+        0.5,
+        0.0,
+        0.0,
+        1.0
+      ]
+    },
+    {
+      "id": 32,
+      "type": "LoadImageMask",
+      "pos": [
+        790,
+        700
+      ],
+      "size": [
+        350,
+        400
+      ],
+      "flags": {},
+      "order": 8,
+      "mode": 0,
+      "inputs": [],
+      "outputs": [
+        {
+          "name": "MASK",
+          "type": "MASK",
+          "links": [
+            10
+          ]
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "LoadImageMask"
+      },
+      "widgets_values": [
+        "character-2.png",
+        "red"
+      ]
+    },
+    {
+      "id": 42,
+      "type": "RSMultiCharacterMask",
+      "pos": [
+        1570,
+        40
+      ],
+      "size": [
+        350,
+        680
+      ],
+      "flags": {},
+      "order": 9,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "building_pipe",
+          "type": "RS_MC_BUILD_PIPE",
+          "link": 11
+        },
+        {
+          "name": "mask",
+          "type": "MASK",
+          "link": 10
+        }
+      ],
+      "outputs": [
+        {
+          "name": "building_pipe",
+          "type": "RS_MC_BUILD_PIPE",
+          "links": [
+            3
+          ]
+        },
+        {
+          "name": "region_mask",
+          "type": "MASK",
+          "links": []
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "RSMultiCharacterMask"
+      },
+      "widgets_values": [
+        2,
+        true,
+        24,
+        0.5,
+        0.0,
+        0.0,
+        1.0
+      ]
+    },
+    {
+      "id": 61,
+      "type": "PrimitiveStringMultiline",
+      "pos": [
+        400,
+        40
+      ],
+      "size": [
+        350,
+        220
+      ],
+      "flags": {},
+      "order": 10,
+      "mode": 0,
+      "inputs": [],
+      "outputs": [
+        {
+          "name": "STRING",
+          "type": "STRING",
+          "links": [
+            1
+          ]
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "PrimitiveStringMultiline"
+      },
+      "widgets_values": [
+        "1girl, barbara \\(genshin impact\\), blue eyes, hair between eyes, blonde hair, long hair, twintails, twin drills, wearing casual long-sleeved shirts and jeans, standing on the left, facing right, smiling, raising her right arm toward the center, open palm at head height"
+      ]
+    },
+    {
+      "id": 62,
+      "type": "PrimitiveStringMultiline",
+      "pos": [
+        400,
+        340
+      ],
+      "size": [
+        350,
+        260
+      ],
+      "flags": {},
+      "order": 11,
+      "mode": 0,
+      "inputs": [],
+      "outputs": [
+        {
+          "name": "STRING",
+          "type": "STRING",
+          "links": [
+            2
+          ]
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "PrimitiveStringMultiline"
+      },
+      "widgets_values": [
+        "1girl, nahida \\(genshin impact\\), pointy ears, green eyes, hair between eyes, cross-shaped pupils, long hair, white hair, green hair, gradient hair, grey hair, leaf hair ornament, side ponytail, sidelocks, hair ornament, wearing casual long-sleeved shirts and jeans, standing on the right, facing left, smiling, raising her left arm toward the center, open palm at head height"
+      ]
+    }
+  ],
+  "links": [
+    [
+      1,
+      61,
+      0,
+      2,
+      0,
+      "STRING"
+    ],
+    [
+      2,
+      62,
+      0,
+      2,
+      1,
+      "STRING"
+    ],
+    [
+      3,
+      42,
+      0,
+      4,
+      0,
+      "RS_MC_BUILD_PIPE"
+    ],
+    [
+      4,
+      1,
+      0,
+      20,
+      0,
+      "MODEL"
+    ],
+    [
+      5,
+      11,
+      0,
+      20,
+      1,
+      "CLIP"
+    ],
+    [
+      6,
+      12,
+      0,
+      20,
+      2,
+      "VAE"
+    ],
+    [
+      7,
+      4,
+      0,
+      20,
+      3,
+      "RS_MC_CHARACTER_PIPE"
+    ],
+    [
+      8,
+      31,
+      0,
+      41,
+      1,
+      "MASK"
+    ],
+    [
+      9,
+      2,
+      0,
+      41,
+      0,
+      "RS_MC_BUILD_PIPE"
+    ],
+    [
+      10,
+      32,
+      0,
+      42,
+      1,
+      "MASK"
+    ],
+    [
+      11,
+      41,
+      0,
+      42,
+      0,
+      "RS_MC_BUILD_PIPE"
+    ]
+  ],
+  "groups": [],
+  "config": {},
+  "extra": {
+    "ds": {
+      "scale": 0.46,
+      "offset": [
+        35,
+        60
+      ]
+    }
+  },
+  "version": 0.4
+}

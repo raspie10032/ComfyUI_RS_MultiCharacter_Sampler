@@ -13,6 +13,7 @@ from .layout import effective_centers, character_masks, moss_layout_prompt
 from .metadata import (FORMATS, build_record, graph_assets, pipe_from_record,
                        read_record, save_image, validate_format, object_json)
 from .prompt_syntax import parse_naiv4, to_comfyui
+from .region_mask import explicit_region
 
 
 def text_region_caption(region, convert, weighted=True):
@@ -168,7 +169,7 @@ class RSMultiCharacterSampler:
         pipe = CharacterPipe(character_pipe.characters, prompt, negative_prompt, prompt_syntax,
                              text_regions=character_pipe.text_regions, lora_application_mode=lora_application_mode)
         centers, moved = effective_centers(pipe.regions)
-        geometry = tuple(c.bbox is not None for c in pipe.regions)
+        geometry = tuple(explicit_region(c) for c in pipe.regions)
         boxes = geometry if any(geometry) else False
         native_prompt = moss_layout_prompt(pipe, settings["width"], settings["height"]) if layout_method == "moss_native" else None
         if native_prompt is not None and prompt_syntax != "ComfyUI":
@@ -219,8 +220,11 @@ class RSMultiCharacterSampler:
                       if isinstance(c, TextRegion) else encode(c.prompt, encoder=loras.clips[i] if loras else clip)[0]
                       for i, c in enumerate(pipe.regions)] if native_prompt is None else []
         audit = {"layout_method": layout_method,
-                 "region_geometry": "boxes" if all(geometry) else "mixed" if any(geometry) else "points",
-                 "box_slots": [i+1 for i, is_box in enumerate(geometry) if is_box]}
+                 "region_geometry": "masks" if all(c.region_mask is not None for c in pipe.regions) else
+                                    "mixed" if any(c.region_mask is not None for c in pipe.regions) else
+                                    "boxes" if all(geometry) else "mixed" if any(geometry) else "points",
+                 "box_slots": [i+1 for i, c in enumerate(pipe.regions) if c.bbox is not None and c.region_mask is None],
+                 "mask_slots": [i+1 for i, c in enumerate(pipe.regions) if c.region_mask is not None]}
         work = model.clone()
         if native_prompt is not None:
             audit.update(spatial_slots=len(pipe.regions), cross_calls=0, self_calls=0,

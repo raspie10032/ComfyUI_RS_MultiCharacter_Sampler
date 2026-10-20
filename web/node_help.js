@@ -2,7 +2,7 @@
 import { app } from "../../scripts/app.js";
 
 const targets = new Set([
-    "RSMultiCharacterPrompt", "RSMultiCharacterPosition", "RSMultiCharacterFinalize",
+    "RSMultiCharacterPrompt", "RSMultiCharacterPosition", "RSMultiCharacterFinalize", "RSMultiCharacterMask", "RSMultiCharacterMaskDraw",
     "RSMultiCharacterSampler", "RSMultiCharacterLoadImage", "RSMultiCharacterDetailer",
     "RSMultiCharacterTaggerLoader", "RSMultiCharacterPrompts",
 ]);
@@ -25,6 +25,19 @@ export function nodeHelp(node) {
         if (format === "WebP lossy") add("Lossy WebP changes pixels; quality controls compression, not generation.", "손실 WebP는 픽셀이 달라집니다. 품질 값은 생성 품질이 아닌 저장 압축률입니다.", "非可逆WebPは画素が変わります。品質値は生成品質ではなく保存時の圧縮設定です。");
     };
     switch (typeOf(node)) {
+        case "RSMultiCharacterMaskDraw":
+            add("Mask drawing · choose a number, then paint", "마스크 그리기 · 번호 선택 후 칠하기", "マスク描画 · 番号を選んで塗る");
+            add("The reference stays behind the masks. Each number uses the same Prompt/LoRA slot, regardless of the person shown.", "밑그림 위에 번호별로 칠하세요. 참조 인물과 무관하게 같은 번호의 프롬프트·LoRA가 적용됩니다.", "下絵の上に番号別で塗ります。参照人物とは関係なく同じ番号のPrompt・LoRAを使います。");
+            add("Paint, erase, undo, move and resize one layer at a time. Blank layers fall back to XY/boxes. This node replaces earlier masks; add individual masks after it to override.", "그리기·지우개·되돌리기와 번호별 이동·크기를 지원합니다. 빈 번호는 XY·박스를 씁니다. 이전 마스크는 대체하며 개별 마스크를 뒤에 연결하면 덮어쓸 수 있습니다.", "描画・消去・元に戻す・番号別の移動と倍率を使えます。空の番号はXY・ボックスに戻ります。以前のマスクは置換し、後ろに個別マスクを繋ぐと上書きできます。");
+            add("Only masks enter generation. Canvas overflow is clipped; pose is approximate. The colored preview includes margin. Text needs a box; MOSS masks need regional mode.", "생성에는 마스크만 전달합니다. 캔버스 밖은 자르며 자세는 대략 유도합니다. 색 미리보기는 여유 폭 포함입니다. 텍스트는 박스, MOSS 마스크는 regional을 쓰세요.", "生成にはマスクだけを渡します。外側は切り取り、ポーズは目安です。色プレビューは余白込み。文字はボックス、MOSSマスクはregionalを使ってください。");
+            break;
+        case "RSMultiCharacterMask":
+            add("Character mask · white selects the region", "캐릭터 마스크 · 흰색이 적용 영역", "キャラクターマスク · 白が適用領域");
+            add("Overrides this character's XY/box in any builder order. Off restores them.", "노드 순서와 무관하게 해당 번호의 좌표·상자를 대체합니다. 끄면 복원됩니다.", "ノード順に関係なく同じ番号の座標・ボックスを置き換えます。OFFで戻ります。");
+            add("Use one full-canvas mask per character; overlaps share captions. Margin uses source pixels.", "캐릭터마다 전체 캔버스 마스크 한 장을 연결하세요. 겹친 곳은 조건을 공유합니다. 여유 폭은 원본 픽셀 기준입니다.", "1人につきキャンバス全体のマスク1枚を接続。重複部分は条件を共有し、余白は元画像のピクセル単位です。");
+            add(`Size ×${v("scale", 1)}; shift X ${v("offset_x", 0)}, Y ${v("offset_y", 0)}. Outside the canvas is clipped.`, `크기 ×${v("scale", 1)} · 이동 X ${v("offset_x", 0)}, Y ${v("offset_y", 0)}. 캔버스 밖은 잘립니다.`, `倍率 ×${v("scale", 1)}・移動 X ${v("offset_x", 0)}, Y ${v("offset_y", 0)}。外側は切り取ります。`);
+            add("Guides prompt attention, not exact pose. MOSS native needs boxes; choose regional for masks.", "프롬프트 적용 영역이며 자세 고정은 아닙니다. MOSS 마스크는 regional을 선택하세요.", "プロンプト領域の指定で、ポーズ固定ではありません。MOSSのマスクはregionalを選んでください。");
+            break;
         case "RSMultiCharacterPrompt": {
             const count = Number(v("character_count", 2));
             const ids = kind => Array.from({length: count}, (_, i) => i + 1)
@@ -39,7 +52,8 @@ export function nodeHelp(node) {
         case "RSMultiCharacterPosition": {
             const count = Number(v("character_count", 2));
             const boxes = Array.from({length: count}, (_, i) => i + 1).filter(i => v(`character${i}_geometry`, "point") === "box");
-            add("Position · XY points and boxes", "위치 · XY와 박스", "位置 · XYとボックス");
+            add("Position · points, boxes and masks", "위치 · 포인트·박스·마스크", "位置 · 点・ボックス・マスク");
+            add("Select a numbered region above the layout before dragging. Corner/−/+ resizes boxes and masks; mask scaling keeps its shape and number. Undo/reset restores placement.", "배치도 위에서 번호를 선택한 뒤 드래그하세요. 모서리·−/+로 박스·마스크 크기를 조절합니다. 마스크 모양·번호는 유지되고 되돌리기·배치 초기화를 지원합니다.", "配置図の上で番号を選びドラッグ。角・−/+でボックス・マスクを拡縮。マスクの形・番号は保持し、元に戻す・配置リセットも使えます。");
             add(`Rows: ${count}; boxes: ${boxes.join(", ") || "—"}. X/Y are normalized 0–1; (0,0) is top left.`, `표시 행: ${count}, 박스: ${boxes.join(", ") || "—"}. X/Y는 0–1이며 (0,0)은 왼쪽 위입니다.`, `表示行：${count}、ボックス：${boxes.join(", ") || "—"}。X/Yは0–1で、(0,0)は左上です。`);
             add("Point partitions use the nearest XY. Coincident points spread left to right by number. Box uses center XY and width/height; boxes take priority over points.", "XY는 가까운 좌표끼리 영역을 나눕니다. 같은 좌표는 번호순으로 왼쪽부터 분산합니다. 박스는 중심 XY와 폭·높이를 사용하며 XY 영역보다 우선합니다.", "XYは最寄りの点で領域を分割し、同じ座標は番号順に左から分散します。ボックスは中心XYと幅・高さを使い、XY領域より優先します。");
             add("Text requires a box. Match numbers with Prompt/LoRA. The diagram guides prompt regions; it does not guarantee body positions.", "텍스트는 박스가 필요합니다. 프롬프트·LoRA와 번호를 맞추세요. 배치도는 프롬프트 영역 안내이며 실제 인물 위치를 보장하지 않습니다.", "テキストにはボックスが必要です。プロンプト・LoRAと番号を合わせてください。図はプロンプト領域の目安であり、人物位置は保証しません。");

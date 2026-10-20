@@ -3,6 +3,10 @@
 from dataclasses import dataclass, replace
 
 from .characters import Character, CharacterPipe, TextRegion, PIPE_TYPE, LORA_MODES, validate_lora_mode
+from .region_mask import RegionMask, prepare_mask, place_mask
+
+import json
+import math
 
 BUILD_PIPE_TYPE = "RS_MC_BUILD_PIPE"
 
@@ -22,6 +26,8 @@ class Slot:
     lora_name: str = "None"
     strength_model: float = 1.
     strength_clip: float = 1.
+    region_mask: RegionMask | None = None
+    mask_transform: tuple = (0., 0., 1.)
 
 
 @dataclass(frozen=True)
@@ -69,16 +75,21 @@ def finalize(pipe):
             raise ValueError(f"Character {s.number}: connect a nonempty STRING to the matching Prompt row, or disable that row. / 캐릭터 {s.number}: 프롬프트 노드의 해당 번호에 STRING을 연결하거나 그 행의 사용을 꺼 주세요. / 同じ番号のプロンプトに文字列を接続するか無効にしてください。")
         Character(s.prompt, x=s.x, y=s.y, lora_name=s.lora_name,
                   lora_strength=s.strength_model, lora_clip_strength=s.strength_clip)
-        box = slot_box(s)
+        box = slot_box(s) if s.region_mask is None else None
         if s.kind == "text":
+            if s.region_mask is not None:
+                raise ValueError(f"Slot {s.number}: text uses a box; disable its Character Mask. / 글자 슬롯의 캐릭터 마스크를 꺼 주세요. / 文字スロットのマスクを無効にしてください。")
             if s.geometry != "box":
                 raise ValueError(f"Character {s.number}: text needs a Position node in box mode. / 글자 영역은 위치 노드를 상자로 설정해 주세요. / 文字領域にはボックス位置が必要です。")
             if s.lora_name != "None":
                 raise ValueError(f"Character {s.number}: text regions do not use character LoRAs; choose None. / 글자 영역의 LoRA는 None으로 설정해 주세요. / 文字領域のLoRAはNoneにしてください。")
             texts.append(TextRegion(s.prompt, "", s.x, s.y, box, s.literal_text))
         else:
-            chars.append(Character(s.prompt, "", s.x, s.y, box, lora_name=s.lora_name,
-                                   lora_strength=s.strength_model, lora_clip_strength=s.strength_clip))
+            region = place_mask(s.region_mask, s.mask_transform) if s.region_mask is not None else None
+            x, y = region.center if region is not None else (s.x, s.y)
+            chars.append(Character(s.prompt, "", x, y, box, lora_name=s.lora_name,
+                                   lora_strength=s.strength_model, lora_clip_strength=s.strength_clip,
+                                   region_mask=region))
     if not chars and not texts:
         raise ValueError("Enable at least one nonempty prompt. / 최소 한 개의 프롬프트를 켜 주세요. / 少なくとも1つのプロンプトを有効にしてください。")
     return CharacterPipe(tuple(chars), text_regions=tuple(texts), lora_application_mode=pipe.lora_application_mode)
@@ -92,8 +103,29 @@ def count_input():
 ROLE_FIELDS = {
     "prompt": ("prompt", "enabled", "kind", "literal_text"),
     "lora": ("lora_name", "strength_model", "strength_clip"),
-    "position": ("geometry", "x", "y", "width", "height"),
+    "position": ("geometry", "x", "y", "width", "height", "mask_transform"),
 }
+
+
+def read_mask_transforms(value):
+    """Position-only offsets; source masks remain independent of builder order."""
+    try:
+        if not isinstance(value, str) or len(value) > 8192:
+            raise ValueError()
+        data = json.loads(value)
+        if not isinstance(data, dict) or len(data) > 10:
+            raise ValueError()
+        result = {}
+        for key, transform in data.items():
+            if key not in {str(i) for i in range(1, 11)} or not isinstance(transform, list) or len(transform) != 3:
+                raise ValueError()
+            for v, low, high in zip(transform, (-1, -1, .05), (1, 1, 4)):
+                if type(v) not in (int, float) or not math.isfinite(v) or not low <= v <= high:
+                    raise ValueError()
+            result[int(key)] = tuple(transform)
+        return result
+    except (ValueError, TypeError) as error:
+        raise ValueError("Invalid mask placement. Reset that mask's placement in Position. / 마스크 배치값이 잘못되었습니다. 위치 노드에서 배치를 초기화해 주세요. / Positionでマスク配置をリセットしてください。") from error
 
 
 def apply_role(pipe, role, count, settings):
@@ -187,17 +219,72 @@ class RSMultiCharacterPosition(BuilderNode):
             fields[f"character{i}_geometry"] = (["point", "box"], {"default": "point"})
             for key, default in (("x", .5), ("y", .5), ("width", .4), ("height", .8)):
                 fields[f"character{i}_{key}"] = ("FLOAT", {"default": default, "min": .01 if key in ("width", "height") else 0., "max": 1., "step": .01})
-        return {"required": fields, "optional": {"building_pipe": (BUILD_PIPE_TYPE,)}}
+        return {"required": fields, "optional": {"building_pipe": (BUILD_PIPE_TYPE,),
+            "mask_transforms": ("STRING", {"default": "{}", "multiline": False,
+                "tooltip": "Saved mask offsets and uniform scale from the layout editor. Use the selector above the canvas to edit."})}}
 
-    DESCRIPTION = "View all character positions and their layout together. Choose XY or a box per row. Unlisted positions default to center. Coincident points spread left to right by number. Finalize shows the complete line; layout is a guide, not a composition guarantee."
+    DESCRIPTION = "Select a numbered point, box or mask above the layout, then drag to place it. Resize boxes and masks with their handles. Masks scale about their own center and overflow is clipped. Numbers remain fixed. Unlisted positions default to center; coincident points spread left to right. Layout is approximate."
 
-    def apply(self, character_count=2, building_pipe=None, **values):
+    def apply(self, character_count=2, building_pipe=None, mask_transforms="{}", **values):
+        transforms = read_mask_transforms(mask_transforms)
         def settings(i):
-            result = {key: values.get(f"character{i}_{key}", getattr(Slot(i), key)) for key in ROLE_FIELDS["position"]}
+            result = {key: values.get(f"character{i}_{key}", getattr(Slot(i), key)) for key in ROLE_FIELDS["position"] if key != "mask_transform"}
+            result["mask_transform"] = transforms.get(i, (0., 0., 1.))
             if result["geometry"] not in ("point", "box"):
                 raise ValueError(f"Character {i}: choose point or box.")
             return result
         return (apply_role(building_pipe, "position", character_count, settings),)
+
+
+class RSMultiCharacterMask(BuilderNode):
+    @classmethod
+    def INPUT_TYPES(cls):
+        return {"required": {
+            "character_id": ("INT", {"default": 1, "min": 1, "max": 10,
+                "tooltip": "Match this number to the Character Prompt row."}),
+            "enabled": ("BOOLEAN", {"default": True,
+                "tooltip": "Off removes this character's mask and restores its point/box settings."}),
+            "margin": ("INT", {"default": 24, "min": 0, "max": 128,
+                "tooltip": "Expand the white region in source-mask pixels. Leave room for hair, clothes and interaction."}),
+            "threshold": ("FLOAT", {"default": .5, "min": 0., "max": 1., "step": .01,
+                "tooltip": "Pixels above this value become white. Gray is not a continuous prompt strength."}),
+        }, "optional": {"building_pipe": (BUILD_PIPE_TYPE,),
+                          "mask": ("MASK", {"tooltip": "One full-canvas mask. White selects this character; black excludes it. Parts moved or enlarged outside the canvas are clipped."}),
+                          "offset_x": ("FLOAT", {"default": 0., "min": -1., "max": 1., "step": .01,
+                              "tooltip": "Horizontal shift as a fraction of canvas width. Positive moves right; outside is clipped."}),
+                          "offset_y": ("FLOAT", {"default": 0., "min": -1., "max": 1., "step": .01,
+                              "tooltip": "Vertical shift as a fraction of canvas height. Positive moves down; outside is clipped."}),
+                          "scale": ("FLOAT", {"default": 1., "min": .05, "max": 4., "step": .01,
+                              "tooltip": "Uniform size ratio about the canvas centre: 0.5 half, 1 original, 2 double. Keeps aspect ratio; outside is clipped."})},
+                "hidden": {"unique_id": "UNIQUE_ID"}}
+
+    RETURN_TYPES = (BUILD_PIPE_TYPE, "MASK")
+    RETURN_NAMES = ("building_pipe", "region_mask")
+    DESCRIPTION = "Use a silhouette or painted MASK for one numbered character. Shift and scale about the canvas centre, then expand the white area; overflow is clipped without wrapping. Overrides its point/box in any builder order. Overlaps share captions; outside uses the common prompt. Guides prompt attention, not exact pose. MOSS native JSON requires boxes instead."
+
+    def apply(self, character_id=1, enabled=True, margin=24, threshold=.5, building_pipe=None, mask=None, unique_id=None,
+              offset_x=0., offset_y=0., scale=1.):
+        if type(enabled) is not bool:
+            raise ValueError("Mask enabled must be true or false.")
+        region = prepare_mask(mask, threshold, margin, offset_x, offset_y, scale) if enabled else None
+        pipe = update_slot(building_pipe, character_id, region_mask=region)
+        import torch
+        preview = region.tensor()[None] if region is not None else torch.zeros((1, 64, 64))
+        images = []
+        if region is not None and unique_id is not None:
+            import hashlib
+            from pathlib import Path
+            import folder_paths
+            import numpy as np
+            from PIL import Image
+            filename = hashlib.sha256(f"{region.width}x{region.height}:".encode()+region.packed).hexdigest()+".png"
+            directory = Path(folder_paths.get_temp_directory()) / "RS_CharacterMasks"
+            directory.mkdir(parents=True, exist_ok=True)
+            target = directory / filename
+            if not target.exists():
+                Image.fromarray((preview[0].numpy()*255).astype(np.uint8)).save(target)
+            images.append({"filename": filename, "subfolder": "RS_CharacterMasks", "type": "temp"})
+        return {"ui": {"images": images}, "result": (pipe, preview)}
 
 
 class RSMultiCharacterFinalize:

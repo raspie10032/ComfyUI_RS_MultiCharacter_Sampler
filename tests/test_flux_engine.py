@@ -132,6 +132,11 @@ class NativeFluxTests(unittest.TestCase):
             masks[1].zero_()
             masks[1, 1:3, 3:7] = 1
             boxes = (False, True)
+        elif boxes == 'shape':
+            masks.zero_()
+            masks[0,0:3,0:2]=1; masks[0,1,2:5]=1
+            masks[1,1:4,6:8]=1; masks[1,1,3:6]=1
+            boxes = (True, True)
         elif boxes:
             masks.zero_()
             masks[0,1:3,1:5], masks[1,1:3,3:7] = 1, 1
@@ -183,6 +188,9 @@ class NativeFluxTests(unittest.TestCase):
             self.assertIs(routing.conditions, conditions)
 
     def test_flux1(self): self.run_native('FLUX1')
+    def test_flux1_shape(self): self.run_native('FLUX1',boxes='shape')
+    def test_flux2_shape(self): self.run_native('FLUX2',boxes='shape')
+    def test_flux3_shape(self): self.run_native('FLUX3',boxes='shape')
     def test_flux2(self): self.run_native('FLUX2')
     def test_flux3_base(self): self.run_native('FLUX3')
     def test_flux3_flow_map(self): self.run_native('FLUX3',flow_map=True)

@@ -1,0 +1,165 @@
+{
+  "1": {
+    "class_type": "UNETLoader",
+    "inputs": {
+      "unet_name": "anima-aesthetic-v1.1.safetensors",
+      "weight_dtype": "default"
+    }
+  },
+  "11": {
+    "class_type": "CLIPLoader",
+    "inputs": {
+      "clip_name": "qwen_3_06b_base.safetensors",
+      "type": "stable_diffusion",
+      "device": "default"
+    }
+  },
+  "12": {
+    "class_type": "VAELoader",
+    "inputs": {
+      "vae_name": "qwen_image_vae.safetensors"
+    }
+  },
+  "2": {
+    "class_type": "RSMultiCharacterPrompt",
+    "inputs": {
+      "character_count": 2,
+      "character1_enable": true,
+      "character1_kind": "character",
+      "character2_enable": true,
+      "character2_kind": "character",
+      "character1": [
+        "61",
+        0
+      ],
+      "character2": [
+        "62",
+        0
+      ],
+      "character3_enable": false,
+      "character3_kind": "character",
+      "character4_enable": false,
+      "character4_kind": "character",
+      "character5_enable": false,
+      "character5_kind": "character",
+      "character6_enable": false,
+      "character6_kind": "character",
+      "character7_enable": false,
+      "character7_kind": "character",
+      "character8_enable": false,
+      "character8_kind": "character",
+      "character9_enable": false,
+      "character9_kind": "character",
+      "character10_enable": false,
+      "character10_kind": "character"
+    }
+  },
+  "4": {
+    "class_type": "RSMultiCharacterFinalize",
+    "inputs": {
+      "building_pipe": [
+        "42",
+        0
+      ]
+    }
+  },
+  "20": {
+    "class_type": "RSMultiCharacterSampler",
+    "inputs": {
+      "prompt": "masterpiece, best quality, anime illustration, 2girls, sunlit university courtyard, two friends facing each other, high five, their raised palms touching at the center, joyful expressions, medium wide shot, both characters in one continuous scene, coherent perspective, natural anatomy, expressive faces, detailed environment, soft cinematic lighting",
+      "negative_prompt": "low quality, worst quality, bad anatomy, extra limbs, fused bodies, duplicate character, nude, naked, nsfw, text, watermark, signature, split screen, comic panels, separate panels, disconnected interaction, floating objects, extra fingers, fused hands",
+      "width": 1536,
+      "height": 1024,
+      "seed": 2894422816479251,
+      "steps": 30,
+      "cfg": 4.0,
+      "sampler_name": "euler_ancestral",
+      "scheduler": "sgm_uniform",
+      "autosave": true,
+      "save_format": "PNG",
+      "webp_quality": 90,
+      "model": [
+        "1",
+        0
+      ],
+      "clip": [
+        "11",
+        0
+      ],
+      "vae": [
+        "12",
+        0
+      ],
+      "character_pipe": [
+        "4",
+        0
+      ]
+    }
+  },
+  "31": {
+    "class_type": "LoadImageMask",
+    "inputs": {
+      "image": "character-1.png",
+      "channel": "red"
+    }
+  },
+  "41": {
+    "class_type": "RSMultiCharacterMask",
+    "inputs": {
+      "character_id": 1,
+      "enabled": true,
+      "margin": 24,
+      "threshold": 0.5,
+      "mask": [
+        "31",
+        0
+      ],
+      "building_pipe": [
+        "2",
+        0
+      ],
+      "offset_x": 0.0,
+      "offset_y": 0.0,
+      "scale": 1.0
+    }
+  },
+  "32": {
+    "class_type": "LoadImageMask",
+    "inputs": {
+      "image": "character-2.png",
+      "channel": "red"
+    }
+  },
+  "42": {
+    "class_type": "RSMultiCharacterMask",
+    "inputs": {
+      "character_id": 2,
+      "enabled": true,
+      "margin": 24,
+      "threshold": 0.5,
+      "mask": [
+        "32",
+        0
+      ],
+      "building_pipe": [
+        "41",
+        0
+      ],
+      "offset_x": 0.0,
+      "offset_y": 0.0,
+      "scale": 1.0
+    }
+  },
+  "61": {
+    "class_type": "PrimitiveStringMultiline",
+    "inputs": {
+      "value": "1girl, barbara \\(genshin impact\\), blue eyes, hair between eyes, blonde hair, long hair, twintails, twin drills, wearing casual long-sleeved shirts and jeans, standing on the left, facing right, smiling, raising her right arm toward the center, open palm at head height"
+    }
+  },
+  "62": {
+    "class_type": "PrimitiveStringMultiline",
+    "inputs": {
+      "value": "1girl, nahida \\(genshin impact\\), pointy ears, green eyes, hair between eyes, cross-shaped pupils, long hair, white hair, green hair, gradient hair, grey hair, leaf hair ornament, side ponytail, sidelocks, hair ornament, wearing casual long-sleeved shirts and jeans, standing on the right, facing left, smiling, raising her left arm toward the center, open palm at head height"
+    }
+  }
+}

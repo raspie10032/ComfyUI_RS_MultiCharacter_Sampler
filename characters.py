@@ -2,6 +2,7 @@
 """Original prompt text travels in one dedicated, immutable pipe."""
 from dataclasses import dataclass, field
 import math
+from .region_mask import RegionMask, validate_mask_budget
 
 PIPE_TYPE = "RS_MC_CHARACTER_PIPE"
 LORA_MODES = ["normal", "precision"]
@@ -23,8 +24,11 @@ class Character:
     lora_name: str = field(default="None", kw_only=True)
     lora_strength: float = field(default=1., kw_only=True)
     lora_clip_strength: float = field(default=1., kw_only=True)
+    region_mask: RegionMask | None = field(default=None, kw_only=True)
 
     def __post_init__(self):
+        if self.region_mask is not None and not isinstance(self.region_mask, RegionMask):
+            raise ValueError("Invalid character region mask.")
         if not isinstance(self.prompt, str) or not isinstance(self.uc, str):
             raise ValueError("Character prompts must be text.")
         if not isinstance(self.lora_name, str) or not self.lora_name:
@@ -58,6 +62,8 @@ class TextRegion(Character):
 
     def __post_init__(self):
         super().__post_init__()
+        if self.region_mask is not None:
+            raise ValueError("Text uses a box, not a character mask. / 글자 영역에는 마스크 대신 상자를 사용해 주세요. / 文字領域にはボックスを使ってください。")
         if self.bbox is None or not isinstance(self.text, str) or not self.text.strip():
             raise ValueError("A text region needs a box and nonempty literal text. / 텍스트 영역에는 상자와 실제로 쓸 글자를 입력해 주세요.")
         if self.lora_name != "None":
@@ -88,6 +94,8 @@ class CharacterPipe:
             raise ValueError("Every active character needs a nonempty prompt.")
         if any(not isinstance(c, TextRegion) or not c.prompt.strip() for c in self.text_regions):
             raise ValueError("Every text region needs a style description and literal text.")
+        if any(c.region_mask is not None for c in self.characters):
+            validate_mask_budget(self.characters)
         if self.syntax not in ("ComfyUI", "NovelAI"):
             raise ValueError("Unsupported prompt syntax.")
         if any(v is not None and not isinstance(v, str) for v in (self.prompt, self.negative_prompt, self.generation_json)):

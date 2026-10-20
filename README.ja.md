@@ -1,5 +1,7 @@
 # ComfyUI_RS_MultiCharacter_Sampler
 
+**キャラクター形状マスク:** 新しい **RS キャラクターマスク** にシルエットや描いたMASKを接続し、番号を合わせます。Prompt・LoRA・Positionと任意順で組み立て、倍率・XY移動・キャンバス外の切り取り・余白・カラー配置プレビュー・点/矩形の併用・PNG/WebPからの形状復元に対応します。ポーズ固定ではありません。[使い方](docs/character-masks.md) · [例](examples/character-masks)。
+
 **0.2.3 Digeut（디귿・ディグッ）の変更:** キャラクターLoRAノードで通常/精密適用を選択できます。通常は対応するAnima・SDXL線形LoRAのレイヤー計算を共有し、精密は設定ごとの独立計算と対応する小行列最適化を使用します。選択に応じた説明欄と2秒後の短いツールチップを日本語・韓国語・英語で追加しました。[変更点](docs/release-0.2.3.md) · [比較と制限](docs/shared-lora-experiment.md)。
 
 **0.2.2 Nieun（니은・ニウン）の変更:** FLUX.1・2・3のネイティブ領域生成とローカルマスクディテーラーに対応しました。試験した8モデルすべてで2人生成・同じシードでの文章交換・ディテーラーを実行済みです。量子化モデルの領域別LoRA修正、内蔵ガイダンス、画像設定復元、FLUXプリセット8種とモデル別の例を含みます。[変更点](docs/release-0.2.2.md) · [検証範囲と制限](docs/flux-validation.md) · [FLUXの例](examples/flux)。

@@ -12,6 +12,7 @@ from PIL.PngImagePlugin import PngInfo
 
 from .characters import Character, CharacterPipe, TextRegion
 from .regional_lora import lora_records
+from .region_mask import RegionMask, mask_records
 
 SOFTWARE = "ComfyUI_RS_MultiCharacter_Sampler"
 FORMATS = ["PNG", "WebP lossless", "WebP lossy"]
@@ -54,6 +55,7 @@ def build_record(pipe, settings, assets, centers, audit, engine="anima-spatial-a
         "rs_multicharacter": {"version": 1, "engine": engine,
             "prompt_syntax": pipe.syntax, "settings": settings, "assets": assets,
             "boxes": [c.bbox for c in pipe.characters],
+            "character_masks": mask_records(pipe),
             "character_loras": lora_records(pipe),
             "lora_application_mode": pipe.lora_application_mode,
             "text_regions": text_region_records(pipe),
@@ -133,6 +135,12 @@ def pipe_from_record(record):
                 raise ValueError("Each box must be a coordinate array or null.")
             chars = [replace(c, bbox=tuple(box) if box is not None else None) for c, box in zip(chars, boxes)]
         texts = local.get("text_regions", []) if local else []
+        if local and "character_masks" in local:
+            masks = local["character_masks"]
+            if not isinstance(masks, list) or len(masks) != len(chars):
+                raise ValueError("Mask metadata must match the character count.")
+            chars = [replace(c, region_mask=RegionMask.from_record(mask) if mask is not None else None)
+                     for c, mask in zip(chars, masks)]
         if local and "character_loras" in local:
             loras = local["character_loras"]
             if not isinstance(loras, list) or len(loras) != len(chars) or any(not isinstance(v, dict) for v in loras):
