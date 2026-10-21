@@ -7,8 +7,10 @@ from .detailer import RSMultiCharacterDetailer
 from .detector_bundle import RSMultiCharacterDetectionLoader
 from .wd_tagger import RSMultiCharacterTaggerLoader
 from .mask_drawing import RSMultiCharacterMaskDraw
+from .image_reference import RSMultiCharacterReference
 
 NODE_CLASS_MAPPINGS = {
+    "RSMultiCharacterReference": RSMultiCharacterReference,
     "RSMultiCharacterPrompt": RSMultiCharacterPrompt,
     "RSMultiCharacterLoRA": RSMultiCharacterLoRA,
     "RSMultiCharacterPosition": RSMultiCharacterPosition,
@@ -23,6 +25,7 @@ NODE_CLASS_MAPPINGS = {
     "RSMultiCharacterTaggerLoader": RSMultiCharacterTaggerLoader,
 }
 NODE_DISPLAY_NAME_MAPPINGS = {
+    "RSMultiCharacterReference": "RS Image Reference (Experimental · Not Recommended)",
     "RSMultiCharacterPrompt": "RS Character Prompt",
     "RSMultiCharacterLoRA": "RS Character LoRA",
     "RSMultiCharacterPosition": "RS Character Position",
@@ -30,13 +33,13 @@ NODE_DISPLAY_NAME_MAPPINGS = {
     "RSMultiCharacterMaskDraw": "RS Character Mask Drawing",
     "RSMultiCharacterFinalize": "RS Finalize Character Pipe",
     "RSMultiCharacterPrompts": "RS MultiCharacter Prompts",
-    "RSMultiCharacterSampler": "RS MultiCharacter Sampler (Rieul)",
+    "RSMultiCharacterSampler": "RS MultiCharacter Sampler (Mieum)",
     "RSMultiCharacterLoadImage": "RS MultiCharacter Load Image",
     "RSMultiCharacterDetailer": "RS MultiCharacter Detailer",
     "RSMultiCharacterDetectionLoader": "RS Detection Combine Loader",
     "RSMultiCharacterTaggerLoader": "RS Character Tagger Loader",
 }
 WEB_DIRECTORY = "./web"
-__version__ = "0.2.4"
+__version__ = "0.2.5"
 
 __all__ = ["NODE_CLASS_MAPPINGS", "NODE_DISPLAY_NAME_MAPPINGS", "WEB_DIRECTORY"]

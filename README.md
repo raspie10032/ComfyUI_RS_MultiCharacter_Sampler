@@ -1,12 +1,14 @@
 # ComfyUI_RS_MultiCharacter_Sampler
 
+**0.2.5 Mieum (미음): experimental image references — supported, NOT RECOMMENDED.** Optional per-character IMAGE input reuses point/box/mask placement across Anima, SD1.5, SDXL/Illustrious, FLUX.1/2/3, Krea 2 and MOSS. Quality varies, with weak outfit fidelity/oversaturation in SDXL. Prefer a character LoRA when available. Disabled/strength 0 loads no reference weights. [Usage and limits](docs/image-reference.md) · [Release notes](docs/release-0.2.5.md) · [Experiment report (Release attachments; excluded from git clone)](https://github.com/raspie10032/ComfyUI_RS_MultiCharacter_Sampler/releases/tag/v0.2.5).
+
 **New in 0.2.4 Rieul (리을):** paint numbered character regions over a reference image with **RS Character Mask Drawing**, or connect external MASKs with **RS Character Mask**. Select a numbered point, box or mask above Position’s layout guide, then drag to move and resize boxes or masks. Includes uniform mask scaling, margin, undo, placement reset and PNG/WebP mask restoration. Canvas overflow is clipped while preserving the source shape. Reference images are display-only; masks guide regional attention and do not guarantee pose or people count. [Usage](docs/character-masks.md) · [Examples](examples/character-masks) · [Release notes and validation scope](docs/release-0.2.4.md).
 
 **New in 0.2.3 Digeut (디귿):** choose Normal or Precision on the character LoRA node. Supported Anima/SDXL linear LoRAs share layer calculations in Normal; Precision retains independent predictions with low-rank optimization where supported. Adds localized selection panels and short tooltips after a two-second hover. [Release notes](docs/release-0.2.3.md) · [Comparisons and limits](docs/shared-lora-experiment.md).
 
 **New in 0.2.2 Nieun (니은):** native FLUX.1/2/3 regional generation and local masked detailing. All eight tested variants completed two-person generation, same-seed caption swaps and detailing. Includes quantized regional LoRA fixes, embedded guidance, settings replay, eight FLUX presets and model-specific examples. [Release notes](docs/release-0.2.2.md) · [Evidence and limits](docs/flux-validation.md) · [FLUX examples](examples/flux).
 
-**0.2.4 Rieul (리을) · FLUX.1/2/3 · Anima · SDXL · Krea 2 · MOSS · SD1.5 (experimental, unstable)** — independent prompts with X/Y, box and mixed regions for local ComfyUI generation.
+**0.2.5 Mieum (미음) · FLUX.1/2/3 · Anima · SDXL · Krea 2 · MOSS · SD1.5 (experimental, unstable)** — independent prompts with X/Y, box and mixed regions for local ComfyUI generation.
 
 **Giyeok Fix:** fixes character and text inputs appearing together. Each slot now uses one shared STRING socket, preserving its connection when kind changes. Old workflows move their literal-text connection to that socket. [Fix and compatibility](docs/release-0.2.1.md).
 
@@ -31,6 +33,7 @@ This extension registers twelve nodes, including the Mask and Mask Drawing nodes
 | Node | Purpose |
 | --- | --- |
 | **RS Character Prompt / LoRA / Position / Finalize Character Pipe** | Four role-based nodes; connect prompt, LoRA and position in any order, then finalize the dedicated pipe. |
+| **RS Character Image Reference · Experimental** | Bind an IMAGE to one numbered character. Supported but not recommended; optional dependencies/models. |
 | **RS Character Mask / Mask Drawing** | External MASK input or numbered painting over a reference; preview and edit shape placement. |
 | **RS MultiCharacter Prompts** | 1–10 regions with original text, enable switch, normalized X/Y and optional boxes or literal text. One dedicated `RS_MC_CHARACTER_PIPE` output. |
 | **RS MultiCharacter Sampler** | Common positive/negative prompts, local sampling, optional autosave, image/latent/pipe/info outputs. |

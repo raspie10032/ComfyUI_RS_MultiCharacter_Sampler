@@ -31,6 +31,7 @@ class SDXLRouting:
         self.conditions, self.masks = conditions, masks
         self.settings, self.audit = settings, audit
         self.sigmas = self.state = None
+        self.reference = None
         self.groups = {}
         self.biases = {}
 
@@ -50,6 +51,23 @@ class SDXLRouting:
                 work.set_model_attn1_replace(self.spatial, name, index)
                 work.set_model_attn2_replace(self.cross, name, index)
                 blocks.append([name, index, len(transformers)])
+        self.reference = None
+        plan = work.model_options.get('rs_sd_reference')
+        if plan is not None:
+            from .sd_reference import SDReferenceRuntime
+            self.reference = SDReferenceRuntime(plan, self.audit)
+            number = 0
+            self.reference_modules = {}
+            for block_name, modules in (("input", net.input_blocks), ("output", net.output_blocks), ("middle", [net.middle_block])):
+                for bi, module in enumerate(modules):
+                    transformers = [m for m in module.modules() if isinstance(m, BasicTransformerBlock)]
+                    native_index = bi
+                    for ti, transformer in enumerate(transformers):
+                        key = (block_name, native_index, ti) if self.family == 'SDXL' else (block_name, native_index)
+                        self.reference_modules[key] = str(2*number+1)
+                        work.set_model_attn2_replace(self.cross, block_name, native_index, ti if self.family == 'SDXL' else None)
+                        number += 1
+            self.audit['image_reference']['mapped_blocks'] = number
         if not blocks:
             raise ValueError(f"No {self.family} U-Net attention blocks were found.")
         self.audit["installed_blocks"] = blocks
@@ -129,7 +147,8 @@ class SDXLRouting:
                           weights=(r["common_prior"], 1.), character_gain=r["character_value_gain"])
         self.audit["cross_calls"] += 1
         r["cross_calls"] += 1
-        return out.to(q.dtype)
+        out = out.to(q.dtype)
+        return self.reference.apply(self, q, k, v, options, out) if getattr(self,"reference",None) is not None else out
 
     def spatial(self, q, k, v, options):
         (qh, kh, vh), groups = self._inputs(q, k, v, options)

@@ -4,7 +4,7 @@ import { app } from "../../scripts/app.js";
 const targets = new Set([
     "RSMultiCharacterPrompt", "RSMultiCharacterPosition", "RSMultiCharacterFinalize", "RSMultiCharacterMask", "RSMultiCharacterMaskDraw",
     "RSMultiCharacterSampler", "RSMultiCharacterLoadImage", "RSMultiCharacterDetailer",
-    "RSMultiCharacterTaggerLoader", "RSMultiCharacterPrompts",
+    "RSMultiCharacterTaggerLoader", "RSMultiCharacterPrompts", "RSMultiCharacterReference",
 ]);
 const locale = () => String(app.extensionManager?.setting?.get?.("Comfy.Locale")
     ?? app.ui?.settings?.getSettingValue?.("Comfy.Locale") ?? globalThis.navigator?.language ?? "en").slice(0, 2);
@@ -25,6 +25,12 @@ export function nodeHelp(node) {
         if (format === "WebP lossy") add("Lossy WebP changes pixels; quality controls compression, not generation.", "손실 WebP는 픽셀이 달라집니다. 품질 값은 생성 품질이 아닌 저장 압축률입니다.", "非可逆WebPは画素が変わります。品質値は生成品質ではなく保存時の圧縮設定です。");
     };
     switch (typeOf(node)) {
+        case "RSMultiCharacterReference":
+            add("Experimental support · NOT RECOMMENDED", "실험적 지원 · 권장하지 않음", "実験的対応・非推奨");
+            add(`Character ${v("character_id", 1)} · ${v("resolution", 384)}px · strength ${v("strength", .6)}`, `캐릭터 ${v("character_id", 1)} · ${v("resolution", 384)}px · 강도 ${v("strength", .6)}`, `キャラクター${v("character_id", 1)} · ${v("resolution", 384)}px · 強度${v("strength", .6)}`);
+            add("Reuses its point/box/mask. Prefer a character LoRA; reference fidelity varies. OFF or strength 0 skips reference models.", "해당 번호의 포인트·박스·마스크를 사용합니다. 품질 편차가 있어 캐릭터 LoRA를 우선 권장합니다. OFF·강도 0은 참조 모델을 사용하지 않습니다.", "同じ番号のPoint・Box・Maskを使用。再現品質に差があるためLoRAを推奨。OFF・強度0で参照用モデルを使いません。");
+            add("Sampler only. Saved metadata records settings, not reference images.", "샘플러 전용입니다. 저장 메타데이터에는 설정만 기록하며 참조 이미지는 포함하지 않습니다.", "Sampler専用。保存メタデータには設定のみ記録し、参照画像は含みません。");
+            break;
         case "RSMultiCharacterMaskDraw":
             add("Mask drawing · choose a number, then paint", "마스크 그리기 · 번호 선택 후 칠하기", "マスク描画 · 番号を選んで塗る");
             add("The reference stays behind the masks. Each number uses the same Prompt/LoRA slot, regardless of the person shown.", "밑그림 위에 번호별로 칠하세요. 참조 인물과 무관하게 같은 번호의 프롬프트·LoRA가 적용됩니다.", "下絵の上に番号別で塗ります。参照人物とは関係なく同じ番号のPrompt・LoRAを使います。");

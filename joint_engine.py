@@ -47,12 +47,18 @@ def moss_caption_positions(tensor, heads, lengths, image_tokens, pre_shaped=Fals
 class JointRouting:
     def __init__(self, family, conditions, masks, settings, audit, boxes=False):
         self.family, self.conditions, self.masks = family, conditions, masks
+        self.reference_lengths = []
+        self.reference_latents = []
+        self.reference_audit = {}
         self.boxes = boxes
         self.settings, self.audit = settings, audit
         self.sigmas = self.state = None
 
     def install(self, work):
         from comfy.patcher_extension import WrappersMP
+        from .native_reference import attach_native_references
+        attach_native_references(self, work)
+        self.reference_dm = work.get_model_object('diffusion_model')
         options = work.model_options['transformer_options']
         if options.get('optimized_attention_override'):
             raise ValueError('Disconnect other attention overrides before regional sampling.')
@@ -78,12 +84,28 @@ class JointRouting:
             raise ValueError('Krea2 regional sampling currently accepts text-to-image only, without reference latents or attention masks.')
         patch = executor.class_obj.patch
         def invoke(xb, tb, cb, options):
+            refs = [r.to(xb) for r in self.reference_latents] if options['cond_or_uncond'] == [0] else []
+            self.reference_lengths = [((r.shape[-2]+patch-1)//patch)*((r.shape[-1]+patch-1)//patch) for r in refs]
+            self.reference_audit['reference_lengths'] = self.reference_lengths
+            if refs:
+                hgrid=(xb.shape[-2]+patch-1)//patch;wgrid=(xb.shape[-1]+patch-1)//patch
+                options['rs_mc_ref_centers']=[(float((self.state['groups'][r['slot']]%wgrid).float().mean()),float((self.state['groups'][r['slot']]//wgrid).float().mean())) for r in self.reference_plan]
+                from .krea_reference_backend import krea2_edit_forward
+                return krea2_edit_forward(self.reference_dm, xb, tb, cb, refs, options, ref_native=True)
             return executor(xb, tb, cb, None, None, options, **kwargs)
         return self.forward(invoke, x, timesteps, context, transformer_options,
                             ((x.shape[-2]+patch-1)//patch, (x.shape[-1]+patch-1)//patch))
 
     def moss_forward(self, executor, x, timesteps, context, transformer_options=None, **kwargs):
         def invoke(xb, tb, cb, options):
+            refs = [r.to(xb) for r in self.reference_latents] if options['cond_or_uncond'] == [0] else []
+            self.reference_lengths = [r.shape[-2]*r.shape[-1] for r in refs]
+            self.reference_audit['reference_lengths'] = self.reference_lengths
+            if refs:
+                hh,ww=xb.shape[-2:]
+                options['rs_mc_ref_centers']=[(float((self.state['groups'][r['slot']]%ww).float().mean()),float((self.state['groups'][r['slot']]//ww).float().mean())) for r in self.reference_plan]
+                from .native_reference import moss_reference_forward
+                return moss_reference_forward(self.reference_dm, xb, tb, cb, refs, options)
             return executor(xb, tb, cb, options, **kwargs)
         return self.forward(invoke, x, timesteps, context, transformer_options, x.shape[-2:])
 
@@ -153,6 +175,9 @@ class JointRouting:
             # The first Krea adapter attends over tapped encoder layers for
             # EACH token (B*text_length, heads, 12, dim), not over prompt text.
             return original(q, k, v, heads, mask=mask, **kwargs)
+        if joint and self.reference_lengths:
+            from .native_reference import reference_joint
+            return reference_joint(self, original, q, k, v, heads, mask=mask, **kwargs)
         expected = total_text + total_image if joint else total_text
         if q.shape[0] != 1 or n != expected or k.shape[seq_dim] != n or v.shape[seq_dim] != n:
             raise ValueError(f'{self.family} attention layout changed; update the extension before using this ComfyUI version.')
@@ -177,6 +202,14 @@ class JointRouting:
         out_dim = 2 if output_shaped else 1
 
         def attend(queries, keys, bias=None, values_gain=None):
+            for ref in getattr(self,'redux_references',[]):
+                caption=text[ref['slot']+1]
+                nr=ref['conditioning'].shape[1]
+                refkeys=caption[-nr:]
+                selected=(keys>=refkeys[0]) & (keys<=refkeys[-1])
+                if bias is None:bias=q.new_zeros((1,len(keys)))
+                else:bias=bias.clone()
+                bias[:,selected]+=math.log(ref['strength']*max(1,len(caption)-nr)/nr)
             values = v.index_select(seq_dim, keys)
             if values_gain is not None:
                 shape = [1]*values.ndim

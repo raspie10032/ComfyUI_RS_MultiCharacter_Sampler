@@ -980,5 +980,34 @@
         "name": "building_pipe"
       }
     }
+  },
+  "RSMultiCharacterReference": {
+    "display_name": "RS キャラクター画像参照 · 実験的",
+    "description": "実験的対応・非推奨。番号ごとに画像1枚を接続し、パイプを完成して生成します。モデルにより再現品質が異なるため、キャラクターLoRAを推奨します。参照画像は保存メタデータに含まれず、Detailerには適用されません。",
+    "inputs": {
+      "image": {
+        "name": "参照画像"
+      },
+      "character_id": {
+        "name": "キャラクター番号"
+      },
+      "resolution": {
+        "name": "参照解像度"
+      },
+      "strength": {
+        "name": "参照強度"
+      },
+      "enabled": {
+        "name": "参照を使用"
+      },
+      "building_pipe": {
+        "name": "組み立てパイプ"
+      }
+    },
+    "outputs": {
+      "building_pipe": {
+        "name": "組み立てパイプ"
+      }
+    }
   }
 }

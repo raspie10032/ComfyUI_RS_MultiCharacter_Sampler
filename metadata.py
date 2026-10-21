@@ -57,6 +57,9 @@ def build_record(pipe, settings, assets, centers, audit, engine="anima-spatial-a
             "boxes": [c.bbox for c in pipe.characters],
             "character_masks": mask_records(pipe),
             "character_loras": lora_records(pipe),
+            "image_references": [{"character_id": c.reference.character_id, "resolution": c.reference.resolution,
+                                  "strength": c.reference.strength, "source": c.reference.source}
+                                 for c in pipe.characters if c.reference is not None],
             "lora_application_mode": pipe.lora_application_mode,
             "text_regions": text_region_records(pipe),
             "effective_centers": centers, "spatial_slots": audit["spatial_slots"]},

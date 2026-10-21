@@ -8,3 +8,7 @@ __pycache__/
 .env
 output/
 validation-private/
+
+# Experiment images and full reports are uploaded as GitHub Release assets.
+experiment-reports/
+release-assets/
