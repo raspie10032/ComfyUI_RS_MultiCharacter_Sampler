@@ -1,7 +1,7 @@
 [project]
 name = "comfyui-rs-multicharacter-sampler"
-version = "0.2.5"
-description = "Mieum: optional experimental per-character image references, supported but not recommended. Modular regional generation and detailing, draggable point/box/mask placement, per-character LoRA and PNG/WebP settings for Anima, SDXL, Krea 2, MOSS and FLUX.1/2/3. SD1.5 is experimental and unstable."
+version = "0.2.6"
+description = "Bieup: fixes character LoRA on Krea 2 FP8 and MOSS INT8, with character LoRA presets and examples. Modular regional generation and detailing for Anima, SDXL, Krea 2, MOSS and FLUX.1/2/3. Image references are experimental and not recommended; SD1.5 is experimental and unstable."
 readme = "README.md"
 license = {file = "LICENSE"}
 requires-python = ">=3.11"
@@ -19,4 +19,4 @@ Documentation = "https://github.com/raspie10032/ComfyUI_RS_MultiCharacter_Sample
 
 [tool.comfy]
 PublisherId = "raspie10032"
-DisplayName = "RS MultiCharacter Sampler (Mieum)"
+DisplayName = "RS MultiCharacter Sampler (Bieup)"

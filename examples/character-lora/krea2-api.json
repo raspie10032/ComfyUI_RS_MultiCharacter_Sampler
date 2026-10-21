@@ -1,0 +1,124 @@
+{
+  "1": {
+    "class_type": "UNETLoader",
+    "inputs": {
+      "unet_name": "krea2_turbo_fp8_scaled.safetensors",
+      "weight_dtype": "default"
+    }
+  },
+  "2": {
+    "class_type": "RSMultiCharacterPrompts",
+    "inputs": {
+      "character_count": 2,
+      "character1": "Lara_c, Lara Croft, an adult woman with brown hair in a long braid, brown eyes, turquoise sleeveless tank top, brown shorts and a small brown backpack.",
+      "character1_uc": "",
+      "character1_enable": true,
+      "character1_x": 0.25,
+      "character1_y": 0.5,
+      "character2": "A single adult woman with short brown hair, green eyes, wearing a plain yellow jacket over a white shirt, holding a blue ceramic cup.",
+      "character2_uc": "",
+      "character2_enable": true,
+      "character2_x": 0.75,
+      "character2_y": 0.5,
+      "character3": "",
+      "character3_uc": "",
+      "character3_enable": true,
+      "character3_x": 0.5,
+      "character3_y": 0.5,
+      "character4": "",
+      "character4_uc": "",
+      "character4_enable": true,
+      "character4_x": 0.5,
+      "character4_y": 0.5,
+      "character5": "",
+      "character5_uc": "",
+      "character5_enable": true,
+      "character5_x": 0.5,
+      "character5_y": 0.5,
+      "character6": "",
+      "character6_uc": "",
+      "character6_enable": true,
+      "character6_x": 0.5,
+      "character6_y": 0.5,
+      "character7": "",
+      "character7_uc": "",
+      "character7_enable": true,
+      "character7_x": 0.5,
+      "character7_y": 0.5,
+      "character8": "",
+      "character8_uc": "",
+      "character8_enable": true,
+      "character8_x": 0.5,
+      "character8_y": 0.5,
+      "character9": "",
+      "character9_uc": "",
+      "character9_enable": true,
+      "character9_x": 0.5,
+      "character9_y": 0.5,
+      "character10": "",
+      "character10_uc": "",
+      "character10_enable": true,
+      "character10_x": 0.5,
+      "character10_y": 0.5,
+      "character1_lora": "RS_Krea2_validation/First_Lara_krea2_3393939_epoch_10.safetensors",
+      "character1_lora_strength": 1.0,
+      "character1_lora_clip_strength": 0.0
+    }
+  },
+  "3": {
+    "class_type": "RSMultiCharacterSampler",
+    "inputs": {
+      "model": [
+        "1",
+        0
+      ],
+      "clip": [
+        "4",
+        0
+      ],
+      "vae": [
+        "5",
+        0
+      ],
+      "character_pipe": [
+        "2",
+        0
+      ],
+      "prompt": "A realistic cinematic photograph of exactly two adult women standing side by side in an old stone courtyard. Waist-up portrait, both faces visible, a single continuous scene, soft natural daylight.",
+      "negative_prompt": "",
+      "width": 768,
+      "height": 512,
+      "seed": 346751,
+      "steps": 8,
+      "cfg": 1.0,
+      "sampler_name": "euler",
+      "scheduler": "simple",
+      "autosave": true,
+      "save_format": "PNG",
+      "webp_quality": 90,
+      "prompt_syntax": "ComfyUI",
+      "use_image_settings": false,
+      "region_feather": 0.04,
+      "initial_common_prior": 0.6,
+      "common_after_step3_boost": 0.1,
+      "initial_character_gain": 1.7,
+      "initial_spatial_separation": 0.9,
+      "boundary_hold_steps": 3,
+      "boundary_decrement": 0.2
+    }
+  },
+  "4": {
+    "class_type": "CLIPLoader",
+    "inputs": {
+      "clip_name": "qwen3vl_4b_fp8_scaled.safetensors",
+      "type": "krea2",
+      "device": "default"
+    }
+  },
+  "5": {
+    "class_type": "VAELoader",
+    "inputs": {
+      "vae_name": "qwen_image_vae.safetensors"
+    }
+  }
+}

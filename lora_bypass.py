@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: GPL-3.0-only
-"""Execution-scoped, factor-only LoRA for Anima and native FLUX Linear layers.
+"""Execution-scoped, factor-only LoRA for supported native Linear layers.
 
 Conditioning hooks still select separate predictions. Only the weight application
 changes: ComfyUI's native bypass evaluates W(x) + up(down(x)), without expanding
@@ -22,11 +22,11 @@ def linear_layer(module):
 
 
 def requires_quantized_bypass(model):
-    """Native weight hooks cannot address a packed FLUX tensor's scale keys."""
+    """Native weight hooks cannot address packed tensors' serialized scale keys."""
     from comfy import model_base
-    flux_types = tuple(t for name in ("Flux", "Flux3")
+    packed_types = tuple(t for name in ("Flux", "Flux3", "Krea2", "MOSSImage")
                        if isinstance((t := getattr(model_base, name, None)), type))
-    if not isinstance(model.model, flux_types):
+    if not isinstance(model.model, packed_types):
         return False
     from comfy.quant_ops import QuantizedTensor
     return any(isinstance(getattr(layer, 'weight', None), QuantizedTensor)
@@ -44,10 +44,16 @@ def prepare_bypass(model, weights):
     flux_types = tuple(t for name in ("Flux", "Flux3")
                        if isinstance((t := getattr(model_base, name, None)), type))
     is_flux = isinstance(model.model, flux_types)
+    is_krea2 = isinstance(model.model, getattr(model_base, "Krea2", ()))
+    # Keep the established full-precision MOSS path. Packed MOSS weights have
+    # the same serialized scale-key limitation as native FLUX/Krea2 tensors.
+    is_packed_moss = (isinstance(model.model, getattr(model_base, "MOSSImage", ()))
+                      and requires_quantized_bypass(model))
     # Clone experiment: SDXL's ordinary linear adapters use the same factor
     # path; unsupported convolutional/extended patches retain native hooks.
     is_sdxl = isinstance(model.model, getattr(model_base, "SDXL", ()))
-    if not is_flux and not is_sdxl and not isinstance(model.model, getattr(model_base, "Anima", ())):
+    if not (is_flux or is_krea2 or is_packed_moss or is_sdxl
+            or isinstance(model.model, getattr(model_base, "Anima", ()))):
         return None, "model_family"
     if getattr(model, "get_additional_models_with_key", lambda key: [])("multigpu"):
         return None, "multigpu_clones"
@@ -93,11 +99,11 @@ def prepare_bypass(model, weights):
         if not linear_layer(module):
             return None, "nonlinear_layer"
         weight = module.weight
-        # Native FLUX checkpoints use FP8/INT8 QuantizedTensor weights. The
+        # Native FLUX/Krea2/MOSS checkpoints use QuantizedTensor weights. The
         # bypass runs the original quantized forward and adds float factors;
         # it never reads/replaces the serialized weight_scale pseudo-keys.
         supported = type(weight) in (torch.Tensor, torch.nn.Parameter) and weight.is_floating_point()
-        if is_flux:
+        if is_flux or is_krea2 or is_packed_moss:
             from comfy.quant_ops import QuantizedTensor
             supported = supported or isinstance(weight, QuantizedTensor)
         elif weight.dtype not in (torch.float32, torch.float16, torch.bfloat16):

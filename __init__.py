@@ -33,13 +33,13 @@ NODE_DISPLAY_NAME_MAPPINGS = {
     "RSMultiCharacterMaskDraw": "RS Character Mask Drawing",
     "RSMultiCharacterFinalize": "RS Finalize Character Pipe",
     "RSMultiCharacterPrompts": "RS MultiCharacter Prompts",
-    "RSMultiCharacterSampler": "RS MultiCharacter Sampler (Mieum)",
+    "RSMultiCharacterSampler": "RS MultiCharacter Sampler (Bieup)",
     "RSMultiCharacterLoadImage": "RS MultiCharacter Load Image",
     "RSMultiCharacterDetailer": "RS MultiCharacter Detailer",
     "RSMultiCharacterDetectionLoader": "RS Detection Combine Loader",
     "RSMultiCharacterTaggerLoader": "RS Character Tagger Loader",
 }
 WEB_DIRECTORY = "./web"
-__version__ = "0.2.5"
+__version__ = "0.2.6"
 
 __all__ = ["NODE_CLASS_MAPPINGS", "NODE_DISPLAY_NAME_MAPPINGS", "WEB_DIRECTORY"]
