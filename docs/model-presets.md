@@ -9,6 +9,8 @@ The Epsilon sampler has **Model family preset → Apply preset** controls. Selec
 | SDXL / Illustrious — XY | 30 / 5.5 | Euler ancestral / normal | 0.30 / 1.30 / 0.50 |
 | SDXL / Illustrious — mixed | 30 / 5.5 | Euler ancestral / normal | 0.15 / 1.50 / 0.90 |
 | Krea 2 Turbo | 8 / 1 | Euler / simple | 0.60 / 1.20 / 0.35 |
+| Krea 2 Turbo — character LoRA | 8 / 1 | Euler / simple | 0.60 / 1.70 / 0.90 |
+| Illustrious — character LoRA | 24 / 5.5 | Euler ancestral / normal | 0.05 / 1.70 / 0.90 |
 | MOSS — base | 50 / 3 | Euler / simple | 0.60 / 1.20 / 0.35 |
 | MOSS — 8-step LoRA | 8 / 3 | Euler / simple | 0.60 / 1.20 / 0.35 |
 | SD1.5 — experimental | 30 / 7 | Euler ancestral / normal | 0.20 / 1.70 / 0.90 |
@@ -31,6 +33,8 @@ The labels and guidance follow ComfyUI's English, Korean or Japanese language se
 The XY presets come from the original model examples. Mixed presets use the [model-specific comparison settings](mixed-layout-tuning.md); MOSS 8-step uses the [MOSS mixed example](../examples/epsilon/moss-mixed.json). The SDXL presets are based on the documented Illustrious workflow, not a quality guarantee for all SDXL derivatives. SD1.5 remains a compatibility check for distinguishable people and visible lettering; natural anatomy and exact spelling are not established.
 
 The prompt, seed and box placement also influence the image. Copying these numbers into a different scene does not guarantee the example result. Use the full examples to reproduce the documented comparisons.
+
+The character-LoRA presets use the [2026-10-21 comparison settings](character-lora-matrix-20261021.md). Set Krea2 to **768×512**, or Illustrious to **1024×768**, and choose a matching character LoRA separately (tested model strength **1**, CLIP **0**). Applying these does not change the canvas or load a LoRA. Illustrious uses stronger separation and may show seams in other scenes.
 
 See the [preset UI and real-generation validation record](model-presets-validation.md) for the checks performed on this feature.
 

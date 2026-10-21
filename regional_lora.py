@@ -66,7 +66,8 @@ class RegionalLoras:
                     else:
                         from .lora_bypass import requires_quantized_bypass
                         if requires_quantized_bypass(model):
-                            raise ValueError(f"Character {slot}: this LoRA format cannot be applied regionally to this packed FLUX checkpoint ({self.bypasses[name][1]}). Use a plain linear LoRA for this model, or a non-quantized checkpoint. / 캐릭터 {slot}: 이 양자화 FLUX 모델에는 일반 선형 LoRA가 필요합니다. 해당 모델용 일반 LoRA 또는 비양자화 체크포인트를 사용해 주세요.")
+                            family = type(model.model).__name__
+                            raise ValueError(f"Character {slot}: this LoRA format cannot be applied regionally to this packed {family} checkpoint ({self.bypasses[name][1]}). Use a plain linear LoRA for this model, or a non-quantized checkpoint. / 캐릭터 {slot}: 이 양자화 {family} 모델에는 일반 선형 LoRA가 필요합니다. 해당 모델용 일반 LoRA 또는 비양자화 체크포인트를 사용해 주세요.")
                         hook = comfy.hooks.WeightHook(strength_model=character.lora_strength, strength_clip=0.)
                         hook.weights, hook.weights_clip, hook.need_weight_init = model_weights, {}, False
                         hook_group = comfy.hooks.HookGroup()

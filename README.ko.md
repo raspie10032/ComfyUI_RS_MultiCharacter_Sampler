@@ -1,5 +1,7 @@
 # ComfyUI_RS_MultiCharacter_Sampler
 
+**0.2.6 비읍 — LoRA 버그 수정:** Krea 2 FP8·MOSS INT8의 캐릭터 LoRA `weight_scale` 오류를 수정하고 Krea2/Illustrious 캐릭터 LoRA 프리셋과 재현 예제를 추가했습니다. 비양자화 MOSS는 기존 적용 경로를 유지합니다. [변경 내역](docs/release-0.2.6.md) · [9개 모델 조합의 실제 생성과 한계](docs/character-lora-matrix-20261021.md).
+
 **0.2.5 미음: 이미지 참조는 실험적으로 지원하지만 권장하지 않습니다.** 캐릭터 번호별 IMAGE를 기존 포인트·박스·마스크 영역에 적용합니다. Anima·SD1.5·SDXL/Illustrious·FLUX.1/2/3·Krea 2·MOSS를 지원하지만 재현 품질은 모델마다 다르며 SDXL은 의상 재현·과채도가 약점입니다. 가능하면 캐릭터 LoRA를 사용하세요. OFF·강도 0에서는 참조 모델을 받거나 읽지 않습니다. [사용법·한계](docs/image-reference.md) · [변경 내역](docs/release-0.2.5.md) · [실험 보고서 — Release 첨부, git clone 제외](https://github.com/raspie10032/ComfyUI_RS_MultiCharacter_Sampler/releases/tag/v0.2.5).
 
 **0.2.4 리을 변경 사항:** **RS 캐릭터 마스크 그리기**에서 참조 이미지 위에 번호별 영역을 칠하거나 **RS 캐릭터 마스크**에 외부 MASK를 연결합니다. 위치 노드의 배치도 위에서 포인트·박스·마스크 번호를 선택해 드래그로 이동하고 박스·마스크 크기를 조절하세요. 마스크 비율 확대·여유 폭·되돌리기·선택 배치 초기화·PNG/WebP 마스크 복원을 지원합니다. 캔버스 밖의 마스크만 자르고 원래 모양은 보존합니다. 참조 이미지는 밑그림으로만 쓰며, 마스크는 자세·인원수를 보장하지 않는 영역 유도입니다. [사용법](docs/character-masks.md) · [예제](examples/character-masks) · [변경 내역·검증 범위](docs/release-0.2.4.md).
@@ -8,7 +10,7 @@
 
 **0.2.2 니은 변경 사항:** FLUX.1·2·3의 네이티브 리저널 생성과 로컬 마스크 디테일러를 지원합니다. 시험한 8종 모두 실제 2인 생성·같은 시드의 문장 교환·디테일러를 완료했습니다. 양자화 모델의 캐릭터별 LoRA 수정, 내장 가이던스, 이미지 설정 복원, FLUX 프리셋 8개와 모델별 예제를 포함합니다. [변경 내역](docs/release-0.2.2.md) · [검증 범위·한계](docs/flux-validation.md) · [FLUX 예제](examples/flux).
 
-**0.2.5 미음 · FLUX.1·2·3 · Anima · SDXL · Krea 2 · MOSS · SD1.5(실험 지원·불안정)**입니다. 공통 프롬프트와 캐릭터별 프롬프트·XY·상자를 전용 파이프로 전달하고, 로컬 모델 내부에서 영역별 attention을 조절합니다. RS NAI 확장이나 API 키는 필요 없습니다.
+**0.2.6 비읍 · FLUX.1·2·3 · Anima · SDXL · Krea 2 · MOSS · SD1.5(실험 지원·불안정)**입니다. 공통 프롬프트와 캐릭터별 프롬프트·XY·상자를 전용 파이프로 전달하고, 로컬 모델 내부에서 영역별 attention을 조절합니다. RS NAI 확장이나 API 키는 필요 없습니다.
 
 **기역 픽스:** 캐릭터·텍스트 입력부가 함께 보이던 문제를 고쳤습니다. 번호별 공용 STRING 하나를 사용하고, 종류를 바꿔도 연결선을 유지합니다. 예전 워크플로는 실제 글자 연결을 공용 입력으로 옮깁니다. [수정 내용·호환성](docs/release-0.2.1.md).
 

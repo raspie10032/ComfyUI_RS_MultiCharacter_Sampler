@@ -1,5 +1,7 @@
 # ComfyUI_RS_MultiCharacter_Sampler
 
+**0.2.6 Bieup（비읍・ピウプ）— LoRAバグ修正:** Krea 2 FP8・MOSS INT8のキャラクターLoRA `weight_scale` エラーを修正し、Krea2/Illustrious向けプリセットと再現例を追加しました。非量子化MOSSは従来の適用経路を維持します。[変更履歴](docs/release-0.2.6.md) · [9モデル構成の生成結果と制限](docs/character-lora-matrix-20261021.md)。
+
 **0.2.5 Mieum（미음）：画像参照は実験的に対応していますが、推奨しません。** 番号ごとのIMAGEを既存のPoint・Box・Mask領域に適用します。Anima・SD1.5・SDXL/Illustrious・FLUX.1/2/3・Krea 2・MOSSに対応。再現品質には差があり、SDXLの衣装再現・過彩度は課題です。利用可能ならキャラクターLoRAを推奨します。OFF・強度0では参照用モデルを取得・ロードしません。[使用法と制限](docs/image-reference.md) · [変更履歴](docs/release-0.2.5.md) · [実験レポート — Release添付、git clone対象外](https://github.com/raspie10032/ComfyUI_RS_MultiCharacter_Sampler/releases/tag/v0.2.5).
 
 **0.2.4 Rieul（리을・リウル）の変更:** **RS キャラクターマスク描画**で参照画像の上に番号別の領域を描くか、**RS キャラクターマスク**に外部MASKを接続します。Positionの配置図上で点・ボックス・マスクの番号を選び、ドラッグで移動、ボックスとマスクは拡縮できます。縦横比を保つ倍率・余白・元に戻す・選択配置のリセット・PNG/WebPのマスク復元に対応。元の形を残してキャンバス外だけ切り取ります。参照画像は表示専用で、マスクは領域を誘導し、ポーズや人数を保証しません。[使い方](docs/character-masks.md) · [例](examples/character-masks) · [変更点と検証範囲](docs/release-0.2.4.md)。
@@ -8,7 +10,7 @@
 
 **0.2.2 Nieun（니은・ニウン）の変更:** FLUX.1・2・3のネイティブ領域生成とローカルマスクディテーラーに対応しました。試験した8モデルすべてで2人生成・同じシードでの文章交換・ディテーラーを実行済みです。量子化モデルの領域別LoRA修正、内蔵ガイダンス、画像設定復元、FLUXプリセット8種とモデル別の例を含みます。[変更点](docs/release-0.2.2.md) · [検証範囲と制限](docs/flux-validation.md) · [FLUXの例](examples/flux)。
 
-**0.2.5 Mieum（미음・ミウム）· FLUX.1・2・3・Anima・SDXL・Krea 2・MOSS・SD1.5（実験対応・不安定）**。共通プロンプトと各キャラクターの文章・XY座標・矩形を専用パイプで渡し、領域ごとに attention を制御します。RS NAI 拡張や API キーは不要です。
+**0.2.6 Bieup（비읍・ピウプ）· FLUX.1・2・3・Anima・SDXL・Krea 2・MOSS・SD1.5（実験対応・不安定）**。共通プロンプトと各キャラクターの文章・XY座標・矩形を専用パイプで渡し、領域ごとに attention を制御します。RS NAI 拡張や API キーは不要です。
 
 **Giyeok Fix:** キャラクター用と文字用の入力が同時に表示される不具合を修正しました。各番号で共通のSTRINGを1つ使い、種類を切り替えても接続を保持します。旧ワークフローでは実際に描く文字の接続を共通入力へ移します。[修正内容・互換性](docs/release-0.2.1.md)。
 

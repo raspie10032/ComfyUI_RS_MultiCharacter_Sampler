@@ -438,5 +438,59 @@
       "boundary_decrement": 0.2,
       "flux_guidance": 3.5
     }
+  },
+  {
+    "id": "krea2_character_lora",
+    "label": {
+      "en": "Krea 2 Turbo — character LoRA",
+      "ko": "Krea 2 Turbo — 캐릭터 LoRA",
+      "ja": "Krea 2 Turbo — キャラクターLoRA"
+    },
+    "note": {
+      "en": "Tested at 768×512 with a Krea2 linear character LoRA, model strength 1 / CLIP 0. Load the matching LoRA separately. This changes sampling controls only.",
+      "ko": "768×512, Krea2 일반 선형 캐릭터 LoRA 모델 1 / CLIP 0 시험값입니다. LoRA는 별도로 선택해 주세요. 생성 설정만 적용합니다.",
+      "ja": "768×512、Krea2の通常線形LoRA、モデル1／CLIP 0での試験値です。LoRAは別途選択してください。生成設定のみを適用します。"
+    },
+    "source": "examples/character-lora/krea2.json",
+    "settings": {
+      "steps": 8,
+      "cfg": 1.0,
+      "sampler_name": "euler",
+      "scheduler": "simple",
+      "region_feather": 0.04,
+      "initial_common_prior": 0.6,
+      "common_after_step3_boost": 0.1,
+      "initial_character_gain": 1.7,
+      "initial_spatial_separation": 0.9,
+      "boundary_hold_steps": 3,
+      "boundary_decrement": 0.2
+    }
+  },
+  {
+    "id": "sdxl_character_lora",
+    "label": {
+      "en": "Illustrious — character LoRA",
+      "ko": "Illustrious — 캐릭터 LoRA",
+      "ja": "Illustrious — キャラクターLoRA"
+    },
+    "note": {
+      "en": "Tested at 1024×768 with the Phoebe LoRA, model strength 1 / CLIP 0. Strong separation can create visible seams; adjust for your prompt. LoRA loading is separate.",
+      "ko": "1024×768, Phoebe LoRA 모델 1 / CLIP 0 시험값입니다. 강한 분리로 경계가 보일 수 있으니 문장에 맞게 조절해 주세요. LoRA는 별도로 선택합니다.",
+      "ja": "1024×768、Phoebe LoRA、モデル1／CLIP 0での試験値です。強い分離で境界が見える場合は調整してください。LoRAは別途選択します。"
+    },
+    "source": "examples/character-lora/illustrious.json",
+    "settings": {
+      "steps": 24,
+      "cfg": 5.5,
+      "sampler_name": "euler_ancestral",
+      "scheduler": "normal",
+      "region_feather": 0.04,
+      "initial_common_prior": 0.05,
+      "common_after_step3_boost": 0.1,
+      "initial_character_gain": 1.7,
+      "initial_spatial_separation": 0.9,
+      "boundary_hold_steps": 3,
+      "boundary_decrement": 0.2
+    }
   }
 ]

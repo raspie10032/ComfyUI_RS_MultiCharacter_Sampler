@@ -203,9 +203,9 @@ class BypassTests(unittest.TestCase):
         self.layer.comfy_force_forward = True
         self.assertEqual(self.bypass.prepare_bypass(self.model,self.weights)[1], 'custom_or_quantized_layer')
 
-    def test_flux_fp8_bypass_changes_output_and_preserves_base_weight(self):
+    def test_flux_and_krea2_fp8_bypass_changes_output_and_preserves_base_weight(self):
         from comfy import model_base
-        for family in (model_base.Flux, model_base.Flux2, model_base.Flux3):
+        for family in (model_base.Flux, model_base.Flux2, model_base.Flux3, *([model_base.Krea2] if hasattr(model_base, "Krea2") else [])):
             base = family.__new__(family)
             torch.nn.Module.__init__(base)
             base.diffusion_model = copy.deepcopy(self.model.model.diffusion_model)
@@ -244,6 +244,49 @@ class BypassTests(unittest.TestCase):
         expected = before + F.linear(F.linear(self.x, self.down), self.up) * .5
         torch.testing.assert_close(self.run_plan(plan, 1., base.diffusion_model), expected)
         self.assertTrue(torch.equal(before, base.diffusion_model(self.x)))
+
+    def test_krea2_and_moss_native_int8_preserve_quantized_weight_and_output(self):
+        from comfy import model_base, ops
+        from comfy.quant_ops import QuantizedTensor
+        families = [getattr(model_base, name) for name in ("Krea2", "MOSSImage")
+                    if hasattr(model_base, name)]
+        if not families:
+            self.skipTest("This core predates Krea2 and MOSS")
+        for family in families:
+            with self.subTest(family=family.__name__):
+                base = family.__new__(family)
+                torch.nn.Module.__init__(base)
+                layer = ops.mixed_precision_ops({}, compute_dtype=torch.float32).Linear(8, 8)
+                layer.bias = torch.nn.Parameter(self.layer.bias.detach().clone())
+                base.diffusion_model = torch.nn.Sequential(layer)
+                quantized = QuantizedTensor.from_float(self.layer.weight.detach(), 'TensorWiseINT8Layout')
+                layer.weight = torch.nn.Parameter(quantized, requires_grad=False)
+                model = SimpleNamespace(model=base)
+                original_weight = layer.weight
+                self.assertFalse(hasattr(layer, 'weight_scale'))
+                self.assertTrue(self.bypass.requires_quantized_bypass(model))
+                plan, reason = self.bypass.prepare_bypass(model, self.weights)
+                self.assertEqual(reason, 'plain_linear_lora')
+                before = base.diffusion_model(self.x)
+                expected = before + F.linear(F.linear(self.x, self.down), self.up) * .5
+                torch.testing.assert_close(self.run_plan(plan, 1., base.diffusion_model), expected)
+                self.assertIs(layer.weight, original_weight)
+                self.assertTrue(torch.equal(before, base.diffusion_model(self.x)))
+                # Unsupported patches must fail validation before hook injection.
+                invalid = {**self.weights, 'diffusion_model.0.bias': ('diff', (torch.ones(8),))}
+                self.assertEqual(self.bypass.prepare_bypass(model, invalid), (None, 'patch_type'))
+                self.assertNotIn('forward', layer.__dict__)
+
+    def test_full_precision_moss_keeps_existing_weight_hook_path(self):
+        from comfy import model_base
+        if not hasattr(model_base, "MOSSImage"):
+            self.skipTest("This core predates MOSS")
+        base = model_base.MOSSImage.__new__(model_base.MOSSImage)
+        torch.nn.Module.__init__(base)
+        base.diffusion_model = copy.deepcopy(self.model.model.diffusion_model)
+        model = SimpleNamespace(model=base)
+        self.assertFalse(self.bypass.requires_quantized_bypass(model))
+        self.assertEqual(self.bypass.prepare_bypass(model, self.weights), (None, 'model_family'))
 
     def test_flux_lora_surrounds_early_text_refinement(self):
         from comfy import model_base
