@@ -28,7 +28,8 @@ class PackageTests(unittest.TestCase):
 
     def test_independent_nodes_and_legacy_schema(self):
         self.assertIn("RSMultiCharacterMask", pkg.NODE_CLASS_MAPPINGS)
-        self.assertEqual(len(pkg.NODE_CLASS_MAPPINGS), 12)
+        self.assertIn("RSMultiCharacterReference", pkg.NODE_CLASS_MAPPINGS)
+        self.assertEqual(len(pkg.NODE_CLASS_MAPPINGS), 13)
         self.assertFalse(any("NAI_API" in key for key in sys.modules))
         self.assertEqual(len(c.RSMultiCharacterPrompts.INPUT_TYPES()["required"]), 51)
 

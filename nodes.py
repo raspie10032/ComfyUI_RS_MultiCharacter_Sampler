@@ -168,6 +168,8 @@ class RSMultiCharacterSampler:
             raise ValueError("Choose valid prompt text and syntax.")
         pipe = CharacterPipe(character_pipe.characters, prompt, negative_prompt, prompt_syntax,
                              text_regions=character_pipe.text_regions, lora_application_mode=lora_application_mode)
+        from .image_reference import prepare_model_references
+        model = prepare_model_references(model, clip, vae, pipe, family, layout_method, unique_id)
         centers, moved = effective_centers(pipe.regions)
         geometry = tuple(explicit_region(c) for c in pipe.regions)
         boxes = geometry if any(geometry) else False
@@ -182,13 +184,24 @@ class RSMultiCharacterSampler:
         if native_prompt is not None and loras is not None and any(c is not clip for c in loras.clips):
             raise ValueError("MOSS native layout uses one text encoding. Use regional layout for per-character CLIP LoRA, or set each CLIP strength to zero.")
 
-        def encode(text, converted=False, encoder=None):
+        def encode(text, converted=False, encoder=None, reference_slot=None):
             comfy.model_management.throw_exception_if_processing_interrupted()
             encoder = clip if encoder is None else encoder
-            result = encoder.encode_from_tokens_scheduled(encoder.tokenize(text if converted else convert(text)))
+            caption=text if converted else convert(text)
+            ref=next((r for r in model.model_options.get('rs_native_reference',[]) if r['slot']==reference_slot),None) if family=='Krea2' else None
+            if ref is not None:
+                px=ref['pixels']
+                template="<|im_start|>system\nDescribe the image by detailing the color, shape, size, texture, quantity, text, spatial relationships of the objects and background:<|im_end|>\n<|im_start|>user\n<|vision_start|><|image_pad|><|vision_end|>{}<|im_end|>\n<|im_start|>assistant\n"
+                tokens=encoder.tokenize(caption,images=[px],llama_template=template)
+            else:tokens=encoder.tokenize(caption)
+            result = encoder.encode_from_tokens_scheduled(tokens)
             if len(result) != 1:
                 raise ValueError("Scheduled text is unsupported in this beta.")
             t, meta = result[0]
+            redux=next((r for r in model.model_options.get('rs_redux_reference',[]) if r['slot']==reference_slot),None)
+            if redux is not None:
+                if family!='FLUX1':raise ValueError('Redux reference requires FLUX.1.')
+                t=torch.cat((t,redux['conditioning'].to(t)),dim=1)
             if family == "Anima" and "t5xxl_ids" not in meta:
                 raise ValueError("Connect Anima's matching text encoder.")
             if family == "SD1.5" and (t.ndim != 3 or t.shape[0] != 1 or t.shape[-1] != 768):
@@ -217,7 +230,7 @@ class RSMultiCharacterSampler:
 
         positive, negative = encode(native_prompt if native_prompt is not None else prompt), encode(negative_prompt)
         conditions = [encode(text_region_caption(c, convert, family not in ("Krea2", "MOSS", "FLUX1", "FLUX2", "FLUX3")), converted=True)[0]
-                      if isinstance(c, TextRegion) else encode(c.prompt, encoder=loras.clips[i] if loras else clip)[0]
+                      if isinstance(c, TextRegion) else encode(c.prompt, encoder=loras.clips[i] if loras else clip, reference_slot=i)[0]
                       for i, c in enumerate(pipe.regions)] if native_prompt is None else []
         audit = {"layout_method": layout_method,
                  "region_geometry": "masks" if all(c.region_mask is not None for c in pipe.regions) else
@@ -254,6 +267,13 @@ class RSMultiCharacterSampler:
             from .joint_engine import JointRouting
             routing = JointRouting(family, conditions, masks, settings, audit, boxes=boxes)
             routing.install(work)
+        reference_plan = model.model_options.get("rs_image_reference")
+        if reference_plan is not None:
+            if family != "Anima":
+                raise ValueError("Anima reference plan cannot be used with another model family.")
+            from .anima_reference import AnimaReferenceRuntime
+            reference_runtime = AnimaReferenceRuntime(reference_plan, masks, boxes, audit)
+            work.add_wrapper_with_key(WrappersMP.DIFFUSION_MODEL, "rs_image_reference", reference_runtime.forward)
         if loras is not None:
             positive, negative = loras.condition_pair(work, positive, negative, masks, pipe.regions,
                                                      mode=lora_application_mode)
@@ -289,6 +309,8 @@ class RSMultiCharacterSampler:
         execution = audit["lora_application"]
         ui["text"].append(f"Character LoRA: {execution['requested']} → {execution['effective']}"
                           + (f" ({execution['fallback_reason']})" if execution["fallback_reason"] else ""))
+        if any(c.reference is not None and c.reference.strength > 0 for c in pipe.characters):
+            ui["text"].append("Experimental image reference: supported, not recommended. / 이미지 참조: 실험적 지원, 권장하지 않음. / 画像参照: 実験的対応・非推奨。")
         if autosave:
             folder, filename, counter, subfolder, _ = folder_paths.get_save_image_path(
                 "RS_MultiCharacter/RS_MC", folder_paths.get_output_directory(), settings["width"], settings["height"])

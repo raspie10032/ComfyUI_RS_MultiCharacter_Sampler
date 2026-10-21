@@ -3,3 +3,7 @@
 tests/
 .gitignore
 .comfyignore
+
+# Experiment images and full reports are uploaded as GitHub Release assets.
+experiment-reports/
+release-assets/

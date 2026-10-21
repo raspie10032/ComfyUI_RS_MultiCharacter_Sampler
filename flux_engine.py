@@ -74,6 +74,9 @@ class FluxRouting(JointRouting):
 
     def install(self, work):
         from comfy.patcher_extension import WrappersMP
+        from .native_reference import attach_native_references
+        attach_native_references(self, work)
+        self.redux_references=work.model_options.get('rs_redux_reference',[])
         options = work.model_options['transformer_options']
         if options.get('optimized_attention_override'):
             raise ValueError('Disconnect other attention overrides before regional sampling.')
@@ -115,8 +118,11 @@ class FluxRouting(JointRouting):
             batch = options['rs_mc_batch']
             def sliced(value):
                 return value[batch:batch+1] if isinstance(value, torch.Tensor) and value.shape[0] == x.shape[0] else value
+            refs = [r.to(xb) for r in self.reference_latents] if options['cond_or_uncond'] == [0] else []
+            self.reference_lengths = [((r.shape[-2]+patch-1)//patch)*((r.shape[-1]+patch-1)//patch) for r in refs]
+            self.reference_audit['reference_lengths'] = self.reference_lengths
             return executor(xb, tb, cb, y=sliced(y), guidance=sliced(guidance),
-                            transformer_options=options, **kwargs)
+                            ref_latents=refs or None, transformer_options=options, **kwargs)
         # FLUX.2 pads short encodes to 512 before native inference.
         previous = self.conditions
         if self.family == 'FLUX2':
@@ -154,8 +160,19 @@ class FluxRouting(JointRouting):
         previous = self.conditions
         self.conditions = [(refine(c, index), meta) for index, (c, meta) in enumerate(previous)]
         def invoke(xb, tb, cb, branch_options):
+            refs = [r.to(xb) for r in self.reference_latents] if branch_options['cond_or_uncond'] == [0] else []
+            states = None
+            if refs:
+                cache_key = ('refs', str(xb.device), str(xb.dtype))
+                if not dm.flow_map and cache_key in self.text_cache:
+                    states = self.text_cache[cache_key]
+                else:
+                    _, states = dm.preprocess_conds(context[:1].to(xb), refs, vec_target=target, transformer_options=branch_options)
+                    if not dm.flow_map: self.text_cache[cache_key] = states
+            self.reference_lengths = [r.shape[-2]*r.shape[-1] for r in refs]
+            self.reference_audit['reference_lengths'] = self.reference_lengths
             return executor(xb, tb, context=None, transformer_options=branch_options,
-                            txt_states=cb, **kwargs)
+                            txt_states=cb, ref_states=states, ref_shapes=[r.shape[-2:] for r in refs] or None, **kwargs)
         try:
             return self.forward(invoke, x, timestep, common, options, x.shape[-2:])
         finally:
@@ -167,5 +184,8 @@ class FluxRouting(JointRouting):
                 # Early image blocks have no text; native self-attention applies.
                 return original(q, k, v, heads, mask=mask, **kwargs)
             q, k = [reset_flux3_positions(t, heads, self.state['lengths'],
-                                          self.state['image_tokens'], kwargs.get('skip_reshape', False)) for t in (q, k)]
+                                          self.state['image_tokens']+sum(self.reference_lengths), kwargs.get('skip_reshape', False)) for t in (q, k)]
+        if self.state is not None and self.reference_lengths and 'block_index' in kwargs.get('transformer_options', {}):
+            from .native_reference import reference_joint
+            return reference_joint(self, original, q, k, v, heads, mask=mask, **kwargs)
         return super().attention(original, q, k, v, heads, mask=mask, **kwargs)

@@ -83,6 +83,16 @@ const tips = {
 };
 
 export function fieldHelp(type, name, locale = "en") {
+    if (type === "RSMultiCharacterReference") {
+        const reference = {
+            character_id: ["Character Prompt number; shares its point, box or mask.", "프롬프트의 번호와 맞추세요. 같은 포인트·박스·마스크를 씁니다.", "Promptと同じ番号に指定。同じPoint・Box・Maskを使います。"],
+            image: ["One reference image; experimental and not recommended.", "참조 이미지 한 장. 실험적 지원이며 권장하지 않습니다.", "参照画像1枚。実験的対応・非推奨です。"],
+            enabled: ["OFF removes this number's reference; its mask and prompt remain.", "끄면 이 번호의 참조만 제거합니다. 마스크·프롬프트는 유지합니다.", "OFFでこの番号の画像参照だけを解除。Mask・Promptは維持します。"],
+            resolution: ["Longest edge, 64–1024 in 64px steps. Keeps aspect ratio; encoders may use a fixed grid.", "긴 변 64~1024px, 64px 단위. 비율을 유지하며 인코더에 따라 고정 크기로 처리합니다.", "長辺64～1024px、64px単位。比率を維持し、Encoderにより固定サイズで処理します。"],
+            strength: ["Image influence, 0–2. Zero skips reference models; stronger can distort color or layout.", "참조 영향 0~2. 0은 참조 처리를 생략합니다. 높이면 색·구도가 왜곡될 수 있습니다.", "参照の影響0～2。0で処理を省略。高すぎると色・構図が崩れる場合があります。"],
+        }[name];
+        if (reference) return reference[locale.startsWith("ko") ? 1 : locale.startsWith("ja") ? 2 : 0];
+    }
     let key = name;
     const slot = /^character\d+(?:_(.*))?$/.exec(name);
     if (slot) key = slot[1] ?? "character";

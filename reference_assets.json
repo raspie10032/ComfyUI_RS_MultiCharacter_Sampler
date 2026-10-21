@@ -1,0 +1,90 @@
+{
+  "anima_adapter": {
+    "repo": "LuciferTC/Anima-IP-Adapter",
+    "revision": "99e9c351c9f00bdd188b5added0066a80d3b1de6",
+    "file": "ip_adapter-Character_Reference-10.safetensors",
+    "folder": "ipadapter",
+    "subdir": "anima_adapter",
+    "sha256": "dc9612cc28b55f00ba39f6169bfe4871130be028a55682ab54dd51360acb8232"
+  },
+  "anima_config": {
+    "repo": "google/siglip2-base-patch16-512",
+    "revision": "a89f5c5093f902bf39d3cd4d81d2c09867f0724b",
+    "file": "config.json",
+    "folder": "siglip2",
+    "subdir": "siglip2-base-patch16-512",
+    "sha256": "a15bc39fbcd92498dea6d5d3cb2b0d8b9ba389d6a3f2b565ea66128a2d141934"
+  },
+  "anima_preprocessor_config": {
+    "repo": "google/siglip2-base-patch16-512",
+    "revision": "a89f5c5093f902bf39d3cd4d81d2c09867f0724b",
+    "file": "preprocessor_config.json",
+    "folder": "siglip2",
+    "subdir": "siglip2-base-patch16-512",
+    "sha256": "63ff380d3e424f93e6fbca5cc8e74eeed882e96fd6be2b7728aed308f3ad1513"
+  },
+  "anima_model": {
+    "repo": "google/siglip2-base-patch16-512",
+    "revision": "a89f5c5093f902bf39d3cd4d81d2c09867f0724b",
+    "file": "model.safetensors",
+    "folder": "siglip2",
+    "subdir": "siglip2-base-patch16-512",
+    "sha256": "fe0e601c625e69eed8e73500d39e9b6164403fe03db8048e87913c3cefbbb3fe"
+  },
+  "sd_encoder": {
+    "repo": "h94/IP-Adapter",
+    "revision": "018e402774aeeddd60609b4ecdb7e298259dc729",
+    "file": "models/image_encoder/model.safetensors",
+    "folder": "clip_vision",
+    "subdir": "sd_encoder",
+    "sha256": "6ca9667da1ca9e0b0f75e46bb030f7e011f44f86cbfb8d5a36590fcd7507b030"
+  },
+  "sd15_adapter": {
+    "repo": "h94/IP-Adapter",
+    "revision": "018e402774aeeddd60609b4ecdb7e298259dc729",
+    "file": "models/ip-adapter-plus_sd15.safetensors",
+    "folder": "ipadapter",
+    "subdir": "sd15_adapter",
+    "sha256": "a1c250be40455cc61a43da1201ec3f1edaea71214865fb47f57927e06cbe4996"
+  },
+  "sdxl_adapter": {
+    "repo": "h94/IP-Adapter",
+    "revision": "018e402774aeeddd60609b4ecdb7e298259dc729",
+    "file": "sdxl_models/ip-adapter-plus_sdxl_vit-h.safetensors",
+    "folder": "ipadapter",
+    "subdir": "sdxl_adapter",
+    "sha256": "3f5062b8400c94b7159665b21ba5c62acdcd7682262743d7f2aefedef00e6581"
+  },
+  "krea_edit": {
+    "repo": "conradlocke/krea2-identity-edit",
+    "revision": "f33b26291c640e8ec50b0da420bfee3c9a660daa",
+    "file": "krea2_identity_edit_v1_2_r64.safetensors",
+    "folder": "ipadapter",
+    "subdir": "krea_edit",
+    "sha256": "f794b47142555c929cf536a2f1e4f335174b9aedbb08572b07d45814d4242423"
+  },
+  "moss_edit": {
+    "repo": "thearkorbit/moss-image-edit-lora-poc",
+    "revision": "4fd0283e1b05b67e4d5de273994a13e46219b7df",
+    "file": "moss_edit_lora_poc.safetensors",
+    "folder": "ipadapter",
+    "subdir": "moss_edit",
+    "sha256": "6f6dd51e0df2a8756726e7db798c87b4389402cbce49213777f4cfe725c6458c"
+  },
+  "redux": {
+    "repo": "Comfy-Org/flux1-redux-dev",
+    "revision": "2cf75771548d13ba8d2b35fd41a43a8e1cd8e8ae",
+    "file": "flux1-redux-dev.safetensors",
+    "folder": "style_models",
+    "subdir": "redux",
+    "sha256": null
+  },
+  "redux_encoder": {
+    "repo": "google/siglip-so400m-patch14-384",
+    "revision": "9fdffc58afc957d1a03a25b10dba0329ab15c2a3",
+    "file": "model.safetensors",
+    "folder": "clip_vision",
+    "subdir": "redux_encoder",
+    "sha256": null
+  }
+}

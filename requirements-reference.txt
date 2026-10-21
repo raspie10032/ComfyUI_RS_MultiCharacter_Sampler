@@ -1,0 +1,5 @@
+# Optional: only for the experimental image-reference node.
+transformers>=4.50,<6
+huggingface-hub>=1.1,<2
+safetensors>=0.4
+einops>=0.8

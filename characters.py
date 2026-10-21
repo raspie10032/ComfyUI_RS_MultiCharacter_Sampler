@@ -26,6 +26,8 @@ class Character:
     lora_clip_strength: float = field(default=1., kw_only=True)
     region_mask: RegionMask | None = field(default=None, kw_only=True)
 
+    reference: object = field(default=None, kw_only=True, repr=False, compare=False)
+
     def __post_init__(self):
         if self.region_mask is not None and not isinstance(self.region_mask, RegionMask):
             raise ValueError("Invalid character region mask.")

@@ -980,5 +980,34 @@
         "name": "building_pipe"
       }
     }
+  },
+  "RSMultiCharacterReference": {
+    "display_name": "RS 캐릭터 이미지 참조 · 실험적",
+    "description": "실험적 지원 · 권장하지 않음. 번호별 이미지 한 장을 연결하고 파이프 완성 후 생성하세요. 모델마다 재현 품질이 다르므로 캐릭터 LoRA를 우선 권장합니다. 저장 메타데이터에 참조 이미지는 포함되지 않습니다. 디테일러에는 적용하지 않습니다.",
+    "inputs": {
+      "image": {
+        "name": "참조 이미지"
+      },
+      "character_id": {
+        "name": "캐릭터 번호"
+      },
+      "resolution": {
+        "name": "참조 해상도"
+      },
+      "strength": {
+        "name": "참조 강도"
+      },
+      "enabled": {
+        "name": "참조 사용"
+      },
+      "building_pipe": {
+        "name": "조립 파이프"
+      }
+    },
+    "outputs": {
+      "building_pipe": {
+        "name": "조립 파이프"
+      }
+    }
   }
 }

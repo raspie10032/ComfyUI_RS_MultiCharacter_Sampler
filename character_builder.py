@@ -1,6 +1,6 @@
 # SPDX-License-Identifier: GPL-3.0-only
 """Order-independent, immutable editing of numbered character slots."""
-from dataclasses import dataclass, replace
+from dataclasses import dataclass, field, replace
 
 from .characters import Character, CharacterPipe, TextRegion, PIPE_TYPE, LORA_MODES, validate_lora_mode
 from .region_mask import RegionMask, prepare_mask, place_mask
@@ -28,6 +28,7 @@ class Slot:
     strength_clip: float = 1.
     region_mask: RegionMask | None = None
     mask_transform: tuple = (0., 0., 1.)
+    reference: object = field(default=None, repr=False, compare=False)
 
 
 @dataclass(frozen=True)
@@ -77,6 +78,8 @@ def finalize(pipe):
                   lora_strength=s.strength_model, lora_clip_strength=s.strength_clip)
         box = slot_box(s) if s.region_mask is None else None
         if s.kind == "text":
+            if s.reference is not None and s.reference.strength > 0:
+                raise ValueError("Image references apply to character slots only. / 이미지 참조는 캐릭터 슬롯에만 적용됩니다. / 画像参照はキャラクター専用です。")
             if s.region_mask is not None:
                 raise ValueError(f"Slot {s.number}: text uses a box; disable its Character Mask. / 글자 슬롯의 캐릭터 마스크를 꺼 주세요. / 文字スロットのマスクを無効にしてください。")
             if s.geometry != "box":
@@ -89,7 +92,7 @@ def finalize(pipe):
             x, y = region.center if region is not None else (s.x, s.y)
             chars.append(Character(s.prompt, "", x, y, box, lora_name=s.lora_name,
                                    lora_strength=s.strength_model, lora_clip_strength=s.strength_clip,
-                                   region_mask=region))
+                                   region_mask=region, reference=s.reference))
     if not chars and not texts:
         raise ValueError("Enable at least one nonempty prompt. / 최소 한 개의 프롬프트를 켜 주세요. / 少なくとも1つのプロンプトを有効にしてください。")
     return CharacterPipe(tuple(chars), text_regions=tuple(texts), lora_application_mode=pipe.lora_application_mode)

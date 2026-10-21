@@ -1,7 +1,7 @@
 [project]
 name = "comfyui-rs-multicharacter-sampler"
-version = "0.2.4"
-description = "Rieul: draw numbered character masks over a reference image and edit point, box and silhouette regions with drag, resize and placement previews. Modular regional generation and detailing, per-character LoRA modes and PNG/WebP settings restoration for Anima, SDXL, Krea 2, MOSS and FLUX.1/2/3. SD1.5 is experimental and unstable."
+version = "0.2.5"
+description = "Mieum: optional experimental per-character image references, supported but not recommended. Modular regional generation and detailing, draggable point/box/mask placement, per-character LoRA and PNG/WebP settings for Anima, SDXL, Krea 2, MOSS and FLUX.1/2/3. SD1.5 is experimental and unstable."
 readme = "README.md"
 license = {file = "LICENSE"}
 requires-python = ">=3.11"
@@ -10,6 +10,7 @@ classifiers = ["Development Status :: 4 - Beta"]
 
 [project.optional-dependencies]
 detailer = ["opencv-python>=4.8", "scipy>=1.11", "timm>=1.0.3,<2", "huggingface-hub>=1.1,<2", "safetensors>=0.4"]
+reference = ["einops>=0.8", "transformers>=4.50,<6", "huggingface-hub>=1.1,<2", "safetensors>=0.4"]
 
 [project.urls]
 Repository = "https://github.com/raspie10032/ComfyUI_RS_MultiCharacter_Sampler"
@@ -18,4 +19,4 @@ Documentation = "https://github.com/raspie10032/ComfyUI_RS_MultiCharacter_Sample
 
 [tool.comfy]
 PublisherId = "raspie10032"
-DisplayName = "RS MultiCharacter Sampler (Rieul)"
+DisplayName = "RS MultiCharacter Sampler (Mieum)"
