@@ -1,152 +1,133 @@
-# ComfyUI_RS_MultiCharacter_Sampler
+# RS MultiCharacter Sampler
 
-**1.0.2 한글 — 어댑터 호환성 개선:** MOSS INT8·FP8의 Q/K/V 부분 적용 LoRA 오류를 수정하고 DoRA·LoHa·LoKr·GLoRA·OFT·BOFT·합성곱 LoRA·IA³의 캐릭터별 적용을 추가했습니다. [지원 형식·수치 검증·한계](docs/adapter-formats.md).
+ComfyUI에서 캐릭터별 프롬프트·LoRA·영역을 지정해 생성하고, 인물을 감지해 부분 보정하는 확장입니다. 좌표·박스·마스크로 각 캐릭터의 외형을 적용할 위치를 유도합니다.
 
-**1.0.1 한글 (Hangeul):** 컬러 OpenPose PNG 기반 인물 마스크 자동 생성(JSON/POSE_KEYPOINT도 지원)·굵기 조절과 겹침 제어 프리셋을 추가했습니다. 부위 이름 유도는 **뼈대의 부위 이름을 기반으로 하는 아주 약한 어텐션 유도 기능**이며 기본은 끄기입니다. 뼈대 자체를 모델에 넣지 않습니다. [사용법·한계](docs/openpose-mask-guides.md) · [변경 내역·검증](docs/release-1.0.0.md).
+[English](README.md) · [日本語](README.ja.md) · [문서 모음](docs/README.md) · [변경 기록](CHANGELOG.md) · [릴리스](https://github.com/raspie10032/ComfyUI_RS_MultiCharacter_Sampler/releases)
 
-**0.2.6 비읍 — LoRA 버그 수정:** Krea 2 FP8·MOSS INT8의 캐릭터 LoRA `weight_scale` 오류를 수정하고 Krea2/Illustrious 캐릭터 LoRA 프리셋과 재현 예제를 추가했습니다. 비양자화 MOSS는 기존 적용 경로를 유지합니다. [변경 내역](docs/release-0.2.6.md) · [9개 모델 조합의 실제 생성과 한계](docs/character-lora-matrix-20261021.md).
+**현재 버전: [1.0.2 한글](docs/release-1.0.2.md).** 로컬 모델로 실행하며 RS NovelAI 확장이나 API 키가 필요하지 않습니다.
 
-**0.2.5 미음: 이미지 참조는 실험적으로 지원하지만 권장하지 않습니다.** 캐릭터 번호별 IMAGE를 기존 포인트·박스·마스크 영역에 적용합니다. Anima·SD1.5·SDXL/Illustrious·FLUX.1/2/3·Krea 2·MOSS를 지원하지만 재현 품질은 모델마다 다르며 SDXL은 의상 재현·과채도가 약점입니다. 가능하면 캐릭터 LoRA를 사용하세요. OFF·강도 0에서는 참조 모델을 받거나 읽지 않습니다. [사용법·한계](docs/image-reference.md) · [변경 내역](docs/release-0.2.5.md) · [실험 보고서 — Release 첨부, git clone 제외](https://github.com/raspie10032/ComfyUI_RS_MultiCharacter_Sampler/releases/tag/v0.2.5).
+![LoRA 없이 생성한 Anima 2인 예제](examples/two-characters-result.png)
 
-**0.2.4 리을 변경 사항:** **RS 캐릭터 마스크 그리기**에서 참조 이미지 위에 번호별 영역을 칠하거나 **RS 캐릭터 마스크**에 외부 MASK를 연결합니다. 위치 노드의 배치도 위에서 포인트·박스·마스크 번호를 선택해 드래그로 이동하고 박스·마스크 크기를 조절하세요. 마스크 비율 확대·여유 폭·되돌리기·선택 배치 초기화·PNG/WebP 마스크 복원을 지원합니다. 캔버스 밖의 마스크만 자르고 원래 모양은 보존합니다. 참조 이미지는 밑그림으로만 쓰며, 마스크는 자세·인원수를 보장하지 않는 영역 유도입니다. [사용법](docs/character-masks.md) · [예제](examples/character-masks) · [변경 내역·검증 범위](docs/release-0.2.4.md).
+## 주요 기능
 
-**0.2.3 디귿 변경 사항:** 캐릭터 LoRA 노드에서 일반/정밀 적용을 선택합니다. 일반은 지원되는 Anima·SDXL 선형 LoRA의 레이어 계산을 공유하고, 정밀은 설정별 독립 계산과 지원되는 작은 행렬 최적화를 사용합니다. 노드별 선택 설명창과 2초 마우스오버 설명을 한국어·일본어·영어로 제공합니다. [변경 내역](docs/release-0.2.3.md) · [비교 결과·한계](docs/shared-lora-experiment.md).
+- 공통 장면과 캐릭터별 문장을 분리하고, **캐릭터·글자 합계 최대 10영역**을 설정합니다.
+- 캐릭터별 LoRA를 선택하고 좌표·박스·외부 마스크·번호별 마스크 그리기로 배치합니다.
+- 컬러 OpenPose PNG·JSON·`POSE_KEYPOINT`에서 편집 가능한 인물 마스크를 만듭니다.
+- 원래 캐릭터 프롬프트와 해당 LoRA로 감지된 인물을 부분 보정합니다.
+- PNG/WebP에 생성 정보를 저장하고 이미지 로더로 복원합니다.
 
-**0.2.2 니은 변경 사항:** FLUX.1·2·3의 네이티브 리저널 생성과 로컬 마스크 디테일러를 지원합니다. 시험한 8종 모두 실제 2인 생성·같은 시드의 문장 교환·디테일러를 완료했습니다. 양자화 모델의 캐릭터별 LoRA 수정, 내장 가이던스, 이미지 설정 복원, FLUX 프리셋 8개와 모델별 예제를 포함합니다. [변경 내역](docs/release-0.2.2.md) · [검증 범위·한계](docs/flux-validation.md) · [FLUX 예제](examples/flux).
+좌표와 마스크는 프롬프트를 적용할 영역을 유도합니다. 정확한 인원수·정체성·자세·철자는 모델에 따라 달라집니다. [캐릭터 이미지 참조](docs/image-reference.md)도 **실험적으로 지원하지만 권장하지 않습니다.** 맞는 캐릭터 LoRA가 있다면 우선 사용하세요.
 
-**1.0.2 한글 · FLUX.1·2·3 · Anima · SDXL · Krea 2 · MOSS · SD1.5(실험 지원·불안정)**입니다. 공통 프롬프트와 캐릭터별 프롬프트·XY·상자를 전용 파이프로 전달하고, 로컬 모델 내부에서 영역별 attention을 조절합니다. RS NAI 확장이나 API 키는 필요 없습니다.
+## 설치와 업데이트
 
-**기역 픽스:** 캐릭터·텍스트 입력부가 함께 보이던 문제를 고쳤습니다. 번호별 공용 STRING 하나를 사용하고, 종류를 바꿔도 연결선을 유지합니다. 예전 워크플로는 실제 글자 연결을 공용 입력으로 옮깁니다. [수정 내용·호환성](docs/release-0.2.1.md).
+ComfyUI-Manager에서 **RS MultiCharacter Sampler**를 검색하거나 [Comfy Registry](https://registry.comfy.org/publishers/raspie10032/nodes/comfyui-rs-multicharacter-sampler)에서 설치하세요. 패키지 ID는 `comfyui-rs-multicharacter-sampler`입니다.
 
-**기역 변경 사항:** 캐릭터 프롬프트·캐릭터 LoRA·캐릭터 위치·최종 캐릭터 파이프로 노드를 분리했습니다. 각 역할에서 여러 캐릭터 설정을 동시에 보고, 세 역할은 원하는 순서로 연결합니다. 긍정 프롬프트는 STRING 연결로 받고 개별 UC 입력은 없앴습니다. 위치·최종 파이프에는 예상 배치도를 표시합니다. [변경 내역·검증 범위](docs/release-0.2.0.md) · [사용법](docs/modular-characters.md).
+Git 설치는 **`ComfyUI/custom_nodes` 안에서** 실행합니다.
 
-각 번호는 **STRING 하나**를 받으며, 종류에 따라 캐릭터 프롬프트 또는 실제로 그릴 글자로 사용합니다. 종류를 바꿔도 연결선은 유지됩니다.
+```sh
+git clone https://github.com/raspie10032/ComfyUI_RS_MultiCharacter_Sampler.git
+```
 
-**제타 픽스:** ComfyUI의 동적 VRAM 모드에서 Anima 캐릭터 LoRA가 실제 생성 모델에 적용되지 않던 오류를 수정했습니다. 업데이트 후 ComfyUI를 재시작하면 기존 LoRA 선택과 강도를 그대로 사용할 수 있습니다. [수정 내용·이미지 비교·검증 범위](docs/release-0.1.7.md).
+Manager로 업데이트하거나 기존 Git 설치 폴더에서 `git pull --ff-only`를 실행하세요. 설치·업데이트 후 **ComfyUI를 재시작하고 브라우저를 새로고침**합니다. 같은 확장을 중복 설치하지 마세요.
 
-**제타 변경 사항:** 캐릭터마다 LoRA 파일과 모델·CLIP 강도를 선택합니다. 샘플러는 ComfyUI 기본 Hook으로 영역별 예측을 합치고, 디테일러는 매칭된 캐릭터의 LoRA를 사용합니다. [사용법·계산 비용·한계](docs/regional-lora.md).
+Python **3.11 이상**과 Torch·NumPy·Pillow가 필요합니다. ComfyUI 자체가 선택한 모델을 지원해야 하며, 확산 모델·맞는 텍스트 인코더·VAE는 직접 준비합니다. Load CLIP에 `krea2`나 `moss_image`가 없으면 코어와 Python 환경부터 업데이트하세요. [호환성·시험 버전](docs/compatibility.md)
 
-**LoRA 적용 모드:** **일반 적용**은 지원되는 Anima·SDXL 선형 LoRA의 레이어 계산을 공유합니다. **정밀 적용**은 LoRA 설정별 모델 계산을 분리하면서 지원되는 작은 행렬 최적화를 사용합니다. 기존 동작 호환을 위해 기본값은 정밀이며, 그림 품질을 보장하는 이름은 아닙니다. 일반은 캐릭터 세부가 달라질 수 있고 미지원 모델·LoRA는 이유를 표시하고 정밀로 처리합니다. [모드·비교 결과·한계](docs/shared-lora-experiment.md).
+선택 기능은 추가 설치가 필요합니다.
 
-[0.1.6 변경 내역과 검증 범위](docs/release-0.1.6.md).
+| 기능 | 준비 |
+| --- | --- |
+| 로컬 디테일러 | Manager에서 **ComfyUI-Impact-Pack**·**ComfyUI-Impact-Subpack**을 설치하고 ComfyUI의 Python으로 `requirements-detailer.txt`를 설치합니다. SAM은 선택 사항입니다. 선택한 감지·태거 카탈로그 모델이 없으면 실행할 때 내려받습니다. |
+| 이미지 참조 · 실험적 | ComfyUI의 Python으로 `requirements-reference.txt`를 설치합니다. 활성 참조로 생성할 때 추가 모델을 받을 수 있으며 OFF·강도 0에서는 읽지 않습니다. [방식과 한계](docs/image-reference.md) |
 
-**엡실론 변경 사항:** 좌표·상자 혼합 배치, 글자 영역, 편집 가능한 모델 계열 프리셋 8개, MOSS 공식 배치 모드, Anima·Krea 2의 2인+물체 예제를 제공합니다. [변경 내역과 검증 범위](docs/release-0.1.5.md)
+## 예제로 시작하기
 
-**엡실론 배치:** 캐릭터 2명은 좌표로, `HELLO`는 위쪽 상자로 지정할 수 있습니다. [설정 방법과 한계](docs/regional-layout.md).
+[역할별 Anima 2인 워크플로](examples/modular/two-characters-anima.json)를 불러오거나 아래 표에서 모델에 맞는 예제를 고르세요. UI에서는 일반 JSON을 사용하며 `-api.json` 파일은 API용입니다. [워크플로 원본 PNG](examples/two-characters-workflow.png)를 캔버스로 끌어다 놓아도 됩니다.
 
-**Anima·Illustrious XL·Krea 2 Turbo·실험적 SD1.5용 혼합 예제**에 모델별 강도와 문장을 적용했습니다. Anima의 초기 예제에서 빠졌던 캠퍼스 배경과 잘린 제목을 개선했습니다. [설정 비교·실제 결과·한계](docs/mixed-layout-tuning.md). 철자와 인원수는 모델에 따라 흔들릴 수 있으며, 기존 워크플로의 설정을 자동으로 바꾸지는 않습니다.
+1. 로더에서 설치된 **MODEL·CLIP·VAE**를 선택합니다. Anima 예제의 Load CLIP 타입은 `stable_diffusion`입니다.
+2. STRING 문장 노드를 **RS 캐릭터 프롬프트**의 번호별 입력에 연결하고 각자의 외형·행동을 씁니다. 샘플러의 공통 프롬프트에는 전체 인원·장면·화풍을, 공통 네거티브에는 제외할 내용을 적습니다.
+3. **RS 캐릭터 위치**에서 배치합니다. X/Y는 0~1, 왼쪽 위는 `(0, 0)`입니다. 프롬프트·LoRA·위치의 같은 번호가 같은 캐릭터입니다.
+4. 조립 노드를 **RS 최종 캐릭터 파이프**로 마무리하고 `character_pipe` 출력을 **RS MultiCharacter Sampler**에 연결합니다. LoRA·위치는 생략할 수 있고 역할 노드의 연결 순서는 자유입니다.
+5. **모델 계열 프리셋 → 프리셋 적용**을 누르고 해상도와 모델별 설정을 확인한 뒤 실행합니다. 프리셋은 샘플링·영역 설정을 복사합니다. 모델·LoRA·문장·배치·해상도·시드는 별도로 선택하세요.
 
-SD1.5 예제는 **두 인물이 구분되고 글자 영역에 표현이 나타나는지**를 확인하는 호환성 시험입니다. 자연스러움이나 정확한 철자를 보장하는 품질 예제는 아닙니다.
+자동 저장은 `output/RS_MultiCharacter/`에 PNG·무손실 WebP·손실 WebP로 생성 정보를 기록합니다. 편집용 워크플로까지 이미지에 넣으려면 ComfyUI 기본 **Save Image**를 사용하세요.
 
-**캐릭터 2명 + 단어 1개**는 영역 수 `3`, `layout_mode=mixed`로 시작합니다. 1·2번은 `character`와 `point`, 3번은 `text`로 선택하고 실제 글자 칸에 `HELLO`, 프롬프트 칸에 글씨 모양을 적으세요. 글자 상자의 X/Y·너비·높이를 정하고 샘플러는 `layout_method=regional`을 선택합니다. 상자 안은 글자 영역이 우선합니다. 캐릭터·글자 합계 최대 10영역이며, 정확한 철자·상자 크기 준수는 보장하지 않습니다. MOSS 공식 모드는 모든 영역에 상자가 필요합니다. [실행 예제](examples/epsilon) · [검증 범위·실제 한계](docs/epsilon-validation.md).
+[역할별 입력 사용법](docs/modular-characters.md) · [프리셋 설정값](docs/model-presets.md) · [Anima 샘플러·스케줄러 비교](docs/sampler-combinations.md)
 
-**캐릭터 2명 + 물체 1개**는 기존 **Anima — 혼합 배치** 또는 **Krea 2 Turbo** 프리셋과 [물체 예제 20개](examples/epsilon/objects)를 사용합니다. 3번 슬롯은 `character` + `box`로 두고 물체를 설명하세요. 10종 시험의 20장 모두 두 사람과 물체가 나왔지만, 정확한 상자 크기와 장면 연결은 일정하지 않았습니다. 물체 슬롯은 얼굴 디테일러에서 자동 제외되지 않습니다. [비교 이미지·설정·한계](docs/object-layout-validation.md).
+## 지원 모델과 예제
 
-## 역할별 캐릭터 조립
+아래 값은 예제의 시작 설정입니다. 모델과 장면 전체에 통하는 품질 보장값은 아니며 FLUX는 변형별 워크플로를 사용하세요.
 
-**프롬프트 전체·LoRA 전체·위치 전체**를 역할별 노드로 나누고, 각 노드에서 **1~N번 설정을 동시에 표시**합니다. **세 역할의 연결 순서는 자유**이며 최종 파이프에서 완성합니다. 긍정 프롬프트는 외부 **STRING 연결 입력**, 캐릭터 UC 입력은 없습니다. 위치와 최종 파이프에서 예상 배치를 확인합니다. [사용법](docs/modular-characters.md) · [새 2인 예제](examples/modular/two-characters-anima.json). 기존 긴 노드는 구형 워크플로 호환용으로 남습니다.
+| 모델 계열 | 워크플로 | 시작 설정·범위 |
+| --- | --- | --- |
+| **Anima** | [2인 예제](examples/modular/two-characters-anima.json) | 기본 예제. 맞는 인코더와 Qwen Image VAE를 연결합니다. 기본 샘플러는 Euler ancestral / SGM uniform입니다. |
+| **SDXL / Illustrious** | [2인 예제](examples/two-characters-sdxl.json) · [캐릭터 LoRA](examples/character-lora/illustrious.json) | Load Checkpoint에서 MODEL·CLIP·VAE를 받습니다. 기본 예제는 30스텝·CFG 5.5·Euler ancestral / normal입니다. [시험한 파생 모델과 한계](docs/sdxl-validation.md) |
+| **FLUX.1 / 2 / 3** | [모델별 예제](examples/flux) | Dev·Schnell·Klein 변형을 포함합니다. [시험 조합과 검증](docs/flux-validation.md) |
+| **Krea 2 Turbo** | [2인 예제](examples/two-characters-krea2.json) · [캐릭터 LoRA](examples/character-lora/krea2.json) | 8스텝·CFG 1·Euler / simple. Qwen3-VL 4B(`krea2`) + Qwen Image VAE. CFG 1에서는 공통 네거티브가 적용되지 않습니다. |
+| **MOSS-Image SFT** | [기본](examples/two-characters-moss.json) · [8스텝 LoRA](examples/moss-8step/two-cfg3.json) | 기본은 50스텝·CFG 3·Euler / simple. Qwen3.5 9B(`moss_image`) + Flux2 VAE. [8스텝 설정](docs/moss-8step.md)은 별도 가속 LoRA가 필요합니다. |
+| **SD1.5 · 실험적·불안정** | [2인 예제](examples/two-characters-sd15.json) | 실행은 확인했으나 인원수·외형 분리가 불안정합니다. [시험과 한계](docs/sd15-validation.md) |
 
-주요 노드 하단에는 **현재 선택에 맞는 설명창**이 표시됩니다. 프롬프트의 캐릭터/텍스트 구분, XY/박스 배치, 이미지 설정 복원, 저장 형식, 태거와 감지 방식 등을 안내합니다. ComfyUI 언어 설정에 따라 한국어·일본어·영어로 표시되며 설명은 워크플로 입력값에 저장되지 않습니다. 연결선으로 받은 설정값은 실행 시 결정되므로 안내창은 노드에서 직접 선택한 값을 기준으로 설명합니다.
+Krea 2·MOSS의 영역 생성은 실험 지원입니다. MOSS는 일반 ComfyUI CFG를 쓰며 공식 파이프라인의 네거티브 분기 22번 레이어 생략을 적용하지 않습니다. [모델 파일·시험 범위](docs/krea-moss-validation.md)
 
-조절 항목에 마우스를 **2초** 올려두면 짧은 도움말이 표시됩니다. 값을 드래그하거나 화면을 스크롤하면 닫히며, 다른 확장 노드의 툴팁 시간은 바꾸지 않습니다. ComfyUI 설정에서 툴팁을 끄면 이 도움말도 숨겨집니다.
+## 캐릭터 LoRA와 어댑터
 
-## 설치와 사용
+**RS 캐릭터 LoRA**에서 번호별 파일·모델 강도·CLIP 강도를 선택합니다. 샘플러 앞의 일반 ComfyUI LoRA 로더는 전체 모델에 적용됩니다. 체크포인트와 어댑터의 모델 구조·차원이 맞아야 합니다.
 
-ComfyUI-Manager에서 **RS MultiCharacter Sampler**를 검색해 설치하거나 [Comfy Registry 페이지](https://registry.comfy.org/publishers/raspie10032/nodes/comfyui-rs-multicharacter-sampler)를 이용하세요. 패키지 ID는 `comfyui-rs-multicharacter-sampler`입니다. 설치 후 ComfyUI를 재시작하세요. 새 항목이 아직 보이지 않으면 Manager 목록을 갱신하거나 Git으로 설치할 수 있습니다.
+- **정밀 적용**이 기본입니다. LoRA 설정별 예측을 독립 계산하고 지원되는 경우 작은 행렬 최적화를 사용합니다.
+- **일반 적용**은 지원되는 Anima·SDXL 선형 LoRA의 레이어 계산을 공유합니다. 미지원 모델·어댑터는 이유를 표시하고 정밀로 처리합니다. 두 모드는 캐릭터 세부가 달라질 수 있습니다.
+- **LoRA·LoCon/Tucker·DoRA·LoHa/DoHa·LoKr/DoKr·GLoRA·OFT/BOFT·IA³·차원이 맞는 diff/set 패치**를 지원합니다. MOSS INT8·FP8의 Q/K/V 부분 적용 LoRA도 처리합니다. 복잡한 형식은 시간과 임시 메모리를 더 쓸 수 있습니다.
 
-Git 설치는 이 저장소를 `ComfyUI/custom_nodes` 안에 복제하면 됩니다. 기존 Git 설치본이 있다면 중복 설치하지 말고 그 설치본을 업데이트하세요. 확산 모델·텍스트 인코더·VAE는 직접 준비합니다. 디테일러의 감지·태거 로더는 선택한 카탈로그 모델이 없을 때 실행 중 내려받으며 진행도를 표시합니다.
+**T-LoRA·GLoKr·GGUF/사용자 정의 텐서·레이어 크기를 바꾸는 패치는 이번 어댑터 경로의 지원 범위 밖입니다.** 모델·CLIP 제한과 수치 검증은 [어댑터 형식 안내](docs/adapter-formats.md)를 참고하세요. [LoRA 사용법](docs/regional-lora.md) · [모드 비교](docs/shared-lora-experiment.md) · [캐릭터 LoRA 시험 조합](docs/character-lora-matrix-20261021.md)
 
-[워크플로가 포함된 원본 PNG](examples/two-characters-workflow.png)를 캔버스로 끌어다 놓거나 [2인 예제 JSON](examples/two-characters-anima.json)을 불러온 뒤 설치된 Anima 모델·텍스트 인코더·VAE를 선택하세요. 예제의 `Load CLIP` 타입은 `stable_diffusion`입니다. 일반 LoRA 로더를 모델과 샘플러 사이에 연결할 수 있습니다.
+## 배치·마스크·부분 보정
 
-1. **RS MultiCharacter Prompts**에서 캐릭터 수와 각 문장을 작성합니다. 기본은 5칸, 최대 10칸입니다. 인원수를 줄이면 숨겨진 슬롯의 이전 문장은 생성에 들어가지 않습니다.
-2. X/Y는 0~1이며 왼쪽 위가 `(0,0)`입니다. 같은 좌표의 슬롯은 번호순으로 좌우에 배치합니다.
-3. **RS MultiCharacter Sampler**의 공통 문장에는 전체 인원·화풍·장면을, 캐릭터 칸에는 각자의 외형·행동을 씁니다. 시험에서는 캐릭터마다 `1girl` 또는 `1boy`를 썼습니다.
-4. 샘플러 하단에서 **모델 계열 프리셋 → 프리셋 적용**을 누르면 Anima·SDXL/Illustrious·Krea 2 Turbo·MOSS 기본/8스텝 LoRA·실험적 SD1.5의 시험값을 복사합니다. Anima·SDXL은 좌표용과 혼합 배치용이 따로 있습니다. 적용 후 직접 조절할 수 있으며 모델·문장·배치·해상도·시드는 직접 선택합니다. [프리셋 목록과 사용법](docs/model-presets.md)
-5. 자동 저장은 `output/RS_MultiCharacter`에 PNG 또는 WebP로 생성 정보와 함께 저장합니다. 워크플로는 넣지 않습니다. 워크플로도 필요하면 ComfyUI 기본 이미지 저장 노드를 쓰세요.
+**RS 캐릭터 위치**의 번호를 선택해 좌표·박스·마스크를 이동하고 크기를 조절합니다. 외부 MASK는 **RS 캐릭터 마스크**, 밑그림 위에 직접 칠하려면 **RS 캐릭터 마스크 그리기**를 사용하세요. 밑그림 이미지는 표시용입니다. [마스크 사용법·예제](docs/character-masks.md)
 
-공유용 예제 PNG에는 ComfyUI `workflow`·`prompt` 메타데이터가 들어 있습니다. 샘플러의 일반 자동 저장에는 기존처럼 생성 정보만 들어갑니다.
+**캐릭터 2명 + 단어 1개**는 슬롯 3개를 사용합니다. 두 명은 `character`·포인트, 글자는 `text`·박스로 설정하고 해당 STRING에 실제 단어를 연결합니다. 글자 행의 LoRA는 None으로 둡니다. 물체는 `character`·박스에 물체 설명을 씁니다. `layout_method=regional`을 사용하며 MOSS 공식 배치 모드는 모든 영역에 박스가 필요합니다. [혼합 예제](examples/epsilon) · [물체 예제](examples/epsilon/objects) · [배치 안내](docs/regional-layout.md)
 
-## SD1.5 — 실험 지원·불안정
+**RS OpenPose 마스크(실험적)**는 대략적인 인물 영역을 만듭니다. 뼈대 자체를 모델에 넣지는 않습니다. 부위 이름 유도는 기본 OFF이며 Anima·SDXL에서 지원합니다. **RS 캐릭터 상호작용**의 추가 분리 유지는 Anima·SDXL·실험적 SD1.5에서 겹치지 않는 영역에 적용됩니다. 정확한 관절·접촉은 보장하지 않습니다. [입력·미리보기·한계](docs/openpose-mask-guides.md) · [포즈 예제](examples/openpose)
 
-일반 SD1.5 체크포인트도 기존 샘플러로 실행할 수 있습니다. **캐릭터 수와 외형 분리가 안정적이지 않습니다.** 기본 체크포인트로 2인 생성 요청 4회를 완료했지만, 2장은 3명이 되었고 머리색·옷 속성의 혼합이나 누락도 있었습니다. 제한된 실행 확인이며 일반적인 성공률이나 SD1.5 파생 모델의 품질을 검증한 결과는 아닙니다. [시험 조건과 범위](docs/sd15-validation.md) · [워크플로](examples/two-characters-sd15.json)
+부분 보정은 [생성 + 디테일러 예제](examples/two-characters-detailer-anima.json)로 시작하세요. 이미지·캐릭터 파이프·동일한 MODEL/CLIP/VAE를 **RS MultiCharacter Detailer**에 연결하고 **RS Detection Combine Loader**·**RS Character Tagger Loader**를 추가합니다. 얼굴 SEGM·WD ViT v3·디노이즈 **0.25**부터 시작하세요. 태거는 원래 캐릭터 문장을 선택하며 추론한 태그를 보정 문장에 덧붙이지 않습니다. 결과의 캐릭터 매칭 보고서를 확인하세요. [실행 검증과 한계](docs/detailer-validation.md)
 
-## SDXL 실험 지원
+## 이미지에서 생성 정보 복원
 
-[SDXL 2인 예제](examples/two-characters-sdxl.json)는 일반 체크포인트 로더 하나에서 MODEL·CLIP·VAE를 받습니다. Illustrious XL v1.0과 NoobAI XL epsilon-pred 1.1에서 실제 생성과 좌우 문장 교환을 시험했습니다. SDXL 전체 계열이나 모든 샘플러 조합을 검증한 것은 아닙니다.
+원본 PNG/WebP를 **RS MultiCharacter Load Image**에서 열고 캐릭터 파이프를 샘플러에 연결합니다. 이미지의 문장·캐릭터 설정이 공통 문장 입력을 대체합니다. **use_image_settings**를 켜면 시드·해상도·샘플링·영역 설정도 복원합니다. 프리셋이나 현재 노드 설정을 쓰려면 끄세요.
 
-예제 시작값은 **30스텝·CFG 5.5·Euler ancestral + normal**, 초기 공통 강도 **0.3**, 초기 캐릭터 강도 **1.3**, 초기 경계 분리 **0.5**입니다. 기존 Anima 기본값은 유지합니다. SDXL에서는 Anima의 초기 공통 0.05·캐릭터 1.7·경계 0.9를 그대로 쓰면 화면이 칸처럼 갈라질 수 있습니다.
+모델·LoRA·CLIP·VAE는 직접 연결해야 하며 메타데이터로 자동 설치·로딩하지 않습니다. 이미지 참조는 원본 이미지를 다시 연결해야 합니다. 문장과 시드로 다시 생성하는 기능이며 마스크 img2img는 디테일러에서 별도로 수행합니다. NAI V4 캐릭터 캡션을 가져올 수 있지만 NAI 샘플링 설정을 로컬에 그대로 재현하지는 않습니다. [메타데이터·복원 범위](docs/architecture.md)
 
-좌표는 프롬프트 영역을 정하며 정확한 인원·자세를 보장하지 않습니다. 특히 다인·격자 배치에는 중복 인물, 외형 혼합과 칸 분리가 생길 수 있습니다. SDXL Refiner·인페인트 모델·외부 attention 패치·ControlNet은 지원하지 않습니다. 생성 메타데이터는 SDXL 엔진으로 표시되며 이미지 로더로 복원할 수 있습니다. [방법과 실제 시험 기록](docs/sdxl-validation.md)
+## 노드 구성
 
+현재 **15개 노드**를 등록합니다. 노드 이름·선택 안내·도움말은 ComfyUI의 한국어·일본어·영어 설정을 따릅니다.
 
-## Krea 2 / MOSS-Image 실험 지원
-
-두 모델의 기본 지원이 포함된 최신 ComfyUI가 필요합니다. `Load CLIP`에 `krea2` 또는 `moss_image`가 없으면 ComfyUI와 해당 환경의 의존성을 먼저 업데이트하세요. 모델 선택만으로 샘플링 설정이 자동 변경되지는 않습니다.
-
-| 모델 | 예제 | 텍스트 인코더 / VAE | 시작 설정 |
-| --- | --- | --- | --- |
-| Krea 2 Turbo | [2인 워크플로](examples/two-characters-krea2.json) | Qwen3-VL 4B, `krea2` / Qwen Image VAE | 8스텝 · CFG 1 · Euler + simple |
-| MOSS-Image SFT | [2인 워크플로](examples/two-characters-moss.json) | Qwen3.5 9B, `moss_image` / Flux2 VAE | 50스텝 · CFG 3 · Euler + simple |
-
-MODEL·CLIP·VAE와 기존 캐릭터 파이프를 연결합니다. 공통 칸에는 장면을, 캐릭터 칸에는 각자의 외형과 행동을 자연어 문장으로 적으세요. Krea 2 Turbo의 CFG 1에서는 공통 네거티브가 생성에 영향을 주지 않습니다. MOSS는 이 예제에서 ComfyUI 기본 CFG를 사용하며 공식 파이프라인의 네거티브 분기 22번 레이어 생략은 적용하지 않습니다.
-
-샘플러는 **2~100스텝**을 받습니다. Anima·SDXL의 기존 30스텝 기본값은 유지합니다. 두 새 모델에서도 XY는 프롬프트 영역이며 정확한 인원·자세·복잡한 상호작용을 보장하지 않습니다. 이번 지원 범위는 T2I이며 참조 이미지 편집과 새 모델의 디테일러 품질은 검증 범위에 포함하지 않습니다. 모델 파일·사용 조건·시험 범위는 [지원 문서](docs/krea-moss-validation.md)를 보세요.
-
-
-## MOSS 8스텝 LoRA
-
-[2인 예제](examples/moss-8step/two-cfg3.json) 또는 [4인 XY 예제](examples/moss-8step/four-xy-cfg3.json)를 불러오세요. 저장된 값은 **LoRA 0.7 · 8스텝 · CFG 3 · Euler / simple**입니다. [lodestones/MOSS-Image-SFT-8-steps-dmd](https://huggingface.co/lodestones/MOSS-Image-SFT-8-steps-dmd)의 `lora_latest.safetensors`를 `ComfyUI/models/loras/`에 넣고 목록을 새로고침한 뒤 **Load LoRA (Model Only)**에서 실제 파일명을 선택하세요. 연결은 `Load Diffusion Model → Load LoRA (Model Only) → RS MultiCharacter Sampler`이며 CLIP·VAE는 기존대로 연결합니다.
-
-MOSS-Image SFT·Qwen3.5 9B 인코더(`Load CLIP` 타입 `moss_image`)·Flux2 VAE가 필요합니다. **확장만 업데이트하면 구버전 ComfyUI 코어에 MOSS 지원이 생기지는 않습니다.** 코어와 해당 Python 환경의 의존성을 업데이트하고 재시작하세요. LoRA 시험에는 ComfyUI 0.41.0을 사용했습니다.
-
-이번 두 장면에서는 CFG 3의 캐릭터 특징이 더 선명했고, CFG 1은 빠르지만 일부 색 구분이 약해졌습니다. 8스텝에서 CFG 3은 모델 평가 16회, CFG 1은 8회입니다. 인원수·소품 재현을 보장하는 값은 아닙니다. [CFG 1 예제·정확한 모델 파일·비교 결과·제한](docs/moss-8step.md).
-
-## 로컬 멀티캐릭터 디테일러
-
-Manager에서 **ComfyUI-Impact-Pack**, **ComfyUI-Impact-Subpack**을 설치하고, **ComfyUI의 Python 환경**에서 `requirements-detailer.txt`를 설치한 뒤 재시작하세요. SAM은 선택 기능이며 사용할 모델을 별도로 설치해야 합니다. 일부 태거는 선택 시 안내되는 추가 의존성이 필요합니다.
-
-[생성 → 디테일러 예제](examples/two-characters-detailer-anima.json)를 불러오면 됩니다. 생성에 사용하는 MODEL·CLIP·VAE(LoRA 포함)를 디테일러에도 연결하고, 샘플러의 `image`와 `character_pipe`를 이어 주세요. **RS 감지 콤바인 로더**, **RS 캐릭터 태거 로더**도 연결합니다. 기존 이미지라면 **RS MultiCharacter Load Image**의 이미지와 파이프를 바로 연결할 수 있습니다.
-
-처음에는 기본 얼굴 SEGM·WD ViT v3·**보정 강도 0.25**로 시작하세요. 기본 화면에는 보정 강도·시드·자동 저장을 두고, 크롭·마스크·매칭·샘플링 설정은 상세 옵션에 넣었습니다. SEGM이 선택되면 BBOX·SAM은 로드하지 않습니다. SEGM을 OFF로 하면 BBOX 단독 또는 BBOX+SAM을 사용합니다. OFF 모델은 실행하지 않습니다. 기존 `ultralytics/segm`, `ultralytics/bbox`, `sams` 폴더의 모델도 목록을 새로 고치면 선택할 수 있습니다.
-
-태거는 캐릭터를 고르는 용도이며 보정에는 **사용자가 입력한 원래 프롬프트**를 사용합니다. 홀·요철 채우기는 기본 적용입니다. 각 크롭은 원본에서 가져오고 수정 영역이 겹치지 않도록 처리합니다. 확신하기 어려운 매칭은 원본을 보존하며 이유를 보고서에 남깁니다. 점수가 높아도 잘못 연결할 수 있으므로, 특히 외형이 비슷하면 보고서의 캐릭터 번호와 결과를 확인하세요. 파이프는 **최대 10명**, 보정 영역은 **기본 10개·최대 64개**입니다. **처리수가 많을수록 품질을 보장하지 못합니다.**
-
-자동 저장은 원래 생성 정보와 별도의 보정 이력을 PNG/WebP에 보존합니다. 워크플로 저장이 필요하면 기본 이미지 저장 노드를 사용하세요. PNG·무손실 WebP는 적용 마스크 밖 픽셀을 보존하지만, 손실 WebP는 압축 때문에 픽셀이 바뀔 수 있습니다. Anima는 여러 사례로 검증했고, SDXL(Illustrious XL v1.0)·Krea 2 Turbo·MOSS-Image SFT도 각각 1회, 얼굴 2곳의 보정을 완료했습니다. 후자의 시험은 기본 실행 확인이며 품질이나 성공률 비교는 아닙니다. [검증 기록](docs/detailer-validation.md)
-
-
-## 샘플러·스케줄러 선택
-
-설치된 ComfyUI의 샘플러와 스케줄러를 **모두 선택**할 수 있습니다. 첫 실행은 아래 기본 조합으로 시작하고, 다른 느낌이 필요하면 나머지 두 조합도 시도해 보세요. 노드의 선택창 도움말에도 같은 조합을 적었습니다.
-
-| 용도 | 샘플러 | 스케줄러 | 이번 시험에서 확인한 점 |
-| --- | --- | --- | --- |
-| 기본 시작점 | `euler_ancestral` | `sgm_uniform` | 캐릭터 특징과 공통 배경이 선명함 |
-| 다른 구도 시도 | `euler` | `linear_quadratic` | 특징을 유지하면서 서로 마주 앉는 요청을 반영 |
-| 선명한 대안 | `dpmpp_2m_sde_gpu` | `beta` | 두 인물과 머리·옷·컵을 잘 구분. 마주 앉기 대신 나란히 배치됨 |
-
-비교 조건은 **Anima Base v1.0·2인 카페 장면·한 시드·1536×768·30스텝·CFG 4·LoRA 없음**입니다. 45×9=405조합 모두 실행됐지만, 이미지 품질까지 모두 통과한 것은 아닙니다. 위 추천도 여러 장면에서의 성공률이나 순위를 뜻하지 않습니다.
-
-샘플러와 스케줄러는 각각 직접 선택하며, 추천 밖의 조합도 실행할 수 있습니다. 이름에 추천 표시를 붙이거나 다른 값으로 자동 교체하지 않습니다. 기본값은 `euler_ancestral + sgm_uniform`입니다. 선택지는 설치된 ComfyUI 버전에 따라 달라집니다.
-
-일부 CFG++ 조합은 이번 고정 조건에서 품질이 나빴습니다. **낮은 CFG·적은 스텝으로 재시험한 결과는 없으므로 미지원으로 단정하지 않습니다.** 현재 샘플러는 2~100스텝·CFG 1~20을 받습니다. 위 Anima 추천은 기존 30스텝 시험 기준이며 CFG++의 낮은 CFG·적은 스텝 회복 여부는 미검증입니다. [전수 시험과 추천 근거](docs/sampler-combinations.md)
-
-## 이미지에서 복원
-
-**RS MultiCharacter Load Image**에서 원본 PNG/WebP를 선택하고 `character_pipe`를 샘플러에 연결합니다. 이미지의 공통·캐릭터 문장과 좌표가 적용됩니다. `use_image_settings`를 켜면 시드·크기·샘플링·영역 설정도 복원하며, 끄면 그 값들은 샘플러에서 지정합니다.
-
-모델·LoRA·CLIP·VAE는 직접 연결해야 합니다. 파일명과 강도는 메타데이터에 기록하지만 자동 교체하지 않습니다. 이 기능은 문장과 시드로 재생성하며 I2I가 아닙니다. NAI V4 형식 문장도 읽을 수 있으나 NAI 설정을 로컬 설정으로 쓸 수는 없으므로 이 경우 `use_image_settings`를 끄세요.
-
-## 확인된 범위
-
-- 지원하는 Anima·SDXL·Krea 2·MOSS 및 실험 지원하는 SD1.5 모델, 네이티브 FLUX.1·2·3에서 한 번에 1장입니다. **SD1.5는 불안정하며 생성만 시험했고 디테일러는 미검증입니다.** 샘플러는 T2I, 디테일러는 마스크가 있는 크롭의 img2img를 수행합니다. 리저널 샘플러는 SD2·FLUX Fill/Control/참조 이미지 편집·인페인트/Refiner 체크포인트·ControlNet·외부 attention 패치를 지원하지 않습니다.
-- 입력은 최대 10명입니다. 실제 생성 시험은 Anima 1~6명, SDXL 2~6명, Krea 2·MOSS 2~4명, SD1.5 2인 요청입니다. **처리수가 많을수록 품질을 보장하지 못합니다.** 가로 배치가 비교적 잘 맞으며, 새 모델의 2×2 성공 사례도 일반적인 성공률을 뜻하지 않습니다.
-- 좌표는 프롬프트 영역입니다. 정확한 인물 위치나 인원수 보장은 아닙니다. 1명은 전 화면이 한 영역이므로 좌표 이동 효과가 없습니다.
-- 두 줄·격자 배치는 인물이 늘거나 빠지는 실패가 큽니다. 여러 번 생성해 고를 필요가 있습니다.
-- 리저널 샘플러는 캐릭터별 네거티브를 저장·복원만 하며 생성 시 명확한 오류를 표시합니다. 샘플러에는 공통 네거티브를 사용하세요. 디테일러는 매칭된 캐릭터의 개별 네거티브도 사용할 수 있습니다.
-- 리저널 샘플러는 2~100스텝을 받으며 Anima·SDXL 기본값은 30입니다. 디테일러의 스텝 수는 별도로 조절합니다. 눈색·옷·손·소품·복잡한 상호작용은 틀릴 수 있습니다.
-
-[전체 설명](README.md) · [구조와 메타데이터](docs/architecture.md) · [실제 검증 기록](docs/validation.md)
-
-## ComfyUI 호환성
-
-SDXL 실행에는 ComfyUI의 Anima·Krea 2·MOSS 구현이 필요하지 않습니다. 새 모델 계열은 해당 모델을 기본 지원하는 ComfyUI가 필요합니다. SD1.5도 아래 세 버전에서 CPU 연결 검사를 통과했습니다. 실제 생성의 제한은 [SD1.5 시험 문서](docs/sd15-validation.md)를 보세요. 앞선 호환성 점검의 CPU API 연결 검사는 `v0.3.76`의 SDXL, `15eb748`의 Anima·SDXL·Krea 2, `5cc4b87`의 네 계열에서 수행했습니다. 확인한 버전 지점이며 중간의 모든 버전이나 다른 확장의 모델 패치까지 보장하는 것은 아닙니다. 실제 생성, 작은 모델을 이용한 연결 검사, Windows CI의 확인 범위는 [호환성 보고서](docs/compatibility.md)에 구분했습니다.
+| 노드 | 용도 |
+| --- | --- |
+| 캐릭터 프롬프트 / LoRA / 위치 / 최종 캐릭터 파이프 | 번호별 캐릭터 설정을 조립해 샘플러·디테일러에 전달합니다. |
+| 캐릭터 마스크 / 마스크 그리기 | 외부 마스크를 연결하거나 번호별 영역을 칠합니다. |
+| OpenPose 마스크(실험적) / 캐릭터 상호작용 | 포즈에서 영역을 만들고 겹침 주변의 분리를 조절합니다. |
+| 이미지 참조(실험적·비권장) | 캐릭터 번호에 참조 이미지를 연결합니다. |
+| MultiCharacter Sampler / Load Image | 생성하고 저장된 설정을 복원합니다. |
+| MultiCharacter Detailer / Detection Combine Loader / Character Tagger Loader | 인물을 감지·매칭하고 부분 보정합니다. |
+| MultiCharacter Prompts · 구형 | 기존 워크플로 호환용 통합 입력입니다. 새 워크플로에는 역할별 노드를 사용하세요. |
+
+## 한계와 문제 해결
+
+- 실행당 이미지 1장, 입력은 최대 10슬롯입니다. 밀집 배치·교차하는 소품은 인물 중복·누락·외형 혼합·칸 분리를 만들 수 있습니다. 캐릭터가 하나면 전체 화면을 사용하므로 좌표만 옮겨도 인물이 이동하지는 않습니다.
+- 영역 샘플러는 공통 네거티브를 사용합니다. 캐릭터별 네거티브와 시간별 텍스트 컨디셔닝은 지원하지 않습니다.
+- 영역 샘플러에서 SD2·인페인트/Refiner 체크포인트·FLUX Fill/Control·외부 ControlNet/attention 패치는 지원하지 않습니다. 선택 기능인 이미지 참조는 별도의 방식과 제한을 따릅니다.
+- 샘플러는 **2~100스텝·CFG 1~20**을 받습니다. 프리셋은 모델을 자동 판별하거나 품질을 보장하지 않습니다. 모델별 예제부터 시작하세요.
+- 복원에는 원본 메타데이터와 같은 모델·실행 환경이 필요합니다. SNS 등은 메타데이터를 지울 수 있고 자동 저장은 관련 없는 EXIF·GPS·카메라 정보를 유지하지 않습니다.
+- 오류 제보에는 확장·코어 버전, 정확한 체크포인트·LoRA 버전, 워크플로 JSON과 전체 오류 로그를 [이슈](https://github.com/raspie10032/ComfyUI_RS_MultiCharacter_Sampler/issues)에 첨부하세요.
+
+[문서·검증 색인](docs/README.md)에서 실제 생성 시험, 어댑터 수치 검증, CPU·CI 호환성 검사를 나누어 확인할 수 있습니다.
+
+## 개발과 라이선스
+
+Torch·NumPy·Pillow가 설치된 환경에서 저장소 루트 기준으로 실행합니다.
+
+```sh
+python -m unittest discover -s tests -p 'test_*.py' -v
+node tests/test_ui.cjs
+```
+
+네이티브 통합 검사는 `RS_MC_TEST_COMFYUI`에 ComfyUI 경로를 지정합니다. 전체 JavaScript UI 검사 10종과 코어·OS 조합은 [CI 설정](.github/workflows/tests.yml)에 있습니다.
+
+GPL-3.0-only. [COPYING](COPYING) · [서드파티 고지](THIRD_PARTY_NOTICES.md) · [소스 계보](docs/source-lineage.json)

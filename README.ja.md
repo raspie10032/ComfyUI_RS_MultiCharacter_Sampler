@@ -1,148 +1,133 @@
-# ComfyUI_RS_MultiCharacter_Sampler
+# RS MultiCharacter Sampler
 
-**1.0.2 Hangeul — アダプター互換性の改善:** MOSS INT8/FP8のQ/K/V部分適用LoRAを修正し、DoRA・LoHa/LoKr・GLoRA・OFT/BOFT・畳み込みLoRA・IA3の領域別実行を追加しました。[対応形式・数値検証・制限](docs/adapter-formats.md)。
+ComfyUIでキャラクター別のプロンプト・LoRA・領域を設定して生成し、検出した人物を部分補正する拡張です。座標・枠・マスクで、それぞれの外見を適用する場所を誘導します。
 
-**1.0.1 Hangeul（한글・ハングル）:** カラーOpenPose PNG（JSON/POSE_KEYPOINTも対応）から人物マスクを自動生成し、太さと重なりの分離設定を調整できます。部位名による誘導は**骨格の部位名を使う非常に弱いアテンション誘導**で、初期値は無効です。骨格そのものはモデルに入力しません。[使い方と制限](docs/openpose-mask-guides.md) · [変更履歴と検証](docs/release-1.0.0.md)。
+[English](README.md) · [한국어](README.ko.md) · [ドキュメント](docs/README.md) · [変更履歴](CHANGELOG.md) · [リリース](https://github.com/raspie10032/ComfyUI_RS_MultiCharacter_Sampler/releases)
 
-**0.2.6 Bieup（비읍・ピウプ）— LoRAバグ修正:** Krea 2 FP8・MOSS INT8のキャラクターLoRA `weight_scale` エラーを修正し、Krea2/Illustrious向けプリセットと再現例を追加しました。非量子化MOSSは従来の適用経路を維持します。[変更履歴](docs/release-0.2.6.md) · [9モデル構成の生成結果と制限](docs/character-lora-matrix-20261021.md)。
+**現在のバージョン：[1.0.2 Hangeul](docs/release-1.0.2.md)。** ローカルモデルで動作し、RS NovelAI拡張やAPIキーは不要です。
 
-**0.2.5 Mieum（미음）：画像参照は実験的に対応していますが、推奨しません。** 番号ごとのIMAGEを既存のPoint・Box・Mask領域に適用します。Anima・SD1.5・SDXL/Illustrious・FLUX.1/2/3・Krea 2・MOSSに対応。再現品質には差があり、SDXLの衣装再現・過彩度は課題です。利用可能ならキャラクターLoRAを推奨します。OFF・強度0では参照用モデルを取得・ロードしません。[使用法と制限](docs/image-reference.md) · [変更履歴](docs/release-0.2.5.md) · [実験レポート — Release添付、git clone対象外](https://github.com/raspie10032/ComfyUI_RS_MultiCharacter_Sampler/releases/tag/v0.2.5).
+![LoRAなしのAnima 2人生成例](examples/two-characters-result.png)
 
-**0.2.4 Rieul（리을・リウル）の変更:** **RS キャラクターマスク描画**で参照画像の上に番号別の領域を描くか、**RS キャラクターマスク**に外部MASKを接続します。Positionの配置図上で点・ボックス・マスクの番号を選び、ドラッグで移動、ボックスとマスクは拡縮できます。縦横比を保つ倍率・余白・元に戻す・選択配置のリセット・PNG/WebPのマスク復元に対応。元の形を残してキャンバス外だけ切り取ります。参照画像は表示専用で、マスクは領域を誘導し、ポーズや人数を保証しません。[使い方](docs/character-masks.md) · [例](examples/character-masks) · [変更点と検証範囲](docs/release-0.2.4.md)。
+## 主な機能
 
-**0.2.3 Digeut（디귿・ディグッ）の変更:** キャラクターLoRAノードで通常/精密適用を選択できます。通常は対応するAnima・SDXL線形LoRAのレイヤー計算を共有し、精密は設定ごとの独立計算と対応する小行列最適化を使用します。選択に応じた説明欄と2秒後の短いツールチップを日本語・韓国語・英語で追加しました。[変更点](docs/release-0.2.3.md) · [比較と制限](docs/shared-lora-experiment.md)。
+- 共通の場面と人物別の文章を分け、**キャラクター・文字を合計10領域まで**設定します。
+- 人物別LoRAを指定し、座標・枠・外部マスク・番号別のマスク描画で配置します。
+- カラーOpenPose PNG・JSON・`POSE_KEYPOINT`から編集可能な人物マスクを作成します。
+- 元の人物プロンプトと対応するLoRAを使い、検出領域を部分補正します。
+- PNG/WebPに生成情報を保存し、画像ローダーから復元します。
 
-**0.2.2 Nieun（니은・ニウン）の変更:** FLUX.1・2・3のネイティブ領域生成とローカルマスクディテーラーに対応しました。試験した8モデルすべてで2人生成・同じシードでの文章交換・ディテーラーを実行済みです。量子化モデルの領域別LoRA修正、内蔵ガイダンス、画像設定復元、FLUXプリセット8種とモデル別の例を含みます。[変更点](docs/release-0.2.2.md) · [検証範囲と制限](docs/flux-validation.md) · [FLUXの例](examples/flux)。
+座標やマスクはプロンプトの適用領域を誘導します。正確な人数・同一性・姿勢・綴りはモデルに依存します。[画像参照](docs/image-reference.md)も**実験的に対応していますが非推奨**です。対応するキャラクターLoRAがあれば優先してください。
 
-**1.0.2 Hangeul（한글・ハングル）· FLUX.1・2・3・Anima・SDXL・Krea 2・MOSS・SD1.5（実験対応・不安定）**。共通プロンプトと各キャラクターの文章・XY座標・矩形を専用パイプで渡し、領域ごとに attention を制御します。RS NAI 拡張や API キーは不要です。
+## インストールと更新
 
-**Giyeok Fix:** キャラクター用と文字用の入力が同時に表示される不具合を修正しました。各番号で共通のSTRINGを1つ使い、種類を切り替えても接続を保持します。旧ワークフローでは実際に描く文字の接続を共通入力へ移します。[修正内容・互換性](docs/release-0.2.1.md)。
+ComfyUI-Managerで **RS MultiCharacter Sampler** を検索するか、[Comfy Registry](https://registry.comfy.org/publishers/raspie10032/nodes/comfyui-rs-multicharacter-sampler)からインストールします。パッケージIDは `comfyui-rs-multicharacter-sampler` です。
 
-**Giyeok の変更:** キャラクタープロンプト・LoRA・位置・最終パイプを別ノードに分割しました。各役割で複数キャラクターの設定を同時に表示し、3種類の役割は任意の順序で接続できます。ポジティブは STRING 接続にし、個別 UC 入力はなくしました。位置・最終パイプでは配置の目安を表示します。[変更内容・検証範囲](docs/release-0.2.0.md) · [使い方](docs/modular-characters.md)。
+Gitの場合は **`ComfyUI/custom_nodes` 内で**実行します。
 
-各番号の入力は**STRING 1つ**です。種類に応じてキャラクタープロンプトまたは実際に描く文字として使い、切り替えても接続は保持されます。
+```sh
+git clone https://github.com/raspie10032/ComfyUI_RS_MultiCharacter_Sampler.git
+```
 
-**Zeta Fix:** ComfyUI の動的 VRAM モードで Anima のキャラクター LoRA が実際の生成モデルに適用されない不具合を修正しました。更新後に ComfyUI を再起動してください。既存の LoRA 選択と強度はそのまま使えます。[修正内容・画像比較・検証範囲](docs/release-0.1.7.md)。
+更新はManager、または既存のGitインストール先で `git pull --ff-only` を使用します。導入・更新後は **ComfyUIを再起動し、ブラウザーを再読み込み**してください。同じ拡張を重複して配置しないでください。
 
-**Zeta の変更:** キャラクターごとに LoRA ファイルとモデル・CLIP 強度を選択できます。ComfyUI の標準 Hook で領域別の予測を合成し、Detailer は一致したキャラクターの LoRA を使います。[使い方・計算コスト・制限](docs/regional-lora.md)。
+Python **3.11以上**とTorch・NumPy・Pillowが必要です。ComfyUI本体が選択したモデルに標準対応している必要があります。拡散モデル・対応するテキストエンコーダー・VAEは別途用意してください。Load CLIPに `krea2` や `moss_image` がなければ、本体とPython環境を更新します。[互換性と検証バージョン](docs/compatibility.md)
 
-**LoRA適用モード:** **通常適用**は対応するAnima・SDXL線形LoRAのレイヤー計算を共有します。**精密適用**はLoRA設定ごとにモデル計算を分離し、対応する小行列の最適化を利用します。従来動作との互換性のため初期値は精密であり、画質を保証する名称ではありません。通常では細部が変わる場合があり、非対応モデル・LoRAは理由を表示して精密で処理します。[モード・比較結果・制限](docs/shared-lora-experiment.md)。
+追加機能には個別の準備が必要です。
 
-[0.1.6 の変更点と検証範囲](docs/release-0.1.6.md)。
+| 機能 | 準備 |
+| --- | --- |
+| ローカルディテイラー | Managerで **ComfyUI-Impact-Pack**・**ComfyUI-Impact-Subpack** を導入し、ComfyUIのPythonで `requirements-detailer.txt` をインストールします。SAMは任意です。選択した検出・タグ付け用カタログモデルがない場合は実行時に取得します。 |
+| 画像参照・実験的 | ComfyUIのPythonで `requirements-reference.txt` をインストールします。有効な参照での生成時に追加モデルを取得する場合があります。OFF・強度0では読み込みません。[方式と制限](docs/image-reference.md) |
 
-**Epsilonの変更点:** 座標と矩形の混合配置、文字領域、編集可能なモデル系統プリセット8種類、MOSSネイティブ配置、Anima・Krea 2の人物2人＋物体サンプルを追加しました。[変更点と検証範囲](docs/release-0.1.5.md)
+## ワークフローから始める
 
-**Epsilonの配置:** 人物2人は座標、`HELLO`は上部の矩形で指定できます。[設定と制限](docs/regional-layout.md)。
+[役割別Anima 2人ワークフロー](examples/modular/two-characters-anima.json)を読み込むか、下の表からモデルに合う例を選びます。UIでは通常のJSONを使用し、`-api.json` はAPIクライアント用です。[元のワークフローPNG](examples/two-characters-workflow.png)をキャンバスにドロップすることもできます。
 
-**Anima・Illustrious XL・Krea 2 Turbo・実験対応のSD1.5**向けに、モデル別の強度と文章を使う混合配置サンプルを追加しました。Animaの初期サンプルで消えたキャンパス背景と、上端で切れたタイトルを改善しています。[設定比較・実際の結果・制限](docs/mixed-layout-tuning.md)。綴りや人数はモデルによって不安定で、既存ワークフローの設定は自動変更しません。
+1. ローダーで導入済みの **MODEL・CLIP・VAE** を選びます。Anima例のLoad CLIPタイプは `stable_diffusion` です。
+2. STRING文章ノードを **RS Character Prompt** の番号別入力に接続し、各人物の外見・動作を書きます。場面・画風・総人数はサンプラーの共通プロンプト、除外内容は共通ネガティブに記入します。
+3. **RS Character Position** で配置します。X/Yは0～1、左上が `(0, 0)` です。Prompt・LoRA・Positionの同じ番号が同じ人物を指します。
+4. 組み立てノードを **RS Finalize Character Pipe** でまとめ、`character_pipe` 出力を **RS MultiCharacter Sampler** に接続します。LoRA・Positionは任意で、Finalizeまでの役割ノードは任意の順序にできます。
+5. **モデル系統プリセット → プリセットを適用** を選び、解像度とモデル固有の設定を確認して実行します。プリセットはサンプリング・領域設定をコピーします。モデル・LoRA・文章・配置・解像度・シードは別途指定してください。
 
-SD1.5の例は、**人物2人を区別でき、文字領域に何らかの表現が現れること**を確認する互換性試験です。自然さや正確な綴りを保証する品質サンプルではありません。
+自動保存先は `output/RS_MultiCharacter/` です。PNG・可逆WebP・非可逆WebPに生成情報を保存します。編集用ワークフローも埋め込む場合は、ComfyUI標準の **Save Image** を使用してください。
 
-**人物2人＋単語1つ**は領域数 `3`、`layout_mode=mixed` に設定します。1・2番を `character` と `point`、3番を `text` にし、文字欄に `HELLO`、プロンプト欄に字体や色の説明を入力してください。文字のX/Y・幅・高さを指定し、サンプラーは `layout_method=regional` にします。矩形内は文字領域が優先されます。人物と文字を合わせて最大10領域です。正確な綴りや矩形への収まりは保証されません。MOSSネイティブ方式では全領域に矩形が必要です。[実行サンプル](examples/epsilon) · [検証範囲と実際の制限](docs/epsilon-validation.md)。
+[役割別入力ガイド](docs/modular-characters.md) · [プリセット値](docs/model-presets.md) · [Animaのサンプラー比較](docs/sampler-combinations.md)
 
-**人物2人＋物体1つ**には既存の **Anima — 混合配置** または **Krea 2 Turbo** プリセットと[物体サンプル20件](examples/epsilon/objects)を使います。3番目の枠は `character` + `box` にして物体を記述します。10種類の試験では20枚すべてに人物2人と識別できる物体が現れましたが、矩形への収まりと場面の一体感には差があります。物体の枠は顔ディテイラーの候補から自動除外されません。[比較画像・設定・制限](docs/object-layout-validation.md)。
+## モデルと使用例
 
-## 役割別キャラクター入力
+以下は各例の開始設定であり、全モデル・場面の品質を保証しません。FLUXは変種ごとのワークフローを使用してください。
 
-**全プロンプト・全LoRA・全位置**を役割別ノードに分け、各ノードで**1～N番を同時に表示**します。**3種類の接続順は自由**で、最終パイプからサンプラー・ディテイラーへ接続します。ポジティブは外部**STRING接続**で、個別UC欄はありません。位置と最終パイプで配置の目安を確認できます。[使い方](docs/modular-characters.md) · [2人用サンプル](examples/modular/two-characters-anima.json)。旧ノードは保存済みワークフロー用に非推奨として残します。
+| モデル系統 | ワークフロー | 開始設定・範囲 |
+| --- | --- | --- |
+| **Anima** | [2人の例](examples/modular/two-characters-anima.json) | 基本例。対応エンコーダーとQwen Image VAEを使用。既定ペアはEuler ancestral / SGM uniformです。 |
+| **SDXL / Illustrious** | [2人の例](examples/two-characters-sdxl.json) · [人物LoRA](examples/character-lora/illustrious.json) | Load CheckpointからMODEL・CLIP・VAEを取得。基本例は30ステップ・CFG 5.5・Euler ancestral / normalです。[検証した派生モデルと制限](docs/sdxl-validation.md) |
+| **FLUX.1 / 2 / 3** | [モデル別の例](examples/flux) | Dev・Schnell・Kleinを含みます。[検証した組み合わせ](docs/flux-validation.md) |
+| **Krea 2 Turbo** | [2人の例](examples/two-characters-krea2.json) · [人物LoRA](examples/character-lora/krea2.json) | 8ステップ・CFG 1・Euler / simple。Qwen3-VL 4B（`krea2`）+ Qwen Image VAE。CFG 1では共通ネガティブは適用されません。 |
+| **MOSS-Image SFT** | [基本](examples/two-characters-moss.json) · [8ステップLoRA](examples/moss-8step/two-cfg3.json) | 基本は50ステップ・CFG 3・Euler / simple。Qwen3.5 9B（`moss_image`）+ Flux2 VAE。[8ステップ設定](docs/moss-8step.md)には別の加速LoRAが必要です。 |
+| **SD1.5・実験的・不安定** | [2人の例](examples/two-characters-sd15.json) | 実行は確認済みですが、人数・外見の分離は不安定です。[試験と制限](docs/sd15-validation.md) |
 
-主要ノードの下部に**現在の選択に応じた説明欄**を表示します。キャラクター・テキスト、XY・ボックス、画像設定の復元、保存形式、タガー・検出方式などを案内します。ComfyUIの言語設定に従い英語・韓国語・日本語で表示し、説明はワークフローの入力値に保存しません。接続した設定値は実行時に決まるため、説明欄はノードのローカル選択を説明します。
+Krea 2・MOSSの領域生成は実験的対応です。MOSSは通常のComfyUI CFGを使用し、公式パイプラインのネガティブ分岐におけるレイヤー22のスキップは行いません。[モデルファイルと検証範囲](docs/krea-moss-validation.md)
 
-調整項目にマウスを**2秒間**置くと、短い説明を表示します。ドラッグやスクロールで閉じ、他の拡張ノードの表示時間は変更しません。ComfyUI設定でツールチップを無効にすると、この説明も非表示になります。
+## キャラクターLoRAとアダプター
 
-## 使用方法
+**RS Character LoRA** で番号別のファイル・モデル強度・CLIP強度を選びます。サンプラー前の通常のComfyUI LoRAローダーは全体に適用されます。チェックポイントとアダプターのモデル構造・次元が一致する必要があります。
 
-ComfyUI-Manager で **RS MultiCharacter Sampler** を検索するか、[Comfy Registry](https://registry.comfy.org/publishers/raspie10032/nodes/comfyui-rs-multicharacter-sampler) からインストールします。パッケージ ID は `comfyui-rs-multicharacter-sampler` です。インストール後に ComfyUI を再起動してください。新しい項目が表示されない場合は Manager の一覧を更新するか、Git でインストールできます。
+- **Precision** が既定です。LoRA設定ごとに独立した予測を計算し、対応する場合は小行列の最適化を使います。
+- **Normal** は対応するAnima・SDXL線形LoRAのレイヤー計算を共有します。非対応のモデル・アダプターは理由を表示してPrecisionに切り替えます。モードにより人物の細部は変わる場合があります。
+- **LoRA・LoCon/Tucker・DoRA・LoHa/DoHa・LoKr/DoKr・GLoRA・OFT/BOFT・IA³・形状が一致するdiff/setパッチ**に対応します。MOSS INT8・FP8のQ/K/V部分適用LoRAも処理します。複雑な形式は時間と一時メモリーを多く使う場合があります。
 
-Git の場合はこのリポジトリを `ComfyUI/custom_nodes` に clone します。既存の Git インストールがある場合は重複インストールせず、そちらを更新してください。拡散モデル・テキストエンコーダー・VAEは別途用意します。ディテイラーの検出・タグローダーは、選択したカタログモデルが未導入の場合に実行時ダウンロードし、進捗を表示します。
+**T-LoRA・GLoKr・GGUF/独自テンソル・レイヤー形状を変更するパッチは、このアダプター経路の対応範囲外です。** モデル・CLIPの制限と数値検証は[形式ガイド](docs/adapter-formats.md)を参照してください。[LoRA設定](docs/regional-lora.md) · [モード比較](docs/shared-lora-experiment.md) · [人物LoRAの検証組み合わせ](docs/character-lora-matrix-20261021.md)
 
-[ワークフロー入りの元PNG](examples/two-characters-workflow.png)をキャンバスにドロップするか、[2人のサンプルJSON](examples/two-characters-anima.json)を読み込み、インストール済みの Anima・テキストエンコーダー・VAE を選びます。サンプルの CLIP タイプは `stable_diffusion` です。通常の LoRA ローダーも利用できます。
+## 配置・マスク・部分補正
 
-1. **RS MultiCharacter Prompts** で人数とキャラクター別の文章を入力します。最大10枠です。人数を減らすと非表示の枠は生成対象から外れます。
-2. XY は 0〜1、左上が `(0,0)` です。同一座標の枠は番号順に左から並べます。
-3. **RS MultiCharacter Sampler** に全体の人数・画風・背景を入力します。各キャラクターの文章には外見や動作を記入します。試験では各枠に `1girl` / `1boy` を使いました。
-4. サンプラー下部の **モデル系統プリセット → プリセットを適用** でAnima・SDXL/Illustrious・Krea 2 Turbo・MOSSベース/8ステップLoRA・実験的SD1.5の試験値をコピーできます。AnimaとSDXLには座標用と混合配置用があります。適用後も手動調整でき、モデル・文・配置・解像度・シードは個別に選択します。[プリセットの値と使い方](docs/model-presets.md)
-5. 自動保存先は `output/RS_MultiCharacter`。PNG / WebP に生成情報を保存します。ワークフローも埋め込む場合は ComfyUI の通常の Save Image を使ってください。
+**RS Character Position** で番号を選び、点・枠・マスクを移動・拡縮します。外部MASKは **RS Character Mask**、下絵に直接描く場合は **RS Character Mask Drawing** を使います。下絵は表示専用です。[マスクの使い方と例](docs/character-masks.md)
 
-**RS MultiCharacter Load Image** は元の PNG/WebP から文章と座標を復元します。`character_pipe` をサンプラーに接続し、`use_image_settings` を有効にするとシード・サイズ・サンプリング・領域設定も復元できます。モデル・LoRA・CLIP・VAE は手動接続です。この経路は T2I 再生成であり、img2img ではありません。
+**人物2人 + 単語1つ**は3スロットを使い、2人を `character`・点、文字を `text`・枠に設定します。文字行のSTRINGには実際の単語を接続し、LoRAはNoneにします。物体には `character`・枠と物体の説明を使います。`layout_method=regional` を選び、MOSSネイティブ配置では全領域に枠が必要です。[混合配置例](examples/epsilon) · [物体例](examples/epsilon/objects) · [配置ガイド](docs/regional-layout.md)
 
-共有用サンプルPNGには ComfyUI の `workflow` と `prompt` メタデータが入っています。通常の自動保存は従来どおり生成情報のみです。
+**RS OpenPose Masks (Experimental)** は概略の人物マスクを生成します。骨格自体はモデルに入力しません。部位名による誘導は既定OFFでAnima・SDXLに対応します。**RS Character Interaction** の追加分離保持はAnima・SDXL・実験的SD1.5で重ならない領域に適用します。正確な関節や接触は保証しません。[入力・プレビュー・制限](docs/openpose-mask-guides.md) · [ポーズ例](examples/openpose)
 
-## SD1.5 — 実験対応・不安定
+部分補正は[生成 + ディテイラー例](examples/two-characters-detailer-anima.json)から始めてください。画像・人物パイプ・同じMODEL/CLIP/VAEを **RS MultiCharacter Detailer** に接続し、**RS Detection Combine Loader**・**RS Character Tagger Loader** を追加します。顔SEGM・WD ViT v3・denoise **0.25** が開始点です。タグ付けは元の人物文章を選択するために使い、推定タグを補正文章に追加しません。人物の割り当て報告を確認してください。[実行検証と制限](docs/detailer-validation.md)
 
-通常の SD1.5 チェックポイントも既存のサンプラーで実行できます。**人数とキャラクターの特徴の分離は安定していません。** 基本チェックポイントで2人の生成を4回実行しましたが、2枚は3人になり、髪色・服装の混合や欠落も見られました。限定的な動作確認であり、一般的な成功率や SD1.5 派生モデルの品質を示すものではありません。[試験条件と範囲](docs/sd15-validation.md) · [ワークフロー](examples/two-characters-sd15.json)
+## 画像から生成設定を復元
 
-## SDXL の実験対応
+元のPNG/WebPを **RS MultiCharacter Load Image** で開き、人物パイプをサンプラーに接続します。画像の文章・人物情報が共通プロンプト欄を置き換えます。**use_image_settings** を有効にするとシード・解像度・サンプリング・領域設定も復元します。プリセットや現在のノード設定を使う場合は無効にします。
 
-[SDXL 2人用ワークフロー](examples/two-characters-sdxl.json)は通常のチェックポイントローダーから MODEL・CLIP・VAE を受け取ります。Illustrious XL v1.0 と NoobAI XL epsilon-pred 1.1 で実生成と左右の文章交換を試験しました。SDXL 全派生モデルや全サンプラーの検証ではありません。
+モデル・LoRA・CLIP・VAEは明示的に接続してください。メタデータから自動取得・読み込みは行いません。画像参照には元画像の再接続が必要です。これは文章とシードによる再生成で、マスクimg2imgはディテイラーが別途行います。NAI V4形式の人物キャプションは読み込めますが、NAIのサンプリング設定をローカルで再現する機能ではありません。[メタデータと復元範囲](docs/architecture.md)
 
-例の開始値は **30ステップ・CFG 5.5・Euler ancestral + normal**、共通強度 **0.3**、キャラクター強度 **1.3**、境界分離 **0.5** です。既存の Anima の初期値は維持します。Anima の 0.05 / 1.7 / 0.9 をそのまま使うと、パネル状の境界が目立つ場合があります。
+## ノード一覧
 
-XY は文章の適用領域を指定し、正確な人数や姿勢を保証しません。多人数・格子配置では人物の重複、特徴の混合、画面分割が発生します。SDXL Refiner・インペイントモデル・ControlNet・他の attention パッチは非対応です。PNG/WebP は SDXL の生成情報を保存し、画像ローダーで復元できます。[方式と試験結果](docs/sdxl-validation.md)
+現在 **15ノード**を登録します。表示名・選択案内・ヘルプはComfyUIの英語・韓国語・日本語設定に従います。
 
-
-
-## Krea 2 / MOSS-Image 実験対応
-
-両モデルを標準で扱える最新の ComfyUI が必要です。`Load CLIP` に `krea2` / `moss_image` がなければ、ComfyUI とその実行環境の依存関係を更新してください。モデル選択だけではサンプリング設定は変わりません。
-
-| モデル | 例 | テキストエンコーダー / VAE | 開始設定 |
-| --- | --- | --- | --- |
-| Krea 2 Turbo | [2人ワークフロー](examples/two-characters-krea2.json) | Qwen3-VL 4B, `krea2` / Qwen Image VAE | 8ステップ · CFG 1 · Euler + simple |
-| MOSS-Image SFT | [2人ワークフロー](examples/two-characters-moss.json) | Qwen3.5 9B, `moss_image` / Flux2 VAE | 50ステップ · CFG 3 · Euler + simple |
-
-MODEL・CLIP・VAE と既存のキャラクターパイプを接続します。共通欄には場面、個別欄には各人物の外見や行動を自然言語で記入します。Krea 2 Turbo の CFG 1 では共通ネガティブは影響しません。MOSS の例は通常の ComfyUI CFG を使用し、公式パイプラインのネガティブ分岐22番レイヤーの省略は適用しません。
-
-サンプラーは **2～100ステップ** に対応し、Anima / SDXL の既定値は30のままです。XY はプロンプトの領域指定であり、正確な人数・姿勢・複雑な相互作用を保証しません。対応範囲は T2I です。参照画像の編集と新モデルでのディテーラー品質は未検証です。[モデルファイル・利用条件・検証範囲](docs/krea-moss-validation.md)も参照してください。
-
-
-## MOSS 8ステップ LoRA
-
-[2人サンプル](examples/moss-8step/two-cfg3.json) または [4人XYサンプル](examples/moss-8step/four-xy-cfg3.json) を読み込みます。保存値は **LoRA 0.7 · 8ステップ · CFG 3 · Euler / simple** です。[lodestones/MOSS-Image-SFT-8-steps-dmd](https://huggingface.co/lodestones/MOSS-Image-SFT-8-steps-dmd) の `lora_latest.safetensors` を `ComfyUI/models/loras/` に置き、モデル一覧を更新して **Load LoRA (Model Only)** で実際のファイル名を選択します。接続は `Load Diffusion Model → Load LoRA (Model Only) → RS MultiCharacter Sampler`。CLIP・VAE は通常どおり接続します。
-
-MOSS-Image SFT、Qwen3.5 9B エンコーダー（`Load CLIP` タイプ `moss_image`）、Flux2 VAE が必要です。**拡張の更新だけでは古い ComfyUI コアに MOSS 対応は追加されません。** コアと Python 環境の依存関係を更新し、再起動してください。LoRA 試験には ComfyUI 0.41.0 を使用しました。
-
-今回の2場面では CFG 3 の特徴がより鮮明で、CFG 1 は高速ですが一部の色の分離が弱まりました。8ステップで CFG 3 はモデル評価16回、CFG 1 は8回です。人数・小物の再現を保証する設定ではありません。[CFG 1サンプル・モデルファイル・比較結果・制限](docs/moss-8step.md)。
-
-## ローカルのマルチキャラクター・ディテイラー
-
-Manager から **ComfyUI-Impact-Pack** と **ComfyUI-Impact-Subpack** を導入し、**ComfyUI の Python 環境**で `requirements-detailer.txt` をインストールして再起動します。SAM は任意で、使用するモデルの事前導入が必要です。一部のタグモデルには、選択時に案内される追加依存関係が必要です。
-
-[生成 → ディテイラーのサンプル](examples/two-characters-detailer-anima.json)を読み込みます。生成に使う MODEL・CLIP・VAE（LoRA を含む）をディテイラーにも接続し、サンプラーの `image` と `character_pipe` を渡してください。**RS 検出コンバインローダー**と**RS キャラクタータグローダー**も接続します。既存画像には **RS MultiCharacter Load Image** の画像とパイプを使用できます。
-
-最初は既定の顔 SEGM・WD ViT v3・**denoise 0.25**を使用してください。基本表示は補正強度・シード・自動保存で、クロップ・マスク・照合・サンプリング設定は詳細オプションにあります。SEGM を選ぶと BBOX・SAM は読み込みません。SEGM が OFF の場合は BBOX 単独または BBOX + SAM を使用します。OFF のモデルは実行しません。`ultralytics/segm`・`ultralytics/bbox`・`sams` に追加したモデルも一覧更新後に選択できます。
-
-タグ推論はキャラクターの照合だけに使用し、補正には**入力した元の文章**を使います。穴埋めと凹凸の補修は既定で有効です。元画像から各クロップを取り、修正マスクの重複を防ぎます。判定が曖昧な領域はそのまま残し、理由をレポートに記録します。高いスコアでも誤認識はあり得るため、特に似た外見の場合はレポートのキャラクター番号と結果を確認してください。パイプは**最大10人**、補正領域は**既定10・最大64個**です。処理数が増えるほど品質を保証できません。
-
-PNG/WebP の自動保存は元の生成設定を保持し、補正履歴を別に追加します。ワークフローが必要な場合は通常の Save Image を使用してください。PNG・可逆 WebP は適用マスク外の画素を保持しますが、非可逆 WebP は圧縮によって変わる場合があります。Anima は複数の事例で検証しています。SDXL（Illustrious XL v1.0）・Krea 2 Turbo・MOSS-Image SFT も各1回、2人の顔の補正を完了しました。後者は基本動作の確認であり、品質や成功率の比較ではありません。[検証記録](docs/detailer-validation.md)
-
-
-## サンプラーとスケジューラー
-
-インストール済み ComfyUI に登録されているサンプラーとスケジューラーを**すべて選択**できます。まずは既定の組み合わせを使い、必要に応じて次の候補も試してください。選択欄のツールチップにも同じ候補を記載しています。
-
-| 用途 | サンプラー | スケジューラー | 今回の試験での観察 |
-| --- | --- | --- | --- |
-| 既定の開始点 | `euler_ancestral` | `sgm_uniform` | 各キャラクターの特徴と共通背景が鮮明 |
-| 別の構図を試す | `euler` | `linear_quadratic` | 特徴を保ち、向かい合って座る指示も反映 |
-| 鮮明な別候補 | `dpmpp_2m_sde_gpu` | `beta` | 髪・服・カップが区別できる。ただし対面ではなく横並び |
-
-条件は **Anima Base v1.0・2人のカフェ場面・1シード・1536×768・30ステップ・CFG 4・LoRAなし**。45×9=405通りすべて生成は完了しましたが、品質まで合格したわけではありません。上記は試す際の候補であり、多様な場面での成功率や順位ではありません。
-
-両方の項目を手動で選択します。推奨外の組み合わせも使用でき、自動置換や選択肢の改名は行いません。既定値は `euler_ancestral + sgm_uniform` のままです。選択肢は ComfyUI のバージョンによって異なります。
-
-一部の CFG++ は今回の固定条件で品質が低下しましたが、低CFG・少ステップでの再試験は未実施です。未対応と断定するものではありません。サンプラーは **2～100ステップ・CFG 1〜20** に対応します。Anima の推奨は元の30ステップ試験に基づき、低CFG・少ステップの CFG++ 回復は未検証です。[全組み合わせ試験と推奨の根拠](docs/sampler-combinations.md)
-
-## 制限
-
-対応する Anima・SDXL・Krea 2・MOSS と実験対応の SD1.5 の単一画像が対象です。**SD1.5 は不安定で、生成のみ試験済み、ディテイラーは未検証です。** サンプラーは T2I、ディテイラーはマスク付きクロップの img2img を実行します。入力上限は10人です。実画像試験は Anima 1〜6人、SDXL 2〜6人、Krea 2・MOSS 2〜4人、SD1.5 の2人指定です。**人数が増えるほど品質を保証できません。** 横並びが比較的安定しており、新モデルの2×2成功例も一般的な成功率を示すものではありません。
-
-座標は文章を適用する領域であり、身体位置や人数の固定ではありません。1人の場合は画面全体が一つの領域です。キャラクター別ネガティブはメタデータに保存できますが、リージョナルサンプラーではエラーになります。サンプラーには共通ネガティブを使用してください。ディテーラーは照合したキャラクターの個別ネガティブも使えます。サンプラーは2～100ステップ、Anima / SDXL の既定値は30です。ディテーラーのステップ数は個別に調整できます。他のモデル系統・ControlNet・attention パッチは未対応です。
-
-NAI V4 形式のキャプションも読み込めますが、NAI の設定をローカル生成設定として適用することはできません。その場合は `use_image_settings` を無効にしてください。モデルは自動変更されません。
-
-[English](README.md) · [検証記録](docs/validation.md) · [内部構造](docs/architecture.md)
-
-## ComfyUI の互換性
-
-SDXL の実行に ComfyUI の Anima・Krea 2・MOSS 実装は不要です。新しいモデル系列には、そのモデルを標準対応する ComfyUI が必要です。SD1.5 も下記の3バージョンで CPU 接続テストを通過しました。実生成の制限は [SD1.5 試験文書](docs/sd15-validation.md)を参照してください。先の互換性検証の CPU API 接続テストは `v0.3.76` の SDXL、`15eb748` の Anima・SDXL・Krea 2、`5cc4b87` の4系列で実施しました。確認済みのバージョン地点であり、途中の全バージョンや他の拡張のモデルパッチを保証するものではありません。実生成、小型モデルによる接続テスト、Windows CI の範囲は[互換性レポート](docs/compatibility.md)を参照してください。
+| ノード | 用途 |
+| --- | --- |
+| Character Prompt / LoRA / Position / Finalize Character Pipe | 番号別の設定を組み立て、最終パイプを作成します。 |
+| Character Mask / Mask Drawing | 外部マスクの接続と番号別の描画。 |
+| OpenPose Masks (Experimental) / Character Interaction | ポーズ由来の領域作成と重なり周辺の分離設定。 |
+| Image Reference (Experimental · Not Recommended) | 人物番号に参照画像を関連付けます。 |
+| MultiCharacter Sampler / Load Image | 生成と保存設定の復元。 |
+| MultiCharacter Detailer / Detection Combine Loader / Character Tagger Loader | 人物の検出・照合・部分補正。 |
+| MultiCharacter Prompts・旧形式 | 既存ワークフロー用の統合入力。新規作成には役割別ノードを使ってください。 |
+
+## 制限とトラブルシューティング
+
+- 実行ごとに画像1枚、入力は最大10スロットです。密な配置や交差する小物では人物の重複・欠落・属性混合・パネル分割が発生する場合があります。人物1人では画面全体を使うため、その点を動かしても人物の位置は固定できません。
+- 領域サンプラーは共通ネガティブを使用します。人物別ネガティブと時間によって変化するテキスト条件は非対応です。
+- SD2・インペイント/Refinerチェックポイント・FLUX Fill/Control・外部ControlNet/attentionパッチは領域サンプラーの対応範囲外です。任意の画像参照機能には別途、方式と制限があります。
+- サンプラーは **2～100ステップ・CFG 1～20** に対応します。プリセットはモデルを自動識別せず、品質も保証しません。モデル別の例から始めてください。
+- 復元には元の画像メタデータと同じアセット・互換環境が必要です。SNSなどでメタデータが削除される場合があります。自動保存は無関係なEXIF・GPS・カメラ情報を保持しません。
+- 不具合は拡張・本体のバージョン、正確なチェックポイント・LoRAのバージョン、ワークフローJSONとエラー全文を添えて[報告](https://github.com/raspie10032/ComfyUI_RS_MultiCharacter_Sampler/issues)してください。
+
+[ドキュメントと検証の索引](docs/README.md)では実生成、アダプター数値試験、CPU・CI互換性検査を区別しています。
+
+## 開発とライセンス
+
+Torch・NumPy・Pillowを導入した環境で、リポジトリのルートから実行します。
+
+```sh
+python -m unittest discover -s tests -p 'test_*.py' -v
+node tests/test_ui.cjs
+```
+
+ネイティブ統合試験には `RS_MC_TEST_COMFYUI` にComfyUIのパスを指定します。全10種のJavaScript UI試験と本体・OSの組み合わせは[CI設定](.github/workflows/tests.yml)を参照してください。
+
+GPL-3.0-only。[COPYING](COPYING) · [第三者に関する通知](THIRD_PARTY_NOTICES.md) · [ソースの系譜](docs/source-lineage.json)
