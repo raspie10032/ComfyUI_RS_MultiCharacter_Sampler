@@ -1,6 +1,6 @@
 # ComfyUI_RS_MultiCharacter_Sampler
 
-**Adapter support patch on 1.0.1:** fixes MOSS INT8/FP8 partial Q/K/V LoRA and adds regional DoRA, LoHa/LoKr, GLoRA, OFT/BOFT, convolutional LoRA and IA3 execution. [Formats, numerical validation and limits](docs/adapter-formats.md).
+**1.0.2 Hangeul — adapter compatibility:** fixes MOSS INT8/FP8 partial Q/K/V LoRA and adds regional DoRA, LoHa/LoKr, GLoRA, OFT/BOFT, convolutional LoRA and IA3 execution. [Formats, numerical validation and limits](docs/adapter-formats.md).
 
 **1.0.1 Hangeul (한글):** adds editable person masks from colored OpenPose PNG (JSON/POSE_KEYPOINT also supported), adjustable thickness, and overlap separation presets. Optional body-part name guidance is **very weak attention guidance using the names of skeleton parts**, OFF by default; it does not feed a skeleton into the model. [Usage and limits](docs/openpose-mask-guides.md) · [Release and validation](docs/release-1.0.0.md).
 
@@ -14,7 +14,7 @@
 
 **New in 0.2.2 Nieun (니은):** native FLUX.1/2/3 regional generation and local masked detailing. All eight tested variants completed two-person generation, same-seed caption swaps and detailing. Includes quantized regional LoRA fixes, embedded guidance, settings replay, eight FLUX presets and model-specific examples. [Release notes](docs/release-0.2.2.md) · [Evidence and limits](docs/flux-validation.md) · [FLUX examples](examples/flux).
 
-**1.0.1 Hangeul (한글) · FLUX.1/2/3 · Anima · SDXL · Krea 2 · MOSS · SD1.5 (experimental, unstable)** — independent prompts with X/Y, box and mixed regions for local ComfyUI generation.
+**1.0.2 Hangeul (한글) · FLUX.1/2/3 · Anima · SDXL · Krea 2 · MOSS · SD1.5 (experimental, unstable)** — independent prompts with X/Y, box and mixed regions for local ComfyUI generation.
 
 **Giyeok Fix:** fixes character and text inputs appearing together. Each slot now uses one shared STRING socket, preserving its connection when kind changes. Old workflows move their literal-text connection to that socket. [Fix and compatibility](docs/release-0.2.1.md).
 

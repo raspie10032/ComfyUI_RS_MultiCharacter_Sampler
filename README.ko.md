@@ -1,6 +1,6 @@
 # ComfyUI_RS_MultiCharacter_Sampler
 
-**1.0.1 기반 어댑터 지원 패치:** MOSS INT8·FP8의 Q/K/V 부분 적용 LoRA 오류를 수정하고 DoRA·LoHa·LoKr·GLoRA·OFT·BOFT·합성곱 LoRA·IA³의 캐릭터별 적용을 추가했습니다. [지원 형식·수치 검증·한계](docs/adapter-formats.md).
+**1.0.2 한글 — 어댑터 호환성 개선:** MOSS INT8·FP8의 Q/K/V 부분 적용 LoRA 오류를 수정하고 DoRA·LoHa·LoKr·GLoRA·OFT·BOFT·합성곱 LoRA·IA³의 캐릭터별 적용을 추가했습니다. [지원 형식·수치 검증·한계](docs/adapter-formats.md).
 
 **1.0.1 한글 (Hangeul):** 컬러 OpenPose PNG 기반 인물 마스크 자동 생성(JSON/POSE_KEYPOINT도 지원)·굵기 조절과 겹침 제어 프리셋을 추가했습니다. 부위 이름 유도는 **뼈대의 부위 이름을 기반으로 하는 아주 약한 어텐션 유도 기능**이며 기본은 끄기입니다. 뼈대 자체를 모델에 넣지 않습니다. [사용법·한계](docs/openpose-mask-guides.md) · [변경 내역·검증](docs/release-1.0.0.md).
 
@@ -14,7 +14,7 @@
 
 **0.2.2 니은 변경 사항:** FLUX.1·2·3의 네이티브 리저널 생성과 로컬 마스크 디테일러를 지원합니다. 시험한 8종 모두 실제 2인 생성·같은 시드의 문장 교환·디테일러를 완료했습니다. 양자화 모델의 캐릭터별 LoRA 수정, 내장 가이던스, 이미지 설정 복원, FLUX 프리셋 8개와 모델별 예제를 포함합니다. [변경 내역](docs/release-0.2.2.md) · [검증 범위·한계](docs/flux-validation.md) · [FLUX 예제](examples/flux).
 
-**1.0.1 한글 · FLUX.1·2·3 · Anima · SDXL · Krea 2 · MOSS · SD1.5(실험 지원·불안정)**입니다. 공통 프롬프트와 캐릭터별 프롬프트·XY·상자를 전용 파이프로 전달하고, 로컬 모델 내부에서 영역별 attention을 조절합니다. RS NAI 확장이나 API 키는 필요 없습니다.
+**1.0.2 한글 · FLUX.1·2·3 · Anima · SDXL · Krea 2 · MOSS · SD1.5(실험 지원·불안정)**입니다. 공통 프롬프트와 캐릭터별 프롬프트·XY·상자를 전용 파이프로 전달하고, 로컬 모델 내부에서 영역별 attention을 조절합니다. RS NAI 확장이나 API 키는 필요 없습니다.
 
 **기역 픽스:** 캐릭터·텍스트 입력부가 함께 보이던 문제를 고쳤습니다. 번호별 공용 STRING 하나를 사용하고, 종류를 바꿔도 연결선을 유지합니다. 예전 워크플로는 실제 글자 연결을 공용 입력으로 옮깁니다. [수정 내용·호환성](docs/release-0.2.1.md).
 

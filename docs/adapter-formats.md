@@ -1,8 +1,8 @@
-# Regional adapter formats on the 1.0.1 baseline
+# 1.0.2 Hangeul: regional adapter formats
 
 This patch fixes ordinary MOSS Q/K/V slice LoRA on packed INT8/FP8 checkpoints and
-extends regional execution to the following static adapters. It does not change
-the package version or constitute a published release.
+extends regional execution to the following static adapters. Package and runtime
+versions are both 1.0.2. See the [release notes](release-1.0.2.md).
 
 | Format | Regional application |
 | --- | --- |

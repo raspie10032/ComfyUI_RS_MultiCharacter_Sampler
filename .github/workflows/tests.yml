@@ -24,6 +24,8 @@ jobs:
             comfy: 5cc4b870094c89090db54bd8d12649dcaf89f2ba
           - os: windows-latest
             comfy: 5cc4b870094c89090db54bd8d12649dcaf89f2ba
+          - os: ubuntu-latest
+            comfy: 355cd6b14c92c19ac3188fe528e47a3f21ef5178
     runs-on: ${{ matrix.os }}
     timeout-minutes: 20
     env:

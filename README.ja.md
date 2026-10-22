@@ -1,6 +1,6 @@
 # ComfyUI_RS_MultiCharacter_Sampler
 
-**1.0.1 ベースのアダプター対応パッチ:** MOSS INT8/FP8のQ/K/V部分適用LoRAを修正し、DoRA・LoHa/LoKr・GLoRA・OFT/BOFT・畳み込みLoRA・IA3の領域別実行を追加しました。[対応形式・数値検証・制限](docs/adapter-formats.md)。
+**1.0.2 Hangeul — アダプター互換性の改善:** MOSS INT8/FP8のQ/K/V部分適用LoRAを修正し、DoRA・LoHa/LoKr・GLoRA・OFT/BOFT・畳み込みLoRA・IA3の領域別実行を追加しました。[対応形式・数値検証・制限](docs/adapter-formats.md)。
 
 **1.0.1 Hangeul（한글・ハングル）:** カラーOpenPose PNG（JSON/POSE_KEYPOINTも対応）から人物マスクを自動生成し、太さと重なりの分離設定を調整できます。部位名による誘導は**骨格の部位名を使う非常に弱いアテンション誘導**で、初期値は無効です。骨格そのものはモデルに入力しません。[使い方と制限](docs/openpose-mask-guides.md) · [変更履歴と検証](docs/release-1.0.0.md)。
 
@@ -14,7 +14,7 @@
 
 **0.2.2 Nieun（니은・ニウン）の変更:** FLUX.1・2・3のネイティブ領域生成とローカルマスクディテーラーに対応しました。試験した8モデルすべてで2人生成・同じシードでの文章交換・ディテーラーを実行済みです。量子化モデルの領域別LoRA修正、内蔵ガイダンス、画像設定復元、FLUXプリセット8種とモデル別の例を含みます。[変更点](docs/release-0.2.2.md) · [検証範囲と制限](docs/flux-validation.md) · [FLUXの例](examples/flux)。
 
-**1.0.1 Hangeul（한글・ハングル）· FLUX.1・2・3・Anima・SDXL・Krea 2・MOSS・SD1.5（実験対応・不安定）**。共通プロンプトと各キャラクターの文章・XY座標・矩形を専用パイプで渡し、領域ごとに attention を制御します。RS NAI 拡張や API キーは不要です。
+**1.0.2 Hangeul（한글・ハングル）· FLUX.1・2・3・Anima・SDXL・Krea 2・MOSS・SD1.5（実験対応・不安定）**。共通プロンプトと各キャラクターの文章・XY座標・矩形を専用パイプで渡し、領域ごとに attention を制御します。RS NAI 拡張や API キーは不要です。
 
 **Giyeok Fix:** キャラクター用と文字用の入力が同時に表示される不具合を修正しました。各番号で共通のSTRINGを1つ使い、種類を切り替えても接続を保持します。旧ワークフローでは実際に描く文字の接続を共通入力へ移します。[修正内容・互換性](docs/release-0.2.1.md)。
 
