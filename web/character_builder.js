@@ -1,9 +1,10 @@
 import { app } from "../../scripts/app.js";
 import { maskPreview, rememberMaskPreview, placedSupport } from "./mask_preview.js";
+import { poseSupports } from "./pose_masks.js";
 import { drawingSupports } from "./mask_drawing.js";
 import { addPositionEditor } from "./position_editor.js";
 
-const roles = new Set(["RSMultiCharacterPrompt", "RSMultiCharacterLoRA", "RSMultiCharacterPosition", "RSMultiCharacterMask", "RSMultiCharacterMaskDraw"]);
+const roles = new Set(["RSMultiCharacterPrompt", "RSMultiCharacterLoRA", "RSMultiCharacterPosition", "RSMultiCharacterMask", "RSMultiCharacterMaskDraw", "RSMultiCharacterPoseMasks", "RSMultiCharacterInteraction"]);
 const finalType = "RSMultiCharacterFinalize";
 const colors = ["#ff8d91", "#81bcff", "#94dd9d", "#ffd27f", "#c3a0ff", "#7fe5df", "#f5a6d8", "#cedd78", "#c7b6a2", "#e0e5ed"];
 const typeOf = node => node.comfyClass ?? node.type;
@@ -45,6 +46,19 @@ export function collectSlots(node) {
             }
             if (inputNode(item, "drawing") || inputNode(item, "margin")) unknown = true;
             lastCount = Math.max(lastCount, ...masks.keys());
+            continue;
+        }
+        if (type === "RSMultiCharacterInteraction") continue;
+        if (type === "RSMultiCharacterPoseMasks") {
+            const pose = poseSupports(item);
+            for (const slot of slots.values()) { slot.masked = false; slot.maskSupport = null; }
+            pose.masks.forEach((support,index) => {
+                const id=index+1;
+                const slot=slots.get(id)??{id,enabled:true,kind:"character",geometry:"point",x:.5,y:.5,width:.4,height:.8};
+                slot.masked=true;slot.maskSupport=support;slots.set(id,slot);
+            });
+            unknown ||= pose.unknown;
+            lastCount=Math.max(lastCount,pose.masks.length);
             continue;
         }
         if (type === "RSMultiCharacterMask") {
@@ -193,7 +207,12 @@ function addDiagram(node) {
         computeSize: () => [300, 254],
         draw(ctx, node, width, y) {
             const { slots, unknown } = collectSlots(node), centers = centersFor(slots);
-            const text = labels(), left = 16, top = y+28, w = width-32, h = 176;
+            const text = labels(), top = y+28, h = 176;
+            let left = 16, w = width-32;
+            if (typeOf(node) === 'RSMultiCharacterPoseMasks') {
+                const mask = slots.find(s => s.maskSupport)?.maskSupport;
+                if (mask) { w = Math.min(w, h*mask.width/mask.height); left = (width-w)/2; }
+            }
             ctx.save();
             ctx.font = "12px sans-serif"; ctx.fillStyle = "#d1d8e2"; ctx.fillText(text[0], left, y+16);
             ctx.fillStyle = "#171d27"; ctx.fillRect(left, top, w, h);
@@ -292,12 +311,12 @@ function visibility(node, updateSockets = true) {
 app.registerExtension({
     name:"RS.MultiCharacter.Builder",
     async beforeRegisterNodeDef(nodeType,nodeData) {
-        if(nodeData.name === "RSMultiCharacterMaskDraw" || (!roles.has(nodeData.name) && nodeData.name!==finalType)) return;
+        if(nodeData.name === "RSMultiCharacterMaskDraw" || nodeData.name === "RSMultiCharacterInteraction" || (!roles.has(nodeData.name) && nodeData.name!==finalType)) return;
         const created=nodeType.prototype.onNodeCreated;
         nodeType.prototype.onNodeCreated=function(){
             const result=created?.apply(this,arguments);
             if(nodeData.name==="RSMultiCharacterPosition" && this.addDOMWidget) addPositionEditor(this, { collectSlots, centersFor, colors });
-            else if(nodeData.name==="RSMultiCharacterPosition" || nodeData.name===finalType || nodeData.name==="RSMultiCharacterMask") addDiagram(this);
+            else if(nodeData.name==="RSMultiCharacterPosition" || nodeData.name===finalType || nodeData.name==="RSMultiCharacterMask" || nodeData.name==="RSMultiCharacterPoseMasks") addDiagram(this);
             if(nodeData.name==="RSMultiCharacterLoRA") addLoraModeHelp(this);
             for(const widget of this.widgets ?? []) {
                 const callback=widget.callback;

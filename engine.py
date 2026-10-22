@@ -9,6 +9,7 @@ import torch
 from comfy.sampler_helpers import convert_cond
 from comfy.samplers import process_conds
 
+from .interaction import protected_self_bias, exclusive_schedule
 from .routing import (installed_ops, route_cross, route_self, token_groups,
                       common_weight, stepped_common_weight, character_value_gain, staged_character_gain, spatial_separation, stepped_spatial_separation, hold2_decay_spatial_separation, hold_decay_spatial_separation, release_step2_spatial_separation, sigma_progress, weak_self_bias, sdpa)
 
@@ -19,6 +20,8 @@ MODES = ("identity", "cross", "cross_self", "cross_compact", "cross_exclusive") 
 
 class AnimaRouting:
     def __init__(self, conditions, masks, mode, audit, common_tokens, initial_common_prior=0.05, initial_character_gain=1., character_gain_schedule="early_decay", middle_character_gain=1.5, late_character_gain=1.7, initial_spatial_separation=.2, late_spatial_separation=.2, common_weight_schedule="smooth", spatial_separation_schedule="smooth", boundary_hold_steps=3, boundary_decrement=.2, common_after_step3_boost=0., boxes=False):
+        self.pose = None
+        self.part_cells = None
         self.conditions, self.masks, self.mode = conditions, masks, mode
         self.boxes = boxes
         self.audit = audit
@@ -56,7 +59,7 @@ class AnimaRouting:
         self.audit["evaluation_sigmas"] = actual_sigmas[:-1]
         self.spatial_bias = None
         self.spatial_bias_separation = None
-        self.contexts = self.groups = None
+        self.contexts = self.groups = self.part_cells = None
         self.audit.update(cross_calls=0, self_calls=0, forwards=[], restored_forwards=0)
 
         def process():
@@ -75,7 +78,7 @@ class AnimaRouting:
         try:
             return executor(*args, **kwargs)
         finally:
-            self.contexts = self.groups = self.process = None
+            self.contexts = self.groups = self.process = self.part_cells = None
             self.spatial_bias = self.sigmas = None
             self.spatial_bias_separation = None
 
@@ -97,6 +100,12 @@ class AnimaRouting:
                 raise ValueError("Image latent must align with Anima spatial patches")
             h, w = (s // model.patch_spatial for s in x.shape[-2:])
             self.groups = token_groups(self.masks, h, w, x.device, boxes=self.boxes)
+            if self.pose is not None:
+                from .pose_parts import part_cells
+                self.part_cells = part_cells(self.groups, self.pose['parts'], h, w, x.device)
+                self.audit['pose_parts']['token_cells'] = [
+                    {'owners': list(owners), 'parts': list(parts), 'tokens': len(indices)}
+                    for owners, parts, indices in self.part_cells]
             self.audit.update(token_grid=[h, w], spatial_slots=len(self.groups),
                               tokens_per_slot=[len(g) for g in self.groups])
         lengths = [context.shape[1]] + [c.shape[1] for c in self.contexts]
@@ -148,12 +157,21 @@ class AnimaRouting:
                           character_value_gain=gain,
                           common_tokens=self.common_tokens, preserve_native_padding=True,
                           spatial_separation=separation)
+        interaction = self.audit.get("interaction")
+        exclusive_separation = exclusive_schedule(interaction, progress, len(self.sigmas),
+            self.initial_spatial_separation, self.boundary_hold_steps, self.boundary_decrement)
+        record["exclusive_spatial_separation"] = exclusive_separation
         self.audit["forwards"].append(record)
 
         def cross(q, k, v, transformer_options=None, preferred_attention=None):
             q, k, v = (t if isinstance(t, torch.Tensor) else t.take() for t in (q, k, v))
-            result = route_cross(q, k, v, self.groups, lengths, kinds,
-                                 include_common=self.mode != "cross_exclusive", weights=weights, character_gain=gain)
+            if self.pose is not None:
+                from .pose_parts import route_parts
+                result = route_parts(q, k, v, self.groups, lengths, kinds, self.part_cells,
+                                     len(self.groups), self.pose['strength'], weights, gain, self.pose.get('bank_ids'))
+            else:
+                result = route_cross(q, k, v, self.groups, lengths, kinds,
+                                     include_common=self.mode != "cross_exclusive", weights=weights, character_gain=gain)
             self.audit["cross_calls"] += 1
             record["cross_blocks"].append(transformer_options["block_index"])
             return result
@@ -161,9 +179,10 @@ class AnimaRouting:
         def spatial(q, k, v, transformer_options=None, preferred_attention=None):
             q, k, v = (t if isinstance(t, torch.Tensor) else t.take() for t in (q, k, v))
             if weak_spatial:
-                if self.spatial_bias is None or self.spatial_bias_separation != separation:
-                    self.spatial_bias = weak_self_bias(self.groups, q.shape[1], q, separation)
-                    self.spatial_bias_separation = separation
+                bias_key = (separation, exclusive_separation)
+                if self.spatial_bias is None or self.spatial_bias_separation != bias_key:
+                    self.spatial_bias = protected_self_bias(self.groups, q.shape[1], q, separation, exclusive_separation)
+                    self.spatial_bias_separation = bias_key
                 if "self_bias_foreign" not in record and len(self.groups) > 1:
                     record["self_bias_foreign"] = float(self.spatial_bias[self.groups[0][0], self.groups[1][0]])
                     record["self_bias_own"] = float(self.spatial_bias[self.groups[0][0], self.groups[0][0]])

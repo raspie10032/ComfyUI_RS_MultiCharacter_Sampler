@@ -129,6 +129,7 @@ def mask_records(pipe):
 def validate_mask_budget(characters):
     # Reserve room for captions/settings inside the 4 MiB image metadata limit.
     records = [c.region_mask.record() if c.region_mask is not None else None for c in characters]
+    records += [[(name,mask.record()) for name,mask in getattr(c,'body_parts',())] for c in characters]
     if len(json.dumps(records)) > 3*1024*1024:
         raise ValueError("Character masks exceed the metadata budget. Reduce mask resolution or simplify the masks. / 마스크 해상도나 복잡도를 줄여 주세요. / マスクの解像度を下げてください。")
 

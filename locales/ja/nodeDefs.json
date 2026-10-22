@@ -160,7 +160,7 @@
     }
   },
   "RSMultiCharacterSampler": {
-    "display_name": "RS マルチキャラクターサンプラー (Rieul / リウル)",
+    "display_name": "RS マルチキャラクターサンプラー (ハングル)",
     "description": "SD1.5 は実験対応で、人数と特徴の分離は不安定です。 Anima / SD1.5 / SDXL / Krea2 / MOSS。独立したキャラクタープロンプトとXY領域を1〜10個使用できます。モデル別の検証範囲はサンプルと検証資料を参照してください。座標はプロンプト領域であり、正確な人数や姿勢を保証しません。処理数が多いほど品質を保証できません。自動保存はワークフローを含まずローカル生成メタデータを保存します。",
     "inputs": {
       "layout_method": {
@@ -1007,6 +1007,46 @@
     "outputs": {
       "building_pipe": {
         "name": "組み立てパイプ"
+      }
+    }
+  },
+  "RSMultiCharacterPoseMasks": {
+    "display_name": "RS OpenPose 自動マスク",
+    "description": "OpenPose JSONから人物ごとのマスクを作成します。部位名による誘導は、骨格の部位名を使う非常に弱いアテンション誘導です。骨格そのものはモデルに入力しません。",
+    "inputs": {
+      "pose_json": {
+        "name": "OpenPose JSON"
+      },
+      "thickness": {
+        "name": "マスクの太さ"
+      },
+      "body_part_strength": {
+        "name": "部位名の誘導強度",
+        "tooltip": "初期値0は無効。関節の位置に頭・手・胸・太もも・脚・足の名前を与えて弱く誘導します。"
+      },
+      "confidence": {
+        "name": "関節の最低信頼度"
+      },
+      "canvas_width": {
+        "name": "元の幅（自動優先）"
+      },
+      "canvas_height": {
+        "name": "元の高さ（自動優先）"
+      }
+    }
+  },
+  "RSMultiCharacterInteraction": {
+    "display_name": "RS キャラクター重なり制御",
+    "description": "Anima/SDXLで、重ならない領域のキャラクター分離を長く維持します。重なる領域と背景はサンプラーの既存の境界設定を使います。",
+    "inputs": {
+      "preset": {
+        "name": "プリセット"
+      },
+      "delay_steps": {
+        "name": "追加維持ステップ"
+      },
+      "decrement": {
+        "name": "境界の減少幅"
       }
     }
   }

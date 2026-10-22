@@ -8,6 +8,7 @@ SD1.5 uses CLIP-L sequences and has no pooled ADM. The class name is retained
 for compatibility with existing SDXL callers.
 """
 import torch
+from .interaction import protected_self_bias, exclusive_schedule
 
 from .routing import (route_cross, sdpa, token_groups, weak_self_bias,
                       sigma_progress, stepped_common_weight,
@@ -34,6 +35,8 @@ class SDXLRouting:
         self.reference = None
         self.groups = {}
         self.biases = {}
+        self.pose = None
+        self.part_cells = {}
 
     def install(self, work):
         from comfy.patcher_extension import WrappersMP
@@ -81,12 +84,14 @@ class SDXLRouting:
                           pooled_conditioning=("none" if self.family == "SD1.5" else "common_prompt_native_adm"), token_grids=[])
         self.groups.clear()
         self.biases.clear()
+        self.part_cells.clear()
         try:
             return executor(*args, **kwargs)
         finally:
             self.state = self.sigmas = None
             self.groups.clear()
             self.biases.clear()
+            self.part_cells.clear()
 
     def forward(self, executor, x, timesteps, context, y=None, control=None, transformer_options=None, **kwargs):
         options = transformer_options or {}
@@ -103,6 +108,8 @@ class SDXLRouting:
         gain = character_value_gain(progress, s["initial_character_gain"])
         separation = hold_decay_spatial_separation(progress, len(self.sigmas),
             s["initial_spatial_separation"], min(s["boundary_hold_steps"], len(self.sigmas)), s["boundary_decrement"])
+        exclusive = exclusive_schedule(self.audit.get('interaction'),progress,len(self.sigmas),
+            s['initial_spatial_separation'],min(s['boundary_hold_steps'],len(self.sigmas)),s['boundary_decrement'])
         lengths = [context.shape[1]]
         pieces = [context]
         for condition, _ in self.conditions:
@@ -113,6 +120,7 @@ class SDXLRouting:
             lengths.append(c.shape[1])
         record = dict(sigma=sigma, progress=progress, kinds=list(kinds), text_lengths=lengths,
                       common_prior=common, character_value_gain=gain, spatial_separation=separation,
+                      exclusive_spatial_separation=exclusive,
                       cross_calls=0, self_calls=0)
         self.audit["forwards"].append(record)
         previous = self.state
@@ -134,6 +142,14 @@ class SDXLRouting:
         key = (h, w, q.device)
         if key not in self.groups:
             self.groups[key] = token_groups(self.masks, h, w, q.device, boxes=self.boxes)
+            if self.pose is not None:
+                from .pose_parts import part_cells
+                cells = part_cells(self.groups[key], self.pose['parts'], h, w, q.device)
+                self.part_cells[key] = cells
+                self.audit['pose_parts'].setdefault('token_grids', []).append({
+                    'height': h, 'width': w,
+                    'cells': [{'owners': list(owners), 'parts': list(parts), 'tokens': len(indices)}
+                              for owners, parts, indices in cells]})
             self.audit["token_grids"].append({"height": h, "width": w,
                 "tokens_per_slot": [len(g) for g in self.groups[key]]})
         heads = options["n_heads"]
@@ -143,8 +159,16 @@ class SDXLRouting:
     def cross(self, q, k, v, options):
         (qh, kh, vh), groups = self._inputs(q, k, v, options)
         r = self.state
-        out = route_cross(qh, kh, vh, groups, r["text_lengths"], r["kinds"],
-                          weights=(r["common_prior"], 1.), character_gain=r["character_value_gain"])
+        if self.pose is not None:
+            from .pose_parts import route_parts
+            h, w = attention_grid(options['original_shape'], q.shape[1])
+            out = route_parts(qh, kh, vh, groups, r['text_lengths'], r['kinds'],
+                              self.part_cells[(h, w, q.device)], len(self.masks),
+                              self.pose['strength'], (r['common_prior'], 1.),
+                              r['character_value_gain'], self.pose.get('bank_ids'))
+        else:
+            out = route_cross(qh, kh, vh, groups, r["text_lengths"], r["kinds"],
+                              weights=(r["common_prior"], 1.), character_gain=r["character_value_gain"])
         self.audit["cross_calls"] += 1
         r["cross_calls"] += 1
         out = out.to(q.dtype)
@@ -154,10 +178,11 @@ class SDXLRouting:
         (qh, kh, vh), groups = self._inputs(q, k, v, options)
         separation = self.state["spatial_separation"]
         bias = None
-        if separation:
+        exclusive=self.state.get('exclusive_spatial_separation')
+        if separation or exclusive:
             key = (q.shape[1], qh.dtype, q.device)
             if key not in self.biases:
-                self.biases[key] = weak_self_bias(groups, q.shape[1], qh, separation)
+                self.biases[key] = protected_self_bias(groups,q.shape[1],qh,separation,exclusive)
             bias = self.biases[key]
         out = sdpa(qh, kh, vh, bias)
         self.audit["self_calls"] += 1

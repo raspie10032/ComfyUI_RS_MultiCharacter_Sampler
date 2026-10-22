@@ -67,3 +67,5 @@ jobs:
         run: node tests/test_mask_preview_ui.cjs
       - name: Numbered point box and mask placement editor
         run: node tests/test_position_editor_ui.cjs
+      - name: OpenPose masks and connected input previews
+        run: node tests/test_pose_masks_ui.cjs

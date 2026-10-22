@@ -1,12 +1,12 @@
 [project]
 name = "comfyui-rs-multicharacter-sampler"
-version = "0.2.6"
-description = "Bieup: fixes character LoRA on Krea 2 FP8 and MOSS INT8, with character LoRA presets and examples. Modular regional generation and detailing for Anima, SDXL, Krea 2, MOSS and FLUX.1/2/3. Image references are experimental and not recommended; SD1.5 is experimental and unstable."
+version = "1.0.0"
+description = "Hangeul: modular regional generation and detailing for Anima, SDXL, Krea 2, MOSS and FLUX.1/2/3, with character LoRA modes, editable masks and OpenPose JSON mask guides. Body-part name guidance and image references are experimental; SD1.5 is unstable."
 readme = "README.md"
 license = {file = "LICENSE"}
 requires-python = ">=3.11"
 dependencies = ["numpy", "Pillow>=10.0", "torch"]
-classifiers = ["Development Status :: 4 - Beta"]
+classifiers = ["Development Status :: 5 - Production/Stable"]
 
 [project.optional-dependencies]
 detailer = ["opencv-python>=4.8", "scipy>=1.11", "timm>=1.0.3,<2", "huggingface-hub>=1.1,<2", "safetensors>=0.4"]
@@ -19,4 +19,4 @@ Documentation = "https://github.com/raspie10032/ComfyUI_RS_MultiCharacter_Sample
 
 [tool.comfy]
 PublisherId = "raspie10032"
-DisplayName = "RS MultiCharacter Sampler (Bieup)"
+DisplayName = "RS MultiCharacter Sampler (Hangeul)"

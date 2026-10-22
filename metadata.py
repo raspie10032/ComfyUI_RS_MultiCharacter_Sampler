@@ -56,6 +56,11 @@ def build_record(pipe, settings, assets, centers, audit, engine="anima-spatial-a
             "prompt_syntax": pipe.syntax, "settings": settings, "assets": assets,
             "boxes": [c.bbox for c in pipe.characters],
             "character_masks": mask_records(pipe),
+            **({"body_parts": [[{"name":name,"mask":mask.record()} for name,mask in c.body_parts]
+                               for c in pipe.characters],
+                "body_part_strengths": [c.body_part_strength for c in pipe.characters]}
+               if any(c.body_parts for c in pipe.characters) else {}),
+            **({"interaction": json.loads(pipe.interaction_json)} if pipe.interaction_json else {}),
             "character_loras": lora_records(pipe),
             "image_references": [{"character_id": c.reference.character_id, "resolution": c.reference.resolution,
                                   "strength": c.reference.strength, "source": c.reference.source}
@@ -152,6 +157,17 @@ def pipe_from_record(record):
                              lora_clip_strength=v["strength_clip"]) for c, v in zip(chars, loras)]
         if not isinstance(texts, list) or len(texts) + len(chars) > 10:
             raise ValueError("Text metadata must be a list with at most 10 total regions.")
+        if local and "body_parts" in local:
+            parts, strengths = local['body_parts'], local.get('body_part_strengths')
+            if (not isinstance(parts,list) or len(parts)!=len(chars) or not isinstance(strengths,list) or len(strengths)!=len(chars)
+                or any(not isinstance(p,list) or len(p)>6 for p in parts)):
+                raise ValueError('Body-part masks must match character rows.')
+            chars = [replace(c,body_parts=tuple((p['name'],RegionMask.from_record(p['mask'])) for p in row),
+                             body_part_strength=strength) for c,row,strength in zip(chars,parts,strengths)]
+        interaction_json = None
+        if local and 'interaction' in local:
+            from .interaction import interaction_settings
+            interaction_json = json.dumps(interaction_settings(local['interaction']))
         text_regions = []
         for item in texts:
             if not isinstance(item, dict) or not isinstance(item.get("bbox"), list):
@@ -160,7 +176,8 @@ def pipe_from_record(record):
                 item["center"]["x"], item["center"]["y"], tuple(item["bbox"]), item["text"]))
         return CharacterPipe(tuple(chars), pos["base_caption"], neg["base_caption"], syntax,
             json.dumps(local, ensure_ascii=True, allow_nan=False) if local else None, tuple(text_regions),
-            lora_application_mode=local.get("lora_application_mode", "precision") if local else "precision")
+            lora_application_mode=local.get("lora_application_mode", "precision") if local else "precision",
+            interaction_json=interaction_json)
     except (KeyError, TypeError, IndexError) as error:
         raise ValueError("Incomplete character metadata: common prompts, character captions and X/Y are required.") from error
 

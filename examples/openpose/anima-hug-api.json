@@ -1,0 +1,208 @@
+{
+  "2": {
+    "class_type": "RSMultiCharacterPrompt",
+    "inputs": {
+      "character_count": 2,
+      "character1_enable": true,
+      "character1_kind": "character",
+      "character2_enable": true,
+      "character2_kind": "character",
+      "character3_enable": true,
+      "character3_kind": "character",
+      "character4_enable": true,
+      "character4_kind": "character",
+      "character5_enable": true,
+      "character5_kind": "character",
+      "character6_enable": true,
+      "character6_kind": "character",
+      "character7_enable": true,
+      "character7_kind": "character",
+      "character8_enable": true,
+      "character8_kind": "character",
+      "character9_enable": true,
+      "character9_kind": "character",
+      "character10_enable": true,
+      "character10_kind": "character",
+      "character1": [
+        "101",
+        0
+      ],
+      "character2": [
+        "102",
+        0
+      ]
+    }
+  },
+  "20": {
+    "class_type": "RSMultiCharacterSampler",
+    "inputs": {
+      "prompt": "@cle masahiro, masterpiece, best quality, 2girls, two adult women, hugging each other, warm smile, garden, full body",
+      "negative_prompt": "low quality, worst quality, bad anatomy, extra arms, extra legs, extra person, fused bodies, duplicate character, nude, naked, nsfw, text, watermark, signature, split screen, comic panels",
+      "width": 1024,
+      "height": 1536,
+      "seed": 1234567891011123,
+      "steps": 30,
+      "cfg": 4.0,
+      "sampler_name": "euler_ancestral",
+      "scheduler": "sgm_uniform",
+      "autosave": true,
+      "save_format": "PNG",
+      "webp_quality": 90,
+      "prompt_syntax": "ComfyUI",
+      "use_image_settings": false,
+      "region_feather": 0.04,
+      "initial_common_prior": 0.15,
+      "common_after_step3_boost": 0.1,
+      "initial_character_gain": 1.5,
+      "initial_spatial_separation": 0.9,
+      "boundary_hold_steps": 3,
+      "boundary_decrement": 0.2,
+      "layout_method": "regional",
+      "flux_guidance": 3.5,
+      "model": [
+        "1",
+        0
+      ],
+      "clip": [
+        "11",
+        0
+      ],
+      "vae": [
+        "12",
+        0
+      ],
+      "character_pipe": [
+        "4",
+        0
+      ],
+      "experiment_mode": "baseline"
+    }
+  },
+  "4": {
+    "class_type": "RSMultiCharacterFinalize",
+    "inputs": {
+      "building_pipe": [
+        "7",
+        0
+      ]
+    }
+  },
+  "1": {
+    "class_type": "UNETLoader",
+    "inputs": {
+      "unet_name": "anima-base-v1.0.safetensors",
+      "weight_dtype": "default"
+    }
+  },
+  "11": {
+    "class_type": "CLIPLoader",
+    "inputs": {
+      "clip_name": "qwen_3_06b_base.safetensors",
+      "type": "stable_diffusion",
+      "device": "default"
+    }
+  },
+  "12": {
+    "class_type": "VAELoader",
+    "inputs": {
+      "vae_name": "qwen_image_vae.safetensors"
+    }
+  },
+  "3": {
+    "class_type": "RSMultiCharacterPoseMasks",
+    "inputs": {
+      "pose_json": "{\"people\": [{\"pose_keypoints_2d\": [286, 177, 1, 331, 270, 1, 297, 274, 1, 0, 0, 0, 141, 418, 1, 367, 262, 1, 237, 416, 1, 139, 452, 1, 310, 576, 1, 295, 765, 1, 0, 0, 0, 350, 573, 1, 339, 767, 1, 0, 0, 0, 278, 158, 1, 332, 160, 1, 0, 0, 0, 358, 178, 1]}, {\"pose_keypoints_2d\": [224, 185, 1, 188, 267, 1, 140, 273, 1, 238, 418, 1, 365, 478, 1, 224, 263, 1, 0, 0, 0, 371, 450, 1, 153, 578, 1, 167, 768, 1, 0, 0, 0, 203, 580, 1, 209, 766, 1, 0, 0, 0, 186, 167, 1, 238, 167, 1, 155, 184, 1, 0, 0, 0]}], \"canvas_width\": 512, \"canvas_height\": 768}",
+      "thickness": 1.0,
+      "body_part_strength": 0.0,
+      "building_pipe": [
+        "2",
+        0
+      ]
+    }
+  },
+  "7": {
+    "class_type": "RSMultiCharacterInteraction",
+    "inputs": {
+      "preset": "baseline",
+      "delay_steps": 6,
+      "decrement": 0.2,
+      "building_pipe": [
+        "6",
+        0
+      ]
+    }
+  },
+  "6": {
+    "class_type": "RSMultiCharacterPosition",
+    "inputs": {
+      "character_count": 2,
+      "character1_geometry": "point",
+      "character1_x": 0.5,
+      "character1_y": 0.5,
+      "character1_width": 0.4,
+      "character1_height": 0.8,
+      "character2_geometry": "point",
+      "character2_x": 0.5,
+      "character2_y": 0.5,
+      "character2_width": 0.4,
+      "character2_height": 0.8,
+      "character3_geometry": "point",
+      "character3_x": 0.5,
+      "character3_y": 0.5,
+      "character3_width": 0.4,
+      "character3_height": 0.8,
+      "character4_geometry": "point",
+      "character4_x": 0.5,
+      "character4_y": 0.5,
+      "character4_width": 0.4,
+      "character4_height": 0.8,
+      "character5_geometry": "point",
+      "character5_x": 0.5,
+      "character5_y": 0.5,
+      "character5_width": 0.4,
+      "character5_height": 0.8,
+      "character6_geometry": "point",
+      "character6_x": 0.5,
+      "character6_y": 0.5,
+      "character6_width": 0.4,
+      "character6_height": 0.8,
+      "character7_geometry": "point",
+      "character7_x": 0.5,
+      "character7_y": 0.5,
+      "character7_width": 0.4,
+      "character7_height": 0.8,
+      "character8_geometry": "point",
+      "character8_x": 0.5,
+      "character8_y": 0.5,
+      "character8_width": 0.4,
+      "character8_height": 0.8,
+      "character9_geometry": "point",
+      "character9_x": 0.5,
+      "character9_y": 0.5,
+      "character9_width": 0.4,
+      "character9_height": 0.8,
+      "character10_geometry": "point",
+      "character10_x": 0.5,
+      "character10_y": 0.5,
+      "character10_width": 0.4,
+      "character10_height": 0.8,
+      "mask_transforms": "{}",
+      "building_pipe": [
+        "3",
+        0
+      ]
+    }
+  },
+  "101": {
+    "class_type": "PrimitiveStringMultiline",
+    "inputs": {
+      "value": "1girl, adult woman, short blonde hair, golden eyes, white flower hair ornament, white and pale blue long-sleeved dress, fully clothed"
+    }
+  },
+  "102": {
+    "class_type": "PrimitiveStringMultiline",
+    "inputs": {
+      "value": "1girl, adult woman, long dark brown hair, blue eyes, red hair ribbon, navy blue long-sleeved dress, fully clothed"
+    }
+  }
+}

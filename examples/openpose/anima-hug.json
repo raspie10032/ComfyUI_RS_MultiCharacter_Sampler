@@ -1,0 +1,1849 @@
+{
+  "revision": 0,
+  "last_node_id": 102,
+  "last_link_id": 10,
+  "nodes": [
+    {
+      "id": 1,
+      "type": "UNETLoader",
+      "pos": [
+        80,
+        110
+      ],
+      "size": [
+        270,
+        82
+      ],
+      "flags": {},
+      "order": 0,
+      "mode": 0,
+      "inputs": [
+        {
+          "localized_name": "UNet 모델 파일명",
+          "name": "unet_name",
+          "type": "COMBO",
+          "widget": {
+            "name": "unet_name"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "가중치 데이터 유형",
+          "name": "weight_dtype",
+          "type": "COMBO",
+          "widget": {
+            "name": "weight_dtype"
+          },
+          "link": null
+        }
+      ],
+      "outputs": [
+        {
+          "localized_name": "모델",
+          "name": "MODEL",
+          "type": "MODEL",
+          "links": [
+            7
+          ]
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "UNETLoader"
+      },
+      "widgets_values": [
+        "anima-base-v1.0.safetensors",
+        "default"
+      ],
+      "widgets_values_named": {
+        "unet_name": "anima-base-v1.0.safetensors",
+        "weight_dtype": "default"
+      }
+    },
+    {
+      "id": 2,
+      "type": "RSMultiCharacterPrompt",
+      "pos": [
+        560,
+        110
+      ],
+      "size": [
+        340,
+        469
+      ],
+      "flags": {},
+      "order": 5,
+      "mode": 0,
+      "inputs": [
+        {
+          "localized_name": "조립 파이프",
+          "name": "building_pipe",
+          "shape": 7,
+          "type": "RS_MC_BUILD_PIPE",
+          "link": null
+        },
+        {
+          "localized_name": "1 프롬프트 / 글자 (STRING)",
+          "name": "character1",
+          "shape": 7,
+          "type": "STRING",
+          "link": 1
+        },
+        {
+          "localized_name": "2 프롬프트 / 글자 (STRING)",
+          "name": "character2",
+          "shape": 7,
+          "type": "STRING",
+          "link": 2
+        },
+        {
+          "localized_name": "캐릭터 수",
+          "name": "character_count",
+          "type": "INT",
+          "widget": {
+            "name": "character_count"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "1 사용",
+          "name": "character1_enable",
+          "type": "BOOLEAN",
+          "widget": {
+            "name": "character1_enable"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "1 영역 종류",
+          "name": "character1_kind",
+          "type": "COMBO",
+          "widget": {
+            "name": "character1_kind"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "2 사용",
+          "name": "character2_enable",
+          "type": "BOOLEAN",
+          "widget": {
+            "name": "character2_enable"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "2 영역 종류",
+          "name": "character2_kind",
+          "type": "COMBO",
+          "widget": {
+            "name": "character2_kind"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "3 사용",
+          "name": "character3_enable",
+          "type": "BOOLEAN",
+          "widget": {
+            "name": "character3_enable"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "3 영역 종류",
+          "name": "character3_kind",
+          "type": "COMBO",
+          "widget": {
+            "name": "character3_kind"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "4 사용",
+          "name": "character4_enable",
+          "type": "BOOLEAN",
+          "widget": {
+            "name": "character4_enable"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "4 영역 종류",
+          "name": "character4_kind",
+          "type": "COMBO",
+          "widget": {
+            "name": "character4_kind"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "5 사용",
+          "name": "character5_enable",
+          "type": "BOOLEAN",
+          "widget": {
+            "name": "character5_enable"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "5 영역 종류",
+          "name": "character5_kind",
+          "type": "COMBO",
+          "widget": {
+            "name": "character5_kind"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "6 사용",
+          "name": "character6_enable",
+          "type": "BOOLEAN",
+          "widget": {
+            "name": "character6_enable"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "6 영역 종류",
+          "name": "character6_kind",
+          "type": "COMBO",
+          "widget": {
+            "name": "character6_kind"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "7 사용",
+          "name": "character7_enable",
+          "type": "BOOLEAN",
+          "widget": {
+            "name": "character7_enable"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "7 영역 종류",
+          "name": "character7_kind",
+          "type": "COMBO",
+          "widget": {
+            "name": "character7_kind"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "8 사용",
+          "name": "character8_enable",
+          "type": "BOOLEAN",
+          "widget": {
+            "name": "character8_enable"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "8 영역 종류",
+          "name": "character8_kind",
+          "type": "COMBO",
+          "widget": {
+            "name": "character8_kind"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "9 사용",
+          "name": "character9_enable",
+          "type": "BOOLEAN",
+          "widget": {
+            "name": "character9_enable"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "9 영역 종류",
+          "name": "character9_kind",
+          "type": "COMBO",
+          "widget": {
+            "name": "character9_kind"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "10 사용",
+          "name": "character10_enable",
+          "type": "BOOLEAN",
+          "widget": {
+            "name": "character10_enable"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "10 영역 종류",
+          "name": "character10_kind",
+          "type": "COMBO",
+          "widget": {
+            "name": "character10_kind"
+          },
+          "link": null
+        }
+      ],
+      "outputs": [
+        {
+          "localized_name": "조립 파이프",
+          "name": "building_pipe",
+          "type": "RS_MC_BUILD_PIPE",
+          "links": [
+            3
+          ]
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "RSMultiCharacterPrompt"
+      },
+      "widgets_values": [
+        2,
+        true,
+        "character",
+        true,
+        "character",
+        true,
+        "character",
+        true,
+        "character",
+        true,
+        "character",
+        true,
+        "character",
+        true,
+        "character",
+        true,
+        "character",
+        true,
+        "character",
+        true,
+        "character"
+      ],
+      "widgets_values_named": {
+        "character_count": 2,
+        "character1_enable": true,
+        "character1_kind": "character",
+        "character2_enable": true,
+        "character2_kind": "character",
+        "character3_enable": true,
+        "character3_kind": "character",
+        "character4_enable": true,
+        "character4_kind": "character",
+        "character5_enable": true,
+        "character5_kind": "character",
+        "character6_enable": true,
+        "character6_kind": "character",
+        "character7_enable": true,
+        "character7_kind": "character",
+        "character8_enable": true,
+        "character8_kind": "character",
+        "character9_enable": true,
+        "character9_kind": "character",
+        "character10_enable": true,
+        "character10_kind": "character"
+      }
+    },
+    {
+      "id": 3,
+      "type": "RSMultiCharacterPoseMasks",
+      "pos": [
+        980,
+        110
+      ],
+      "size": [
+        400,
+        604
+      ],
+      "flags": {},
+      "order": 6,
+      "mode": 0,
+      "inputs": [
+        {
+          "localized_name": "building_pipe",
+          "name": "building_pipe",
+          "shape": 7,
+          "type": "RS_MC_BUILD_PIPE",
+          "link": 3
+        },
+        {
+          "localized_name": "pose_keypoints",
+          "name": "pose_keypoints",
+          "shape": 7,
+          "type": "POSE_KEYPOINT",
+          "link": null
+        },
+        {
+          "localized_name": "pose_json",
+          "name": "pose_json",
+          "type": "STRING",
+          "widget": {
+            "name": "pose_json"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "thickness",
+          "name": "thickness",
+          "type": "FLOAT",
+          "widget": {
+            "name": "thickness"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "body_part_strength",
+          "name": "body_part_strength",
+          "type": "FLOAT",
+          "widget": {
+            "name": "body_part_strength"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "canvas_width",
+          "name": "canvas_width",
+          "shape": 7,
+          "type": "INT",
+          "widget": {
+            "name": "canvas_width"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "canvas_height",
+          "name": "canvas_height",
+          "shape": 7,
+          "type": "INT",
+          "widget": {
+            "name": "canvas_height"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "confidence",
+          "name": "confidence",
+          "shape": 7,
+          "type": "FLOAT",
+          "widget": {
+            "name": "confidence"
+          },
+          "link": null
+        }
+      ],
+      "outputs": [
+        {
+          "localized_name": "building_pipe",
+          "name": "building_pipe",
+          "type": "RS_MC_BUILD_PIPE",
+          "links": [
+            5
+          ]
+        },
+        {
+          "localized_name": "pose_preview",
+          "name": "pose_preview",
+          "type": "IMAGE",
+          "links": null
+        },
+        {
+          "localized_name": "person_masks",
+          "name": "person_masks",
+          "type": "MASK",
+          "links": null
+        },
+        {
+          "localized_name": "pose_info",
+          "name": "pose_info",
+          "type": "STRING",
+          "links": null
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "RSMultiCharacterPoseMasks"
+      },
+      "widgets_values": [
+        "{\"people\": [{\"pose_keypoints_2d\": [286, 177, 1, 331, 270, 1, 297, 274, 1, 0, 0, 0, 141, 418, 1, 367, 262, 1, 237, 416, 1, 139, 452, 1, 310, 576, 1, 295, 765, 1, 0, 0, 0, 350, 573, 1, 339, 767, 1, 0, 0, 0, 278, 158, 1, 332, 160, 1, 0, 0, 0, 358, 178, 1]}, {\"pose_keypoints_2d\": [224, 185, 1, 188, 267, 1, 140, 273, 1, 238, 418, 1, 365, 478, 1, 224, 263, 1, 0, 0, 0, 371, 450, 1, 153, 578, 1, 167, 768, 1, 0, 0, 0, 203, 580, 1, 209, 766, 1, 0, 0, 0, 186, 167, 1, 238, 167, 1, 155, 184, 1, 0, 0, 0]}], \"canvas_width\": 512, \"canvas_height\": 768}",
+        1,
+        0,
+        512,
+        768,
+        0.2,
+        ""
+      ],
+      "widgets_values_named": {
+        "pose_json": "{\"people\": [{\"pose_keypoints_2d\": [286, 177, 1, 331, 270, 1, 297, 274, 1, 0, 0, 0, 141, 418, 1, 367, 262, 1, 237, 416, 1, 139, 452, 1, 310, 576, 1, 295, 765, 1, 0, 0, 0, 350, 573, 1, 339, 767, 1, 0, 0, 0, 278, 158, 1, 332, 160, 1, 0, 0, 0, 358, 178, 1]}, {\"pose_keypoints_2d\": [224, 185, 1, 188, 267, 1, 140, 273, 1, 238, 418, 1, 365, 478, 1, 224, 263, 1, 0, 0, 0, 371, 450, 1, 153, 578, 1, 167, 768, 1, 0, 0, 0, 203, 580, 1, 209, 766, 1, 0, 0, 0, 186, 167, 1, 238, 167, 1, 155, 184, 1, 0, 0, 0]}], \"canvas_width\": 512, \"canvas_height\": 768}",
+        "thickness": 1,
+        "body_part_strength": 0,
+        "canvas_width": 512,
+        "canvas_height": 768,
+        "confidence": 0.2,
+        "pose_status": ""
+      }
+    },
+    {
+      "id": 4,
+      "type": "RSMultiCharacterFinalize",
+      "pos": [
+        2253.35546875,
+        110
+      ],
+      "size": [
+        340,
+        584
+      ],
+      "flags": {},
+      "order": 9,
+      "mode": 0,
+      "inputs": [
+        {
+          "localized_name": "조립 파이프",
+          "name": "building_pipe",
+          "type": "RS_MC_BUILD_PIPE",
+          "link": 4
+        }
+      ],
+      "outputs": [
+        {
+          "localized_name": "캐릭터 파이프",
+          "name": "character_pipe",
+          "type": "RS_MC_CHARACTER_PIPE",
+          "links": [
+            10
+          ]
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "RSMultiCharacterFinalize"
+      },
+      "widgets_values": [],
+      "widgets_values_named": {}
+    },
+    {
+      "id": 6,
+      "type": "RSMultiCharacterPosition",
+      "pos": [
+        1460,
+        110
+      ],
+      "size": [
+        340,
+        1168
+      ],
+      "flags": {},
+      "order": 7,
+      "mode": 0,
+      "inputs": [
+        {
+          "localized_name": "조립 파이프",
+          "name": "building_pipe",
+          "shape": 7,
+          "type": "RS_MC_BUILD_PIPE",
+          "link": 5
+        },
+        {
+          "localized_name": "설정 개수",
+          "name": "character_count",
+          "type": "INT",
+          "widget": {
+            "name": "character_count"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "1 위치 방식",
+          "name": "character1_geometry",
+          "type": "COMBO",
+          "widget": {
+            "name": "character1_geometry"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "1 X",
+          "name": "character1_x",
+          "type": "FLOAT",
+          "widget": {
+            "name": "character1_x"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "1 Y",
+          "name": "character1_y",
+          "type": "FLOAT",
+          "widget": {
+            "name": "character1_y"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "1 상자 너비",
+          "name": "character1_width",
+          "type": "FLOAT",
+          "widget": {
+            "name": "character1_width"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "1 상자 높이",
+          "name": "character1_height",
+          "type": "FLOAT",
+          "widget": {
+            "name": "character1_height"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "2 위치 방식",
+          "name": "character2_geometry",
+          "type": "COMBO",
+          "widget": {
+            "name": "character2_geometry"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "2 X",
+          "name": "character2_x",
+          "type": "FLOAT",
+          "widget": {
+            "name": "character2_x"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "2 Y",
+          "name": "character2_y",
+          "type": "FLOAT",
+          "widget": {
+            "name": "character2_y"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "2 상자 너비",
+          "name": "character2_width",
+          "type": "FLOAT",
+          "widget": {
+            "name": "character2_width"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "2 상자 높이",
+          "name": "character2_height",
+          "type": "FLOAT",
+          "widget": {
+            "name": "character2_height"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "3 위치 방식",
+          "name": "character3_geometry",
+          "type": "COMBO",
+          "widget": {
+            "name": "character3_geometry"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "3 X",
+          "name": "character3_x",
+          "type": "FLOAT",
+          "widget": {
+            "name": "character3_x"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "3 Y",
+          "name": "character3_y",
+          "type": "FLOAT",
+          "widget": {
+            "name": "character3_y"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "3 상자 너비",
+          "name": "character3_width",
+          "type": "FLOAT",
+          "widget": {
+            "name": "character3_width"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "3 상자 높이",
+          "name": "character3_height",
+          "type": "FLOAT",
+          "widget": {
+            "name": "character3_height"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "4 위치 방식",
+          "name": "character4_geometry",
+          "type": "COMBO",
+          "widget": {
+            "name": "character4_geometry"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "4 X",
+          "name": "character4_x",
+          "type": "FLOAT",
+          "widget": {
+            "name": "character4_x"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "4 Y",
+          "name": "character4_y",
+          "type": "FLOAT",
+          "widget": {
+            "name": "character4_y"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "4 상자 너비",
+          "name": "character4_width",
+          "type": "FLOAT",
+          "widget": {
+            "name": "character4_width"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "4 상자 높이",
+          "name": "character4_height",
+          "type": "FLOAT",
+          "widget": {
+            "name": "character4_height"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "5 위치 방식",
+          "name": "character5_geometry",
+          "type": "COMBO",
+          "widget": {
+            "name": "character5_geometry"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "5 X",
+          "name": "character5_x",
+          "type": "FLOAT",
+          "widget": {
+            "name": "character5_x"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "5 Y",
+          "name": "character5_y",
+          "type": "FLOAT",
+          "widget": {
+            "name": "character5_y"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "5 상자 너비",
+          "name": "character5_width",
+          "type": "FLOAT",
+          "widget": {
+            "name": "character5_width"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "5 상자 높이",
+          "name": "character5_height",
+          "type": "FLOAT",
+          "widget": {
+            "name": "character5_height"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "6 위치 방식",
+          "name": "character6_geometry",
+          "type": "COMBO",
+          "widget": {
+            "name": "character6_geometry"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "6 X",
+          "name": "character6_x",
+          "type": "FLOAT",
+          "widget": {
+            "name": "character6_x"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "6 Y",
+          "name": "character6_y",
+          "type": "FLOAT",
+          "widget": {
+            "name": "character6_y"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "6 상자 너비",
+          "name": "character6_width",
+          "type": "FLOAT",
+          "widget": {
+            "name": "character6_width"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "6 상자 높이",
+          "name": "character6_height",
+          "type": "FLOAT",
+          "widget": {
+            "name": "character6_height"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "7 위치 방식",
+          "name": "character7_geometry",
+          "type": "COMBO",
+          "widget": {
+            "name": "character7_geometry"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "7 X",
+          "name": "character7_x",
+          "type": "FLOAT",
+          "widget": {
+            "name": "character7_x"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "7 Y",
+          "name": "character7_y",
+          "type": "FLOAT",
+          "widget": {
+            "name": "character7_y"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "7 상자 너비",
+          "name": "character7_width",
+          "type": "FLOAT",
+          "widget": {
+            "name": "character7_width"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "7 상자 높이",
+          "name": "character7_height",
+          "type": "FLOAT",
+          "widget": {
+            "name": "character7_height"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "8 위치 방식",
+          "name": "character8_geometry",
+          "type": "COMBO",
+          "widget": {
+            "name": "character8_geometry"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "8 X",
+          "name": "character8_x",
+          "type": "FLOAT",
+          "widget": {
+            "name": "character8_x"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "8 Y",
+          "name": "character8_y",
+          "type": "FLOAT",
+          "widget": {
+            "name": "character8_y"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "8 상자 너비",
+          "name": "character8_width",
+          "type": "FLOAT",
+          "widget": {
+            "name": "character8_width"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "8 상자 높이",
+          "name": "character8_height",
+          "type": "FLOAT",
+          "widget": {
+            "name": "character8_height"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "9 위치 방식",
+          "name": "character9_geometry",
+          "type": "COMBO",
+          "widget": {
+            "name": "character9_geometry"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "9 X",
+          "name": "character9_x",
+          "type": "FLOAT",
+          "widget": {
+            "name": "character9_x"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "9 Y",
+          "name": "character9_y",
+          "type": "FLOAT",
+          "widget": {
+            "name": "character9_y"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "9 상자 너비",
+          "name": "character9_width",
+          "type": "FLOAT",
+          "widget": {
+            "name": "character9_width"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "9 상자 높이",
+          "name": "character9_height",
+          "type": "FLOAT",
+          "widget": {
+            "name": "character9_height"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "10 위치 방식",
+          "name": "character10_geometry",
+          "type": "COMBO",
+          "widget": {
+            "name": "character10_geometry"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "10 X",
+          "name": "character10_x",
+          "type": "FLOAT",
+          "widget": {
+            "name": "character10_x"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "10 Y",
+          "name": "character10_y",
+          "type": "FLOAT",
+          "widget": {
+            "name": "character10_y"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "10 상자 너비",
+          "name": "character10_width",
+          "type": "FLOAT",
+          "widget": {
+            "name": "character10_width"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "10 상자 높이",
+          "name": "character10_height",
+          "type": "FLOAT",
+          "widget": {
+            "name": "character10_height"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "mask_transforms",
+          "name": "mask_transforms",
+          "shape": 7,
+          "type": "STRING",
+          "widget": {
+            "name": "mask_transforms"
+          },
+          "link": null
+        }
+      ],
+      "outputs": [
+        {
+          "localized_name": "조립 파이프",
+          "name": "building_pipe",
+          "type": "RS_MC_BUILD_PIPE",
+          "links": [
+            6
+          ]
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "RSMultiCharacterPosition"
+      },
+      "widgets_values": [
+        2,
+        "point",
+        0.5,
+        0.5,
+        0.4,
+        0.8,
+        "point",
+        0.5,
+        0.5,
+        0.4,
+        0.8,
+        "point",
+        0.5,
+        0.5,
+        0.4,
+        0.8,
+        "point",
+        0.5,
+        0.5,
+        0.4,
+        0.8,
+        "point",
+        0.5,
+        0.5,
+        0.4,
+        0.8,
+        "point",
+        0.5,
+        0.5,
+        0.4,
+        0.8,
+        "point",
+        0.5,
+        0.5,
+        0.4,
+        0.8,
+        "point",
+        0.5,
+        0.5,
+        0.4,
+        0.8,
+        "point",
+        0.5,
+        0.5,
+        0.4,
+        0.8,
+        "point",
+        0.5,
+        0.5,
+        0.4,
+        0.8,
+        "{}"
+      ],
+      "widgets_values_named": {
+        "character_count": 2,
+        "character1_geometry": "point",
+        "character1_x": 0.5,
+        "character1_y": 0.5,
+        "character1_width": 0.4,
+        "character1_height": 0.8,
+        "character2_geometry": "point",
+        "character2_x": 0.5,
+        "character2_y": 0.5,
+        "character2_width": 0.4,
+        "character2_height": 0.8,
+        "character3_geometry": "point",
+        "character3_x": 0.5,
+        "character3_y": 0.5,
+        "character3_width": 0.4,
+        "character3_height": 0.8,
+        "character4_geometry": "point",
+        "character4_x": 0.5,
+        "character4_y": 0.5,
+        "character4_width": 0.4,
+        "character4_height": 0.8,
+        "character5_geometry": "point",
+        "character5_x": 0.5,
+        "character5_y": 0.5,
+        "character5_width": 0.4,
+        "character5_height": 0.8,
+        "character6_geometry": "point",
+        "character6_x": 0.5,
+        "character6_y": 0.5,
+        "character6_width": 0.4,
+        "character6_height": 0.8,
+        "character7_geometry": "point",
+        "character7_x": 0.5,
+        "character7_y": 0.5,
+        "character7_width": 0.4,
+        "character7_height": 0.8,
+        "character8_geometry": "point",
+        "character8_x": 0.5,
+        "character8_y": 0.5,
+        "character8_width": 0.4,
+        "character8_height": 0.8,
+        "character9_geometry": "point",
+        "character9_x": 0.5,
+        "character9_y": 0.5,
+        "character9_width": 0.4,
+        "character9_height": 0.8,
+        "character10_geometry": "point",
+        "character10_x": 0.5,
+        "character10_y": 0.5,
+        "character10_width": 0.4,
+        "character10_height": 0.8,
+        "mask_transforms": "{}"
+      }
+    },
+    {
+      "id": 7,
+      "type": "RSMultiCharacterInteraction",
+      "pos": [
+        1880,
+        110
+      ],
+      "size": [
+        293.35546875,
+        106
+      ],
+      "flags": {},
+      "order": 8,
+      "mode": 0,
+      "inputs": [
+        {
+          "localized_name": "building_pipe",
+          "name": "building_pipe",
+          "shape": 7,
+          "type": "RS_MC_BUILD_PIPE",
+          "link": 6
+        },
+        {
+          "localized_name": "preset",
+          "name": "preset",
+          "type": "COMBO",
+          "widget": {
+            "name": "preset"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "delay_steps",
+          "name": "delay_steps",
+          "type": "INT",
+          "widget": {
+            "name": "delay_steps"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "decrement",
+          "name": "decrement",
+          "type": "FLOAT",
+          "widget": {
+            "name": "decrement"
+          },
+          "link": null
+        }
+      ],
+      "outputs": [
+        {
+          "localized_name": "RS_MC_BUILD_PIPE",
+          "name": "RS_MC_BUILD_PIPE",
+          "type": "RS_MC_BUILD_PIPE",
+          "links": [
+            4
+          ]
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "RSMultiCharacterInteraction"
+      },
+      "widgets_values": [
+        "baseline",
+        6,
+        0.2
+      ],
+      "widgets_values_named": {
+        "preset": "baseline",
+        "delay_steps": 6,
+        "decrement": 0.2
+      }
+    },
+    {
+      "id": 11,
+      "type": "CLIPLoader",
+      "pos": [
+        80,
+        302
+      ],
+      "size": [
+        270,
+        106
+      ],
+      "flags": {},
+      "order": 1,
+      "mode": 0,
+      "inputs": [
+        {
+          "localized_name": "CLIP 파일명",
+          "name": "clip_name",
+          "type": "COMBO",
+          "widget": {
+            "name": "clip_name"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "유형",
+          "name": "type",
+          "type": "COMBO",
+          "widget": {
+            "name": "type"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "장치",
+          "name": "device",
+          "shape": 7,
+          "type": "COMBO",
+          "widget": {
+            "name": "device"
+          },
+          "link": null
+        }
+      ],
+      "outputs": [
+        {
+          "localized_name": "CLIP",
+          "name": "CLIP",
+          "type": "CLIP",
+          "links": [
+            8
+          ]
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "CLIPLoader"
+      },
+      "widgets_values": [
+        "qwen_3_06b_base.safetensors",
+        "stable_diffusion",
+        "default"
+      ],
+      "widgets_values_named": {
+        "clip_name": "qwen_3_06b_base.safetensors",
+        "type": "stable_diffusion",
+        "device": "default"
+      }
+    },
+    {
+      "id": 12,
+      "type": "VAELoader",
+      "pos": [
+        80,
+        518
+      ],
+      "size": [
+        270,
+        58
+      ],
+      "flags": {},
+      "order": 2,
+      "mode": 0,
+      "inputs": [
+        {
+          "localized_name": "vae 파일명",
+          "name": "vae_name",
+          "type": "COMBO",
+          "widget": {
+            "name": "vae_name"
+          },
+          "link": null
+        }
+      ],
+      "outputs": [
+        {
+          "localized_name": "VAE",
+          "name": "VAE",
+          "type": "VAE",
+          "links": [
+            9
+          ]
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "VAELoader"
+      },
+      "widgets_values": [
+        "qwen_image_vae.safetensors"
+      ],
+      "widgets_values_named": {
+        "vae_name": "qwen_image_vae.safetensors"
+      }
+    },
+    {
+      "id": 20,
+      "type": "RSMultiCharacterSampler",
+      "pos": [
+        2673.35546875,
+        110
+      ],
+      "size": [
+        400,
+        1168
+      ],
+      "flags": {},
+      "order": 10,
+      "mode": 0,
+      "inputs": [
+        {
+          "localized_name": "model",
+          "name": "model",
+          "type": "MODEL",
+          "link": 7
+        },
+        {
+          "localized_name": "clip",
+          "name": "clip",
+          "type": "CLIP",
+          "link": 8
+        },
+        {
+          "localized_name": "vae",
+          "name": "vae",
+          "type": "VAE",
+          "link": 9
+        },
+        {
+          "localized_name": "character_pipe",
+          "name": "character_pipe",
+          "type": "RS_MC_CHARACTER_PIPE",
+          "link": 10
+        },
+        {
+          "localized_name": "prompt",
+          "name": "prompt",
+          "type": "STRING",
+          "widget": {
+            "name": "prompt"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "negative_prompt",
+          "name": "negative_prompt",
+          "type": "STRING",
+          "widget": {
+            "name": "negative_prompt"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "width",
+          "name": "width",
+          "type": "INT",
+          "widget": {
+            "name": "width"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "height",
+          "name": "height",
+          "type": "INT",
+          "widget": {
+            "name": "height"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "seed",
+          "name": "seed",
+          "type": "INT",
+          "widget": {
+            "name": "seed"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "steps",
+          "name": "steps",
+          "type": "INT",
+          "widget": {
+            "name": "steps"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "cfg",
+          "name": "cfg",
+          "type": "FLOAT",
+          "widget": {
+            "name": "cfg"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "sampler_name",
+          "name": "sampler_name",
+          "type": "COMBO",
+          "widget": {
+            "name": "sampler_name"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "scheduler",
+          "name": "scheduler",
+          "type": "COMBO",
+          "widget": {
+            "name": "scheduler"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "autosave",
+          "name": "autosave",
+          "type": "BOOLEAN",
+          "widget": {
+            "name": "autosave"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "save_format",
+          "name": "save_format",
+          "type": "COMBO",
+          "widget": {
+            "name": "save_format"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "webp_quality",
+          "name": "webp_quality",
+          "type": "INT",
+          "widget": {
+            "name": "webp_quality"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "prompt_syntax",
+          "name": "prompt_syntax",
+          "shape": 7,
+          "type": "COMBO",
+          "widget": {
+            "name": "prompt_syntax"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "use_image_settings",
+          "name": "use_image_settings",
+          "shape": 7,
+          "type": "BOOLEAN",
+          "widget": {
+            "name": "use_image_settings"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "region_feather",
+          "name": "region_feather",
+          "shape": 7,
+          "type": "FLOAT",
+          "widget": {
+            "name": "region_feather"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "initial_common_prior",
+          "name": "initial_common_prior",
+          "shape": 7,
+          "type": "FLOAT",
+          "widget": {
+            "name": "initial_common_prior"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "common_after_step3_boost",
+          "name": "common_after_step3_boost",
+          "shape": 7,
+          "type": "FLOAT",
+          "widget": {
+            "name": "common_after_step3_boost"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "initial_character_gain",
+          "name": "initial_character_gain",
+          "shape": 7,
+          "type": "FLOAT",
+          "widget": {
+            "name": "initial_character_gain"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "initial_spatial_separation",
+          "name": "initial_spatial_separation",
+          "shape": 7,
+          "type": "FLOAT",
+          "widget": {
+            "name": "initial_spatial_separation"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "boundary_hold_steps",
+          "name": "boundary_hold_steps",
+          "shape": 7,
+          "type": "INT",
+          "widget": {
+            "name": "boundary_hold_steps"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "boundary_decrement",
+          "name": "boundary_decrement",
+          "shape": 7,
+          "type": "FLOAT",
+          "widget": {
+            "name": "boundary_decrement"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "레이아웃 처리",
+          "name": "layout_method",
+          "shape": 7,
+          "type": "COMBO",
+          "widget": {
+            "name": "layout_method"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "FLUX 가이던스",
+          "name": "flux_guidance",
+          "shape": 7,
+          "type": "FLOAT",
+          "widget": {
+            "name": "flux_guidance"
+          },
+          "link": null
+        }
+      ],
+      "outputs": [
+        {
+          "localized_name": "image",
+          "name": "image",
+          "type": "IMAGE",
+          "links": null
+        },
+        {
+          "localized_name": "latent",
+          "name": "latent",
+          "type": "LATENT",
+          "links": null
+        },
+        {
+          "localized_name": "character_pipe",
+          "name": "character_pipe",
+          "type": "RS_MC_CHARACTER_PIPE",
+          "links": null
+        },
+        {
+          "localized_name": "generation_info",
+          "name": "generation_info",
+          "type": "STRING",
+          "links": null
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "RSMultiCharacterSampler"
+      },
+      "widgets_values": [
+        "@cle masahiro, masterpiece, best quality, 2girls, two adult women, hugging each other, warm smile, garden, full body",
+        "low quality, worst quality, bad anatomy, extra arms, extra legs, extra person, fused bodies, duplicate character, nude, naked, nsfw, text, watermark, signature, split screen, comic panels",
+        1024,
+        1536,
+        1234567891011123,
+        "randomize",
+        30,
+        4,
+        "euler_ancestral",
+        "sgm_uniform",
+        true,
+        "PNG",
+        90,
+        "ComfyUI",
+        false,
+        0.04,
+        0.15,
+        0.1,
+        1.5,
+        0.9,
+        3,
+        0.2,
+        "regional",
+        3.5
+      ],
+      "widgets_values_named": {
+        "prompt": "@cle masahiro, masterpiece, best quality, 2girls, two adult women, hugging each other, warm smile, garden, full body",
+        "negative_prompt": "low quality, worst quality, bad anatomy, extra arms, extra legs, extra person, fused bodies, duplicate character, nude, naked, nsfw, text, watermark, signature, split screen, comic panels",
+        "width": 1024,
+        "height": 1536,
+        "seed": 1234567891011123,
+        "control_after_generate": "randomize",
+        "steps": 30,
+        "cfg": 4,
+        "sampler_name": "euler_ancestral",
+        "scheduler": "sgm_uniform",
+        "autosave": true,
+        "save_format": "PNG",
+        "webp_quality": 90,
+        "prompt_syntax": "ComfyUI",
+        "use_image_settings": false,
+        "region_feather": 0.04,
+        "initial_common_prior": 0.15,
+        "common_after_step3_boost": 0.1,
+        "initial_character_gain": 1.5,
+        "initial_spatial_separation": 0.9,
+        "boundary_hold_steps": 3,
+        "boundary_decrement": 0.2,
+        "layout_method": "regional",
+        "flux_guidance": 3.5
+      }
+    },
+    {
+      "id": 101,
+      "type": "PrimitiveStringMultiline",
+      "pos": [
+        80,
+        686
+      ],
+      "size": [
+        400,
+        200
+      ],
+      "flags": {},
+      "order": 3,
+      "mode": 0,
+      "inputs": [
+        {
+          "localized_name": "값",
+          "name": "value",
+          "type": "STRING",
+          "widget": {
+            "name": "value"
+          },
+          "link": null
+        }
+      ],
+      "outputs": [
+        {
+          "localized_name": "문자열",
+          "name": "STRING",
+          "type": "STRING",
+          "links": [
+            1
+          ]
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "PrimitiveStringMultiline"
+      },
+      "widgets_values": [
+        "1girl, adult woman, short blonde hair, golden eyes, white flower hair ornament, white and pale blue long-sleeved dress, fully clothed"
+      ],
+      "widgets_values_named": {
+        "value": "1girl, adult woman, short blonde hair, golden eyes, white flower hair ornament, white and pale blue long-sleeved dress, fully clothed"
+      }
+    },
+    {
+      "id": 102,
+      "type": "PrimitiveStringMultiline",
+      "pos": [
+        80,
+        996
+      ],
+      "size": [
+        400,
+        200
+      ],
+      "flags": {},
+      "order": 4,
+      "mode": 0,
+      "inputs": [
+        {
+          "localized_name": "값",
+          "name": "value",
+          "type": "STRING",
+          "widget": {
+            "name": "value"
+          },
+          "link": null
+        }
+      ],
+      "outputs": [
+        {
+          "localized_name": "문자열",
+          "name": "STRING",
+          "type": "STRING",
+          "links": [
+            2
+          ]
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "PrimitiveStringMultiline"
+      },
+      "widgets_values": [
+        "1girl, adult woman, long dark brown hair, blue eyes, red hair ribbon, navy blue long-sleeved dress, fully clothed"
+      ],
+      "widgets_values_named": {
+        "value": "1girl, adult woman, long dark brown hair, blue eyes, red hair ribbon, navy blue long-sleeved dress, fully clothed"
+      }
+    }
+  ],
+  "links": [
+    [
+      1,
+      101,
+      0,
+      2,
+      1,
+      "STRING"
+    ],
+    [
+      2,
+      102,
+      0,
+      2,
+      2,
+      "STRING"
+    ],
+    [
+      3,
+      2,
+      0,
+      3,
+      0,
+      "RS_MC_BUILD_PIPE"
+    ],
+    [
+      4,
+      7,
+      0,
+      4,
+      0,
+      "RS_MC_BUILD_PIPE"
+    ],
+    [
+      5,
+      3,
+      0,
+      6,
+      0,
+      "RS_MC_BUILD_PIPE"
+    ],
+    [
+      6,
+      6,
+      0,
+      7,
+      0,
+      "RS_MC_BUILD_PIPE"
+    ],
+    [
+      7,
+      1,
+      0,
+      20,
+      0,
+      "MODEL"
+    ],
+    [
+      8,
+      11,
+      0,
+      20,
+      1,
+      "CLIP"
+    ],
+    [
+      9,
+      12,
+      0,
+      20,
+      2,
+      "VAE"
+    ],
+    [
+      10,
+      4,
+      0,
+      20,
+      3,
+      "RS_MC_CHARACTER_PIPE"
+    ]
+  ],
+  "groups": [],
+  "config": {},
+  "extra": {
+    "ds": {
+      "scale": 0.35,
+      "offset": [
+        60,
+        80
+      ]
+    }
+  },
+  "version": 0.4
+}

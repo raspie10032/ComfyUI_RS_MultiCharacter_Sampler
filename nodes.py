@@ -167,7 +167,8 @@ class RSMultiCharacterSampler:
         if not isinstance(prompt, str) or not isinstance(negative_prompt, str) or prompt_syntax not in ("ComfyUI", "NovelAI"):
             raise ValueError("Choose valid prompt text and syntax.")
         pipe = CharacterPipe(character_pipe.characters, prompt, negative_prompt, prompt_syntax,
-                             text_regions=character_pipe.text_regions, lora_application_mode=lora_application_mode)
+                             text_regions=character_pipe.text_regions, lora_application_mode=lora_application_mode,
+                             interaction_json=character_pipe.interaction_json)
         from .image_reference import prepare_model_references
         model = prepare_model_references(model, clip, vae, pipe, family, layout_method, unique_id)
         centers, moved = effective_centers(pipe.regions)
@@ -238,6 +239,30 @@ class RSMultiCharacterSampler:
                                     "boxes" if all(geometry) else "mixed" if any(geometry) else "points",
                  "box_slots": [i+1 for i, c in enumerate(pipe.regions) if c.bbox is not None and c.region_mask is None],
                  "mask_slots": [i+1 for i, c in enumerate(pipe.regions) if c.region_mask is not None]}
+        from .interaction import interaction_settings
+        interaction = interaction_settings(pipe.interaction_json)
+        if interaction is not None:
+            if interaction['preset'] != 'baseline' and family not in ('Anima', 'SDXL', 'SD1.5'):
+                raise ValueError('Extra interaction separation currently supports Anima/SDXL/SD1.5. / 추가 겹침 제어는 Anima·SDXL·SD1.5만 지원합니다.')
+            audit['interaction'] = interaction
+            settings['interaction'] = interaction
+        pose = None
+        active = [(i,c) for i,c in enumerate(pipe.characters) if c.body_parts and c.body_part_strength > 0]
+        if active:
+            if family not in ('Anima', 'SDXL') or pipe.text_regions:
+                raise ValueError('Experimental body-part prompts support Anima/SDXL character-only layouts. Set body-part strength to 0 to use masks alone. / 부위 조건은 Anima·SDXL 캐릭터 배치만 지원합니다. 강도 0이면 마스크만 사용합니다.')
+            strengths = {c.body_part_strength for _,c in active}
+            if len(strengths) != 1:
+                raise ValueError('Use one shared body-part strength for all pose people.')
+            pose = dict(strength=strengths.pop(), parts=[dict(owner=i,name=name,mask=mask.tensor())
+                        for i,c in active for name,mask in c.body_parts])
+            captions = list(dict.fromkeys(p['name'] for p in pose['parts']))
+            pose['bank_ids'] = [captions.index(p['name']) for p in pose['parts']]
+            conditions += [encode(t)[0] for t in captions]
+            audit['pose_parts'] = dict(strength=pose['strength'],captions=captions,caption_mode='shared_body_names',
+                bank_ids=pose['bank_ids'],encoded_part_bank_count=len(captions),controlnet_used=False,
+                parts=[dict(owner=p['owner'],name=p['name']) for p in pose['parts']])
+            settings['body_part_strength'] = pose['strength']
         work = model.clone()
         if native_prompt is not None:
             audit.update(spatial_slots=len(pipe.regions), cross_calls=0, self_calls=0,
@@ -253,11 +278,13 @@ class RSMultiCharacterSampler:
                 common_weight_schedule="step_3x0.2", spatial_separation_schedule="hold_decay",
                 boundary_hold_steps=min(settings["boundary_hold_steps"], settings["steps"]), boundary_decrement=settings["boundary_decrement"],
                 common_after_step3_boost=settings["common_after_step3_boost"], boxes=boxes)
+            routing.pose = pose
             work.add_wrapper_with_key(WrappersMP.SAMPLER_SAMPLE, "rs_multicharacter", routing.sample)
             work.add_wrapper_with_key(WrappersMP.DIFFUSION_MODEL, "rs_multicharacter", routing.forward)
         elif family in ("SD1.5", "SDXL"):
             from .sdxl_engine import SDXLRouting
             routing = SDXLRouting(conditions, masks, settings, audit, family=family, boxes=boxes)
+            routing.pose = pose
             routing.install(work)
         elif family.startswith("FLUX"):
             from .flux_engine import FluxRouting
@@ -302,10 +329,10 @@ class RSMultiCharacterSampler:
         record["rs_multicharacter"]["lora_application"] = audit["lora_application"]
         enriched = CharacterPipe(pipe.characters, prompt, negative_prompt, prompt_syntax,
             json.dumps(record["rs_multicharacter"], ensure_ascii=True), text_regions=pipe.text_regions,
-            lora_application_mode=lora_application_mode)
+            lora_application_mode=lora_application_mode, interaction_json=pipe.interaction_json)
         summary = {**record, "auto_layout_groups": moved, "cross_attention_calls": audit["cross_calls"],
                    "self_attention_calls": audit["self_calls"], "restored_forwards": audit["restored_forwards"], "routing_audit": audit}
-        ui = {"text": [f"{len(pipe.characters)} characters + {len(pipe.text_regions)} text regions · seed {settings['seed']} · {family} zeta"]}
+        ui = {"text": [f"{len(pipe.characters)} characters + {len(pipe.text_regions)} text regions · seed {settings['seed']} · {family}"]}
         execution = audit["lora_application"]
         ui["text"].append(f"Character LoRA: {execution['requested']} → {execution['effective']}"
                           + (f" ({execution['fallback_reason']})" if execution["fallback_reason"] else ""))

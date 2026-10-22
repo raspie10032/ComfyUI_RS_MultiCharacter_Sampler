@@ -160,7 +160,7 @@
     }
   },
   "RSMultiCharacterSampler": {
-    "display_name": "RS 멀티캐릭터 샘플러 (리을)",
+    "display_name": "RS 멀티캐릭터 샘플러 (한글)",
     "description": "SD1.5는 실험 지원이며 캐릭터 수와 외형 분리가 불안정합니다. Anima / SD1.5 / SDXL / Krea2 / MOSS. 독립 캐릭터 프롬프트와 XY 영역을 1~10개 사용합니다. 모델별 시험 범위는 예제와 검증 문서를 확인해 주세요. 좌표는 프롬프트 영역이며 정확한 인원·자세를 보장하지 않습니다. 처리수가 많을수록 품질을 보장하지 못합니다. 자동 저장은 워크플로 없이 로컬 생성 메타데이터를 기록합니다.",
     "inputs": {
       "layout_method": {
@@ -1007,6 +1007,46 @@
     "outputs": {
       "building_pipe": {
         "name": "조립 파이프"
+      }
+    }
+  },
+  "RSMultiCharacterPoseMasks": {
+    "display_name": "RS OpenPose 자동 마스크",
+    "description": "OpenPose JSON의 인물마다 마스크를 만들고 굵기를 조절합니다. 부위 이름 유도는 뼈대의 부위 이름을 이용하는 아주 약한 어텐션 유도입니다. 뼈대 자체를 모델에 입력하지 않습니다.",
+    "inputs": {
+      "pose_json": {
+        "name": "OpenPose JSON"
+      },
+      "thickness": {
+        "name": "마스크 굵기"
+      },
+      "body_part_strength": {
+        "name": "부위 이름 유도 강도",
+        "tooltip": "기본 0(끄기). 뼈대의 부위 위치에 머리·손·가슴·허벅지·다리·발 이름을 넣어 약하게 유도합니다."
+      },
+      "confidence": {
+        "name": "최소 관절 신뢰도"
+      },
+      "canvas_width": {
+        "name": "원본 너비 (자동 우선)"
+      },
+      "canvas_height": {
+        "name": "원본 높이 (자동 우선)"
+      }
+    }
+  },
+  "RSMultiCharacterInteraction": {
+    "display_name": "RS 캐릭터 겹침 제어",
+    "description": "Anima/SDXL에서 겹치지 않는 영역의 캐릭터 분리를 더 오래 유지합니다. 겹친 영역과 배경은 샘플러의 기존 경계 설정을 따릅니다.",
+    "inputs": {
+      "preset": {
+        "name": "프리셋"
+      },
+      "delay_steps": {
+        "name": "추가 유지 스텝"
+      },
+      "decrement": {
+        "name": "경계 감소폭"
       }
     }
   }

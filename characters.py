@@ -25,10 +25,21 @@ class Character:
     lora_strength: float = field(default=1., kw_only=True)
     lora_clip_strength: float = field(default=1., kw_only=True)
     region_mask: RegionMask | None = field(default=None, kw_only=True)
+    body_parts: tuple = field(default=(), kw_only=True)
+    body_part_strength: float = field(default=0., kw_only=True)
 
     reference: object = field(default=None, kw_only=True, repr=False, compare=False)
 
     def __post_init__(self):
+        if (not isinstance(self.body_parts, tuple) or len(self.body_parts) > 6 or
+                any(not isinstance(p, tuple) or len(p) != 2 or p[0] not in
+                    ('head', 'hands', 'chest', 'thighs', 'legs', 'feet') or
+                    not isinstance(p[1], RegionMask) for p in self.body_parts) or
+                len({p[0] for p in self.body_parts}) != len(self.body_parts)):
+            raise ValueError('Invalid body-part prompt masks.')
+        if (isinstance(self.body_part_strength, bool) or not isinstance(self.body_part_strength, (int, float)) or
+                not math.isfinite(self.body_part_strength) or not 0 <= self.body_part_strength <= .8):
+            raise ValueError('Body-part strength must be 0–0.8.')
         if self.region_mask is not None and not isinstance(self.region_mask, RegionMask):
             raise ValueError("Invalid character region mask.")
         if not isinstance(self.prompt, str) or not isinstance(self.uc, str):
@@ -83,6 +94,7 @@ class CharacterPipe:
     # Text regions never enter character matching or NAI character captions.
     text_regions: tuple = ()
     lora_application_mode: str = field(default="precision", kw_only=True)
+    interaction_json: str | None = field(default=None, kw_only=True)
 
     @property
     def regions(self):

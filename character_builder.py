@@ -28,6 +28,8 @@ class Slot:
     strength_clip: float = 1.
     region_mask: RegionMask | None = None
     mask_transform: tuple = (0., 0., 1.)
+    body_parts: tuple = ()
+    body_part_strength: float = 0.
     reference: object = field(default=None, repr=False, compare=False)
 
 
@@ -36,6 +38,7 @@ class BuildPipe:
     slots: tuple = ()
     prompt_count: int | None = None
     lora_application_mode: str = "precision"
+    interaction_json: str | None = None
 
 
 def update_slot(pipe, character_id, **changes):
@@ -92,10 +95,34 @@ def finalize(pipe):
             x, y = region.center if region is not None else (s.x, s.y)
             chars.append(Character(s.prompt, "", x, y, box, lora_name=s.lora_name,
                                    lora_strength=s.strength_model, lora_clip_strength=s.strength_clip,
-                                   region_mask=region, reference=s.reference))
+                                   region_mask=region, reference=s.reference,
+                                   body_parts=placed_parts(s), body_part_strength=s.body_part_strength))
     if not chars and not texts:
         raise ValueError("Enable at least one nonempty prompt. / 최소 한 개의 프롬프트를 켜 주세요. / 少なくとも1つのプロンプトを有効にしてください。")
-    return CharacterPipe(tuple(chars), text_regions=tuple(texts), lora_application_mode=pipe.lora_application_mode)
+    return CharacterPipe(tuple(chars), text_regions=tuple(texts), lora_application_mode=pipe.lora_application_mode,
+                         interaction_json=pipe.interaction_json)
+
+
+def placed_parts(slot):
+    """Move every part about the PERSON centroid, never its own centroid."""
+    if not slot.body_parts:
+        return ()
+    if slot.region_mask is None:
+        return ()
+    dx, dy, scale = slot.mask_transform
+    if (dx, dy, scale) == (0., 0., 1.):
+        return slot.body_parts
+    parts = []
+    for name, mask in slot.body_parts:
+        try:
+            region = prepare_mask(mask.tensor(), margin=0, offset_x=dx, offset_y=dy,
+                                  scale=scale, pivot=slot.region_mask.center)
+        except ValueError as error:
+            if 'mask is empty' not in str(error) and 'mask is outside the canvas' not in str(error):
+                raise
+            continue  # A partially clipped person may have a completely clipped hand.
+        parts.append((name, region))
+    return tuple(parts)
 
 
 def count_input():
@@ -270,7 +297,7 @@ class RSMultiCharacterMask(BuilderNode):
         if type(enabled) is not bool:
             raise ValueError("Mask enabled must be true or false.")
         region = prepare_mask(mask, threshold, margin, offset_x, offset_y, scale) if enabled else None
-        pipe = update_slot(building_pipe, character_id, region_mask=region)
+        pipe = update_slot(building_pipe, character_id, region_mask=region, body_parts=(), body_part_strength=0.)
         import torch
         preview = region.tensor()[None] if region is not None else torch.zeros((1, 64, 64))
         images = []
