@@ -38,6 +38,8 @@ class RegionalLoras:
             if name not in loaded_files:
                 path = folder_paths.get_full_path_or_raise("loras", name)
                 weights = comfy.lora_convert.convert_lora(comfy.utils.load_torch_file(path, safe_load=True))
+                from .adapter_formats import load_additional_adapters, validate_file_format
+                validate_file_format(weights)
                 if model_map is None:
                     model_map = comfy.lora.model_lora_keys_unet(model.model, {})
                     from .flux_engine import flux_family, extend_flux3_lora_map
@@ -46,6 +48,8 @@ class RegionalLoras:
                     clip_map = comfy.lora.model_lora_keys_clip(clip.cond_stage_model, {})
                 loaded_files[name] = (comfy.lora.load_lora(weights, model_map, log_missing=False),
                                       comfy.lora.load_lora(weights, clip_map, log_missing=False))
+                loaded_files[name][0].update(load_additional_adapters(weights, model_map))
+                loaded_files[name][1].update(load_additional_adapters(weights, clip_map))
             model_weights, clip_weights = loaded_files[name]
             if not ((model_weights and character.lora_strength) or (clip_weights and character.lora_clip_strength)):
                 raise ValueError(f"Character {slot}: LoRA {name!r} has no weights matching the connected model/CLIP. Choose a LoRA for this model family. / 연결한 모델 계열과 맞는 LoRA를 선택해 주세요.")
@@ -67,7 +71,7 @@ class RegionalLoras:
                         from .lora_bypass import requires_quantized_bypass
                         if requires_quantized_bypass(model):
                             family = type(model.model).__name__
-                            raise ValueError(f"Character {slot}: this LoRA format cannot be applied regionally to this packed {family} checkpoint ({self.bypasses[name][1]}). Use a plain linear LoRA for this model, or a non-quantized checkpoint. / 캐릭터 {slot}: 이 양자화 {family} 모델에는 일반 선형 LoRA가 필요합니다. 해당 모델용 일반 LoRA 또는 비양자화 체크포인트를 사용해 주세요.")
+                            raise ValueError(f"Character {slot}: regional adapter is unsupported on packed {family}: {self.bypasses[name][1]}. Include this detail and the adapter/core versions in a bug report. / 캐릭터 {slot}: 양자화 {family}의 지역 어댑터를 적용할 수 없습니다. 위 대상 키·어댑터 형식과 파일 및 ComfyUI 버전을 함께 알려 주세요.")
                         hook = comfy.hooks.WeightHook(strength_model=character.lora_strength, strength_clip=0.)
                         hook.weights, hook.weights_clip, hook.need_weight_init = model_weights, {}, False
                         hook_group = comfy.hooks.HookGroup()

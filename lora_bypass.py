@@ -34,6 +34,16 @@ def requires_quantized_bypass(model):
 
 
 def prepare_bypass(model, weights):
+    plan, reason = _prepare_factor_bypass(model, weights)
+    if plan is not None or reason in ("model_family", "multigpu_clones", "core_without_bypass", "no_model_weights"):
+        return plan, reason
+    # Complex adapters need the base weight (DoRA/GLoRA/OFT), not just h(x).
+    # Delegate their algebra to the installed core without patching packed weights.
+    from .adapter_delta import prepare_weight_delta
+    return prepare_weight_delta(model, weights)
+
+
+def _prepare_factor_bypass(model, weights):
     """Return (plan, reason). Unsupported formats stay on native weight hooks.
 
     Validate the entire file before using it: applying only some of its patches via
@@ -70,7 +80,7 @@ def prepare_bypass(model, weights):
         # Diffusers FLUX Q/K/V factors address slices of a fused Linear layer.
         # Other tuple functions and extended adapters keep the native path.
         offset = None
-        if is_flux and isinstance(key, tuple) and len(key) in (2, 3):
+        if isinstance(key, tuple) and len(key) in (2, 3):
             if len(key) == 3 and key[2] is not None:
                 return None, "patch_function"
             key, offset = key[:2]
@@ -139,6 +149,7 @@ def offset_delta(x, base_out, *, native_h, offset):
 
 
 class BypassLora:
+    supports_shared = True
     def __init__(self, layers, layer_paths, hook_type, options_type):
         self.layers = layers
         self.layer_paths = layer_paths
@@ -161,6 +172,8 @@ class BypassLora:
         return group
 
     def forward(self, executor, *args, strength, **kwargs):
+        if strength == 0:
+            return executor(*args, **kwargs)
         # CFGGuider can replace ModelPatcherDynamic with a non-dynamic delegate
         # when conditioning carries hooks. The delegate owns NEW modules. Patch
         # the diffusion model actually being called, never preparation-time
@@ -169,7 +182,6 @@ class BypassLora:
         modules = []
         for path, (_, adapter, _) in zip(self.layer_paths, self.layers):
             module = runtime_model.get_submodule(path)
-            up, down = adapter.weights[:2]
             if (not linear_layer(module)
                     or tuple(module.weight.shape) != adapter.rs_mc_full_shape):
                 raise RuntimeError(f"Regional LoRA: incompatible runtime layer {path!r}.")

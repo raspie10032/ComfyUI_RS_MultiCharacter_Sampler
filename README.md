@@ -1,5 +1,7 @@
 # ComfyUI_RS_MultiCharacter_Sampler
 
+**Adapter support patch on 1.0.1:** fixes MOSS INT8/FP8 partial Q/K/V LoRA and adds regional DoRA, LoHa/LoKr, GLoRA, OFT/BOFT, convolutional LoRA and IA3 execution. [Formats, numerical validation and limits](docs/adapter-formats.md).
+
 **1.0.1 Hangeul (한글):** adds editable person masks from colored OpenPose PNG (JSON/POSE_KEYPOINT also supported), adjustable thickness, and overlap separation presets. Optional body-part name guidance is **very weak attention guidance using the names of skeleton parts**, OFF by default; it does not feed a skeleton into the model. [Usage and limits](docs/openpose-mask-guides.md) · [Release and validation](docs/release-1.0.0.md).
 
 **0.2.6 Bieup (비읍) — LoRA bug fixes:** fixes character-LoRA `weight_scale` errors on Krea 2 FP8 and MOSS INT8; adds Krea2/Illustrious character-LoRA presets and reproduction examples. Full-precision MOSS retains its existing path. [Release notes](docs/release-0.2.6.md) · [Generation checks across nine model configurations and limits](docs/character-lora-matrix-20261021.md).

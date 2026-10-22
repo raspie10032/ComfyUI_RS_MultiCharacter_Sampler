@@ -1,5 +1,7 @@
 # ComfyUI_RS_MultiCharacter_Sampler
 
+**1.0.1 기반 어댑터 지원 패치:** MOSS INT8·FP8의 Q/K/V 부분 적용 LoRA 오류를 수정하고 DoRA·LoHa·LoKr·GLoRA·OFT·BOFT·합성곱 LoRA·IA³의 캐릭터별 적용을 추가했습니다. [지원 형식·수치 검증·한계](docs/adapter-formats.md).
+
 **1.0.1 한글 (Hangeul):** 컬러 OpenPose PNG 기반 인물 마스크 자동 생성(JSON/POSE_KEYPOINT도 지원)·굵기 조절과 겹침 제어 프리셋을 추가했습니다. 부위 이름 유도는 **뼈대의 부위 이름을 기반으로 하는 아주 약한 어텐션 유도 기능**이며 기본은 끄기입니다. 뼈대 자체를 모델에 넣지 않습니다. [사용법·한계](docs/openpose-mask-guides.md) · [변경 내역·검증](docs/release-1.0.0.md).
 
 **0.2.6 비읍 — LoRA 버그 수정:** Krea 2 FP8·MOSS INT8의 캐릭터 LoRA `weight_scale` 오류를 수정하고 Krea2/Illustrious 캐릭터 LoRA 프리셋과 재현 예제를 추가했습니다. 비양자화 MOSS는 기존 적용 경로를 유지합니다. [변경 내역](docs/release-0.2.6.md) · [9개 모델 조합의 실제 생성과 한계](docs/character-lora-matrix-20261021.md).

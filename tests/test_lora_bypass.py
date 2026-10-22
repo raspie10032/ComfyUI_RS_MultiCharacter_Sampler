@@ -192,7 +192,7 @@ class BypassTests(unittest.TestCase):
             {('diffusion_model.0.weight', (0,0,2)): self.adapter},
         ]
         for weights in cases:
-            plan, reason = self.bypass.prepare_bypass(self.model, weights)
+            plan, reason = self.bypass._prepare_factor_bypass(self.model, weights)
             self.assertIsNone(plan)
             self.assertNotEqual(reason, 'plain_linear_lora')
 
@@ -201,7 +201,7 @@ class BypassTests(unittest.TestCase):
         with patch.object(self.model, 'get_additional_models_with_key', return_value=[object()], create=True):
             self.assertEqual(self.bypass.prepare_bypass(self.model,self.weights)[1], 'multigpu_clones')
         self.layer.comfy_force_forward = True
-        self.assertEqual(self.bypass.prepare_bypass(self.model,self.weights)[1], 'custom_or_quantized_layer')
+        self.assertTrue(self.bypass.prepare_bypass(self.model,self.weights)[1].startswith('custom_or_unsupported_layer:'))
 
     def test_flux_and_krea2_fp8_bypass_changes_output_and_preserves_base_weight(self):
         from comfy import model_base
@@ -274,7 +274,7 @@ class BypassTests(unittest.TestCase):
                 self.assertTrue(torch.equal(before, base.diffusion_model(self.x)))
                 # Unsupported patches must fail validation before hook injection.
                 invalid = {**self.weights, 'diffusion_model.0.bias': ('diff', (torch.ones(8),))}
-                self.assertEqual(self.bypass.prepare_bypass(model, invalid), (None, 'patch_type'))
+                self.assertEqual(self.bypass.prepare_bypass(model, invalid)[1], 'native_weight_delta')
                 self.assertNotIn('forward', layer.__dict__)
 
     def test_full_precision_moss_keeps_existing_weight_hook_path(self):

@@ -71,11 +71,23 @@ merged full-size weights and repeatedly synthesizing them when switching regions
 Distinct LoRA combinations still need separate model predictions; this does not
 combine multiple characters into one model evaluation.
 
-All model patches in a file must qualify. Older cores without bypass,
-DoRA/LoHa/LoKr/diff patches, convolutional adapters and multi-GPU clones retain
-native weight hooks. Supported FLUX linear/quantized adapters retain the existing
-FLUX bypass path; unsupported packed checkpoints report an error. CLIP LoRA still
-uses the existing CLIP patch path. Bypass selection is automatic in precision mode.
+All model patches in a file must qualify. Plain linear Q/K/V slice adapters also
+qualify on supported MOSS INT8/FP8 checkpoints. Complex adapters use an
+execution-scoped weight-delta path: DoRA, LoHa/DoHa, LoKr/DoKr, GLoRA, OFT, BOFT,
+LoCon/convolutional LoRA (including Tucker forms), IA3, and native diff/set patches.
+The installed core supplies the weight algebra except for the additional LyCORIS
+IA3 loader. Only the current layer is expanded in FP32; the original quantized
+forward is retained, and its output receives the requested weight correction.
+This can cost substantially more time and temporary memory than factor-only LoRA.
+Normal mode falls back to Precision for these complex adapters. CLIP still uses
+the existing native patch path. Older cores without bypass, unsupported model
+families and multi-GPU clones retain native hooks when possible; unsupported
+packed layers report the target key, adapter class and slice information.
+
+See [adapter formats and validation boundaries](adapter-formats.md). This does not
+promise every algorithm or every third-party tensor layout: timestep-dependent
+T-LoRA is explicitly rejected, and GLoKr/custom loaders, GGUF/custom quantization,
+and shape-changing adapters remain outside this implementation.
 
 Factor device copies are released after sampling, including errors or cancellation.
 Each prediction restores temporary forward dispatch, also on partial setup failure.

@@ -69,7 +69,7 @@ class SharedRegionalLora:
             record = records[slot]
             name = record['name']
             plan, reason = loras.bypasses[name]
-            if plan is None:
+            if plan is None or not plan.supports_shared:
                 raise SharedLoraUnsupported(f"Shared regional LoRA requires plain linear adapters: {name}: {reason}.")
             if name not in by_name:
                 by_name[name] = [plan, torch.zeros_like(masks[0]), [0.] * len(regions), set()]
