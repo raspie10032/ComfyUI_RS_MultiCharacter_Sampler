@@ -1012,7 +1012,7 @@
   },
   "RSMultiCharacterPoseMasks": {
     "display_name": "RS OpenPose 자동 마스크",
-    "description": "OpenPose JSON의 인물마다 마스크를 만들고 굵기를 조절합니다. 부위 이름 유도는 뼈대의 부위 이름을 이용하는 아주 약한 어텐션 유도입니다. 뼈대 자체를 모델에 입력하지 않습니다.",
+    "description": "컬러 OpenPose 뼈대 PNG를 불러와 인물별 마스크를 만들고 굵기를 조절합니다. PNG 번호는 목 위치의 왼쪽부터입니다. 부위 이름은 아주 약한 어텐션 유도이며, 뼈대 자체를 모델에 넣지 않습니다.",
     "inputs": {
       "pose_json": {
         "name": "OpenPose JSON"
@@ -1032,6 +1032,14 @@
       },
       "canvas_height": {
         "name": "원본 높이 (자동 우선)"
+      },
+      "pose_image": {
+        "name": "뼈대 PNG",
+        "tooltip": "검정·투명 배경의 컬러 OpenPose PNG. 번호별 마스크를 확인하세요. 사진·흑백·가려진 관절은 복원하지 못합니다."
+      },
+      "image": {
+        "name": "뼈대 이미지",
+        "tooltip": "Load Image의 컬러 뼈대 IMAGE 한 장을 연결할 수도 있습니다. 파일 선택보다 우선합니다."
       }
     }
   },

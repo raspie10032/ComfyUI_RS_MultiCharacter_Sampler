@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: GPL-3.0-only
-"""Standard OpenPose JSON to editable person masks; no detector or ControlNet."""
+"""OpenPose PNG/coordinates to editable person masks; no pose model required."""
 import hashlib
 import json
 from pathlib import Path
@@ -11,6 +11,57 @@ import torch
 from .character_builder import BUILD_PIPE_TYPE, BuildPipe, update_slot
 from .pose_parts import compile_semantic_parts
 from .region_mask import prepare_mask
+from .pose_image import decode_pose_image
+
+NO_POSE_IMAGE = '(none)'
+
+
+def pose_files():
+    import folder_paths
+    root=Path(folder_paths.get_input_directory())
+    files=[p.name for p in root.iterdir() if p.is_file() and p.suffix.lower() in ('.png','.webp','.jpg','.jpeg')]
+    uploaded=root/'RS_OpenPose'
+    if uploaded.is_dir():
+        files += ['RS_OpenPose/'+p.name for p in uploaded.iterdir() if p.is_file() and p.suffix.lower() in ('.png','.webp','.jpg','.jpeg')]
+    return [NO_POSE_IMAGE,*sorted(files)]
+
+
+def read_pose_image(filename):
+    import folder_paths
+    root=Path(folder_paths.get_input_directory()).resolve()
+    if not isinstance(filename,str) or not filename or Path(filename).is_absolute():
+        raise ValueError('Select an uploaded pose PNG. / 업로드한 뼈대 PNG를 선택해 주세요.')
+    path=(root/filename).resolve()
+    if not path.is_relative_to(root) or not path.is_file():
+        raise ValueError('Pose PNG is missing. Upload it again. / 뼈대 PNG를 찾지 못했습니다. 다시 업로드해 주세요.')
+    try:
+        with Image.open(path) as image:
+            if max(image.size)>2048 or min(image.size)<64:
+                raise ValueError('Pose PNG must be 64–2048 pixels per side. / 뼈대 PNG의 각 변을 64~2048픽셀로 맞춰 주세요.')
+            if getattr(image,'n_frames',1)!=1:
+                raise ValueError('Use one pose image, not an animation. / 움직이는 이미지 대신 뼈대 한 장을 넣어 주세요.')
+            rgba=image.convert('RGBA')
+            background=Image.new('RGBA',rgba.size,(0,0,0,255))
+            return np.asarray(Image.alpha_composite(background,rgba).convert('RGB'))
+    except (OSError,Image.DecompressionBombError) as error:
+        raise ValueError('Cannot read the pose image. Reupload a valid PNG. / 뼈대 이미지를 읽지 못했습니다. PNG로 다시 저장해 주세요.') from error
+
+
+def resolve_pose(pose_json, pose_keypoints=None, image=None, pose_image=NO_POSE_IMAGE, width=512, height=768):
+    if pose_keypoints is not None:
+        return normalize_pose(pose_keypoints,width,height),[],'keypoints'
+    if image is not None:
+        if (not isinstance(image,torch.Tensor) or image.ndim!=4 or image.shape[0]!=1 or image.shape[-1] not in (3,4)
+                or not torch.isfinite(image).all() or image.min()<0 or image.max()>1):
+            raise ValueError('Connect one RGB pose IMAGE, not a batch. / RGB 뼈대 이미지 한 장만 연결해 주세요.')
+        array=image[0].detach().cpu().float().numpy()
+        if array.shape[-1]==4:array=array[:,:,:3]*array[:,:,3:4]
+        data,notes=decode_pose_image(np.rint(array*255).astype(np.uint8))
+        return data,notes,'connected_image'
+    if pose_image not in (NO_POSE_IMAGE,'',None):
+        data,notes=decode_pose_image(read_pose_image(pose_image))
+        return data,notes,'png'
+    return normalize_pose(pose_json,width,height),[],'json'
 
 
 def normalize_pose(value, width=512, height=768):
@@ -37,7 +88,7 @@ def normalize_pose(value, width=512, height=768):
                     canvas_width=value.get('canvas_width', width), canvas_height=value.get('canvas_height', height),
                     people=[{'pose_keypoints_2d': p.get('pose_keypoints_2d')} for p in value['people']])
     except (TypeError, AttributeError, json.JSONDecodeError) as error:
-        raise ValueError('Invalid OpenPose JSON. Export body coordinates, not a skeleton PNG. / 뼈대 PNG 대신 OpenPose JSON 좌표를 넣어 주세요.') from error
+        raise ValueError('Invalid OpenPose JSON. Use Load Pose PNG or import valid coordinates. / JSON이 올바르지 않습니다. 뼈대 PNG 불러오기 버튼을 사용해 주세요.') from error
 
 
 def preview_image(data, people, parts, confidence=.2):
@@ -64,8 +115,8 @@ class RSMultiCharacterPoseMasks:
     @classmethod
     def INPUT_TYPES(cls):
         return {'required': {
-            'pose_json': ('STRING', {'default': '{"canvas_width":512,"canvas_height":768,"people":[]}', 'multiline': True,
-                'tooltip': 'Paste one OpenPose JSON frame. Array order maps to character row numbers. Skeleton PNG alone is unsupported.'}),
+            'pose_json': ('STRING', {'default': '', 'multiline': True,
+                'tooltip': 'Advanced coordinate input. Prefer Load Pose PNG. Connected keypoints override images; an image overrides this JSON. JSON array order maps to character numbers.'}),
             'thickness': ('FLOAT', {'default': 1., 'min': .25, 'max': 3., 'step': .05,
                 'tooltip': 'Person-mask limb width and body padding. Position node moves/resizes the whole person and part masks together.'}),
             'body_part_strength': ('FLOAT', {'default': 0., 'min': 0., 'max': .8, 'step': .05,
@@ -79,6 +130,9 @@ class RSMultiCharacterPoseMasks:
                 'tooltip':'Fallback only when JSON has no canvas_height. Use the ORIGINAL pose canvas size.'}),
             'confidence': ('FLOAT', {'default':.2,'min':.05,'max':1.,'step':.05,
                 'tooltip':'Skip missing or low-confidence joints. Missing segments are not invented.'}),
+            'pose_image': (pose_files(), {'default':NO_POSE_IMAGE,
+                'tooltip':'Load a colored OpenPose/DWPose PNG on black/transparent background. People are numbered left to right by neck. Overrides JSON; connected image/keypoints take priority.'}),
+            'image': ('IMAGE', {'tooltip':'Optional skeleton image from Load Image or a pose preprocessor. One frame; overrides the selected file and JSON.'}),
         }, 'hidden': {'unique_id':'UNIQUE_ID'}}
 
     RETURN_TYPES = (BUILD_PIPE_TYPE, 'IMAGE', 'MASK', 'STRING')
@@ -88,17 +142,23 @@ class RSMultiCharacterPoseMasks:
     HAS_INTERMEDIATE_OUTPUT = True
     FUNCTION = 'apply'
     CATEGORY = 'RS MultiCharacter/Characters'
-    DESCRIPTION = 'Generate numbered person masks from OpenPose COCO-18/BODY-25 JSON; adjust thickness, then move/resize masks in Position. JSON order is character row order, including disabled rows. This is a rough prompt guide, not ControlNet. Body-part prompts are experimental (Anima/SDXL), OFF by default; masks work with all regional model families. Canvas overflow is clipped. Use one frame; PNG pose decoding is unsupported.'
+    DESCRIPTION = 'Load a colored OpenPose/DWPose PNG to create numbered person masks. Adjust thickness, then move/resize in Position. PNG people are numbered left to right by neck position. Optional JSON/keypoints remain supported. Check the masks: hidden joints and ambiguous overlaps cannot be recovered reliably. Rough composition guide; body-part name guidance is very weak, experimental and OFF by default. No ControlNet weights required. Canvas overflow is clipped.'
+
+    @classmethod
+    def IS_CHANGED(cls,pose_image=NO_POSE_IMAGE,image=None,pose_keypoints=None,**kwargs):
+        if image is None and pose_keypoints is None and pose_image not in (NO_POSE_IMAGE,'',None):
+            return hashlib.sha256(read_pose_image(pose_image).tobytes()).hexdigest()
+        return ''
 
     def apply(self, pose_json, thickness=1., body_part_strength=0., building_pipe=None, pose_keypoints=None,
-              canvas_width=512, canvas_height=768, confidence=.2, unique_id=None):
+              canvas_width=512, canvas_height=768, confidence=.2, unique_id=None, pose_image=NO_POSE_IMAGE, image=None):
         import math
         if (isinstance(body_part_strength,bool) or not isinstance(body_part_strength,(int,float)) or
                 not math.isfinite(body_part_strength) or not 0 <= body_part_strength <= .8):
             raise ValueError('Body-part strength must be 0–0.8.')
         if building_pipe is not None and not isinstance(building_pipe,BuildPipe):
             raise ValueError('Connect an RS building pipe.')
-        data=normalize_pose(pose_keypoints if pose_keypoints is not None else pose_json,canvas_width,canvas_height)
+        data,notes,source_kind=resolve_pose(pose_json,pose_keypoints,image,pose_image,canvas_width,canvas_height)
         parts, masks, skipped=compile_semantic_parts(data,len(data['people']),confidence,thickness)
         pipe=building_pipe or BuildPipe()
         # Reapplying a smaller pose clears old pose-owned masks above its count.
@@ -109,7 +169,8 @@ class RSMultiCharacterPoseMasks:
             pieces=tuple((p['name'],prepare_mask(p['mask'],margin=0)) for p in parts if p['owner']==i)
             pipe=update_slot(pipe,i+1,region_mask=mask,body_parts=pieces,body_part_strength=body_part_strength)
         info={'people':len(masks),'body_part_strength':body_part_strength,'skipped':skipped,
-              'person_order':'OpenPose people array = character row number','controlnet_used':False,
+              'person_order':'neck left to right' if source_kind in ('png','connected_image') else 'OpenPose people array = character row number','controlnet_used':False,
+              'source_kind':source_kind,'notes':notes,
               'source':data,'thickness':thickness,'confidence':confidence}
         preview=preview_image(data,masks,parts,confidence)
         images=[]
@@ -118,17 +179,21 @@ class RSMultiCharacterPoseMasks:
             directory=Path(folder_paths.get_temp_directory())/'RS_PoseMasks';directory.mkdir(parents=True,exist_ok=True)
             name=hashlib.sha256(preview.tobytes()).hexdigest()+'.png';preview.save(directory/name)
             images=[{'filename':name,'subfolder':'RS_PoseMasks','type':'temp'}]
+        payload=raster_payload(data,masks)
+        payload.update(notes=notes,source_kind=source_kind)
         return {'ui':{'images':images,'text':[json.dumps(info,ensure_ascii=False)],
-                      'pose_masks':[raster_payload(data,masks)]},
+                      'pose_masks':[payload]},
                 'result':(pipe,torch.from_numpy(np.asarray(preview).copy().astype(np.float32)/255)[None],
                           torch.stack([m.tensor() for m in masks]),json.dumps(info,ensure_ascii=False))}
 
 
-def preview_payload(pose_json, thickness=1., confidence=.2, width=512, height=768):
-    data=normalize_pose(pose_json,width,height)
+def preview_payload(pose_json, thickness=1., confidence=.2, width=512, height=768, pose_image=NO_POSE_IMAGE):
+    data,notes,source_kind=resolve_pose(pose_json,pose_image=pose_image,width=width,height=height)
     from .pose_parts import compile_pose
     _,masks,_=compile_pose(data,len(data['people']),confidence,thickness)
-    return raster_payload(data,masks)
+    result=raster_payload(data,masks)
+    result.update(notes=notes,source_kind=source_kind)
+    return result
 
 
 def raster_payload(data,masks):
@@ -160,7 +225,7 @@ def register_preview_route():
             args=await request.json()
             if not isinstance(args,dict): raise ValueError('Expected pose JSON settings.')
             result=await asyncio.to_thread(preview_payload,args.get('pose_json',''),args.get('thickness',1.),
-                args.get('confidence',.2),args.get('canvas_width',512),args.get('canvas_height',768))
+                args.get('confidence',.2),args.get('canvas_width',512),args.get('canvas_height',768),args.get('pose_image',NO_POSE_IMAGE))
             return web.json_response(result)
         except (ValueError,TypeError) as error:
             return web.json_response({'error':str(error)},status=400)

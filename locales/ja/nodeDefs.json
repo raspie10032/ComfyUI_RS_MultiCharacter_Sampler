@@ -1012,7 +1012,7 @@
   },
   "RSMultiCharacterPoseMasks": {
     "display_name": "RS OpenPose 自動マスク",
-    "description": "OpenPose JSONから人物ごとのマスクを作成します。部位名による誘導は、骨格の部位名を使う非常に弱いアテンション誘導です。骨格そのものはモデルに入力しません。",
+    "description": "カラーOpenPose骨格PNGから人物別マスクを作り、太さを調整します。PNGの番号は首の位置の左からです。部位名による誘導は非常に弱く、骨格そのものはモデルに入力しません。",
     "inputs": {
       "pose_json": {
         "name": "OpenPose JSON"
@@ -1032,6 +1032,14 @@
       },
       "canvas_height": {
         "name": "元の高さ（自動優先）"
+      },
+      "pose_image": {
+        "name": "骨格PNG",
+        "tooltip": "黒・透明背景のカラーOpenPose PNG。番号別マスクを確認してください。写真・白黒・隠れた関節は復元できません。"
+      },
+      "image": {
+        "name": "骨格画像",
+        "tooltip": "Load Imageのカラー骨格IMAGEを1枚接続できます。ファイル選択より優先します。"
       }
     }
   },

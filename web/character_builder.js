@@ -316,7 +316,7 @@ app.registerExtension({
         nodeType.prototype.onNodeCreated=function(){
             const result=created?.apply(this,arguments);
             if(nodeData.name==="RSMultiCharacterPosition" && this.addDOMWidget) addPositionEditor(this, { collectSlots, centersFor, colors });
-            else if(nodeData.name==="RSMultiCharacterPosition" || nodeData.name===finalType || nodeData.name==="RSMultiCharacterMask" || nodeData.name==="RSMultiCharacterPoseMasks") addDiagram(this);
+            else if(nodeData.name==="RSMultiCharacterPosition" || nodeData.name===finalType || nodeData.name==="RSMultiCharacterMask") addDiagram(this);
             if(nodeData.name==="RSMultiCharacterLoRA") addLoraModeHelp(this);
             for(const widget of this.widgets ?? []) {
                 const callback=widget.callback;

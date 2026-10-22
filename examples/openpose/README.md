@@ -1,5 +1,7 @@
 # OpenPose mask example
 
+**1.0.1 PNG input:** save [two-people-pose.png](two-people-pose.png), then use **Load Pose PNG** in RS OpenPose Masks. The node uploads the image and shows numbered masks before sampling. The PNG is an original synthetic example with standard COCO-18 colors. JSON is optional and stays collapsed. See [PNG validation and limits](../../docs/openpose-png-validation.md).
+
 Load **anima-hug.json** in ComfyUI. Choose your installed Anima model, compatible CLIP and VAE in the three loader nodes. `anima-hug-api.json` is the corresponding API-format prompt. Both start with body-part guidance OFF, baseline overlap separation and Euler ancestral / SGM uniform.
 
 Two adult women are mapped to the source JSON people array, in that order. Select a person in Character Position, then drag or resize its mask. Adjust thickness in OpenPose Masks; optional body-part name guidance is described in [the guide](../../docs/openpose-mask-guides.md).

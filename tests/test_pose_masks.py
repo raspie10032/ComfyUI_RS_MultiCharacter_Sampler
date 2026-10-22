@@ -51,7 +51,9 @@ class PoseMasksTests(unittest.TestCase):
         data['people']=data['people']*2
         result=p.RSMultiCharacterPoseMasks().apply('',pose_keypoints=[data],thickness=1.4,confidence=.3)
         executed=result['ui']['pose_masks'][0]
-        self.assertEqual(executed,p.preview_payload(json.dumps(data),1.4,.3))
+        expected=p.preview_payload(json.dumps(data),1.4,.3)
+        expected['source_kind']='keypoints'
+        self.assertEqual(executed,expected)
         self.assertEqual(len(executed['masks']),2)
         for mask,slot in zip(executed['masks'],result['result'][0].slots):
             self.assertEqual(mask['center'],slot.region_mask.center)
