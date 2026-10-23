@@ -260,7 +260,11 @@ class SharedLoraCoreCompatibilityTests(unittest.TestCase):
             pass
         else:
             self.skipTest('This core provides native bypass')
-        model = SimpleNamespace(model=SDXL.__new__(SDXL))
+        base = SDXL.__new__(SDXL)
+        # Keep this lightweight fixture a valid Module: packed-weight detection
+        # walks its children before falling back on cores without native bypass.
+        torch.nn.Module.__init__(base)
+        model = SimpleNamespace(model=base)
         adapter = LoRAAdapter(set(), (torch.ones(8, 2), torch.ones(2, 8), 2., None, None, None))
         plan, reason = bypass.prepare_bypass(model, {'diffusion_model.0.weight': adapter})
         self.assertIsNone(plan)
