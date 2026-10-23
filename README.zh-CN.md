@@ -78,7 +78,9 @@ Krea 2 和 MOSS 的区域支持为实验性。MOSS 使用 ComfyUI 普通 CFG，�
 - **普通应用**：受支持的 Anima/SDXL 线性 LoRA 共享层计算。不支持的模型或适配器自动使用精确模式，并说明原因。两种模式的角色细节可能不同。
 - 静态适配器支持 **LoRA、LoCon/Tucker、DoRA、LoHa/DoHa、LoKr/DoKr、GLoRA、OFT/BOFT、IA³ 及匹配的 diff/set 补丁**。打包 INT8/FP8 路径包括 MOSS 的部分 Q/K/V LoRA。复杂适配器可能增加耗时与临时内存。
 
-**T-LoRA、GLoKr、GGUF/自定义张量及改变形状的补丁不在此适配器路径的支持范围内。** 模型/CLIP 限制和数值检查见[适配器格式指南](docs/adapter-formats.md)。另见 [LoRA 配置](docs/regional-lora.md)、[模式比较](docs/shared-lora-experiment.md)和[角色 LoRA 测试矩阵](docs/character-lora-matrix-20261021.md)。
+**GGUF：**连接另行安装的 **ComfyUI-GGUF** 加载器的 MODEL 输出。应用角色 LoRA 时保留压缩权重。FLUX 使用精确模式，选择普通模式也会自动切换。[安装与已验证范围](docs/gguf-compatibility.md)
+
+**T-LoRA、GLoKr、其他自定义张量及改变形状的补丁不在此适配器路径的支持范围内。** 模型/CLIP 限制和数值检查见[适配器格式指南](docs/adapter-formats.md)。另见 [LoRA 配置](docs/regional-lora.md)、[模式比较](docs/shared-lora-experiment.md)和[角色 LoRA 测试矩阵](docs/character-lora-matrix-20261021.md)。
 
 ## 布局、遮罩与局部修复
 

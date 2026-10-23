@@ -76,7 +76,9 @@ Choose each character's file and model/CLIP strengths in **RS Character LoRA**. 
 - **Normal** shares layer calculations for supported Anima/SDXL linear LoRAs. Unsupported models/adapters automatically use Precision and report the reason. The modes can produce different character details.
 - Supported static formats include **LoRA, LoCon/Tucker, DoRA, LoHa/DoHa, LoKr/DoKr, GLoRA, OFT/BOFT, IA³ and matching diff/set patches**. Packed INT8/FP8 paths include partial Q/K/V LoRA on MOSS. Complex adapters can cost more time and temporary memory.
 
-**T-LoRA, GLoKr, GGUF/custom tensor types and shape-changing patches are outside the adapter path's supported scope.** Model/CLIP restrictions and numerical checks are documented in the [adapter format guide](docs/adapter-formats.md). See also [LoRA setup](docs/regional-lora.md), [mode comparisons](docs/shared-lora-experiment.md) and [tested character-LoRA combinations](docs/character-lora-matrix-20261021.md).
+**GGUF:** connect the MODEL output of the separately installed **ComfyUI-GGUF** loader. Regional LoRAs preserve packed weights; FLUX uses Precision, including automatic fallback from Normal. See [setup and verified scope](docs/gguf-compatibility.md).
+
+**T-LoRA, GLoKr, other custom tensor types and shape-changing patches are outside the adapter path's supported scope.** Model/CLIP restrictions and numerical checks are documented in the [adapter format guide](docs/adapter-formats.md). See also [LoRA setup](docs/regional-lora.md), [mode comparisons](docs/shared-lora-experiment.md) and [tested character-LoRA combinations](docs/character-lora-matrix-20261021.md).
 
 ## Placement, masks and local detailing
 

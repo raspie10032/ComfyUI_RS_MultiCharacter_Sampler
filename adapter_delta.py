@@ -76,7 +76,9 @@ def prepare_weight_delta(model, weights):
         if not isinstance(tensor, torch.Tensor):
             return reject("missing_parameter")
         from comfy.quant_ops import QuantizedTensor
-        if type(tensor) not in (torch.Tensor, torch.nn.Parameter) and not isinstance(tensor, QuantizedTensor):
+        from .gguf_compat import is_gguf_layer
+        if (type(tensor) not in (torch.Tensor, torch.nn.Parameter)
+                and not isinstance(tensor, QuantizedTensor) and not is_gguf_layer(module)):
             return reject("custom_tensor")
         shape = list(tensor.shape)
         if offset is not None:
@@ -159,7 +161,13 @@ def delta_forward(original, module, patches, strength, x, *args, **kwargs):
     base = original(x, *args, **kwargs)
     # Use native casts for dynamic VRAM/offloading and incoming global patches.
     # Reading module.weight directly can read an unmaterialized/offloaded tensor.
-    if hasattr(module, "comfy_cast_weights"):
+    from .gguf_compat import is_gguf_layer
+    if is_gguf_layer(module):
+        # Core CastBiasWeightContext does not invoke GGMLLayer.get_weight.
+        # Use the loader's public cast so packed bytes, dequant precision and
+        # already attached global adapter patches retain their native semantics.
+        context = nullcontext(module.cast_bias_weight(input=x, dtype=torch.float32, bias_dtype=torch.float32))
+    elif hasattr(module, "comfy_cast_weights"):
         from comfy.ops import CastBiasWeightContext
         context = CastBiasWeightContext(module, x, dtype=torch.float32, bias_dtype=torch.float32, offloadable=True)
     else:

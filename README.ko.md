@@ -76,7 +76,9 @@ Krea 2·MOSS의 영역 생성은 실험 지원입니다. MOSS는 일반 ComfyUI 
 - **일반 적용**은 지원되는 Anima·SDXL 선형 LoRA의 레이어 계산을 공유합니다. 미지원 모델·어댑터는 이유를 표시하고 정밀로 처리합니다. 두 모드는 캐릭터 세부가 달라질 수 있습니다.
 - **LoRA·LoCon/Tucker·DoRA·LoHa/DoHa·LoKr/DoKr·GLoRA·OFT/BOFT·IA³·차원이 맞는 diff/set 패치**를 지원합니다. MOSS INT8·FP8의 Q/K/V 부분 적용 LoRA도 처리합니다. 복잡한 형식은 시간과 임시 메모리를 더 쓸 수 있습니다.
 
-**T-LoRA·GLoKr·GGUF/사용자 정의 텐서·레이어 크기를 바꾸는 패치는 이번 어댑터 경로의 지원 범위 밖입니다.** 모델·CLIP 제한과 수치 검증은 [어댑터 형식 안내](docs/adapter-formats.md)를 참고하세요. [LoRA 사용법](docs/regional-lora.md) · [모드 비교](docs/shared-lora-experiment.md) · [캐릭터 LoRA 시험 조합](docs/character-lora-matrix-20261021.md)
+**GGUF:** 별도로 설치한 **ComfyUI-GGUF** 로더의 MODEL을 연결합니다. 압축 가중치를 유지하면서 캐릭터 LoRA를 적용합니다. FLUX는 정밀 모드로 처리하며 일반을 선택해도 정밀로 자동 전환합니다. [설치 방법과 검증 범위](docs/gguf-compatibility.md)
+
+**T-LoRA·GLoKr·그 밖의 사용자 정의 텐서·레이어 크기를 바꾸는 패치는 이번 어댑터 경로의 지원 범위 밖입니다.** 모델·CLIP 제한과 수치 검증은 [어댑터 형식 안내](docs/adapter-formats.md)를 참고하세요. [LoRA 사용법](docs/regional-lora.md) · [모드 비교](docs/shared-lora-experiment.md) · [캐릭터 LoRA 시험 조합](docs/character-lora-matrix-20261021.md)
 
 ## 배치·마스크·부분 보정
 

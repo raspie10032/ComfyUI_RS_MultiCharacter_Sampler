@@ -1,8 +1,13 @@
-# 1.0.2 Hangeul: regional adapter formats
+# Regional adapter formats
 
 This patch fixes ordinary MOSS Q/K/V slice LoRA on packed INT8/FP8 checkpoints and
 extends regional execution to the following static adapters. Package and runtime
 versions are both 1.0.2. See the [release notes](release-1.0.2.md).
+
+GGUF support was subsequently added through ComfyUI-GGUF's native layer
+operations. See [GGUF compatibility](gguf-compatibility.md) for setup, measured
+scope and remaining limits; the historical 1.0.2 validation below does not prove
+GGUF execution.
 
 | Format | Regional application |
 | --- | --- |
@@ -58,7 +63,7 @@ Private files, tensor data, prompts and checkpoints are not included in the repo
 - GLoKr is mentioned in upstream algorithm documentation but is absent from the
   inspected current module registry and ComfyUI adapter registry. No GLoKr file
   convention or execution support is claimed.
-- Multi-GPU model clones, GGUF/custom tensor subclasses, custom forward dispatch,
+- Multi-GPU model clones, other custom tensor subclasses, custom forward dispatch,
   shape-changing patches and function patches remain outside this new path.
 - Existing per-model CLIP and Anima precomputed-text-adapter restrictions remain.
 - Native `set` patches replace a weight at nonzero strength according to the core

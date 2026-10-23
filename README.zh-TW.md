@@ -78,7 +78,9 @@ Krea 2 和 MOSS 的區域支援為實驗性。MOSS 使用 ComfyUI 普通 CFG，�
 - **一般套用**：受支援的 Anima/SDXL 線性 LoRA 共享層計算。不支援的模型或介面卡自動使用精確模式，並說明原因。兩種模式的角色細節可能不同。
 - 靜態介面卡支援 **LoRA、LoCon/Tucker、DoRA、LoHa/DoHa、LoKr/DoKr、GLoRA、OFT/BOFT、IA³ 及匹配的 diff/set 補丁**。打包 INT8/FP8 路徑包括 MOSS 的部分 Q/K/V LoRA。複雜介面卡可能增加耗時與臨時記憶體。
 
-**T-LoRA、GLoKr、GGUF/自定義張量及改變形狀的補丁不在此介面卡路徑的支援範圍內。** 模型/CLIP 限制和數值檢查見[介面卡格式指南](docs/adapter-formats.md)。另見 [LoRA 配置](docs/regional-lora.md)、[模式比較](docs/shared-lora-experiment.md)和[角色 LoRA 測試矩陣](docs/character-lora-matrix-20261021.md)。
+**GGUF：**連接另行安裝的 **ComfyUI-GGUF** 載入器的 MODEL 輸出。套用角色 LoRA 時保留壓縮權重。FLUX 使用精確模式，選擇一般模式也會自動切換。[安裝與已驗證範圍](docs/gguf-compatibility.md)
+
+**T-LoRA、GLoKr、其他自訂張量及改變形狀的補丁不在此介面卡路徑的支援範圍內。** 模型/CLIP 限制和數值檢查見[介面卡格式指南](docs/adapter-formats.md)。另見 [LoRA 配置](docs/regional-lora.md)、[模式比較](docs/shared-lora-experiment.md)和[角色 LoRA 測試矩陣](docs/character-lora-matrix-20261021.md)。
 
 ## 佈局、遮罩與區域性修復
 

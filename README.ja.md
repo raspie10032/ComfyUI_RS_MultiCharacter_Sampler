@@ -76,7 +76,9 @@ Krea 2・MOSSの領域生成は実験的対応です。MOSSは通常のComfyUI C
 - **Normal** は対応するAnima・SDXL線形LoRAのレイヤー計算を共有します。非対応のモデル・アダプターは理由を表示してPrecisionに切り替えます。モードにより人物の細部は変わる場合があります。
 - **LoRA・LoCon/Tucker・DoRA・LoHa/DoHa・LoKr/DoKr・GLoRA・OFT/BOFT・IA³・形状が一致するdiff/setパッチ**に対応します。MOSS INT8・FP8のQ/K/V部分適用LoRAも処理します。複雑な形式は時間と一時メモリーを多く使う場合があります。
 
-**T-LoRA・GLoKr・GGUF/独自テンソル・レイヤー形状を変更するパッチは、このアダプター経路の対応範囲外です。** モデル・CLIPの制限と数値検証は[形式ガイド](docs/adapter-formats.md)を参照してください。[LoRA設定](docs/regional-lora.md) · [モード比較](docs/shared-lora-experiment.md) · [人物LoRAの検証組み合わせ](docs/character-lora-matrix-20261021.md)
+**GGUF:** 別途インストールした **ComfyUI-GGUF** ローダーのMODELを接続します。圧縮した重みを保持して人物別LoRAを適用します。FLUXはPrecisionを使い、Normalを選んでも自動で切り替わります。[導入方法と検証範囲](docs/gguf-compatibility.md)
+
+**T-LoRA・GLoKr・その他の独自テンソル・レイヤー形状を変更するパッチは、このアダプター経路の対応範囲外です。** モデル・CLIPの制限と数値検証は[形式ガイド](docs/adapter-formats.md)を参照してください。[LoRA設定](docs/regional-lora.md) · [モード比較](docs/shared-lora-experiment.md) · [人物LoRAの検証組み合わせ](docs/character-lora-matrix-20261021.md)
 
 ## 配置・マスク・部分補正
 

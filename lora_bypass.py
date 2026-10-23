@@ -23,6 +23,9 @@ def linear_layer(module):
 
 def requires_quantized_bypass(model):
     """Native weight hooks cannot address packed tensors' serialized scale keys."""
+    from .gguf_compat import is_gguf_layer
+    if any(is_gguf_layer(layer) for layer in model.model.modules()):
+        return True
     from comfy import model_base
     packed_types = tuple(t for name in ("Flux", "Flux3", "Krea2", "MOSSImage")
                        if isinstance((t := getattr(model_base, name, None)), type))
@@ -113,10 +116,12 @@ def _prepare_factor_bypass(model, weights):
         # bypass runs the original quantized forward and adds float factors;
         # it never reads/replaces the serialized weight_scale pseudo-keys.
         supported = type(weight) in (torch.Tensor, torch.nn.Parameter) and weight.is_floating_point()
+        from .gguf_compat import is_gguf_layer
+        supported = supported or is_gguf_layer(module)
         if is_flux or is_krea2 or is_packed_moss:
             from comfy.quant_ops import QuantizedTensor
             supported = supported or isinstance(weight, QuantizedTensor)
-        elif weight.dtype not in (torch.float32, torch.float16, torch.bfloat16):
+        elif not is_gguf_layer(module) and weight.dtype not in (torch.float32, torch.float16, torch.bfloat16):
             supported = False
         if not supported or getattr(module, "comfy_force_forward", False):
             return None, "custom_or_quantized_layer"
