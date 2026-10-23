@@ -9,6 +9,9 @@ operations. See [GGUF compatibility](gguf-compatibility.md) for setup, measured
 scope and remaining limits; the historical 1.0.2 validation below does not prove
 GGUF execution.
 
+Native packed-weight handling was also generalized across supported model
+families; see [quantization compatibility](quantization-compatibility.md).
+
 | Format | Regional application |
 | --- | --- |
 | Plain linear LoRA, exported DyLoRA using ordinary factors | Existing factor-only path, including fused Q/K/V input/output slices |

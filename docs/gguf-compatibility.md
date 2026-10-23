@@ -39,6 +39,10 @@ quantized tensor. They cover Q4_0, Q8_0 and F16, incoming global LoRA, signed
 strengths, exact zero strength, partial output slices, DoRA/diff weight deltas,
 runtime clones and exception cleanup. Original packed bytes and dispatch are
 checked after execution. Unrelated custom tensor types are still rejected.
+Additional decoder tests exercise 24 formats registered by gguf 0.19.0 across
+eight model classes, using the loader's real packed linear operation and an
+independent NumPy dequantization reference. These are numerical layer tests,
+not complete checkpoint or image-quality tests for those 24 formats.
 
 ```bash
 RS_MC_TEST_COMFYUI=/path/to/ComfyUI RS_MC_TEST_GGUF=/path/to/ComfyUI-GGUF \
@@ -88,3 +92,7 @@ test log, UI log and an installation backup. These large artifacts are not
 bundled with the extension. GPU evidence here covers this FLUX.1 Q4_K_S model;
 Q4_0/Q8_0/F16 CPU tests do not establish live support for every model family,
 GGUF CLIP adapter or another quantized execution engine.
+
+The expanded [quantization compatibility audit](quantization-compatibility.md)
+records subsequent Anima, SDXL and SD1.5 GGUF compatibility probes separately
+from this distributed FLUX.1 checkpoint and from native ComfyUI quantization.

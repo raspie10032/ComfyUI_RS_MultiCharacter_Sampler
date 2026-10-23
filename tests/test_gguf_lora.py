@@ -111,6 +111,54 @@ class GGUFTests(unittest.TestCase):
         self.assertTrue(torch.equal(self.base.diffusion_model(self.x), baseline))
         self.assertEqual(len(self.layer.weight.patches), 1)
 
+    def test_decoder_formats_across_model_families(self):
+        """Packed decoder/operator coverage, not quantized checkpoint quality."""
+        import gguf
+        import numpy as np
+        from comfy import model_base
+        from comfy.weight_adapter import LoRAAdapter
+        rng = np.random.default_rng(812)
+        families = ('Anima', 'SDXL', 'BaseModel', 'Flux', 'Flux2', 'Flux3', 'Krea2', 'MOSSImage')
+        # Includes the loader's native torch decoders and numpy fallback formats.
+        # Bound every byte below 64 so embedded half/float scales remain finite.
+        for qtype in gguf.quants._type_traits:
+            block_size, type_size = gguf.GGML_QUANT_SIZES[qtype]
+            packed = rng.integers(1, 64, (32, 256 // block_size * type_size), dtype=np.uint8)
+            dense = torch.from_numpy(gguf.quants.dequantize(packed, qtype))
+            for family in families:
+                if not isinstance(getattr(model_base, family, None), type):
+                    continue
+                with self.subTest(qtype=qtype.name, family=family):
+                    base = getattr(model_base, family).__new__(getattr(model_base, family))
+                    torch.nn.Module.__init__(base)
+                    layer = self.ops.GGMLOps.Linear(256, 32)
+                    # Match numpy's FP32 decoding for the independent oracle.
+                    # The loader's default can decode intermediate scales in FP16.
+                    layer.dequant_dtype = torch.float32
+                    tensor = self.ops.GGMLTensor(torch.from_numpy(packed.copy()), tensor_type=qtype,
+                                                tensor_shape=torch.Size((32, 256)), patches=[])
+                    layer.weight = torch.nn.Parameter(tensor, requires_grad=False)
+                    layer.bias = torch.nn.Parameter(torch.randn(32) * .01)
+                    base.diffusion_model = torch.nn.Sequential(layer)
+                    x = torch.randn(2, 3, 256) * .1
+                    baseline = base.diffusion_model(x)
+                    torch.testing.assert_close(baseline, F.linear(x, dense, layer.bias), atol=2e-5, rtol=2e-5)
+                    up, down = torch.randn(32, 2) * .1, torch.randn(2, 256) * .1
+                    adapter = LoRAAdapter(set(), (up, down, 1., None, None, None))
+                    plan, reason = self.bypass.prepare_bypass(SimpleNamespace(model=base), {'diffusion_model.0.weight': adapter})
+                    self.assertEqual(reason, 'plain_linear_lora')
+                    class Executor:
+                        class_obj = base.diffusion_model
+                        def __call__(_, value):
+                            return base.diffusion_model(value)
+                    expected = baseline + F.linear(F.linear(x, down), up) * .5
+                    torch.testing.assert_close(plan.forward(Executor(), x, strength=1.), expected)
+                    self.assertTrue(torch.equal(plan.forward(Executor(), x, strength=0.), baseline))
+                    self.assertTrue(torch.equal(base.diffusion_model(x), baseline))
+                    self.assertTrue(torch.equal(torch.Tensor(layer.weight), torch.from_numpy(packed)))
+                    self.assertNotIn('forward', layer.__dict__)
+                    plan.release()
+
     def test_partial_output_slice_matches_independent_oracle(self):
         from comfy.weight_adapter import LoRAAdapter
         adapter = LoRAAdapter(set(), (self.up[:8], self.down, 1., None, None, None))

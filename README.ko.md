@@ -78,6 +78,8 @@ Krea 2·MOSS의 영역 생성은 실험 지원입니다. MOSS는 일반 ComfyUI 
 
 **GGUF:** 별도로 설치한 **ComfyUI-GGUF** 로더의 MODEL을 연결합니다. 압축 가중치를 유지하면서 캐릭터 LoRA를 적용합니다. FLUX는 정밀 모드로 처리하며 일반을 선택해도 정밀로 자동 전환합니다. [설치 방법과 검증 범위](docs/gguf-compatibility.md)
 
+**네이티브 양자화:** 지원 모델 계열의 FP8·INT8 압축 가중치를 유지하면서 연결한 로더의 연산으로 캐릭터별 LoRA를 적용합니다. 사용 가능한 커널과 화질은 양자화 배포본·ComfyUI·GPU에 따라 달라집니다. [형식·검증 범위·제약](docs/quantization-compatibility.md)
+
 **T-LoRA·GLoKr·그 밖의 사용자 정의 텐서·레이어 크기를 바꾸는 패치는 이번 어댑터 경로의 지원 범위 밖입니다.** 모델·CLIP 제한과 수치 검증은 [어댑터 형식 안내](docs/adapter-formats.md)를 참고하세요. [LoRA 사용법](docs/regional-lora.md) · [모드 비교](docs/shared-lora-experiment.md) · [캐릭터 LoRA 시험 조합](docs/character-lora-matrix-20261021.md)
 
 ## 배치·마스크·부분 보정

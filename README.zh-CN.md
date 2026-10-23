@@ -80,6 +80,8 @@ Krea 2 和 MOSS 的区域支持为实验性。MOSS 使用 ComfyUI 普通 CFG，�
 
 **GGUF：**连接另行安装的 **ComfyUI-GGUF** 加载器的 MODEL 输出。应用角色 LoRA 时保留压缩权重。FLUX 使用精确模式，选择普通模式也会自动切换。[安装与已验证范围](docs/gguf-compatibility.md)
 
+**原生量化：**在支持的模型系列中保留 FP8／INT8 压缩权重，使用所连接加载器的运算应用角色 LoRA。可用内核和画质取决于量化模型、ComfyUI 和 GPU。[格式、验证范围与限制](docs/quantization-compatibility.md)
+
 **T-LoRA、GLoKr、其他自定义张量及改变形状的补丁不在此适配器路径的支持范围内。** 模型/CLIP 限制和数值检查见[适配器格式指南](docs/adapter-formats.md)。另见 [LoRA 配置](docs/regional-lora.md)、[模式比较](docs/shared-lora-experiment.md)和[角色 LoRA 测试矩阵](docs/character-lora-matrix-20261021.md)。
 
 ## 布局、遮罩与局部修复

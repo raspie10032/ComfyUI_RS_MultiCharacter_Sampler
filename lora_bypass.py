@@ -26,12 +26,10 @@ def requires_quantized_bypass(model):
     from .gguf_compat import is_gguf_layer
     if any(is_gguf_layer(layer) for layer in model.model.modules()):
         return True
-    from comfy import model_base
-    packed_types = tuple(t for name in ("Flux", "Flux3", "Krea2", "MOSSImage")
-                       if isinstance((t := getattr(model_base, name, None)), type))
-    if not isinstance(model.model, packed_types):
+    try:
+        from comfy.quant_ops import QuantizedTensor
+    except ImportError:
         return False
-    from comfy.quant_ops import QuantizedTensor
     return any(isinstance(getattr(layer, 'weight', None), QuantizedTensor)
                for layer in model.model.modules())
 
@@ -58,14 +56,13 @@ def _prepare_factor_bypass(model, weights):
                        if isinstance((t := getattr(model_base, name, None)), type))
     is_flux = isinstance(model.model, flux_types)
     is_krea2 = isinstance(model.model, getattr(model_base, "Krea2", ()))
-    # Keep the established full-precision MOSS path. Packed MOSS weights have
-    # the same serialized scale-key limitation as native FLUX/Krea2 tensors.
-    is_packed_moss = (isinstance(model.model, getattr(model_base, "MOSSImage", ()))
-                      and requires_quantized_bypass(model))
+    # Packed weights share the serialized scale-key limitation across families.
+    # Keep established weight hooks for dense families outside the bypass path.
+    is_packed = requires_quantized_bypass(model)
     # Clone experiment: SDXL's ordinary linear adapters use the same factor
     # path; unsupported convolutional/extended patches retain native hooks.
     is_sdxl = isinstance(model.model, getattr(model_base, "SDXL", ()))
-    if not (is_flux or is_krea2 or is_packed_moss or is_sdxl
+    if not (is_flux or is_krea2 or is_packed or is_sdxl
             or isinstance(model.model, getattr(model_base, "Anima", ()))):
         return None, "model_family"
     if getattr(model, "get_additional_models_with_key", lambda key: [])("multigpu"):
@@ -112,15 +109,19 @@ def _prepare_factor_bypass(model, weights):
         if not linear_layer(module):
             return None, "nonlinear_layer"
         weight = module.weight
-        # Native FLUX/Krea2/MOSS checkpoints use QuantizedTensor weights. The
+        # Native quantized checkpoints use QuantizedTensor weights. The
         # bypass runs the original quantized forward and adds float factors;
         # it never reads/replaces the serialized weight_scale pseudo-keys.
         supported = type(weight) in (torch.Tensor, torch.nn.Parameter) and weight.is_floating_point()
         from .gguf_compat import is_gguf_layer
         supported = supported or is_gguf_layer(module)
-        if is_flux or is_krea2 or is_packed_moss:
-            from comfy.quant_ops import QuantizedTensor
-            supported = supported or isinstance(weight, QuantizedTensor)
+        if is_flux or is_krea2 or is_packed:
+            try:
+                from comfy.quant_ops import QuantizedTensor
+            except ImportError:
+                pass
+            else:
+                supported = supported or isinstance(weight, QuantizedTensor)
         elif not is_gguf_layer(module) and weight.dtype not in (torch.float32, torch.float16, torch.bfloat16):
             supported = False
         if not supported or getattr(module, "comfy_force_forward", False):

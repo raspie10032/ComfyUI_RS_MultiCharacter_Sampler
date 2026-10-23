@@ -78,6 +78,8 @@ Krea 2・MOSSの領域生成は実験的対応です。MOSSは通常のComfyUI C
 
 **GGUF:** 別途インストールした **ComfyUI-GGUF** ローダーのMODELを接続します。圧縮した重みを保持して人物別LoRAを適用します。FLUXはPrecisionを使い、Normalを選んでも自動で切り替わります。[導入方法と検証範囲](docs/gguf-compatibility.md)
 
+**ネイティブ量子化:** 対応モデル系列のFP8・INT8圧縮重みを保持し、接続したローダーの演算で人物別LoRAを適用します。利用できるカーネルと画質は量子化モデル・ComfyUI・GPUによって異なります。[形式・検証範囲・制限](docs/quantization-compatibility.md)
+
 **T-LoRA・GLoKr・その他の独自テンソル・レイヤー形状を変更するパッチは、このアダプター経路の対応範囲外です。** モデル・CLIPの制限と数値検証は[形式ガイド](docs/adapter-formats.md)を参照してください。[LoRA設定](docs/regional-lora.md) · [モード比較](docs/shared-lora-experiment.md) · [人物LoRAの検証組み合わせ](docs/character-lora-matrix-20261021.md)
 
 ## 配置・マスク・部分補正

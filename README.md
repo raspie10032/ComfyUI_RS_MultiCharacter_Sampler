@@ -78,6 +78,8 @@ Choose each character's file and model/CLIP strengths in **RS Character LoRA**. 
 
 **GGUF:** connect the MODEL output of the separately installed **ComfyUI-GGUF** loader. Regional LoRAs preserve packed weights; FLUX uses Precision, including automatic fallback from Normal. See [setup and verified scope](docs/gguf-compatibility.md).
 
+**Native quantization:** packed FP8/INT8 regional LoRAs use the connected loader’s native operations across supported model families. Kernel availability and image quality depend on the quantized release, ComfyUI and GPU. See [formats, tests and limits](docs/quantization-compatibility.md).
+
 **T-LoRA, GLoKr, other custom tensor types and shape-changing patches are outside the adapter path's supported scope.** Model/CLIP restrictions and numerical checks are documented in the [adapter format guide](docs/adapter-formats.md). See also [LoRA setup](docs/regional-lora.md), [mode comparisons](docs/shared-lora-experiment.md) and [tested character-LoRA combinations](docs/character-lora-matrix-20261021.md).
 
 ## Placement, masks and local detailing
