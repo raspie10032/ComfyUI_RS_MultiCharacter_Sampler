@@ -56,6 +56,12 @@ const help=node=>sandbox.nodeHelp(node).join('\n');
   const sampler=nodes.RSMultiCharacterSampler;
   choose(sampler,'use_image_settings',true);assert.match(help(sampler),/Image settings ON/);
   choose(sampler,'layout_method','moss_native');assert.match(help(sampler),/requires MOSS and box/);
+  for (const [locale,notice] of [['en',/Masks become enclosing rectangles/],['ko',/마스크는 최종 배치의 외곽 사각형/],['ja',/マスクは最終配置の外接矩形/]]) {
+    lang=locale;assert.match(help(sampler),notice);
+    choose(sampler,'layout_method','regional');assert.doesNotMatch(help(sampler),notice);
+    choose(sampler,'layout_method','moss_native');
+  }
+  lang='en';
   choose(sampler,'save_format','WebP lossy');assert.match(help(sampler),/Lossy WebP/);
   choose(sampler,'autosave',false);assert.match(help(sampler),/Autosave OFF/);assert.doesNotMatch(help(sampler),/Lossy WebP/);
   const tagger=nodes.RSMultiCharacterTaggerLoader;

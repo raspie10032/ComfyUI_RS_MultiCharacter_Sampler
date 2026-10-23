@@ -181,7 +181,35 @@ class RegionMaskTests(unittest.TestCase):
             with self.assertRaises(ValueError):
                 r.RegionMask.from_record({**good, **changes})
         mask = r.prepare_mask(self.silhouette())
-        with self.assertRaisesRegex(ValueError, 'regional'):
-            l.moss_layout_prompt(c.CharacterPipe((c.Character('girl', region_mask=mask),)),512,512)
         with self.assertRaises(ValueError):
             c.TextRegion('title', bbox=(0,0,1,1), text='HELLO', region_mask=mask)
+
+    def test_moss_native_mask_bounds_and_box_text_mix(self):
+        source = torch.zeros(8, 12)
+        source[1:7, 2:6] = 1
+        source[2, 6:10] = 1  # Nonrectangular silhouette; preserve its farthest tip.
+        mask = r.prepare_mask(source, margin=0)
+        character = c.Character('person', bbox=(0, 0, 1, 1), region_mask=mask)
+        text = c.TextRegion('sign', bbox=(0, 0, 1, 1), text='HELLO')
+        pipe = c.CharacterPipe((character,), 'scene', text_regions=(text,))
+        record = mask.record()
+        result = json.loads(l.moss_layout_prompt(pipe, 120, 80))
+        self.assertEqual(result['items'][0]['bbox'], [-30, -40, 30, 40])
+        self.assertEqual(result['items'][1]['bbox'], [-40, -60, 40, 60])
+        self.assertEqual(result['items'][1]['text'], 'HELLO')
+        self.assertEqual(mask.record(), record)  # Keep original silhouette in pipe.
+
+    def test_moss_native_uses_placed_clipped_mask(self):
+        source = torch.zeros(8, 12)
+        source[1:7, 2:6] = 1
+        source[2, 6:10] = 1
+        mask = r.prepare_mask(source, margin=0, offset_x=.5)
+        pipe = c.CharacterPipe((c.Character('person', region_mask=mask),))
+        self.assertEqual(json.loads(l.moss_layout_prompt(pipe, 120, 80))['items'][0]['bbox'],
+                         [-30, 20, 30, 60])
+        # A single source pixel still encloses at least one output pixel.
+        tiny = torch.zeros(3, 7)
+        tiny[2, 6] = 1
+        pipe = c.CharacterPipe((c.Character('person', region_mask=r.prepare_mask(tiny, margin=0)),))
+        self.assertEqual(json.loads(l.moss_layout_prompt(pipe, 8, 8))['items'][0]['bbox'],
+                         [1, 2, 4, 4])

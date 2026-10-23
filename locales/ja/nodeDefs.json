@@ -165,7 +165,7 @@
     "inputs": {
       "layout_method": {
         "name": "レイアウト処理",
-        "tooltip": "regional: 各モデルの領域attention制御。moss_native: MOSS専用の公式レイアウトJSON。boxes入力が必要で、領域の強度設定は使用しません。"
+        "tooltip": "regional: 領域別attention制御。moss_native: MOSS専用JSON。マスクは外接矩形に変換され、輪郭は反映されません。領域強度設定は適用しません。"
       },
       "flux_guidance": {
         "name": "FLUXガイダンス",

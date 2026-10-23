@@ -35,14 +35,14 @@ export function nodeHelp(node) {
             add("Mask drawing · choose a number, then paint", "마스크 그리기 · 번호 선택 후 칠하기", "マスク描画 · 番号を選んで塗る");
             add("The reference stays behind the masks. Each number uses the same Prompt/LoRA slot, regardless of the person shown.", "밑그림 위에 번호별로 칠하세요. 참조 인물과 무관하게 같은 번호의 프롬프트·LoRA가 적용됩니다.", "下絵の上に番号別で塗ります。参照人物とは関係なく同じ番号のPrompt・LoRAを使います。");
             add("Paint, erase, undo, move and resize one layer at a time. Blank layers fall back to XY/boxes. This node replaces earlier masks; add individual masks after it to override.", "그리기·지우개·되돌리기와 번호별 이동·크기를 지원합니다. 빈 번호는 XY·박스를 씁니다. 이전 마스크는 대체하며 개별 마스크를 뒤에 연결하면 덮어쓸 수 있습니다.", "描画・消去・元に戻す・番号別の移動と倍率を使えます。空の番号はXY・ボックスに戻ります。以前のマスクは置換し、後ろに個別マスクを繋ぐと上書きできます。");
-            add("Only masks enter generation. Canvas overflow is clipped; pose is approximate. The colored preview includes margin. Text needs a box; MOSS masks need regional mode.", "생성에는 마스크만 전달합니다. 캔버스 밖은 자르며 자세는 대략 유도합니다. 색 미리보기는 여유 폭 포함입니다. 텍스트는 박스, MOSS 마스크는 regional을 쓰세요.", "生成にはマスクだけを渡します。外側は切り取り、ポーズは目安です。色プレビューは余白込み。文字はボックス、MOSSマスクはregionalを使ってください。");
+            add("Only masks enter generation. Canvas overflow is clipped; pose is approximate. The colored preview includes margin. Text needs a box. MOSS native converts masks to enclosing boxes; mask shapes are lost.", "생성에는 마스크만 전달합니다. 캔버스 밖은 자르며 자세는 대략 유도합니다. 색 미리보기는 여유 폭 포함입니다. 텍스트는 박스를 쓰세요. MOSS 네이티브에서는 마스크를 외곽 사각형으로 바꾸며 세부 모양은 반영되지 않습니다.", "生成にはマスクだけを渡します。外側は切り取り、ポーズは目安です。色プレビューは余白込み。文字はボックスを使用。MOSSネイティブではマスクを外接矩形に変換し、輪郭は反映されません。");
             break;
         case "RSMultiCharacterMask":
             add("Character mask · white selects the region", "캐릭터 마스크 · 흰색이 적용 영역", "キャラクターマスク · 白が適用領域");
             add("Overrides this character's XY/box in any builder order. Off restores them.", "노드 순서와 무관하게 해당 번호의 좌표·상자를 대체합니다. 끄면 복원됩니다.", "ノード順に関係なく同じ番号の座標・ボックスを置き換えます。OFFで戻ります。");
             add("Use one full-canvas mask per character; overlaps share captions. Margin uses source pixels.", "캐릭터마다 전체 캔버스 마스크 한 장을 연결하세요. 겹친 곳은 조건을 공유합니다. 여유 폭은 원본 픽셀 기준입니다.", "1人につきキャンバス全体のマスク1枚を接続。重複部分は条件を共有し、余白は元画像のピクセル単位です。");
             add(`Size ×${v("scale", 1)}; shift X ${v("offset_x", 0)}, Y ${v("offset_y", 0)}. Outside the canvas is clipped.`, `크기 ×${v("scale", 1)} · 이동 X ${v("offset_x", 0)}, Y ${v("offset_y", 0)}. 캔버스 밖은 잘립니다.`, `倍率 ×${v("scale", 1)}・移動 X ${v("offset_x", 0)}, Y ${v("offset_y", 0)}。外側は切り取ります。`);
-            add("Guides prompt attention, not exact pose. MOSS native needs boxes; choose regional for masks.", "프롬프트 적용 영역이며 자세 고정은 아닙니다. MOSS 마스크는 regional을 선택하세요.", "プロンプト領域の指定で、ポーズ固定ではありません。MOSSのマスクはregionalを選んでください。");
+            add("Guides prompt attention, not exact pose. MOSS native converts masks to enclosing boxes; mask shapes are lost.", "프롬프트 적용 영역이며 자세 고정은 아닙니다. MOSS 네이티브에서는 마스크를 외곽 사각형으로 바꾸며 세부 모양은 반영되지 않습니다.", "プロンプト領域の指定で、ポーズ固定ではありません。MOSSネイティブではマスクを外接矩形に変換し、輪郭は反映されません。");
             break;
         case "RSMultiCharacterPrompt": {
             const count = Number(v("character_count", 2));
@@ -74,7 +74,10 @@ export function nodeHelp(node) {
             add("Sampling · current selections", "샘플링 · 현재 선택 안내", "サンプリング · 現在の選択");
             if (v("use_image_settings", false)) add("Image settings ON: the image pipe supplies dimensions, seed and sampling/routing settings as well as prompts. Select MODEL/CLIP/VAE and global LoRAs manually.", "이미지 설정 복원 ON: 이미지 파이프의 프롬프트뿐 아니라 해상도·시드·샘플링·영역 설정도 사용합니다. MODEL/CLIP/VAE와 전역 LoRA는 직접 연결하세요.", "画像設定復元ON：画像パイプのプロンプトに加え、解像度・シード・サンプリング・領域設定も使います。MODEL/CLIP/VAEと全体LoRAは手動接続してください。");
             else add("Image settings OFF: use this node's sampling controls. An image-loaded pipe still supplies its prompts and characters.", "이미지 설정 복원 OFF: 이 노드의 생성 설정을 사용합니다. 이미지에서 온 파이프는 프롬프트·캐릭터를 계속 전달합니다.", "画像設定復元OFF：このノードの生成設定を使います。画像由来のパイプのプロンプト・キャラクターは引き続き使用します。");
-            if (v("layout_method", "regional") === "moss_native") add("MOSS native: requires MOSS and box regions. Regional strengths, boundary and feather controls are ignored. Experimental layout.", "MOSS 원본 레이아웃: MOSS 모델과 박스 영역이 필요합니다. 영역 강도·경계·페더 설정은 무시하는 실험 기능입니다.", "MOSSネイティブ：MOSSとボックス領域が必要です。領域強度・境界・フェザー設定は無視される実験機能です。");
+            if (v("layout_method", "regional") === "moss_native") {
+                add("MOSS native: requires MOSS and box or mask regions. Regional strengths, boundary and feather controls are ignored.", "MOSS 네이티브: MOSS 모델과 박스 또는 마스크 영역이 필요합니다. 영역 강도·경계·페더 설정은 적용되지 않습니다.", "MOSSネイティブ：MOSSとボックスまたはマスク領域が必要です。領域強度・境界・フェザー設定は適用されません。");
+                add("Masks become enclosing rectangles after placement; their detailed shapes are not preserved.", "마스크는 최종 배치의 외곽 사각형으로 변환되며, 세부 모양은 반영되지 않습니다.", "マスクは最終配置の外接矩形に変換され、細かい輪郭は反映されません。");
+            }
             else add("Regional: controls prompt influence by region. Normal/Precision LoRA mode comes from the pipe. Presets apply only when you press Apply.", "영역 제어: 구역별 프롬프트 영향을 조절합니다. 일반/정밀 LoRA 방식은 파이프에서 받습니다. 프리셋은 적용 버튼을 눌러야 반영됩니다.", "領域制御：領域ごとのプロンプト影響を調整します。LoRAの通常/精密モードはパイプから受け取ります。プリセットは適用ボタンで反映します。");
             add(`Sampling pair: ${v("sampler_name", "euler_ancestral")} / ${v("scheduler", "sgm_uniform")}. Changing one does not reset the other.`, `샘플러 조합: ${v("sampler_name", "euler_ancestral")} / ${v("scheduler", "sgm_uniform")}. 한쪽을 바꿔도 다른 쪽은 유지됩니다.`, `組み合わせ：${v("sampler_name", "euler_ancestral")} / ${v("scheduler", "sgm_uniform")}。片方を変えても他方は変わりません。`);
             saving();

@@ -6,6 +6,7 @@ versions and downloadable assets, see [GitHub Releases](https://github.com/raspi
 
 | Version | Main change | Details |
 | --- | --- | --- |
+| **1.0.3 Hangeul** | MOSS native mask-to-box conversion and localized panel/tooltips. | [Release notes](docs/release-1.0.3.md) |
 | **1.0.2 Hangeul** | MOSS INT8/FP8 partial Q/K/V LoRA fix; static regional adapter compatibility and diagnostics. | [Release notes](docs/release-1.0.2.md) · [Formats and validation](docs/adapter-formats.md) |
 | **1.0.1 Hangeul** | Colored OpenPose PNG input for editable person masks. | [PNG fix and validation](docs/openpose-png-validation.md) |
 | **1.0.0 Hangeul** | OpenPose-derived masks, optional body-part name guidance and overlap separation controls. | [Release notes](docs/release-1.0.0.md) |

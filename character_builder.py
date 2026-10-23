@@ -290,7 +290,7 @@ class RSMultiCharacterMask(BuilderNode):
 
     RETURN_TYPES = (BUILD_PIPE_TYPE, "MASK")
     RETURN_NAMES = ("building_pipe", "region_mask")
-    DESCRIPTION = "Use a silhouette or painted MASK for one numbered character. Shift and scale about the canvas centre, then expand the white area; overflow is clipped without wrapping. Overrides its point/box in any builder order. Overlaps share captions; outside uses the common prompt. Guides prompt attention, not exact pose. MOSS native JSON requires boxes instead."
+    DESCRIPTION = "Use a silhouette or painted MASK for one numbered character. Shift and scale about the canvas centre, then expand the white area; overflow is clipped without wrapping. Overrides its point/box in any builder order. Overlaps share captions; outside uses the common prompt. Guides prompt attention, not exact pose. MOSS native converts masks to enclosing boxes; their shapes are not preserved."
 
     def apply(self, character_id=1, enabled=True, margin=24, threshold=.5, building_pipe=None, mask=None, unique_id=None,
               offset_x=0., offset_y=0., scale=1.):

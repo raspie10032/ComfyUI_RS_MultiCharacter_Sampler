@@ -4,7 +4,7 @@ ComfyUI에서 캐릭터별 프롬프트·LoRA·영역을 지정해 생성하고,
 
 [English](README.md) · [日本語](README.ja.md) · [문서 모음](docs/README.md) · [변경 기록](CHANGELOG.md) · [릴리스](https://github.com/raspie10032/ComfyUI_RS_MultiCharacter_Sampler/releases)
 
-**현재 버전: [1.0.2 한글](docs/release-1.0.2.md).** 로컬 모델로 실행하며 RS NovelAI 확장이나 API 키가 필요하지 않습니다.
+**현재 버전: [1.0.3 한글](docs/release-1.0.3.md).** 로컬 모델로 실행하며 RS NovelAI 확장이나 API 키가 필요하지 않습니다.
 
 ![LoRA 없이 생성한 Anima 2인 예제](examples/two-characters-result.png)
 

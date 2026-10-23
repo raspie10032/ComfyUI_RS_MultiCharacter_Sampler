@@ -26,7 +26,7 @@ Outside all boxes, common conditioning stays active even when the initial common
 
 ## MOSS native JSON comparison
 
-`layout_method=moss_native` sends the official structured layout to MOSS's normal conditioning path. It requires a MOSS model and **boxes for every region**. Use `layout_mode=boxes`, or mixed mode with every character explicitly set to box. Point regions are rejected with an explanatory error; no automatic rectangle is guessed.
+`layout_method=moss_native` sends the official structured layout to MOSS's normal conditioning path. It requires a MOSS model and **boxes or masks for every region**. Masks are converted to their enclosing rectangles after margin, movement, scaling and canvas clipping; their detailed shape and holes are not sent to MOSS. Explicit boxes keep their existing coordinates. Point regions are rejected with an explanatory error; no automatic rectangle is guessed.
 
 The extension converts normalized rectangles to MOSS's centered pixel `[top, left, bottom, right]` coordinates. Characters use `label=object`; text regions use `label=text`, a separate style caption and literal `text`. See the [official MOSS guide](https://github.com/OpenMOSS/MOSS-Image/blob/main/USERGUIDE.md#layout-prompts-experimental).
 

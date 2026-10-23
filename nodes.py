@@ -88,7 +88,7 @@ class RSMultiCharacterSampler:
             "boundary_hold_steps": ("INT", {"default": 3, "min": 1, "max": 30}),
             "boundary_decrement": ("FLOAT", {"default": .2, "min": .01, "max": 1., "step": .01}),
             "layout_method": (["regional", "moss_native"], {"default": "regional",
-                "tooltip": "Regional routes attention for all supported models. MOSS native sends one official layout JSON prompt, requires boxes and MOSS, and ignores regional strength/boundary/feather settings. Experimental: exact object bounds are not guaranteed."}),
+                "tooltip": "Regional routes attention for all supported models. MOSS native sends one official layout JSON prompt, requires MOSS and box or mask regions (masks become enclosing rectangles), and ignores regional strength/boundary/feather settings. Experimental: exact object bounds are not guaranteed."}),
             "flux_guidance": ("FLOAT", {"default": 3.5, "min": 0., "max": 20., "step": .1,
                 "tooltip": "Embedded guidance for FLUX.1 Dev / FLUX.2 Dev; separate from CFG. Schnell, Klein and FLUX 3 ignore this value. FLUX 3 Base uses ordinary CFG."}),
         }, "hidden": {"workflow_prompt": "PROMPT", "unique_id": "UNIQUE_ID"}}

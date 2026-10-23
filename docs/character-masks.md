@@ -19,7 +19,7 @@
 - 참조 이미지는 **생성 입력으로 사용하지 않습니다**. 획·번호·이동·크기는 워크플로에, 적용 마스크는 생성 메타데이터에 저장됩니다. 참조 파일이 없어도 저장한 획으로 마스크를 복원합니다.
 - 원본 비율을 유지하고 긴 변 최대 2048px로 드로잉 캔버스를 만듭니다. 가로세로가 매우 다른 출력에서는 같은 형태가 늘어나므로 같은 비율을 권장합니다.
 
-텍스트 슬롯은 계속 위치 노드의 박스로 지정하세요. MOSS에서 사람 모양 마스크를 사용할 때는 `regional` 모드가 필요합니다.
+텍스트 슬롯은 계속 위치 노드의 박스로 지정하세요. MOSS 네이티브에서는 마스크를 최종 배치의 외곽 사각형으로 변환하며 세부 모양은 반영하지 않습니다. 사람 모양을 유지하려면 `regional`을 사용하세요.
 
 `RS 캐릭터 마스크`는 사람 실루엣이나 직접 칠한 마스크를 **캐릭터 프롬프트가 읽히는 영역**으로 사용합니다. 기존 위치 노드의 점·사각형보다 자유롭게 팔·몸통·접촉 영역을 정할 수 있습니다. 별도 ControlNet 모델은 필요하지 않습니다. **포즈 고정 기능은 아니며**, 인원수·자세·손가락·원본 구도를 보장하지 않습니다.
 
@@ -35,7 +35,7 @@
 
 마스크가 있는 번호는 그 번호의 XY·BBOX 대신 마스크를 사용합니다. 끄면 XY·BBOX로 돌아갑니다. 다른 번호에는 좌표·사각형·다른 마스크를 섞어 쓸 수 있습니다. 겹치는 부분은 해당 캐릭터 문장을 함께 읽고, 모든 명시 영역 바깥은 공통 프롬프트를 읽습니다. 점 방식의 캐릭터도 있다면 남은 영역을 그 점들 사이에서 나눕니다. 전체 캐릭터·텍스트 합계는 기존과 같은 최대 10개입니다.
 
-캐릭터별 LoRA와 함께 사용할 수 있습니다. 자동 저장 PNG·WebP에는 마스크 모양도 보존되며 RS Load Image가 파이프로 복원합니다. 파일 경로를 참조하지 않으므로 원래 마스크 파일이 없어도 복원할 수 있습니다. 워크플로 저장은 기본 Save Image를 사용하세요. 텍스트 영역은 계속 사각형을 사용하며, **MOSS native JSON은 마스크를 지원하지 않으므로 `regional`을 선택**하세요. 디테일러로 파이프를 전달할 수 있지만 얼굴 보정 마스크는 기존 감지 모델이 따로 만듭니다.
+캐릭터별 LoRA와 함께 사용할 수 있습니다. 자동 저장 PNG·WebP에는 마스크 모양도 보존되며 RS Load Image가 파이프로 복원합니다. 파일 경로를 참조하지 않으므로 원래 마스크 파일이 없어도 복원할 수 있습니다. 워크플로 저장은 기본 Save Image를 사용하세요. 텍스트 영역은 계속 사각형을 사용하며, **MOSS native JSON에서는 마스크를 외곽 사각형으로 변환합니다. 모양을 유지하려면 `regional`을 선택**하세요. 디테일러로 파이프를 전달할 수 있지만 얼굴 보정 마스크는 기존 감지 모델이 따로 만듭니다.
 
 [기본 예제](../examples/character-masks)는 직접 그린 두 마스크와 API·편집용 워크플로를 제공합니다. 실제 생성 확인 범위와 한계는 예제 README에 적습니다.
 
@@ -53,7 +53,7 @@ Connect one full-canvas `MASK` per character, match `character_id` to its Prompt
 
 A mask overrides its character's XY/box regardless of builder order. Turn it off to restore XY/box. Repeating this node for the same number replaces that number's mask. Other characters retain their settings. Mix masks, points, boxes, text boxes and regional LoRAs within the existing ten-slot limit. Overlaps read the participating character captions; the background reads the common caption, or is partitioned among point characters when present. Mask, Position and Finalize show colored shapes and overlaps in their layout guides. A direct core Load Image (as Mask) connection previews changes before generation. Other MASK providers or connected controls use the executed result; changing upstream inputs hides stale results until another run. The small diagram is approximate; inspect the MASK output or executed monochrome preview for exact pixels.
 
-PNG/WebP autosave stores the binary shapes, which RS Load Image restores without the original mask files. Editing workflows use ordinary Save Image. Text and **MOSS native JSON** still require boxes: select **regional** for masks. Detailer receives the pipe but continues using detector masks for face edits. [Examples and verification scope](../examples/character-masks).
+PNG/WebP autosave stores the binary shapes, which RS Load Image restores without the original mask files. Editing workflows use ordinary Save Image. Text still requires boxes. **MOSS native JSON converts masks to enclosing rectangles after placement; detailed shapes are lost.** Select **regional** to retain silhouettes. Detailer receives the pipe but continues using detector masks for face edits. [Examples and verification scope](../examples/character-masks).
 
 ## 日本語
 
@@ -69,4 +69,4 @@ Promptと同じキャラクター番号を選び、1人につきMASK1枚を接�
 
 マスクは同じ番号のXY・ボックスを置き換えます。OFFで元の位置設定に戻り、同じ番号を繰り返すと最後の設定を使います。他の番号の点・矩形・マスク、領域別LoRAと併用でき、文字を含め合計10領域までです。重なりは双方の文を読み、明示領域の外は共通文を読みます。点のキャラクターがあれば残りを点同士で分割します。Mask・Position・Finalizeの配置図に色付きの形と重複を表示します。標準Load Image (as Mask)への直接接続は生成前に更新し、他のMASKノードや接続値は実行結果を使います。入力を変えた古い結果は隠し、再実行を案内します。配置図は縮小した目安で、正確な画素はMASK出力か実行後の白黒プレビューで確認します。
 
-PNG・WebPの自動保存には形も含め、RS Load Imageで元ファイルなしに復元できます。ワークフロー保存は標準Save Imageを使います。文字領域と **MOSS native JSONは矩形専用**なので、マスク使用時は `regional` を選択してください。ディテーラーは引き続き検出モデルの顔マスクを使います。[例・検証範囲](../examples/character-masks)。
+PNG・WebPの自動保存には形も含め、RS Load Imageで元ファイルなしに復元できます。ワークフロー保存は標準Save Imageを使います。文字領域は矩形を使います。**MOSS native JSONではマスクを最終配置の外接矩形に変換し、細かい輪郭は反映しません。** 輪郭を保つには `regional` を選択してください。ディテーラーは引き続き検出モデルの顔マスクを使います。[例・検証範囲](../examples/character-masks)。

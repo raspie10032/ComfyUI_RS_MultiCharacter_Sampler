@@ -93,14 +93,21 @@ def character_masks(characters, centers, width, height, feather):
 
 
 def moss_layout_prompt(pipe, width, height):
-    if any(c.region_mask is not None for c in pipe.regions):
-        raise ValueError("Character masks require regional layout. MOSS native JSON uses boxes. / 마스크를 쓰려면 regional을 선택해 주세요. / マスクにはregionalを選んでください。")
-    if not all(c.bbox is not None for c in pipe.regions):
-        raise ValueError("MOSS native layout needs boxes for every region. Choose boxes, or use regional for mixed point/box layouts. / 좌표와 상자를 함께 쓰려면 regional을 선택해 주세요. MOSS 공식 모드는 모든 영역에 상자가 필요합니다.")
+    if not all(explicit_region(c) for c in pipe.regions):
+        raise ValueError("MOSS native layout needs boxes or masks for every region. Use regional for point regions. / MOSS 네이티브는 모든 영역에 박스 또는 마스크가 필요합니다. 포인트 영역은 regional을 사용해 주세요.")
     items = []
     from .characters import TextRegion
     for c in pipe.regions:
-        left, top, right, bottom = c.bbox
+        if c.region_mask is not None:
+            # The finalized mask already includes margin, placement and canvas
+            # clipping. Native JSON can preserve its bounds, not its silhouette.
+            mask = c.region_mask.tensor().bool()
+            rows = torch.where(mask.any(dim=1))[0]
+            cols = torch.where(mask.any(dim=0))[0]
+            left, right = int(cols[0]) / c.region_mask.width, (int(cols[-1]) + 1) / c.region_mask.width
+            top, bottom = int(rows[0]) / c.region_mask.height, (int(rows[-1]) + 1) / c.region_mask.height
+        else:
+            left, top, right, bottom = c.bbox
         box = [math.floor(round(top*height, 9))-height//2,
                math.floor(round(left*width, 9))-width//2,
                math.ceil(round(bottom*height, 9))-height//2,
