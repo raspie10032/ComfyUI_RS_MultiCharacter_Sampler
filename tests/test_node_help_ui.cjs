@@ -1,5 +1,5 @@
 const fs = require('fs'), vm = require('vm'), assert = require('node:assert/strict');
-const source = fs.readFileSync('web/node_help.js', 'utf8').replace(/^import[^\n]*\n/gm, '').replaceAll('export function', 'function');
+const source = require("./ui_source.cjs")('web/node_help.js').replace(/^import[^\n]*\n/gm, '').replaceAll('export function', 'function');
 let extension, lang = 'en';
 const app = {registerExtension(e) { extension = e; }, extensionManager: {setting: {get() { return lang; }}}};
 const sandbox = {app}; vm.runInNewContext(source, sandbox);
@@ -33,7 +33,7 @@ const help=node=>sandbox.nodeHelp(node).join('\n');
     const before=node.widgets.filter(w=>w.serialize!==false).map(w=>[w.name,w.value]);
     const panel=get(node,'rs_mc_node_help');assert.ok(panel);assert.equal(node.widgets.at(-1),panel);
     assert.equal(panel.serialize,false);assert.equal(panel.options.serialize,false);assert.equal(panel.serializeValue(),undefined);
-    for (const locale of ['en','ko','ja']) {
+    for (const locale of ['en','ko','ja','zh','zh-TW']) {
       lang=locale;node.onDrawForeground();
       assert.ok(help(node).length>80);
       for (const width of [340,600,1000]) {
@@ -56,7 +56,7 @@ const help=node=>sandbox.nodeHelp(node).join('\n');
   const sampler=nodes.RSMultiCharacterSampler;
   choose(sampler,'use_image_settings',true);assert.match(help(sampler),/Image settings ON/);
   choose(sampler,'layout_method','moss_native');assert.match(help(sampler),/requires MOSS and box/);
-  for (const [locale,notice] of [['en',/Masks become enclosing rectangles/],['ko',/마스크는 최종 배치의 외곽 사각형/],['ja',/マスクは最終配置の外接矩形/]]) {
+  for (const [locale,notice] of [['en',/Masks become enclosing rectangles/],['ko',/마스크는 최종 배치의 외곽 사각형/],['ja',/マスクは最終配置の外接矩形/],['zh',/外接矩形/],['zh-TW',/外接矩形/]]) {
     lang=locale;assert.match(help(sampler),notice);
     choose(sampler,'layout_method','regional');assert.doesNotMatch(help(sampler),notice);
     choose(sampler,'layout_method','moss_native');
@@ -80,7 +80,7 @@ const help=node=>sandbox.nodeHelp(node).join('\n');
   for(const order of [['node_help','detailer'],['detailer','node_help'],['node_help','character_builder'],['character_builder','node_help']]) {
     const extensions=[];
     const host={queueMicrotask,app:{...app,registerExtension(e){extensions.push(e);}},ComfyWidgets:{STRING(node,name){const widget={name,type:'text',options:{},inputEl:{}};node.widgets.push(widget);return {widget};}}};
-    for(const file of order) vm.runInNewContext(fs.readFileSync(`web/${file}.js`,'utf8').replace(/^import[^\n]*\n/gm,'').replaceAll('export function','function'),vm.createContext({...host}));
+    for(const file of order) vm.runInNewContext(require("./ui_source.cjs")(`web/${file}.js`).replace(/^import[^\n]*\n/gm,'').replaceAll('export function','function'),vm.createContext({...host}));
     const type=order.includes('detailer')?'RSMultiCharacterDetailer':'RSMultiCharacterPrompt';
     const Node=makeClass(type,{...specs[type],character_count:2,show_advanced:false,steps:20});
     Node.prototype.addInput=function(name,type){this.inputs.push({name,type});};Node.prototype.removeInput=function(i){this.inputs.splice(i,1);};
@@ -90,5 +90,5 @@ const help=node=>sandbox.nodeHelp(node).join('\n');
     if(type==='RSMultiCharacterDetailer') {assert.equal(get(node,'steps').hidden,true);choose(node,'show_advanced',true);assert.equal(get(node,'steps').hidden,undefined);}
     else {choose(node,'character_count',3);assert.ok(node.inputs.some(i=>i.name==='character3'));}
   }
-  console.log('All node help: three locales, selection changes, bounds, serialization, callback preservation and extension order passed');
+  console.log('All node help: five locales, selection changes, bounds, serialization, callback preservation and extension order passed');
 })().catch(e=>{console.error(e);process.exitCode=1;});

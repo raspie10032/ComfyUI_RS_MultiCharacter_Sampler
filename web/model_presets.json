@@ -4,12 +4,16 @@
     "label": {
       "en": "Anima — XY",
       "ko": "Anima — 좌표",
-      "ja": "Anima — 座標"
+      "ja": "Anima — 座標",
+      "zh": "Anima — 坐标",
+      "zh-TW": "Anima — 座標"
     },
     "note": {
       "en": "Anima base v1.0: XY starting point. Mixed layouts can use the separate mixed preset.",
       "ko": "Anima base v1.0 좌표 배치 시작 설정입니다. 혼합 배치는 별도 프리셋을 사용해 보세요.",
-      "ja": "Anima base v1.0の座標配置用です。混合配置には専用プリセットをお試しください。"
+      "ja": "Anima base v1.0の座標配置用です。混合配置には専用プリセットをお試しください。",
+      "zh": "Anima base v1.0 坐标布局的起始设置。混合布局请尝试专用预设。",
+      "zh-TW": "Anima base v1.0 座標佈局的起始設定。混合佈局請嘗試專用預設。"
     },
     "source": "examples/two-characters-anima.json",
     "settings": {
@@ -31,12 +35,16 @@
     "label": {
       "en": "Anima — mixed",
       "ko": "Anima — 혼합 배치",
-      "ja": "Anima — 混合配置"
+      "ja": "Anima — 混合配置",
+      "zh": "Anima — 混合布局",
+      "zh-TW": "Anima — 混合佈局"
     },
     "note": {
       "en": "Anima base v1.0: tested with two people plus a text or object box. Use shared scene context in the captions. Exact object bounds and natural placement are not guaranteed.",
       "ko": "Anima base v1.0 두 사람 + 글자/물체 상자 시험값입니다. 문장에도 공통 장면을 적어 주세요. 정확한 물체 크기와 자연스러운 배치는 보장하지 않습니다.",
-      "ja": "Anima base v1.0の2人＋文字/物体枠の試験値です。共通の場面も記述してください。正確な大きさや自然な配置は保証しません。"
+      "ja": "Anima base v1.0の2人＋文字/物体枠の試験値です。共通の場面も記述してください。正確な大きさや自然な配置は保証しません。",
+      "zh": "Anima base v1.0 双人加文字或物体矩形的测试设置。提示词中也应描述共同场景。不保证物体尺寸准确或布局自然。",
+      "zh-TW": "Anima base v1.0 雙人加文字或物體矩形的測試設定。提示詞中也應描述共同場景。不保證物體尺寸準確或佈局自然。"
     },
     "source": "examples/epsilon/anima-mixed.json",
     "settings": {
@@ -58,12 +66,16 @@
     "label": {
       "en": "SDXL / Illustrious — XY",
       "ko": "SDXL / Illustrious — 좌표",
-      "ja": "SDXL / Illustrious — 座標"
+      "ja": "SDXL / Illustrious — 座標",
+      "zh": "SDXL / Illustrious — 坐标",
+      "zh-TW": "SDXL / Illustrious — 座標"
     },
     "note": {
       "en": "SDXL base XY starting point from the Illustrious example. Mixed layouts have a separate preset. This does not cover every SDXL checkpoint.",
       "ko": "Illustrious 예제의 SDXL 기본 모델 좌표 배치 시작값입니다. 혼합 배치는 별도 프리셋을 사용해 보세요. 모든 SDXL 체크포인트를 검증한 값은 아닙니다.",
-      "ja": "Illustriousの例を基にしたSDXLベースの座標配置用です。混合配置には専用プリセットをお試しください。全SDXLモデルで検証した値ではありません。"
+      "ja": "Illustriousの例を基にしたSDXLベースの座標配置用です。混合配置には専用プリセットをお試しください。全SDXLモデルで検証した値ではありません。",
+      "zh": "基于 Illustrious 示例的 SDXL 坐标布局起点。混合布局另有预设；并未在所有 SDXL 检查点上验证。",
+      "zh-TW": "基於 Illustrious 示例的 SDXL 座標佈局起點。混合佈局另有預設；並未在所有 SDXL 檢查點上驗證。"
     },
     "source": "examples/two-characters-sdxl.json",
     "settings": {
@@ -85,12 +97,16 @@
     "label": {
       "en": "SDXL / Illustrious — mixed",
       "ko": "SDXL / Illustrious — 혼합 배치",
-      "ja": "SDXL / Illustrious — 混合配置"
+      "ja": "SDXL / Illustrious — 混合配置",
+      "zh": "SDXL / Illustrious — 混合布局",
+      "zh-TW": "SDXL / Illustrious — 混合佈局"
     },
     "note": {
       "en": "Tested on Illustrious XL v1.0, not every SDXL checkpoint. Extra lettering and spelling errors remain.",
       "ko": "Illustrious XL v1.0 시험값입니다. 모든 SDXL 모델에서 검증한 값은 아닙니다. 불필요한 글자와 철자 오류가 남을 수 있습니다.",
-      "ja": "Illustrious XL v1.0での試験値です。全SDXLモデルで検証した値ではありません。余分な文字や綴りの誤りが残ります。"
+      "ja": "Illustrious XL v1.0での試験値です。全SDXLモデルで検証した値ではありません。余分な文字や綴りの誤りが残ります。",
+      "zh": "在 Illustrious XL v1.0 上测试，并非覆盖所有 SDXL 检查点。可能出现多余文字和拼写错误。",
+      "zh-TW": "在 Illustrious XL v1.0 上測試，並非覆蓋所有 SDXL 檢查點。可能出現多餘文字和拼寫錯誤。"
     },
     "source": "examples/epsilon/sdxl-mixed.json",
     "settings": {
@@ -112,12 +128,16 @@
     "label": {
       "en": "Krea 2 Turbo",
       "ko": "Krea 2 Turbo",
-      "ja": "Krea 2 Turbo"
+      "ja": "Krea 2 Turbo",
+      "zh": "Krea 2 Turbo",
+      "zh-TW": "Krea 2 Turbo"
     },
     "note": {
       "en": "Krea 2 Turbo: 8 steps, CFG 1. Tested with two people plus a text or object box. Objects can exceed the box and render photographically despite an anime prompt.",
       "ko": "Krea 2 Turbo 8스텝·CFG 1, 두 사람 + 글자/물체 상자 시험값입니다. 물체가 상자를 넘거나 애니 문장에도 실사풍으로 나올 수 있습니다.",
-      "ja": "Krea 2 Turboの8ステップ・CFG 1、2人＋文字/物体枠の試験値です。矩形からはみ出したり、アニメ指定でも写真風になる場合があります。"
+      "ja": "Krea 2 Turboの8ステップ・CFG 1、2人＋文字/物体枠の試験値です。矩形からはみ出したり、アニメ指定でも写真風になる場合があります。",
+      "zh": "Krea 2 Turbo，8 步、CFG 1，已测试双人加文字或物体矩形。物体可能超出矩形，即使提示为动漫风格也可能呈现照片质感。",
+      "zh-TW": "Krea 2 Turbo，8 步、CFG 1，已測試雙人加文字或物體矩形。物體可能超出矩形，即使提示為動漫風格也可能呈現照片質感。"
     },
     "source": "examples/epsilon/krea2-mixed.json",
     "settings": {
@@ -139,12 +159,16 @@
     "label": {
       "en": "MOSS — base",
       "ko": "MOSS — 기본 모델",
-      "ja": "MOSS — ベースモデル"
+      "ja": "MOSS — ベースモデル",
+      "zh": "MOSS — 基础模型",
+      "zh-TW": "MOSS — 基礎模型"
     },
     "note": {
       "en": "MOSS base: 50 steps / CFG 3, regional mode. Model and LoRA connections are managed separately.",
       "ko": "MOSS 기본 모델: 50스텝 / CFG 3, regional 모드입니다. 모델·LoRA 연결은 별도로 설정해 주세요.",
-      "ja": "MOSSベース：50ステップ／CFG 3、regionalモードです。モデルとLoRAの接続は別途設定してください。"
+      "ja": "MOSSベース：50ステップ／CFG 3、regionalモードです。モデルとLoRAの接続は別途設定してください。",
+      "zh": "MOSS 基础模型，50 步、CFG 3，regional 模式。模型和 LoRA 需单独连接。",
+      "zh-TW": "MOSS 基礎模型，50 步、CFG 3，regional 模式。模型和 LoRA 需單獨連線。"
     },
     "source": "examples/two-characters-moss.json",
     "settings": {
@@ -166,12 +190,16 @@
     "label": {
       "en": "MOSS — 8-step LoRA",
       "ko": "MOSS — 8스텝 LoRA",
-      "ja": "MOSS — 8ステップ LoRA"
+      "ja": "MOSS — 8ステップ LoRA",
+      "zh": "MOSS — 8 步 LoRA",
+      "zh-TW": "MOSS — 8 步 LoRA"
     },
     "note": {
       "en": "Requires the MOSS 8-step LoRA, tested at strength 0.7. This preset does not load or adjust the LoRA. CFG 3 is the tested quality starting point.",
       "ko": "MOSS 8스텝 LoRA가 필요하며 시험 강도는 0.7입니다. 프리셋은 LoRA를 불러오거나 강도를 바꾸지 않습니다. CFG 3을 시작값으로 사용합니다.",
-      "ja": "MOSS 8ステップLoRAが必要です。試験強度は0.7です。プリセットはLoRAの読み込みや強度変更を行いません。開始値はCFG 3です。"
+      "ja": "MOSS 8ステップLoRAが必要です。試験強度は0.7です。プリセットはLoRAの読み込みや強度変更を行いません。開始値はCFG 3です。",
+      "zh": "需要 MOSS 8 步 LoRA，测试强度为 0.7。预设不会加载 LoRA 或修改其强度。以 CFG 3 作为质量起点。",
+      "zh-TW": "需要 MOSS 8 步 LoRA，測試強度為 0.7。預設不會載入 LoRA 或修改其強度。以 CFG 3 作為品質起點。"
     },
     "source": "examples/epsilon/moss-mixed.json",
     "settings": {
@@ -193,12 +221,16 @@
     "label": {
       "en": "SD1.5 — experimental",
       "ko": "SD1.5 — 실험적",
-      "ja": "SD1.5 — 実験的"
+      "ja": "SD1.5 — 実験的",
+      "zh": "SD1.5 — 实验性",
+      "zh-TW": "SD1.5 — 實驗性"
     },
     "note": {
       "en": "Compatibility only: distinct people and a visible text-like area. Quality, anatomy and exact spelling are not established. Try 768×512.",
       "ko": "호환성 확인용입니다. 인물 구분과 글자 형태의 표시만 확인했으며 품질·인체·정확한 철자는 보장하지 않습니다. 768×512로 시작해 보세요.",
-      "ja": "互換性の確認用です。人物の区別と文字らしい表示のみ確認しています。品質・人体・正確な綴りは保証しません。768×512からお試しください。"
+      "ja": "互換性の確認用です。人物の区別と文字らしい表示のみ確認しています。品質・人体・正確な綴りは保証しません。768×512からお試しください。",
+      "zh": "仅验证兼容性：人物可区分，存在类似文字的区域。未确认画质、人体或准确拼写，请从 768×512 开始。",
+      "zh-TW": "僅驗證相容性：人物可區分，存在類似文字的區域。未確認畫質、人體或準確拼寫，請從 768×512 開始。"
     },
     "source": "examples/epsilon/sd15-mixed.json",
     "settings": {
@@ -220,12 +252,16 @@
     "label": {
       "en": "FLUX.2 Klein 4B — 4 steps",
       "ko": "FLUX.2 Klein 4B — 4 steps",
-      "ja": "FLUX.2 Klein 4B — 4 steps"
+      "ja": "FLUX.2 Klein 4B — 4 steps",
+      "zh": "FLUX.2 Klein 4B — 4 步",
+      "zh-TW": "FLUX.2 Klein 4B — 4 步"
     },
     "note": {
       "en": "Tested on Klein 4B FP8: 4 steps / CFG 1. Base and Dev need different settings. Two characters, text boxes and four-point XY generated; small objects can be omitted. Other FLUX variants are still being validated.",
       "ko": "Klein 4B FP8의 4스텝 / CFG 1 시험값입니다. Base·Dev는 설정이 다릅니다. 2인·글자 상자·4인 XY를 생성했으며 소품이 빠질 수 있습니다. 다른 FLUX 변형은 검증 중입니다.",
-      "ja": "Klein 4B FP8の4ステップ／CFG 1で検証しました。Base・Devは別の設定が必要です。2人・文字枠・4人XYを生成しましたが、小物が省略される場合があります。他のFLUXモデルは検証中です。"
+      "ja": "Klein 4B FP8の4ステップ／CFG 1で検証しました。Base・Devは別の設定が必要です。2人・文字枠・4人XYを生成しましたが、小物が省略される場合があります。他のFLUXモデルは検証中です。",
+      "zh": "Klein 4B FP8 的测试值：4 步、CFG 1。Base 和 Dev 需要不同设置。已生成双角色、文字矩形和四人坐标场景，小物体可能遗漏。其他 FLUX 变体仍在验证中。",
+      "zh-TW": "Klein 4B FP8 的測試值：4 步、CFG 1。Base 和 Dev 需要不同設定。已生成雙角色、文字矩形和四人座標場景，小物體可能遺漏。其他 FLUX 變體仍在驗證中。"
     },
     "source": "examples/flux/klein4-two.json",
     "settings": {
@@ -248,12 +284,16 @@
     "label": {
       "en": "FLUX.1 Schnell — 4 steps",
       "ko": "FLUX.1 Schnell — 4 steps",
-      "ja": "FLUX.1 Schnell — 4 steps"
+      "ja": "FLUX.1 Schnell — 4 steps",
+      "zh": "FLUX.1 Schnell — 4 步",
+      "zh-TW": "FLUX.1 Schnell — 4 步"
     },
     "note": {
       "en": "Real-checkpoint two-person and caption-swap settings, not a quality guarantee. Use the matching model, text encoder and VAE shown in the example. Embedded guidance affects only FLUX.1 Dev / FLUX.2 Dev. See the FLUX validation document for limitations.",
       "ko": "실제 모델로 2인 생성과 문장 교환을 시험한 설정입니다. 품질 보장은 아니며 예제의 모델·텍스트 인코더·VAE를 함께 사용하세요. 내장 가이던스는 FLUX.1 Dev·FLUX.2 Dev에만 적용됩니다. 한계는 FLUX 검증 문서를 확인하세요.",
-      "ja": "実モデルで2人生成と文章交換を試した設定です。品質は保証しません。例のモデル・テキストエンコーダー・VAEを組み合わせてください。内蔵ガイダンスはFLUX.1 Dev・FLUX.2 Devのみ有効です。制限はFLUX検証文書を参照してください。"
+      "ja": "実モデルで2人生成と文章交換を試した設定です。品質は保証しません。例のモデル・テキストエンコーダー・VAEを組み合わせてください。内蔵ガイダンスはFLUX.1 Dev・FLUX.2 Devのみ有効です。制限はFLUX検証文書を参照してください。",
+      "zh": "使用实际模型测试了双人生成与角色描述交换，不保证画质。请搭配示例中的模型、文本编码器和 VAE。内置引导仅作用于 FLUX.1 Dev / FLUX.2 Dev。限制参见 FLUX 验证文档。",
+      "zh-TW": "使用實際模型測試了雙人生成與角色描述交換，不保證畫質。請搭配示例中的模型、文字編碼器和 VAE。內建引導僅作用於 FLUX.1 Dev / FLUX.2 Dev。限制參見 FLUX 驗證文件。"
     },
     "source": "examples/flux/flux1-schnell-two.json",
     "settings": {
@@ -276,12 +316,16 @@
     "label": {
       "en": "FLUX.1 Dev — 20 steps",
       "ko": "FLUX.1 Dev — 20 steps",
-      "ja": "FLUX.1 Dev — 20 steps"
+      "ja": "FLUX.1 Dev — 20 steps",
+      "zh": "FLUX.1 Dev — 20 步",
+      "zh-TW": "FLUX.1 Dev — 20 步"
     },
     "note": {
       "en": "Real-checkpoint two-person and caption-swap settings, not a quality guarantee. Use the matching model, text encoder and VAE shown in the example. Embedded guidance affects only FLUX.1 Dev / FLUX.2 Dev. See the FLUX validation document for limitations.",
       "ko": "실제 모델로 2인 생성과 문장 교환을 시험한 설정입니다. 품질 보장은 아니며 예제의 모델·텍스트 인코더·VAE를 함께 사용하세요. 내장 가이던스는 FLUX.1 Dev·FLUX.2 Dev에만 적용됩니다. 한계는 FLUX 검증 문서를 확인하세요.",
-      "ja": "実モデルで2人生成と文章交換を試した設定です。品質は保証しません。例のモデル・テキストエンコーダー・VAEを組み合わせてください。内蔵ガイダンスはFLUX.1 Dev・FLUX.2 Devのみ有効です。制限はFLUX検証文書を参照してください。"
+      "ja": "実モデルで2人生成と文章交換を試した設定です。品質は保証しません。例のモデル・テキストエンコーダー・VAEを組み合わせてください。内蔵ガイダンスはFLUX.1 Dev・FLUX.2 Devのみ有効です。制限はFLUX検証文書を参照してください。",
+      "zh": "使用实际模型测试了双人生成与角色描述交换，不保证画质。请搭配示例中的模型、文本编码器和 VAE。内置引导仅作用于 FLUX.1 Dev / FLUX.2 Dev。限制参见 FLUX 验证文档。",
+      "zh-TW": "使用實際模型測試了雙人生成與角色描述交換，不保證畫質。請搭配示例中的模型、文字編碼器和 VAE。內建引導僅作用於 FLUX.1 Dev / FLUX.2 Dev。限制參見 FLUX 驗證文件。"
     },
     "source": "examples/flux/flux1-dev-two.json",
     "settings": {
@@ -304,12 +348,16 @@
     "label": {
       "en": "FLUX.2 Klein Base 4B — 50 steps",
       "ko": "FLUX.2 Klein Base 4B — 50 steps",
-      "ja": "FLUX.2 Klein Base 4B — 50 steps"
+      "ja": "FLUX.2 Klein Base 4B — 50 steps",
+      "zh": "FLUX.2 Klein Base 4B — 50 步",
+      "zh-TW": "FLUX.2 Klein Base 4B — 50 步"
     },
     "note": {
       "en": "Real-checkpoint two-person and caption-swap settings, not a quality guarantee. Use the matching model, text encoder and VAE shown in the example. Embedded guidance affects only FLUX.1 Dev / FLUX.2 Dev. See the FLUX validation document for limitations.",
       "ko": "실제 모델로 2인 생성과 문장 교환을 시험한 설정입니다. 품질 보장은 아니며 예제의 모델·텍스트 인코더·VAE를 함께 사용하세요. 내장 가이던스는 FLUX.1 Dev·FLUX.2 Dev에만 적용됩니다. 한계는 FLUX 검증 문서를 확인하세요.",
-      "ja": "実モデルで2人生成と文章交換を試した設定です。品質は保証しません。例のモデル・テキストエンコーダー・VAEを組み合わせてください。内蔵ガイダンスはFLUX.1 Dev・FLUX.2 Devのみ有効です。制限はFLUX検証文書を参照してください。"
+      "ja": "実モデルで2人生成と文章交換を試した設定です。品質は保証しません。例のモデル・テキストエンコーダー・VAEを組み合わせてください。内蔵ガイダンスはFLUX.1 Dev・FLUX.2 Devのみ有効です。制限はFLUX検証文書を参照してください。",
+      "zh": "使用实际模型测试了双人生成与角色描述交换，不保证画质。请搭配示例中的模型、文本编码器和 VAE。内置引导仅作用于 FLUX.1 Dev / FLUX.2 Dev。限制参见 FLUX 验证文档。",
+      "zh-TW": "使用實際模型測試了雙人生成與角色描述交換，不保證畫質。請搭配示例中的模型、文字編碼器和 VAE。內建引導僅作用於 FLUX.1 Dev / FLUX.2 Dev。限制參見 FLUX 驗證文件。"
     },
     "source": "examples/flux/klein4-base-two.json",
     "settings": {
@@ -332,12 +380,16 @@
     "label": {
       "en": "FLUX.2 Klein 9B — 4 steps",
       "ko": "FLUX.2 Klein 9B — 4 steps",
-      "ja": "FLUX.2 Klein 9B — 4 steps"
+      "ja": "FLUX.2 Klein 9B — 4 steps",
+      "zh": "FLUX.2 Klein 9B — 4 步",
+      "zh-TW": "FLUX.2 Klein 9B — 4 步"
     },
     "note": {
       "en": "Real-checkpoint two-person and caption-swap settings, not a quality guarantee. Use the matching model, text encoder and VAE shown in the example. Embedded guidance affects only FLUX.1 Dev / FLUX.2 Dev. See the FLUX validation document for limitations.",
       "ko": "실제 모델로 2인 생성과 문장 교환을 시험한 설정입니다. 품질 보장은 아니며 예제의 모델·텍스트 인코더·VAE를 함께 사용하세요. 내장 가이던스는 FLUX.1 Dev·FLUX.2 Dev에만 적용됩니다. 한계는 FLUX 검증 문서를 확인하세요.",
-      "ja": "実モデルで2人生成と文章交換を試した設定です。品質は保証しません。例のモデル・テキストエンコーダー・VAEを組み合わせてください。内蔵ガイダンスはFLUX.1 Dev・FLUX.2 Devのみ有効です。制限はFLUX検証文書を参照してください。"
+      "ja": "実モデルで2人生成と文章交換を試した設定です。品質は保証しません。例のモデル・テキストエンコーダー・VAEを組み合わせてください。内蔵ガイダンスはFLUX.1 Dev・FLUX.2 Devのみ有効です。制限はFLUX検証文書を参照してください。",
+      "zh": "使用实际模型测试了双人生成与角色描述交换，不保证画质。请搭配示例中的模型、文本编码器和 VAE。内置引导仅作用于 FLUX.1 Dev / FLUX.2 Dev。限制参见 FLUX 验证文档。",
+      "zh-TW": "使用實際模型測試了雙人生成與角色描述交換，不保證畫質。請搭配示例中的模型、文字編碼器和 VAE。內建引導僅作用於 FLUX.1 Dev / FLUX.2 Dev。限制參見 FLUX 驗證文件。"
     },
     "source": "examples/flux/klein9-two.json",
     "settings": {
@@ -360,12 +412,16 @@
     "label": {
       "en": "FLUX.2 Dev — 50 steps",
       "ko": "FLUX.2 Dev — 50 steps",
-      "ja": "FLUX.2 Dev — 50 steps"
+      "ja": "FLUX.2 Dev — 50 steps",
+      "zh": "FLUX.2 Dev — 50 步",
+      "zh-TW": "FLUX.2 Dev — 50 步"
     },
     "note": {
       "en": "Real-checkpoint two-person and caption-swap settings, not a quality guarantee. Use the matching model, text encoder and VAE shown in the example. Embedded guidance affects only FLUX.1 Dev / FLUX.2 Dev. See the FLUX validation document for limitations.",
       "ko": "실제 모델로 2인 생성과 문장 교환을 시험한 설정입니다. 품질 보장은 아니며 예제의 모델·텍스트 인코더·VAE를 함께 사용하세요. 내장 가이던스는 FLUX.1 Dev·FLUX.2 Dev에만 적용됩니다. 한계는 FLUX 검증 문서를 확인하세요.",
-      "ja": "実モデルで2人生成と文章交換を試した設定です。品質は保証しません。例のモデル・テキストエンコーダー・VAEを組み合わせてください。内蔵ガイダンスはFLUX.1 Dev・FLUX.2 Devのみ有効です。制限はFLUX検証文書を参照してください。"
+      "ja": "実モデルで2人生成と文章交換を試した設定です。品質は保証しません。例のモデル・テキストエンコーダー・VAEを組み合わせてください。内蔵ガイダンスはFLUX.1 Dev・FLUX.2 Devのみ有効です。制限はFLUX検証文書を参照してください。",
+      "zh": "使用实际模型测试了双人生成与角色描述交换，不保证画质。请搭配示例中的模型、文本编码器和 VAE。内置引导仅作用于 FLUX.1 Dev / FLUX.2 Dev。限制参见 FLUX 验证文档。",
+      "zh-TW": "使用實際模型測試了雙人生成與角色描述交換，不保證畫質。請搭配示例中的模型、文字編碼器和 VAE。內建引導僅作用於 FLUX.1 Dev / FLUX.2 Dev。限制參見 FLUX 驗證文件。"
     },
     "source": "examples/flux/flux2-dev-two.json",
     "settings": {
@@ -388,12 +444,16 @@
     "label": {
       "en": "FLUX 3 Klein — 16 steps",
       "ko": "FLUX 3 Klein — 16 steps",
-      "ja": "FLUX 3 Klein — 16 steps"
+      "ja": "FLUX 3 Klein — 16 steps",
+      "zh": "FLUX 3 Klein — 16 步",
+      "zh-TW": "FLUX 3 Klein — 16 步"
     },
     "note": {
       "en": "Real-checkpoint two-person and caption-swap settings, not a quality guarantee. Use the matching model, text encoder and VAE shown in the example. Embedded guidance affects only FLUX.1 Dev / FLUX.2 Dev. See the FLUX validation document for limitations.",
       "ko": "실제 모델로 2인 생성과 문장 교환을 시험한 설정입니다. 품질 보장은 아니며 예제의 모델·텍스트 인코더·VAE를 함께 사용하세요. 내장 가이던스는 FLUX.1 Dev·FLUX.2 Dev에만 적용됩니다. 한계는 FLUX 검증 문서를 확인하세요.",
-      "ja": "実モデルで2人生成と文章交換を試した設定です。品質は保証しません。例のモデル・テキストエンコーダー・VAEを組み合わせてください。内蔵ガイダンスはFLUX.1 Dev・FLUX.2 Devのみ有効です。制限はFLUX検証文書を参照してください。"
+      "ja": "実モデルで2人生成と文章交換を試した設定です。品質は保証しません。例のモデル・テキストエンコーダー・VAEを組み合わせてください。内蔵ガイダンスはFLUX.1 Dev・FLUX.2 Devのみ有効です。制限はFLUX検証文書を参照してください。",
+      "zh": "使用实际模型测试了双人生成与角色描述交换，不保证画质。请搭配示例中的模型、文本编码器和 VAE。内置引导仅作用于 FLUX.1 Dev / FLUX.2 Dev。限制参见 FLUX 验证文档。",
+      "zh-TW": "使用實際模型測試了雙人生成與角色描述交換，不保證畫質。請搭配示例中的模型、文字編碼器和 VAE。內建引導僅作用於 FLUX.1 Dev / FLUX.2 Dev。限制參見 FLUX 驗證文件。"
     },
     "source": "examples/flux/flux3-two.json",
     "settings": {
@@ -416,12 +476,16 @@
     "label": {
       "en": "FLUX 3 Klein Base — 50 steps",
       "ko": "FLUX 3 Klein Base — 50 steps",
-      "ja": "FLUX 3 Klein Base — 50 steps"
+      "ja": "FLUX 3 Klein Base — 50 steps",
+      "zh": "FLUX 3 Klein Base — 50 步",
+      "zh-TW": "FLUX 3 Klein Base — 50 步"
     },
     "note": {
       "en": "Real-checkpoint two-person and caption-swap settings, not a quality guarantee. Use the matching model, text encoder and VAE shown in the example. Embedded guidance affects only FLUX.1 Dev / FLUX.2 Dev. See the FLUX validation document for limitations.",
       "ko": "실제 모델로 2인 생성과 문장 교환을 시험한 설정입니다. 품질 보장은 아니며 예제의 모델·텍스트 인코더·VAE를 함께 사용하세요. 내장 가이던스는 FLUX.1 Dev·FLUX.2 Dev에만 적용됩니다. 한계는 FLUX 검증 문서를 확인하세요.",
-      "ja": "実モデルで2人生成と文章交換を試した設定です。品質は保証しません。例のモデル・テキストエンコーダー・VAEを組み合わせてください。内蔵ガイダンスはFLUX.1 Dev・FLUX.2 Devのみ有効です。制限はFLUX検証文書を参照してください。"
+      "ja": "実モデルで2人生成と文章交換を試した設定です。品質は保証しません。例のモデル・テキストエンコーダー・VAEを組み合わせてください。内蔵ガイダンスはFLUX.1 Dev・FLUX.2 Devのみ有効です。制限はFLUX検証文書を参照してください。",
+      "zh": "使用实际模型测试了双人生成与角色描述交换，不保证画质。请搭配示例中的模型、文本编码器和 VAE。内置引导仅作用于 FLUX.1 Dev / FLUX.2 Dev。限制参见 FLUX 验证文档。",
+      "zh-TW": "使用實際模型測試了雙人生成與角色描述交換，不保證畫質。請搭配示例中的模型、文字編碼器和 VAE。內建引導僅作用於 FLUX.1 Dev / FLUX.2 Dev。限制參見 FLUX 驗證文件。"
     },
     "source": "examples/flux/flux3-base-two.json",
     "settings": {
@@ -444,12 +508,16 @@
     "label": {
       "en": "Krea 2 Turbo — character LoRA",
       "ko": "Krea 2 Turbo — 캐릭터 LoRA",
-      "ja": "Krea 2 Turbo — キャラクターLoRA"
+      "ja": "Krea 2 Turbo — キャラクターLoRA",
+      "zh": "Krea 2 Turbo — 角色 LoRA",
+      "zh-TW": "Krea 2 Turbo — 角色 LoRA"
     },
     "note": {
       "en": "Tested at 768×512 with a Krea2 linear character LoRA, model strength 1 / CLIP 0. Load the matching LoRA separately. This changes sampling controls only.",
       "ko": "768×512, Krea2 일반 선형 캐릭터 LoRA 모델 1 / CLIP 0 시험값입니다. LoRA는 별도로 선택해 주세요. 생성 설정만 적용합니다.",
-      "ja": "768×512、Krea2の通常線形LoRA、モデル1／CLIP 0での試験値です。LoRAは別途選択してください。生成設定のみを適用します。"
+      "ja": "768×512、Krea2の通常線形LoRA、モデル1／CLIP 0での試験値です。LoRAは別途選択してください。生成設定のみを適用します。",
+      "zh": "在 768×512、Krea2 线性角色 LoRA、模型强度 1 / CLIP 0 下测试。请单独加载匹配的 LoRA；预设只修改采样参数。",
+      "zh-TW": "在 768×512、Krea2 線性角色 LoRA、模型強度 1 / CLIP 0 下測試。請單獨載入匹配的 LoRA；預設只修改取樣引數。"
     },
     "source": "examples/character-lora/krea2.json",
     "settings": {
@@ -471,12 +539,16 @@
     "label": {
       "en": "Illustrious — character LoRA",
       "ko": "Illustrious — 캐릭터 LoRA",
-      "ja": "Illustrious — キャラクターLoRA"
+      "ja": "Illustrious — キャラクターLoRA",
+      "zh": "Illustrious — 角色 LoRA",
+      "zh-TW": "Illustrious — 角色 LoRA"
     },
     "note": {
       "en": "Tested at 1024×768 with the Phoebe LoRA, model strength 1 / CLIP 0. Strong separation can create visible seams; adjust for your prompt. LoRA loading is separate.",
       "ko": "1024×768, Phoebe LoRA 모델 1 / CLIP 0 시험값입니다. 강한 분리로 경계가 보일 수 있으니 문장에 맞게 조절해 주세요. LoRA는 별도로 선택합니다.",
-      "ja": "1024×768、Phoebe LoRA、モデル1／CLIP 0での試験値です。強い分離で境界が見える場合は調整してください。LoRAは別途選択します。"
+      "ja": "1024×768、Phoebe LoRA、モデル1／CLIP 0での試験値です。強い分離で境界が見える場合は調整してください。LoRAは別途選択します。",
+      "zh": "在 1024×768、Phoebe LoRA、模型强度 1 / CLIP 0 下测试。过强分离可能产生接缝，请根据提示词调整。LoRA 需单独加载。",
+      "zh-TW": "在 1024×768、Phoebe LoRA、模型強度 1 / CLIP 0 下測試。過強分離可能產生接縫，請根據提示詞調整。LoRA 需單獨載入。"
     },
     "source": "examples/character-lora/illustrious.json",
     "settings": {

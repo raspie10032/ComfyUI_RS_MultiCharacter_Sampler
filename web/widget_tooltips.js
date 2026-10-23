@@ -1,4 +1,5 @@
 // SPDX-License-Identifier: GPL-3.0-only
+import { chineseLocale, chineseText } from "./i18n.js";
 import { app } from "../../scripts/app.js";
 
 // One catalogue for canvas widgets, multiline DOM widgets and Vue node rows.
@@ -91,7 +92,7 @@ export function fieldHelp(type, name, locale = "en") {
             resolution: ["Longest edge, 64–1024 in 64px steps. Keeps aspect ratio; encoders may use a fixed grid.", "긴 변 64~1024px, 64px 단위. 비율을 유지하며 인코더에 따라 고정 크기로 처리합니다.", "長辺64～1024px、64px単位。比率を維持し、Encoderにより固定サイズで処理します。"],
             strength: ["Image influence, 0–2. Zero skips reference models; stronger can distort color or layout.", "참조 영향 0~2. 0은 참조 처리를 생략합니다. 높이면 색·구도가 왜곡될 수 있습니다.", "参照の影響0～2。0で処理を省略。高すぎると色・構図が崩れる場合があります。"],
         }[name];
-        if (reference) return reference[locale.startsWith("ko") ? 1 : locale.startsWith("ja") ? 2 : 0];
+        if (reference) return chineseLocale(locale) ? chineseText(reference[0], locale) : reference[locale.startsWith("ko") ? 1 : locale.startsWith("ja") ? 2 : 0];
     }
     let key = name;
     const slot = /^character\d+(?:_(.*))?$/.exec(name);
@@ -99,7 +100,7 @@ export function fieldHelp(type, name, locale = "en") {
     if (slot && (key === "width" || key === "height")) key = `slot_${key}`;
     if (name.startsWith("upload")) key = "upload";
     const row = tips[key];
-    return row?.[locale.startsWith("ko") ? 1 : locale.startsWith("ja") ? 2 : 0] ?? "";
+    return chineseLocale(locale) ? chineseText(row?.[0] ?? "", locale) : row?.[locale.startsWith("ko") ? 1 : locale.startsWith("ja") ? 2 : 0] ?? "";
 }
 
 const isOurs = node => String(node?.comfyClass ?? node?.type ?? "").startsWith("RSMultiCharacter");

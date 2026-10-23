@@ -1,4 +1,5 @@
 // SPDX-License-Identifier: GPL-3.0-only
+import { chineseLocale, chineseText } from "./i18n.js";
 import { app } from "../../scripts/app.js";
 import { api } from "../../scripts/api.js";
 import { transformSupport } from "./mask_preview.js";
@@ -9,8 +10,8 @@ const val = (node, name, fallback) => node.widgets?.find(w => w.name === name)?.
 const empty = () => ({ version: 1, width: 768, height: 1024, layers: {} });
 const layerAt = (data, id) => data.layers[id] ??= { strokes: [], x: 0, y: 0, scale: 1 };
 const clamp = (v, lo, hi) => Math.max(lo, Math.min(hi, v));
-const lang = () => String(app.extensionManager?.setting?.get?.("Comfy.Locale") ?? navigator.language ?? "en").slice(0, 2);
-const text = (en, ko, ja) => lang() === "ko" ? ko : lang() === "ja" ? ja : en;
+const lang = () => String(app.extensionManager?.setting?.get?.("Comfy.Locale") ?? navigator.language ?? "en");
+const text = (en, ko, ja) => chineseLocale(lang()) ? chineseText(en, lang()) : lang().startsWith("ko") ? ko : lang().startsWith("ja") ? ja : en;
 
 export function parseDrawing(value) {
     const data = JSON.parse(value);

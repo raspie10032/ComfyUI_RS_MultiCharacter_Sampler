@@ -1,7 +1,7 @@
 const fs = require('fs'), vm = require('vm'), assert = require('node:assert/strict');
 const presets = JSON.parse(fs.readFileSync('web/model_presets.json', 'utf8'));
 let extension, lang = 'en';
-vm.runInNewContext(fs.readFileSync('web/presets.js', 'utf8')
+vm.runInNewContext(require("./ui_source.cjs")('web/presets.js')
     .replace(/^import [^\r\n]*\r?\n/gm, '').replaceAll('import.meta.url', '"http://localhost/presets.js"'), {
     URL, console,
     fetch: async () => ({ok:true, json:async () => presets}),
@@ -53,7 +53,7 @@ class Node {
     assert.deepEqual(a.widgets.slice(0,order.length).map(w=>w.name),order);
     assert.equal(a.properties.rs_mc_preset,'krea2');
     for(const w of a.widgets.slice(order.length)){assert.equal(w.options.serialize,false);assert.equal(w.serializeValue(),undefined);}
-    for(const [language,label] of [['en','Apply preset'],['ko','프리셋 적용'],['ja','プリセットを適用']]){
+    for(const [language,label] of [['en','Apply preset'],['ko','프리셋 적용'],['ja','プリセットを適用'],['zh','应用预设'],['zh-TW','套用預設']]){
         lang=language;a.onConfigure();assert.equal(a.w('rs_mc_apply_preset').label,label);a.choose('sd15_mixed');a.apply();assert.equal(a.w('cfg').value,7);
     }
     a.properties.rs_mc_preset='unknown-future-preset';before=a.values();a.onConfigure();a.apply();assert.deepEqual(a.values(),before);

@@ -1,4 +1,5 @@
 // SPDX-License-Identifier: GPL-3.0-only
+import { chineseLocale, chineseText } from "./i18n.js";
 import { app } from "../../scripts/app.js";
 
 const targets = new Set([
@@ -7,14 +8,14 @@ const targets = new Set([
     "RSMultiCharacterTaggerLoader", "RSMultiCharacterPrompts", "RSMultiCharacterReference",
 ]);
 const locale = () => String(app.extensionManager?.setting?.get?.("Comfy.Locale")
-    ?? app.ui?.settings?.getSettingValue?.("Comfy.Locale") ?? globalThis.navigator?.language ?? "en").slice(0, 2);
+    ?? app.ui?.settings?.getSettingValue?.("Comfy.Locale") ?? globalThis.navigator?.language ?? "en");
 const value = (node, name, fallback) => node.widgets?.find(w => w.name === name)?.value ?? fallback;
 const typeOf = node => node.comfyClass ?? node.type;
 
 // Display only: inspect controls, never execute connected nodes or change inputs.
 export function nodeHelp(node) {
     const lang = locale();
-    const text = (en, ko, ja) => lang === "ko" ? ko : lang === "ja" ? ja : en;
+    const text = (en, ko, ja) => chineseLocale(lang) ? chineseText(en, lang) : lang.startsWith("ko") ? ko : lang.startsWith("ja") ? ja : en;
     const v = (name, fallback) => value(node, name, fallback);
     const lines = [];
     const add = (en, ko, ja) => lines.push(text(en, ko, ja));

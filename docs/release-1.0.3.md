@@ -40,3 +40,18 @@ MOSSネイティブでもマスクを使用できます。移動・倍率・余�
 反映されません。元のマスクはパイプと画像メタデータに保持します。
 輪郭を維持する場合は `regional` を使用してください。パネルとツールチップにも
 この違いを表示します。
+
+## Main branch localization update
+
+Simplified Chinese (`zh`) and Traditional Chinese (`zh-TW`) now cover all 15
+nodes, contextual panels, the two-second control tooltips, model presets,
+mask drawing and placement, and OpenPose preview controls. Complete usage guides
+are available in [简体中文](../README.zh-CN.md) and [繁體中文](../README.zh-TW.md).
+Select the corresponding language in ComfyUI settings and reload the page.
+Technical node IDs, stored enum values and workflow connections stay compatible.
+
+Validation: 226 Python tests passed, one existing test skipped; all 11 JavaScript
+UI suites passed. Added checks cover Chinese locale variants, message placeholders,
+translation coverage and README links. Both languages were checked in a separate
+ComfyUI UI, including restoring the same workflow after a language change. No new
+image generation was performed for this translation update.

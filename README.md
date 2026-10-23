@@ -2,7 +2,7 @@
 
 Regional generation and local detailing for ComfyUI. Give each character a prompt, an optional LoRA, and a point, box or mask to guide where their attributes appear.
 
-[한국어](README.ko.md) · [日本語](README.ja.md) · [Documentation](docs/README.md) · [Changelog](CHANGELOG.md) · [Releases](https://github.com/raspie10032/ComfyUI_RS_MultiCharacter_Sampler/releases)
+[한국어](README.ko.md) · [日本語](README.ja.md) · [Documentation](docs/README.md) · [Changelog](CHANGELOG.md) · [Releases](https://github.com/raspie10032/ComfyUI_RS_MultiCharacter_Sampler/releases) · [简体中文](README.zh-CN.md) · [繁體中文](README.zh-TW.md)
 
 **Current release: [1.0.3 Hangeul](docs/release-1.0.3.md).** Runs with local models; no RS NovelAI extension or API key is required.
 
@@ -96,7 +96,7 @@ Model, LoRA, CLIP and VAE connections must be supplied explicitly. Metadata does
 
 ## Node reference
 
-The extension registers **15 nodes**. UI labels and contextual help follow ComfyUI's English, Korean or Japanese locale.
+The extension registers **15 nodes**. UI labels and contextual help follow ComfyUI's English, Korean, Japanese, Simplified Chinese or Traditional Chinese locale.
 
 | Nodes | Purpose |
 | --- | --- |
@@ -128,6 +128,6 @@ python -m unittest discover -s tests -p 'test_*.py' -v
 node tests/test_ui.cjs
 ```
 
-Set `RS_MC_TEST_COMFYUI` to a ComfyUI checkout for native integrations. The [CI workflow](.github/workflows/tests.yml) lists all ten JavaScript UI suites and the core/OS matrix.
+Set `RS_MC_TEST_COMFYUI` to a ComfyUI checkout for native integrations. The [CI workflow](.github/workflows/tests.yml) lists all eleven JavaScript UI suites and the core/OS matrix.
 
 GPL-3.0-only. See [COPYING](COPYING), [third-party notices](THIRD_PARTY_NOTICES.md) and [source lineage](docs/source-lineage.json).

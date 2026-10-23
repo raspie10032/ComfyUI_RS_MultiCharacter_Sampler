@@ -14,7 +14,7 @@ const sandbox={
  document:{createElement(){return {style:{},click(){}};}},
  setTimeout(callback){const id=++nextTimer;timers.set(id,callback);return id;},clearTimeout(id){timers.delete(id);},
 };
-const load=file=>fs.readFileSync(file,'utf8').replace(/^import[^\n]*\n/gm,'').replaceAll('export function','function');
+const load=file=>require('./ui_source.cjs')(file).replace(/^import[^\n]*\n/gm,'').replaceAll('export function','function');
 const maskSandbox={app:{},api:{},URLSearchParams};vm.runInNewContext(load('web/mask_preview.js'),maskSandbox);
 sandbox.maskState=maskSandbox.maskState;vm.runInNewContext(load('web/pose_masks.js'),sandbox);
 const {poseSupports}=sandbox;
@@ -75,6 +75,6 @@ function message(){return {text:[JSON.stringify({source:{people:[{}],canvas_widt
  assert.equal(widget(png,'pose_image').value,'RS_OpenPose/dropped.png');
  assert.equal(widget(png,'pose_json').value,'original');
  const blank=new Node();widget(blank,'pose_json').value='';blank.onNodeCreated();await flush();assert(blank.status.textContent.includes('pose PNG'));
- for(const [language,expected] of [['ko','한 번 실행'],['ja','一度実行']]){locale=language;const node=new Node();node.inputs=[{name:'pose_keypoints',link:30}];node.onNodeCreated();assert.ok(node.status.textContent.includes(expected));node.onRemoved();}
+ for(const [language,expected] of [['ko','한 번 실행'],['ja','一度実行'],['zh','运行一次'],['zh-TW','執行一次']]){locale=language;const node=new Node();node.inputs=[{name:'pose_keypoints',link:30}];node.onNodeCreated();assert.ok(node.status.textContent.includes(expected));node.onRemoved();}
  console.log('Pose previews: direct/connected inputs, executed rasters, local edits, upstream/link invalidation, restoration, stale requests and localized status passed');
 })().catch(error=>{console.error(error);process.exitCode=1;});

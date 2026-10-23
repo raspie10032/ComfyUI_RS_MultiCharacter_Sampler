@@ -1,4 +1,5 @@
 // SPDX-License-Identifier: GPL-3.0-only
+import { chineseLocale, chineseText } from "./i18n.js";
 import { app } from "../../scripts/app.js";
 import { ComfyWidgets } from "../../scripts/widgets.js";
 
@@ -35,8 +36,10 @@ const words = {
         missing: "この環境では適用できません。利用できない設定または値: ", unchanged: "設定値は変更していません。",
     },
 };
+for (const lang of ["zh", "zh-TW"]) words[lang] = Object.fromEntries(Object.entries(words.en).map(([key, value]) => [key, chineseText(value, lang)]));
 const locale = () => {
-    const value = String(app.ui?.settings?.getSettingValue("Comfy.Locale") ?? "en").slice(0, 2);
+    const raw = String(app.extensionManager?.setting?.get?.("Comfy.Locale") ?? app.ui?.settings?.getSettingValue("Comfy.Locale") ?? "en");
+    const value = chineseLocale(raw) ?? raw.slice(0, 2);
     return words[value] ? value : "en";
 };
 const widget = (node, name) => node.widgets?.find(w => w.name === name);

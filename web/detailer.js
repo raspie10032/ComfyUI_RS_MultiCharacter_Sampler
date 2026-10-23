@@ -1,3 +1,4 @@
+import { chineseLocale, chineseText } from "./i18n.js";
 import { app } from "../../scripts/app.js";
 import { ComfyWidgets } from "../../scripts/widgets.js";
 
@@ -14,8 +15,8 @@ const loaderNotes = {
 };
 
 function updateLoader(node, clearProgress = false) {
-    const locale = String(app.extensionManager?.setting?.get?.("Comfy.Locale") ?? app.ui?.settings?.getSettingValue("Comfy.Locale") ?? "en").slice(0, 2);
-    const text = labels[locale] ?? labels.en;
+    const locale = String(app.extensionManager?.setting?.get?.("Comfy.Locale") ?? app.ui?.settings?.getSettingValue("Comfy.Locale") ?? "en");
+    const text = chineseLocale(locale) ? labels.en.map(line => chineseText(line, locale)) : labels[locale.slice(0, 2)] ?? labels.en;
     const enabled = name => {
         const value = node.widgets?.find(w => w.name === name)?.value;
         return value && !["OFF", "None"].includes(value);
@@ -36,7 +37,7 @@ function updateLoader(node, clearProgress = false) {
     plan.label = text[3];
     const connected = node.inputs?.some(input => modelFields.includes(input.name) && input.link != null);
     plan.value = (connected ? text[8] : text[enabled("face_segm_model") ? 4 : enabled("face_bbox_model") ? (enabled("sam_model") ? 5 : 6) : 7])
-        + "\n\n" + (loaderNotes[locale] ?? loaderNotes.en);
+        + "\n\n" + (chineseLocale(locale) ? chineseText(loaderNotes.en, locale) : loaderNotes[locale.slice(0, 2)] ?? loaderNotes.en);
     if (clearProgress) {
         const status = node.widgets?.find(w => w.name === "rs_tagger_status");
         if (status) {

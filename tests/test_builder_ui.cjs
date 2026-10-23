@@ -1,9 +1,9 @@
 const fs=require('fs'),vm=require('vm'),assert=require('node:assert/strict');
 let extension;
-const src=fs.readFileSync('web/character_builder.js','utf8').replace(/^import[^\n]*\n/gm,'').replaceAll('export function','function');
+const src=require("./ui_source.cjs")('web/character_builder.js').replace(/^import[^\n]*\n/gm,'').replaceAll('export function','function');
 const sandbox={queueMicrotask,maskPreview:node=>node.testMask??null,rememberMaskPreview(){},app:{registerExtension(e){extension=e;}}};vm.runInNewContext(src,sandbox);
 const previewSandbox={app:{},api:{apiURL:s=>s},URLSearchParams};
-vm.runInNewContext(fs.readFileSync('web/mask_preview.js','utf8').replace(/^import[^\n]*\n/gm,'').replaceAll('export function','function'),previewSandbox);
+vm.runInNewContext(require("./ui_source.cjs")('web/mask_preview.js').replace(/^import[^\n]*\n/gm,'').replaceAll('export function','function'),previewSandbox);
 sandbox.placedSupport=previewSandbox.placedSupport;
 const {collectSlots,centersFor}=sandbox;
 function make(type,settings,upstream=null){return {type,widgets:Object.entries(settings).map(([name,value])=>({name,value})),inputs:[{name:'building_pipe'},{name:'character1'},{name:'character2'}],getInputNode(i){return i===0?upstream:type==='RSMultiCharacterPrompt'?{}:null;}};}
@@ -52,7 +52,7 @@ class Node {
  assert.equal(help.serialize,false);assert.equal(help.options.serialize,false);
  assert.equal(help.serializeValue(),undefined);
  let locale='en';sandbox.app.extensionManager={setting:{get:()=>locale}};
- for(const [language,normal,precision] of [['en','Normal','Precision'],['ko','일반 적용','정밀 적용'],['ja','通常適用','精密適用']]) {
+ for(const [language,normal,precision] of [['en','Normal','Precision'],['ko','일반 적용','정밀 적용'],['ja','通常適用','精密適用'],['zh','普通应用','精确应用'],['zh-TW','一般套用','精確套用']]) {
   locale=language;
   for(const [mode,heading] of [['normal',normal],['precision',precision]]) {
    lora.widgets[1].value=mode;lora.widgets[1].callback();
@@ -62,7 +62,7 @@ class Node {
    help.draw(ctx,lora,340,0);
    assert.ok(lines[0].text.startsWith(heading));
    assert.ok(lines.every(line=>line.y<height && line.x>=0 && line.maxWidth===308));
-   assert.ok(sandbox.loraModeHelp(lora).some(line=>/Detailer|디테일러/.test(line)));
+   assert.ok(sandbox.loraModeHelp(lora).some(line=>/Detailer|디테일러|细节|細節/.test(line)));
    assert.ok(help.computeSize(600)[1]<=height);
   }
  }

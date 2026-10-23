@@ -2,7 +2,7 @@
 
 ComfyUI에서 캐릭터별 프롬프트·LoRA·영역을 지정해 생성하고, 인물을 감지해 부분 보정하는 확장입니다. 좌표·박스·마스크로 각 캐릭터의 외형을 적용할 위치를 유도합니다.
 
-[English](README.md) · [日本語](README.ja.md) · [문서 모음](docs/README.md) · [변경 기록](CHANGELOG.md) · [릴리스](https://github.com/raspie10032/ComfyUI_RS_MultiCharacter_Sampler/releases)
+[English](README.md) · [日本語](README.ja.md) · [문서 모음](docs/README.md) · [변경 기록](CHANGELOG.md) · [릴리스](https://github.com/raspie10032/ComfyUI_RS_MultiCharacter_Sampler/releases) · [简体中文](README.zh-CN.md) · [繁體中文](README.zh-TW.md)
 
 **현재 버전: [1.0.3 한글](docs/release-1.0.3.md).** 로컬 모델로 실행하며 RS NovelAI 확장이나 API 키가 필요하지 않습니다.
 
@@ -96,7 +96,7 @@ Krea 2·MOSS의 영역 생성은 실험 지원입니다. MOSS는 일반 ComfyUI 
 
 ## 노드 구성
 
-현재 **15개 노드**를 등록합니다. 노드 이름·선택 안내·도움말은 ComfyUI의 한국어·일본어·영어 설정을 따릅니다.
+현재 **15개 노드**를 등록합니다. 노드 이름·선택 안내·도움말은 ComfyUI의 한국어·일본어·영어·중국어 간체·번체 설정을 따릅니다.
 
 | 노드 | 용도 |
 | --- | --- |
@@ -128,6 +128,6 @@ python -m unittest discover -s tests -p 'test_*.py' -v
 node tests/test_ui.cjs
 ```
 
-네이티브 통합 검사는 `RS_MC_TEST_COMFYUI`에 ComfyUI 경로를 지정합니다. 전체 JavaScript UI 검사 10종과 코어·OS 조합은 [CI 설정](.github/workflows/tests.yml)에 있습니다.
+네이티브 통합 검사는 `RS_MC_TEST_COMFYUI`에 ComfyUI 경로를 지정합니다. 전체 JavaScript UI 검사 11종과 코어·OS 조합은 [CI 설정](.github/workflows/tests.yml)에 있습니다.
 
 GPL-3.0-only. [COPYING](COPYING) · [서드파티 고지](THIRD_PARTY_NOTICES.md) · [소스 계보](docs/source-lineage.json)

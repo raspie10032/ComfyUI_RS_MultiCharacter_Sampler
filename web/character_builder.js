@@ -1,3 +1,4 @@
+import { chineseLocale, chineseText } from "./i18n.js";
 import { app } from "../../scripts/app.js";
 import { maskPreview, rememberMaskPreview, placedSupport } from "./mask_preview.js";
 import { poseSupports } from "./pose_masks.js";
@@ -124,7 +125,7 @@ function labels() {
     const lang = app.extensionManager?.setting?.get?.("Comfy.Locale") ?? globalThis.navigator?.language ?? "en";
     if (lang.startsWith("ko")) return ["예상 배치 · XY 0–1", "번호별 설정 · 최종 구도 보장 아님", "연결값 확인 필요: 생성 시 좌표 결정", "프롬프트 연결 대기: ", "마스크 표시 · 캔버스 밖은 자동 잘림", "마스크 연결·실행 필요: "];
     if (lang.startsWith("ja")) return ["配置の目安 · XY 0–1", "番号別設定 · 最終構図の保証ではありません", "接続値の確認が必要です", "プロンプト未接続: ", "マスク表示 · キャンバス外は切り取り", "マスク接続・実行が必要: "];
-    return ["Layout guide · XY 0–1", "By number · composition is approximate", "Linked values: layout resolved at execution", "Prompt connection missing: ", "Mask guide · overflow is clipped", "Connect/run mask nodes: "];
+    return ["Layout guide · XY 0–1", "By number · composition is approximate", "Linked values: layout resolved at execution", "Prompt connection missing: ", "Mask guide · overflow is clipped", "Connect/run mask nodes: "].map(line => chineseText(line, lang));
 }
 
 export function loraModeHelp(node) {
@@ -152,7 +153,7 @@ export function loraModeHelp(node) {
         "異なるLoRA設定が多いほど通常モードより遅くなります。画質向上や完全な特徴分離は保証しません。",
         "既存ワークフローの既定方式です。全スロットに適用し、Detailerもこの方式で補正します。",
     ];
-    return normal ? [
+    return (normal ? [
         "Normal · Fast layer sharing",
         "Supported Anima/SDXL linear LoRAs share layer calculations. Details can differ from Precision.",
         "Unsupported models/adapters use Precision and report the reason in generation info.",
@@ -162,7 +163,7 @@ export function loraModeHelp(node) {
         "Each LoRA setting gets separate model predictions. Supported LoRAs use low-rank optimization.",
         "More distinct LoRA settings take longer than Normal. This does not guarantee better artwork or complete separation.",
         "Compatibility default for existing workflows. Applies to every character slot; Detailer uses this method too.",
-    ];
+    ]).map(line => chineseText(line, lang));
 }
 
 function helpLines(node, width) {

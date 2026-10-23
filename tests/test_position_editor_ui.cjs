@@ -1,5 +1,5 @@
 const fs = require('fs'), vm = require('vm'), assert = require('node:assert/strict');
-const source = fs.readFileSync('web/position_editor.js', 'utf8')
+const source = require("./ui_source.cjs")('web/position_editor.js')
     .replace(/^import[^\n]*\n/gm, '').replaceAll('export function', 'function');
 const sandbox = { app: {}, api: {}, URLSearchParams };
 vm.runInNewContext(source, sandbox);

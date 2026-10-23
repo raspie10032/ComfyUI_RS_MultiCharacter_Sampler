@@ -2,7 +2,7 @@
 
 ComfyUIでキャラクター別のプロンプト・LoRA・領域を設定して生成し、検出した人物を部分補正する拡張です。座標・枠・マスクで、それぞれの外見を適用する場所を誘導します。
 
-[English](README.md) · [한국어](README.ko.md) · [ドキュメント](docs/README.md) · [変更履歴](CHANGELOG.md) · [リリース](https://github.com/raspie10032/ComfyUI_RS_MultiCharacter_Sampler/releases)
+[English](README.md) · [한국어](README.ko.md) · [ドキュメント](docs/README.md) · [変更履歴](CHANGELOG.md) · [リリース](https://github.com/raspie10032/ComfyUI_RS_MultiCharacter_Sampler/releases) · [简体中文](README.zh-CN.md) · [繁體中文](README.zh-TW.md)
 
 **現在のバージョン：[1.0.3 Hangeul](docs/release-1.0.3.md)。** ローカルモデルで動作し、RS NovelAI拡張やAPIキーは不要です。
 
@@ -96,7 +96,7 @@ Krea 2・MOSSの領域生成は実験的対応です。MOSSは通常のComfyUI C
 
 ## ノード一覧
 
-現在 **15ノード**を登録します。表示名・選択案内・ヘルプはComfyUIの英語・韓国語・日本語設定に従います。
+現在 **15ノード**を登録します。表示名・選択案内・ヘルプはComfyUIの英語・韓国語・日本語・簡体字中国語・繁体字中国語設定に従います。
 
 | ノード | 用途 |
 | --- | --- |
@@ -128,6 +128,6 @@ python -m unittest discover -s tests -p 'test_*.py' -v
 node tests/test_ui.cjs
 ```
 
-ネイティブ統合試験には `RS_MC_TEST_COMFYUI` にComfyUIのパスを指定します。全10種のJavaScript UI試験と本体・OSの組み合わせは[CI設定](.github/workflows/tests.yml)を参照してください。
+ネイティブ統合試験には `RS_MC_TEST_COMFYUI` にComfyUIのパスを指定します。全11種のJavaScript UI試験と本体・OSの組み合わせは[CI設定](.github/workflows/tests.yml)を参照してください。
 
 GPL-3.0-only。[COPYING](COPYING) · [第三者に関する通知](THIRD_PARTY_NOTICES.md) · [ソースの系譜](docs/source-lineage.json)

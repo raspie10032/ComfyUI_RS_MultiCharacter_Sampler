@@ -1,0 +1,1775 @@
+{
+  "RSMultiCharacterDetailer": {
+    "display_name": "RS 多角色细节修复",
+    "description": "根据原图和角色管线修复面部。标签模型仅用于选择原有提示词，不会追加标签。保留匹配不明确的区域，并支持填孔、闭运算和遮罩扩张。处理区域越多，越难保证质量。",
+    "inputs": {
+      "image": {
+        "name": "图像",
+        "tooltip": "从 PNG/WebP 读取图像及角色设置。模型、CLIP、VAE 需另行连接。"
+      },
+      "model": {
+        "name": "模型"
+      },
+      "clip": {
+        "name": "CLIP"
+      },
+      "vae": {
+        "name": "VAE"
+      },
+      "character_pipe": {
+        "name": "角色管线"
+      },
+      "detectors": {
+        "name": "检测模型"
+      },
+      "tagger": {
+        "name": "标签模型"
+      },
+      "denoise": {
+        "name": "重绘强度",
+        "tooltip": "裁剪区域的重绘程度。较低保留原图，较高可能改变角色外观。"
+      },
+      "seed": {
+        "name": "种子",
+        "tooltip": "初始噪声种子。对比设置时请固定。"
+      },
+      "autosave": {
+        "name": "自动保存",
+        "tooltip": "自动保存图像及生成/角色元数据，不含工作流。需要工作流时请使用 Save Image。"
+      },
+      "show_advanced": {
+        "name": "高级选项",
+        "tooltip": "显示细节修复高级设置。折叠不会重置或禁用保存的值。"
+      },
+      "steps": {
+        "name": "步数",
+        "tooltip": "去噪步数，越多越慢。请从对应模型预设开始，尤其是加速模型。"
+      },
+      "cfg": {
+        "name": "CFG",
+        "tooltip": "提示词引导强度，过高可能失真。CFG++ 和蒸馏模型可能需要更低值。"
+      },
+      "sampler_name": {
+        "name": "采样器",
+        "tooltip": "此 ComfyUI 的去噪算法。调度器需单独选择；模型预设提供测试过的起始组合。"
+      },
+      "scheduler": {
+        "name": "调度器",
+        "tooltip": "各步噪声水平的分布方式。更改采样器不会自动切换调度器。"
+      },
+      "guide_size": {
+        "name": "裁剪目标短边",
+        "tooltip": "采样裁剪的目标短边，受 max_size 限制。提高会增加显存占用。"
+      },
+      "max_size": {
+        "name": "裁剪最大长边",
+        "tooltip": "裁剪长边上限，限制 guide_size 带来的分辨率及内存开销。"
+      },
+      "max_regions": {
+        "name": "最大修复区域数",
+        "tooltip": "修复区域数量上限，并非角色数。默认 10，最多 64。更多区域不保证质量。"
+      },
+      "bbox_threshold": {
+        "name": "检测置信度",
+        "tooltip": "最低检测置信度。提高会过滤不确定检测，降低可能增加误检。"
+      },
+      "crop_factor": {
+        "name": "裁剪留白倍率",
+        "tooltip": "修复裁剪周围的留白倍率。提高可让模型看到更广的上下文。"
+      },
+      "dilation": {
+        "name": "遮罩扩张",
+        "tooltip": "按原图像素扩张修复遮罩。为检测区域留白，过高可能影响邻近特征。"
+      },
+      "fill_holes": {
+        "name": "填充孔洞",
+        "tooltip": "填充检测遮罩内部孔洞，使遗漏的眼睛或内部像素也能修复。"
+      },
+      "closing": {
+        "name": "填补边缘缝隙",
+        "tooltip": "扩张前填补边缘小凹口与缝隙，减少未修复的细窄区域。"
+      },
+      "mask_feather": {
+        "name": "遮罩边缘羽化",
+        "tooltip": "在互不重叠的最终遮罩内柔化合成边缘，不修改遮罩外部。"
+      },
+      "match_min_score": {
+        "name": "最低匹配分数",
+        "tooltip": "匹配原角色提示词的最低分数。提高会跳过更多不确定匹配，不会追加标签。"
+      },
+      "match_min_margin": {
+        "name": "最低匹配分差",
+        "tooltip": "第一与第二角色的最低分差。提高会拒绝更多模糊匹配，保留原区域。"
+      },
+      "match_crop_factor": {
+        "name": "匹配裁剪倍率",
+        "tooltip": "标签匹配专用留白，与修复裁剪不同。过高可能包含邻近人物。"
+      },
+      "save_format": {
+        "name": "保存格式",
+        "tooltip": "PNG 和无损 WebP 保留像素；有损 WebP 减小体积。均保留生成元数据，不含工作流。"
+      },
+      "webp_quality": {
+        "name": "WebP 质量",
+        "tooltip": "有损 WebP 质量 1–100，越高通常文件越大。"
+      }
+    },
+    "outputs": {
+      "0": {
+        "name": "图像"
+      },
+      "1": {
+        "name": "修复遮罩"
+      },
+      "2": {
+        "name": "角色管线"
+      },
+      "3": {
+        "name": "区域报告"
+      }
+    }
+  },
+  "RSMultiCharacterDetectionLoader": {
+    "display_name": "RS 检测组合加载器",
+    "description": "选择 SEGM 后不加载 BBOX 和 SAM。SEGM 为 OFF 时使用 BBOX 或 BBOX+SAM。OFF 表示禁用。执行时仅下载所选且缺失的目录模型，并显示进度。加入原模型文件夹的文件会在刷新列表后显示。",
+    "inputs": {
+      "show_optional_models": {
+        "name": "显示可选检测模型",
+        "tooltip": "显示 BBOX/SAM 选项。折叠仅隐藏控件，禁用模型需选择 OFF。"
+      },
+      "face_segm_model": {
+        "name": "SEGM 模型",
+        "tooltip": "选择 SEGM 后不加载 BBOX 和 SAM。SEGM 为 OFF 时使用 BBOX 或 BBOX+SAM。OFF 表示禁用。执行时仅下载所选且缺失的目录模型，并显示进度。加入原模型文件夹的文件会在刷新列表后显示。"
+      },
+      "face_bbox_model": {
+        "name": "BBOX 模型",
+        "tooltip": "选择 SEGM 后不加载 BBOX 和 SAM。SEGM 为 OFF 时使用 BBOX 或 BBOX+SAM。OFF 表示禁用。执行时仅下载所选且缺失的目录模型，并显示进度。加入原模型文件夹的文件会在刷新列表后显示。"
+      },
+      "sam_model": {
+        "name": "SAM 模型",
+        "tooltip": "选择 SEGM 后不加载 BBOX 和 SAM。SEGM 为 OFF 时使用 BBOX 或 BBOX+SAM。OFF 表示禁用。执行时仅下载所选且缺失的目录模型，并显示进度。加入原模型文件夹的文件会在刷新列表后显示。"
+      }
+    },
+    "outputs": {
+      "0": {
+        "name": "detectors"
+      }
+    }
+  },
+  "RSMultiCharacterTaggerLoader": {
+    "display_name": "RS 角色标签模型加载器",
+    "description": "选择用于角色匹配的标签模型。执行时仅下载所选模型，并在节点显示容量和进度；已下载文件使用缓存。推理在本地运行，分数仅用于选择原角色提示词，不会向生成提示词追加标签。",
+    "inputs": {
+      "device": {
+        "name": "运行设备",
+        "tooltip": "auto 使用 ComfyUI 选择的设备；cpu 在 CPU 上运行标签模型。",
+        "options": {
+          "auto": "自动",
+          "cpu": "CPU"
+        }
+      },
+      "batch_size": {
+        "name": "批量大小",
+        "tooltip": "标签模型同时处理的裁剪数量，并非角色数。越大越占内存。"
+      },
+      "model_name": {
+        "name": "标签模型",
+        "tooltip": "执行时仅下载所选模型，并在节点显示进度；已下载文件使用缓存。部分模型需要额外依赖和内存。请参阅 README，并从批量大小 1 开始。"
+      }
+    },
+    "outputs": {
+      "0": {
+        "name": "角色标签模型"
+      }
+    }
+  },
+  "RSMultiCharacterSampler": {
+    "display_name": "RS 多角色采样器 (Hangeul)",
+    "description": "支持 Anima、SD1.5、SDXL、Krea 2、MOSS 和 FLUX。使用 1–10 个独立角色提示词及区域。SD1.5 为实验性支持，人数和外观分离不稳定。区域只引导提示词影响，无法保证准确人数或姿势。处理区域越多，越难保证质量。自动保存记录本地生成元数据，不包含工作流。",
+    "inputs": {
+      "layout_method": {
+        "name": "布局方式",
+        "tooltip": "regional：按区域控制注意力。moss_native：MOSS 原生 JSON。遮罩转换为外接矩形，不保留轮廓细节；区域强度与边界设置不生效。"
+      },
+      "flux_guidance": {
+        "name": "FLUX 引导强度",
+        "tooltip": "FLUX.1 Dev 和 FLUX.2 Dev 的内置引导，与 CFG 不同。Schnell、Klein 和 FLUX 3 忽略此项。FLUX 3 Base 使用 CFG。"
+      },
+      "model": {
+        "name": "模型"
+      },
+      "clip": {
+        "name": "CLIP"
+      },
+      "vae": {
+        "name": "VAE"
+      },
+      "character_pipe": {
+        "name": "角色管线"
+      },
+      "prompt": {
+        "name": "公共正向提示词",
+        "tooltip": "公共场景、风格和总人数。图像管线自带的提示词优先于此项。"
+      },
+      "negative_prompt": {
+        "name": "公共负向提示词",
+        "tooltip": "公共排除项，图像管线的负向可能覆盖此项。生成文字时移除 text 等排除词。"
+      },
+      "width": {
+        "name": "宽度",
+        "tooltip": "输出宽度，单位像素，须为 16 的倍数。越大越耗时和显存。"
+      },
+      "height": {
+        "name": "高度",
+        "tooltip": "输出高度，单位像素，须为 16 的倍数。越大越耗时和显存。"
+      },
+      "seed": {
+        "name": "种子",
+        "tooltip": "初始噪声种子。对比设置时请固定。"
+      },
+      "steps": {
+        "name": "步数",
+        "tooltip": "去噪步数，越多越慢。请从对应模型预设开始，尤其是加速模型。"
+      },
+      "cfg": {
+        "name": "CFG",
+        "tooltip": "提示词引导强度，过高可能失真。CFG++ 和蒸馏模型可能需要更低值。"
+      },
+      "sampler_name": {
+        "name": "采样器",
+        "tooltip": "此 ComfyUI 的去噪算法。调度器需单独选择；模型预设提供测试过的起始组合。"
+      },
+      "scheduler": {
+        "name": "调度器",
+        "tooltip": "各步噪声水平的分布方式。更改采样器不会自动切换调度器。"
+      },
+      "autosave": {
+        "name": "自动保存",
+        "tooltip": "自动保存图像及生成/角色元数据，不含工作流。需要工作流时请使用 Save Image。"
+      },
+      "save_format": {
+        "name": "保存格式",
+        "tooltip": "PNG 和无损 WebP 保留像素；有损 WebP 减小体积。均保留生成元数据，不含工作流。"
+      },
+      "webp_quality": {
+        "name": "WebP 质量",
+        "tooltip": "有损 WebP 质量 1–100，越高通常文件越大。"
+      },
+      "prompt_syntax": {
+        "name": "提示词语法",
+        "tooltip": "选择 ComfyUI 括号权重或 NovelAI 语法。图像管线保留记录的语法。"
+      },
+      "use_image_settings": {
+        "name": "恢复图像设置",
+        "tooltip": "从图像管线恢复尺寸、种子及采样/区域参数。关闭后仍保留管线中的角色提示词。"
+      },
+      "region_feather": {
+        "name": "区域羽化",
+        "tooltip": "区域边缘羽化宽度。提高可柔化过渡，也可能增加特征混合。"
+      },
+      "initial_common_prior": {
+        "name": "初始公共强度",
+        "tooltip": "初期公共提示词强度。较低有利于角色分区，较高强化公共场景。"
+      },
+      "common_after_step3_boost": {
+        "name": "第 3 步后公共强度增量",
+        "tooltip": "第 3 步后增加的公共强度，用于逐步补充共享场景。"
+      },
+      "initial_character_gain": {
+        "name": "初始角色强度",
+        "tooltip": "初期角色提示词强度。过高可能夸大特征或导致失真。"
+      },
+      "initial_spatial_separation": {
+        "name": "初始区域分离强度",
+        "tooltip": "初期区域分离强度。越高分区越严格，后期衰减允许互动。"
+      },
+      "boundary_hold_steps": {
+        "name": "边界保持步数",
+        "tooltip": "衰减前保持初始分离的步数，不超过总步数。保持太久可能使区域割裂。"
+      },
+      "boundary_decrement": {
+        "name": "边界衰减量",
+        "tooltip": "每个衰减阶段减少的分离强度，越大释放越快。"
+      }
+    },
+    "outputs": {
+      "0": {
+        "name": "图像"
+      },
+      "1": {
+        "name": "潜空间"
+      },
+      "2": {
+        "name": "角色管线"
+      },
+      "3": {
+        "name": "生成信息"
+      }
+    }
+  },
+  "RSMultiCharacterPrompts": {
+    "display_name": "RS 多角色提示词（旧版）",
+    "inputs": {
+      "layout_mode": {
+        "name": "区域指定方式",
+        "tooltip": "points：按 X/Y 自动分区。boxes：全部使用矩形。mixed：逐槽选择点或矩形。矩形优先于点，重叠部分共享提示词。文字必须使用矩形。宽高为画布比例。"
+      },
+      "character1_width": {
+        "name": "1 矩形宽度",
+        "tooltip": "矩形占整图的宽度比例 0.01–1，仅用于矩形布局，不是输出分辨率。"
+      },
+      "character1_height": {
+        "name": "1 矩形高度",
+        "tooltip": "矩形占整图的高度比例 0.01–1，仅用于矩形布局，不是输出分辨率。"
+      },
+      "character2_width": {
+        "name": "2 矩形宽度",
+        "tooltip": "矩形占整图的宽度比例 0.01–1，仅用于矩形布局，不是输出分辨率。"
+      },
+      "character2_height": {
+        "name": "2 矩形高度",
+        "tooltip": "矩形占整图的高度比例 0.01–1，仅用于矩形布局，不是输出分辨率。"
+      },
+      "character3_width": {
+        "name": "3 矩形宽度",
+        "tooltip": "矩形占整图的宽度比例 0.01–1，仅用于矩形布局，不是输出分辨率。"
+      },
+      "character3_height": {
+        "name": "3 矩形高度",
+        "tooltip": "矩形占整图的高度比例 0.01–1，仅用于矩形布局，不是输出分辨率。"
+      },
+      "character4_width": {
+        "name": "4 矩形宽度",
+        "tooltip": "矩形占整图的宽度比例 0.01–1，仅用于矩形布局，不是输出分辨率。"
+      },
+      "character4_height": {
+        "name": "4 矩形高度",
+        "tooltip": "矩形占整图的高度比例 0.01–1，仅用于矩形布局，不是输出分辨率。"
+      },
+      "character5_width": {
+        "name": "5 矩形宽度",
+        "tooltip": "矩形占整图的宽度比例 0.01–1，仅用于矩形布局，不是输出分辨率。"
+      },
+      "character5_height": {
+        "name": "5 矩形高度",
+        "tooltip": "矩形占整图的高度比例 0.01–1，仅用于矩形布局，不是输出分辨率。"
+      },
+      "character6_width": {
+        "name": "6 矩形宽度",
+        "tooltip": "矩形占整图的宽度比例 0.01–1，仅用于矩形布局，不是输出分辨率。"
+      },
+      "character6_height": {
+        "name": "6 矩形高度",
+        "tooltip": "矩形占整图的高度比例 0.01–1，仅用于矩形布局，不是输出分辨率。"
+      },
+      "character7_width": {
+        "name": "7 矩形宽度",
+        "tooltip": "矩形占整图的宽度比例 0.01–1，仅用于矩形布局，不是输出分辨率。"
+      },
+      "character7_height": {
+        "name": "7 矩形高度",
+        "tooltip": "矩形占整图的高度比例 0.01–1，仅用于矩形布局，不是输出分辨率。"
+      },
+      "character8_width": {
+        "name": "8 矩形宽度",
+        "tooltip": "矩形占整图的宽度比例 0.01–1，仅用于矩形布局，不是输出分辨率。"
+      },
+      "character8_height": {
+        "name": "8 矩形高度",
+        "tooltip": "矩形占整图的高度比例 0.01–1，仅用于矩形布局，不是输出分辨率。"
+      },
+      "character9_width": {
+        "name": "9 矩形宽度",
+        "tooltip": "矩形占整图的宽度比例 0.01–1，仅用于矩形布局，不是输出分辨率。"
+      },
+      "character9_height": {
+        "name": "9 矩形高度",
+        "tooltip": "矩形占整图的高度比例 0.01–1，仅用于矩形布局，不是输出分辨率。"
+      },
+      "character10_width": {
+        "name": "10 矩形宽度",
+        "tooltip": "矩形占整图的宽度比例 0.01–1，仅用于矩形布局，不是输出分辨率。"
+      },
+      "character10_height": {
+        "name": "10 矩形高度",
+        "tooltip": "矩形占整图的高度比例 0.01–1，仅用于矩形布局，不是输出分辨率。"
+      },
+      "character_count": {
+        "name": "有效区域数（角色＋文字）",
+        "tooltip": "有效槽位数 1–10，包含文字。提示词节点排除超出此数量的编号，各节点编号应一致。"
+      },
+      "character1_kind": {
+        "name": "1 区域类型",
+        "tooltip": "角色 / 文字",
+        "options": {
+          "character": "角色",
+          "text": "文字"
+        }
+      },
+      "character1_text": {
+        "name": "1 实际文字 (STRING)",
+        "tooltip": "旧版文字槽位的实际文字。新版提示词节点使用共用 STRING 输入。"
+      },
+      "character1_geometry": {
+        "name": "1 位置方式",
+        "options": {
+          "point": "点",
+          "box": "矩形"
+        },
+        "tooltip": "点使用 X/Y，矩形使用中心与宽高。文字必须用矩形，混合布局中矩形优先。"
+      },
+      "character2_kind": {
+        "name": "2 区域类型",
+        "options": {
+          "character": "角色",
+          "text": "文字"
+        },
+        "tooltip": "同一 STRING 作为角色提示词或实际文字。文字需在位置节点中选矩形。"
+      },
+      "character2_text": {
+        "name": "2 实际文字 (STRING)",
+        "tooltip": "旧版文字槽位的实际文字。新版提示词节点使用共用 STRING 输入。"
+      },
+      "character2_geometry": {
+        "name": "2 位置方式",
+        "options": {
+          "point": "点",
+          "box": "矩形"
+        },
+        "tooltip": "点使用 X/Y，矩形使用中心与宽高。文字必须用矩形，混合布局中矩形优先。"
+      },
+      "character3_kind": {
+        "name": "3 区域类型",
+        "options": {
+          "character": "角色",
+          "text": "文字"
+        },
+        "tooltip": "同一 STRING 作为角色提示词或实际文字。文字需在位置节点中选矩形。"
+      },
+      "character3_text": {
+        "name": "3 实际文字 (STRING)",
+        "tooltip": "旧版文字槽位的实际文字。新版提示词节点使用共用 STRING 输入。"
+      },
+      "character3_geometry": {
+        "name": "3 位置方式",
+        "options": {
+          "point": "点",
+          "box": "矩形"
+        },
+        "tooltip": "点使用 X/Y，矩形使用中心与宽高。文字必须用矩形，混合布局中矩形优先。"
+      },
+      "character4_kind": {
+        "name": "4 区域类型",
+        "options": {
+          "character": "角色",
+          "text": "文字"
+        },
+        "tooltip": "同一 STRING 作为角色提示词或实际文字。文字需在位置节点中选矩形。"
+      },
+      "character4_text": {
+        "name": "4 实际文字 (STRING)",
+        "tooltip": "旧版文字槽位的实际文字。新版提示词节点使用共用 STRING 输入。"
+      },
+      "character4_geometry": {
+        "name": "4 位置方式",
+        "options": {
+          "point": "点",
+          "box": "矩形"
+        },
+        "tooltip": "点使用 X/Y，矩形使用中心与宽高。文字必须用矩形，混合布局中矩形优先。"
+      },
+      "character5_kind": {
+        "name": "5 区域类型",
+        "options": {
+          "character": "角色",
+          "text": "文字"
+        },
+        "tooltip": "同一 STRING 作为角色提示词或实际文字。文字需在位置节点中选矩形。"
+      },
+      "character5_text": {
+        "name": "5 实际文字 (STRING)",
+        "tooltip": "旧版文字槽位的实际文字。新版提示词节点使用共用 STRING 输入。"
+      },
+      "character5_geometry": {
+        "name": "5 位置方式",
+        "options": {
+          "point": "点",
+          "box": "矩形"
+        },
+        "tooltip": "点使用 X/Y，矩形使用中心与宽高。文字必须用矩形，混合布局中矩形优先。"
+      },
+      "character6_kind": {
+        "name": "6 区域类型",
+        "options": {
+          "character": "角色",
+          "text": "文字"
+        },
+        "tooltip": "同一 STRING 作为角色提示词或实际文字。文字需在位置节点中选矩形。"
+      },
+      "character6_text": {
+        "name": "6 实际文字 (STRING)",
+        "tooltip": "旧版文字槽位的实际文字。新版提示词节点使用共用 STRING 输入。"
+      },
+      "character6_geometry": {
+        "name": "6 位置方式",
+        "options": {
+          "point": "点",
+          "box": "矩形"
+        },
+        "tooltip": "点使用 X/Y，矩形使用中心与宽高。文字必须用矩形，混合布局中矩形优先。"
+      },
+      "character7_kind": {
+        "name": "7 区域类型",
+        "options": {
+          "character": "角色",
+          "text": "文字"
+        },
+        "tooltip": "同一 STRING 作为角色提示词或实际文字。文字需在位置节点中选矩形。"
+      },
+      "character7_text": {
+        "name": "7 实际文字 (STRING)",
+        "tooltip": "旧版文字槽位的实际文字。新版提示词节点使用共用 STRING 输入。"
+      },
+      "character7_geometry": {
+        "name": "7 位置方式",
+        "options": {
+          "point": "点",
+          "box": "矩形"
+        },
+        "tooltip": "点使用 X/Y，矩形使用中心与宽高。文字必须用矩形，混合布局中矩形优先。"
+      },
+      "character8_kind": {
+        "name": "8 区域类型",
+        "options": {
+          "character": "角色",
+          "text": "文字"
+        },
+        "tooltip": "同一 STRING 作为角色提示词或实际文字。文字需在位置节点中选矩形。"
+      },
+      "character8_text": {
+        "name": "8 实际文字 (STRING)",
+        "tooltip": "旧版文字槽位的实际文字。新版提示词节点使用共用 STRING 输入。"
+      },
+      "character8_geometry": {
+        "name": "8 位置方式",
+        "options": {
+          "point": "点",
+          "box": "矩形"
+        },
+        "tooltip": "点使用 X/Y，矩形使用中心与宽高。文字必须用矩形，混合布局中矩形优先。"
+      },
+      "character9_kind": {
+        "name": "9 区域类型",
+        "options": {
+          "character": "角色",
+          "text": "文字"
+        },
+        "tooltip": "同一 STRING 作为角色提示词或实际文字。文字需在位置节点中选矩形。"
+      },
+      "character9_text": {
+        "name": "9 实际文字 (STRING)",
+        "tooltip": "旧版文字槽位的实际文字。新版提示词节点使用共用 STRING 输入。"
+      },
+      "character9_geometry": {
+        "name": "9 位置方式",
+        "options": {
+          "point": "点",
+          "box": "矩形"
+        },
+        "tooltip": "点使用 X/Y，矩形使用中心与宽高。文字必须用矩形，混合布局中矩形优先。"
+      },
+      "character10_kind": {
+        "name": "10 区域类型",
+        "options": {
+          "character": "角色",
+          "text": "文字"
+        },
+        "tooltip": "同一 STRING 作为角色提示词或实际文字。文字需在位置节点中选矩形。"
+      },
+      "character10_text": {
+        "name": "10 实际文字 (STRING)",
+        "tooltip": "旧版文字槽位的实际文字。新版提示词节点使用共用 STRING 输入。"
+      },
+      "character10_geometry": {
+        "name": "10 位置方式",
+        "options": {
+          "point": "点",
+          "box": "矩形"
+        },
+        "tooltip": "点使用 X/Y，矩形使用中心与宽高。文字必须用矩形，混合布局中矩形优先。"
+      },
+      "character1_lora": {
+        "name": "1 LoRA",
+        "tooltip": "应用到此角色区域的 LoRA，须匹配基础模型。None 表示禁用。不同 LoRA 越多，耗时和内存越高。风格及加速 LoRA 请通过全局加载器应用。"
+      },
+      "character1_lora_strength": {
+        "name": "1 LoRA 模型强度",
+        "tooltip": "此区域的扩散模型 LoRA 强度。0 禁用模型部分。"
+      },
+      "character1_lora_clip_strength": {
+        "name": "1 LoRA CLIP 强度",
+        "tooltip": "仅在文件包含兼容的文本编码器权重时应用到此角色提示词。0 禁用文本编码器部分。"
+      },
+      "character2_lora": {
+        "name": "2 LoRA",
+        "tooltip": "应用到此角色区域的 LoRA，须匹配基础模型。None 表示禁用。不同 LoRA 越多，耗时和内存越高。风格及加速 LoRA 请通过全局加载器应用。"
+      },
+      "character2_lora_strength": {
+        "name": "2 LoRA 模型强度",
+        "tooltip": "此区域的扩散模型 LoRA 强度。0 禁用模型部分。"
+      },
+      "character2_lora_clip_strength": {
+        "name": "2 LoRA CLIP 强度",
+        "tooltip": "仅在文件包含兼容的文本编码器权重时应用到此角色提示词。0 禁用文本编码器部分。"
+      },
+      "character3_lora": {
+        "name": "3 LoRA",
+        "tooltip": "应用到此角色区域的 LoRA，须匹配基础模型。None 表示禁用。不同 LoRA 越多，耗时和内存越高。风格及加速 LoRA 请通过全局加载器应用。"
+      },
+      "character3_lora_strength": {
+        "name": "3 LoRA 模型强度",
+        "tooltip": "此区域的扩散模型 LoRA 强度。0 禁用模型部分。"
+      },
+      "character3_lora_clip_strength": {
+        "name": "3 LoRA CLIP 强度",
+        "tooltip": "仅在文件包含兼容的文本编码器权重时应用到此角色提示词。0 禁用文本编码器部分。"
+      },
+      "character4_lora": {
+        "name": "4 LoRA",
+        "tooltip": "应用到此角色区域的 LoRA，须匹配基础模型。None 表示禁用。不同 LoRA 越多，耗时和内存越高。风格及加速 LoRA 请通过全局加载器应用。"
+      },
+      "character4_lora_strength": {
+        "name": "4 LoRA 模型强度",
+        "tooltip": "此区域的扩散模型 LoRA 强度。0 禁用模型部分。"
+      },
+      "character4_lora_clip_strength": {
+        "name": "4 LoRA CLIP 强度",
+        "tooltip": "仅在文件包含兼容的文本编码器权重时应用到此角色提示词。0 禁用文本编码器部分。"
+      },
+      "character5_lora": {
+        "name": "5 LoRA",
+        "tooltip": "应用到此角色区域的 LoRA，须匹配基础模型。None 表示禁用。不同 LoRA 越多，耗时和内存越高。风格及加速 LoRA 请通过全局加载器应用。"
+      },
+      "character5_lora_strength": {
+        "name": "5 LoRA 模型强度",
+        "tooltip": "此区域的扩散模型 LoRA 强度。0 禁用模型部分。"
+      },
+      "character5_lora_clip_strength": {
+        "name": "5 LoRA CLIP 强度",
+        "tooltip": "仅在文件包含兼容的文本编码器权重时应用到此角色提示词。0 禁用文本编码器部分。"
+      },
+      "character6_lora": {
+        "name": "6 LoRA",
+        "tooltip": "应用到此角色区域的 LoRA，须匹配基础模型。None 表示禁用。不同 LoRA 越多，耗时和内存越高。风格及加速 LoRA 请通过全局加载器应用。"
+      },
+      "character6_lora_strength": {
+        "name": "6 LoRA 模型强度",
+        "tooltip": "此区域的扩散模型 LoRA 强度。0 禁用模型部分。"
+      },
+      "character6_lora_clip_strength": {
+        "name": "6 LoRA CLIP 强度",
+        "tooltip": "仅在文件包含兼容的文本编码器权重时应用到此角色提示词。0 禁用文本编码器部分。"
+      },
+      "character7_lora": {
+        "name": "7 LoRA",
+        "tooltip": "应用到此角色区域的 LoRA，须匹配基础模型。None 表示禁用。不同 LoRA 越多，耗时和内存越高。风格及加速 LoRA 请通过全局加载器应用。"
+      },
+      "character7_lora_strength": {
+        "name": "7 LoRA 模型强度",
+        "tooltip": "此区域的扩散模型 LoRA 强度。0 禁用模型部分。"
+      },
+      "character7_lora_clip_strength": {
+        "name": "7 LoRA CLIP 强度",
+        "tooltip": "仅在文件包含兼容的文本编码器权重时应用到此角色提示词。0 禁用文本编码器部分。"
+      },
+      "character8_lora": {
+        "name": "8 LoRA",
+        "tooltip": "应用到此角色区域的 LoRA，须匹配基础模型。None 表示禁用。不同 LoRA 越多，耗时和内存越高。风格及加速 LoRA 请通过全局加载器应用。"
+      },
+      "character8_lora_strength": {
+        "name": "8 LoRA 模型强度",
+        "tooltip": "此区域的扩散模型 LoRA 强度。0 禁用模型部分。"
+      },
+      "character8_lora_clip_strength": {
+        "name": "8 LoRA CLIP 强度",
+        "tooltip": "仅在文件包含兼容的文本编码器权重时应用到此角色提示词。0 禁用文本编码器部分。"
+      },
+      "character9_lora": {
+        "name": "9 LoRA",
+        "tooltip": "应用到此角色区域的 LoRA，须匹配基础模型。None 表示禁用。不同 LoRA 越多，耗时和内存越高。风格及加速 LoRA 请通过全局加载器应用。"
+      },
+      "character9_lora_strength": {
+        "name": "9 LoRA 模型强度",
+        "tooltip": "此区域的扩散模型 LoRA 强度。0 禁用模型部分。"
+      },
+      "character9_lora_clip_strength": {
+        "name": "9 LoRA CLIP 强度",
+        "tooltip": "仅在文件包含兼容的文本编码器权重时应用到此角色提示词。0 禁用文本编码器部分。"
+      },
+      "character10_lora": {
+        "name": "10 LoRA",
+        "tooltip": "应用到此角色区域的 LoRA，须匹配基础模型。None 表示禁用。不同 LoRA 越多，耗时和内存越高。风格及加速 LoRA 请通过全局加载器应用。"
+      },
+      "character10_lora_strength": {
+        "name": "10 LoRA 模型强度",
+        "tooltip": "此区域的扩散模型 LoRA 强度。0 禁用模型部分。"
+      },
+      "character10_lora_clip_strength": {
+        "name": "10 LoRA CLIP 强度",
+        "tooltip": "仅在文件包含兼容的文本编码器权重时应用到此角色提示词。0 禁用文本编码器部分。"
+      },
+      "character1_enable": {
+        "name": "1 启用",
+        "tooltip": "是否使用此编号。关闭的槽位不参与生成。"
+      },
+      "character1": {
+        "name": "1 提示词 / 文字 (STRING)",
+        "tooltip": "连接正向提示词 STRING；文字槽位连接实际文字。公共场景和风格在采样器中填写。"
+      },
+      "character1_uc": {
+        "name": "1 负向提示词（不支持）",
+        "tooltip": "不支持单独角色负向提示词，请留空并使用采样器公共负向。"
+      },
+      "character1_x": {
+        "name": "1 X",
+        "tooltip": "水平中心坐标 0–1，0 为左，1 为右。控制提示词区域，不保证准确人物位置。"
+      },
+      "character1_y": {
+        "name": "1 Y",
+        "tooltip": "垂直中心坐标 0–1，0 为上，1 为下。控制提示词区域，不保证准确人物位置。"
+      },
+      "character2_enable": {
+        "name": "2 启用",
+        "tooltip": "是否使用此编号。关闭的槽位不参与生成。"
+      },
+      "character2": {
+        "name": "2 提示词 / 文字 (STRING)",
+        "tooltip": "连接正向提示词 STRING；文字槽位连接实际文字。公共场景和风格在采样器中填写。"
+      },
+      "character2_uc": {
+        "name": "2 负向提示词（不支持）",
+        "tooltip": "不支持单独角色负向提示词，请留空并使用采样器公共负向。"
+      },
+      "character2_x": {
+        "name": "2 X",
+        "tooltip": "水平中心坐标 0–1，0 为左，1 为右。控制提示词区域，不保证准确人物位置。"
+      },
+      "character2_y": {
+        "name": "2 Y",
+        "tooltip": "垂直中心坐标 0–1，0 为上，1 为下。控制提示词区域，不保证准确人物位置。"
+      },
+      "character3_enable": {
+        "name": "3 启用",
+        "tooltip": "是否使用此编号。关闭的槽位不参与生成。"
+      },
+      "character3": {
+        "name": "3 提示词 / 文字 (STRING)",
+        "tooltip": "连接正向提示词 STRING；文字槽位连接实际文字。公共场景和风格在采样器中填写。"
+      },
+      "character3_uc": {
+        "name": "3 负向提示词（不支持）",
+        "tooltip": "不支持单独角色负向提示词，请留空并使用采样器公共负向。"
+      },
+      "character3_x": {
+        "name": "3 X",
+        "tooltip": "水平中心坐标 0–1，0 为左，1 为右。控制提示词区域，不保证准确人物位置。"
+      },
+      "character3_y": {
+        "name": "3 Y",
+        "tooltip": "垂直中心坐标 0–1，0 为上，1 为下。控制提示词区域，不保证准确人物位置。"
+      },
+      "character4_enable": {
+        "name": "4 启用",
+        "tooltip": "是否使用此编号。关闭的槽位不参与生成。"
+      },
+      "character4": {
+        "name": "4 提示词 / 文字 (STRING)",
+        "tooltip": "连接正向提示词 STRING；文字槽位连接实际文字。公共场景和风格在采样器中填写。"
+      },
+      "character4_uc": {
+        "name": "4 负向提示词（不支持）",
+        "tooltip": "不支持单独角色负向提示词，请留空并使用采样器公共负向。"
+      },
+      "character4_x": {
+        "name": "4 X",
+        "tooltip": "水平中心坐标 0–1，0 为左，1 为右。控制提示词区域，不保证准确人物位置。"
+      },
+      "character4_y": {
+        "name": "4 Y",
+        "tooltip": "垂直中心坐标 0–1，0 为上，1 为下。控制提示词区域，不保证准确人物位置。"
+      },
+      "character5_enable": {
+        "name": "5 启用",
+        "tooltip": "是否使用此编号。关闭的槽位不参与生成。"
+      },
+      "character5": {
+        "name": "5 提示词 / 文字 (STRING)",
+        "tooltip": "连接正向提示词 STRING；文字槽位连接实际文字。公共场景和风格在采样器中填写。"
+      },
+      "character5_uc": {
+        "name": "5 负向提示词（不支持）",
+        "tooltip": "不支持单独角色负向提示词，请留空并使用采样器公共负向。"
+      },
+      "character5_x": {
+        "name": "5 X",
+        "tooltip": "水平中心坐标 0–1，0 为左，1 为右。控制提示词区域，不保证准确人物位置。"
+      },
+      "character5_y": {
+        "name": "5 Y",
+        "tooltip": "垂直中心坐标 0–1，0 为上，1 为下。控制提示词区域，不保证准确人物位置。"
+      },
+      "character6_enable": {
+        "name": "6 启用",
+        "tooltip": "是否使用此编号。关闭的槽位不参与生成。"
+      },
+      "character6": {
+        "name": "6 提示词 / 文字 (STRING)",
+        "tooltip": "连接正向提示词 STRING；文字槽位连接实际文字。公共场景和风格在采样器中填写。"
+      },
+      "character6_uc": {
+        "name": "6 负向提示词（不支持）",
+        "tooltip": "不支持单独角色负向提示词，请留空并使用采样器公共负向。"
+      },
+      "character6_x": {
+        "name": "6 X",
+        "tooltip": "水平中心坐标 0–1，0 为左，1 为右。控制提示词区域，不保证准确人物位置。"
+      },
+      "character6_y": {
+        "name": "6 Y",
+        "tooltip": "垂直中心坐标 0–1，0 为上，1 为下。控制提示词区域，不保证准确人物位置。"
+      },
+      "character7_enable": {
+        "name": "7 启用",
+        "tooltip": "是否使用此编号。关闭的槽位不参与生成。"
+      },
+      "character7": {
+        "name": "7 提示词 / 文字 (STRING)",
+        "tooltip": "连接正向提示词 STRING；文字槽位连接实际文字。公共场景和风格在采样器中填写。"
+      },
+      "character7_uc": {
+        "name": "7 负向提示词（不支持）",
+        "tooltip": "不支持单独角色负向提示词，请留空并使用采样器公共负向。"
+      },
+      "character7_x": {
+        "name": "7 X",
+        "tooltip": "水平中心坐标 0–1，0 为左，1 为右。控制提示词区域，不保证准确人物位置。"
+      },
+      "character7_y": {
+        "name": "7 Y",
+        "tooltip": "垂直中心坐标 0–1，0 为上，1 为下。控制提示词区域，不保证准确人物位置。"
+      },
+      "character8_enable": {
+        "name": "8 启用",
+        "tooltip": "是否使用此编号。关闭的槽位不参与生成。"
+      },
+      "character8": {
+        "name": "8 提示词 / 文字 (STRING)",
+        "tooltip": "连接正向提示词 STRING；文字槽位连接实际文字。公共场景和风格在采样器中填写。"
+      },
+      "character8_uc": {
+        "name": "8 负向提示词（不支持）",
+        "tooltip": "不支持单独角色负向提示词，请留空并使用采样器公共负向。"
+      },
+      "character8_x": {
+        "name": "8 X",
+        "tooltip": "水平中心坐标 0–1，0 为左，1 为右。控制提示词区域，不保证准确人物位置。"
+      },
+      "character8_y": {
+        "name": "8 Y",
+        "tooltip": "垂直中心坐标 0–1，0 为上，1 为下。控制提示词区域，不保证准确人物位置。"
+      },
+      "character9_enable": {
+        "name": "9 启用",
+        "tooltip": "是否使用此编号。关闭的槽位不参与生成。"
+      },
+      "character9": {
+        "name": "9 提示词 / 文字 (STRING)",
+        "tooltip": "连接正向提示词 STRING；文字槽位连接实际文字。公共场景和风格在采样器中填写。"
+      },
+      "character9_uc": {
+        "name": "9 负向提示词（不支持）",
+        "tooltip": "不支持单独角色负向提示词，请留空并使用采样器公共负向。"
+      },
+      "character9_x": {
+        "name": "9 X",
+        "tooltip": "水平中心坐标 0–1，0 为左，1 为右。控制提示词区域，不保证准确人物位置。"
+      },
+      "character9_y": {
+        "name": "9 Y",
+        "tooltip": "垂直中心坐标 0–1，0 为上，1 为下。控制提示词区域，不保证准确人物位置。"
+      },
+      "character10_enable": {
+        "name": "10 启用",
+        "tooltip": "是否使用此编号。关闭的槽位不参与生成。"
+      },
+      "character10": {
+        "name": "10 提示词 / 文字 (STRING)",
+        "tooltip": "连接正向提示词 STRING；文字槽位连接实际文字。公共场景和风格在采样器中填写。"
+      },
+      "character10_uc": {
+        "name": "10 负向提示词（不支持）",
+        "tooltip": "不支持单独角色负向提示词，请留空并使用采样器公共负向。"
+      },
+      "character10_x": {
+        "name": "10 X",
+        "tooltip": "水平中心坐标 0–1，0 为左，1 为右。控制提示词区域，不保证准确人物位置。"
+      },
+      "character10_y": {
+        "name": "10 Y",
+        "tooltip": "垂直中心坐标 0–1，0 为上，1 为下。控制提示词区域，不保证准确人物位置。"
+      }
+    },
+    "description": "角色与文字共 1–10 个区域，支持坐标、矩形及混合布局。相同坐标的角色按编号左右分布，矩形保持位置。文字槽位分别填写实际文字与字形描述，不计入细节修复的角色数量。处理区域越多，越难保证质量。",
+    "outputs": {
+      "0": {
+        "name": "角色管线"
+      }
+    }
+  },
+  "RSMultiCharacterLoadImage": {
+    "display_name": "RS 多角色图像加载器",
+    "description": "从 PNG/WebP 恢复角色提示词、坐标、各区域 LoRA 文件名及强度。执行时使用相同的本地 LoRA 文件。基础模型与全局 LoRA 请手动连接。",
+    "inputs": {
+      "image": {
+        "name": "图像",
+        "tooltip": "从 PNG/WebP 读取图像及角色设置。模型、CLIP、VAE 需另行连接。"
+      }
+    },
+    "outputs": {
+      "0": {
+        "name": "图像"
+      },
+      "1": {
+        "name": "遮罩"
+      },
+      "2": {
+        "name": "角色管线"
+      },
+      "3": {
+        "name": "生成信息"
+      }
+    }
+  },
+  "RSMultiCharacterPrompt": {
+    "display_name": "RS 角色提示词",
+    "description": "每个编号接收一个 STRING。角色使用其作为正向提示词，文字使用其作为实际绘制的内容。切换类型保留连接。公共负向提示词在采样器中设置；与 LoRA、位置节点的连接顺序不限。",
+    "inputs": {
+      "character_count": {
+        "name": "有效区域数（角色＋文字）",
+        "tooltip": "有效槽位数 1–10，包含文字。提示词节点排除超出此数量的编号，各节点编号应一致。"
+      },
+      "building_pipe": {
+        "name": "构建管线"
+      },
+      "character1_enable": {
+        "name": "1 启用",
+        "tooltip": "是否使用此编号。关闭的槽位不参与生成。"
+      },
+      "character1_kind": {
+        "name": "1 区域类型",
+        "tooltip": "角色 / 文字",
+        "options": {
+          "character": "角色",
+          "text": "文字"
+        }
+      },
+      "character1_text": {
+        "name": "1 实际文字 (STRING)",
+        "tooltip": "旧版文字槽位的实际文字。新版提示词节点使用共用 STRING 输入。"
+      },
+      "character1": {
+        "name": "1 提示词 / 文字 (STRING)",
+        "tooltip": "连接正向提示词 STRING；文字槽位连接实际文字。公共场景和风格在采样器中填写。"
+      },
+      "character2_enable": {
+        "name": "2 启用",
+        "tooltip": "是否使用此编号。关闭的槽位不参与生成。"
+      },
+      "character2_kind": {
+        "name": "2 区域类型",
+        "options": {
+          "character": "角色",
+          "text": "文字"
+        },
+        "tooltip": "同一 STRING 作为角色提示词或实际文字。文字需在位置节点中选矩形。"
+      },
+      "character2_text": {
+        "name": "2 实际文字 (STRING)",
+        "tooltip": "旧版文字槽位的实际文字。新版提示词节点使用共用 STRING 输入。"
+      },
+      "character2": {
+        "name": "2 提示词 / 文字 (STRING)",
+        "tooltip": "连接正向提示词 STRING；文字槽位连接实际文字。公共场景和风格在采样器中填写。"
+      },
+      "character3_enable": {
+        "name": "3 启用",
+        "tooltip": "是否使用此编号。关闭的槽位不参与生成。"
+      },
+      "character3_kind": {
+        "name": "3 区域类型",
+        "options": {
+          "character": "角色",
+          "text": "文字"
+        },
+        "tooltip": "同一 STRING 作为角色提示词或实际文字。文字需在位置节点中选矩形。"
+      },
+      "character3_text": {
+        "name": "3 实际文字 (STRING)",
+        "tooltip": "旧版文字槽位的实际文字。新版提示词节点使用共用 STRING 输入。"
+      },
+      "character3": {
+        "name": "3 提示词 / 文字 (STRING)",
+        "tooltip": "连接正向提示词 STRING；文字槽位连接实际文字。公共场景和风格在采样器中填写。"
+      },
+      "character4_enable": {
+        "name": "4 启用",
+        "tooltip": "是否使用此编号。关闭的槽位不参与生成。"
+      },
+      "character4_kind": {
+        "name": "4 区域类型",
+        "options": {
+          "character": "角色",
+          "text": "文字"
+        },
+        "tooltip": "同一 STRING 作为角色提示词或实际文字。文字需在位置节点中选矩形。"
+      },
+      "character4_text": {
+        "name": "4 实际文字 (STRING)",
+        "tooltip": "旧版文字槽位的实际文字。新版提示词节点使用共用 STRING 输入。"
+      },
+      "character4": {
+        "name": "4 提示词 / 文字 (STRING)",
+        "tooltip": "连接正向提示词 STRING；文字槽位连接实际文字。公共场景和风格在采样器中填写。"
+      },
+      "character5_enable": {
+        "name": "5 启用",
+        "tooltip": "是否使用此编号。关闭的槽位不参与生成。"
+      },
+      "character5_kind": {
+        "name": "5 区域类型",
+        "options": {
+          "character": "角色",
+          "text": "文字"
+        },
+        "tooltip": "同一 STRING 作为角色提示词或实际文字。文字需在位置节点中选矩形。"
+      },
+      "character5_text": {
+        "name": "5 实际文字 (STRING)",
+        "tooltip": "旧版文字槽位的实际文字。新版提示词节点使用共用 STRING 输入。"
+      },
+      "character5": {
+        "name": "5 提示词 / 文字 (STRING)",
+        "tooltip": "连接正向提示词 STRING；文字槽位连接实际文字。公共场景和风格在采样器中填写。"
+      },
+      "character6_enable": {
+        "name": "6 启用",
+        "tooltip": "是否使用此编号。关闭的槽位不参与生成。"
+      },
+      "character6_kind": {
+        "name": "6 区域类型",
+        "options": {
+          "character": "角色",
+          "text": "文字"
+        },
+        "tooltip": "同一 STRING 作为角色提示词或实际文字。文字需在位置节点中选矩形。"
+      },
+      "character6_text": {
+        "name": "6 实际文字 (STRING)",
+        "tooltip": "旧版文字槽位的实际文字。新版提示词节点使用共用 STRING 输入。"
+      },
+      "character6": {
+        "name": "6 提示词 / 文字 (STRING)",
+        "tooltip": "连接正向提示词 STRING；文字槽位连接实际文字。公共场景和风格在采样器中填写。"
+      },
+      "character7_enable": {
+        "name": "7 启用",
+        "tooltip": "是否使用此编号。关闭的槽位不参与生成。"
+      },
+      "character7_kind": {
+        "name": "7 区域类型",
+        "options": {
+          "character": "角色",
+          "text": "文字"
+        },
+        "tooltip": "同一 STRING 作为角色提示词或实际文字。文字需在位置节点中选矩形。"
+      },
+      "character7_text": {
+        "name": "7 实际文字 (STRING)",
+        "tooltip": "旧版文字槽位的实际文字。新版提示词节点使用共用 STRING 输入。"
+      },
+      "character7": {
+        "name": "7 提示词 / 文字 (STRING)",
+        "tooltip": "连接正向提示词 STRING；文字槽位连接实际文字。公共场景和风格在采样器中填写。"
+      },
+      "character8_enable": {
+        "name": "8 启用",
+        "tooltip": "是否使用此编号。关闭的槽位不参与生成。"
+      },
+      "character8_kind": {
+        "name": "8 区域类型",
+        "options": {
+          "character": "角色",
+          "text": "文字"
+        },
+        "tooltip": "同一 STRING 作为角色提示词或实际文字。文字需在位置节点中选矩形。"
+      },
+      "character8_text": {
+        "name": "8 实际文字 (STRING)",
+        "tooltip": "旧版文字槽位的实际文字。新版提示词节点使用共用 STRING 输入。"
+      },
+      "character8": {
+        "name": "8 提示词 / 文字 (STRING)",
+        "tooltip": "连接正向提示词 STRING；文字槽位连接实际文字。公共场景和风格在采样器中填写。"
+      },
+      "character9_enable": {
+        "name": "9 启用",
+        "tooltip": "是否使用此编号。关闭的槽位不参与生成。"
+      },
+      "character9_kind": {
+        "name": "9 区域类型",
+        "options": {
+          "character": "角色",
+          "text": "文字"
+        },
+        "tooltip": "同一 STRING 作为角色提示词或实际文字。文字需在位置节点中选矩形。"
+      },
+      "character9_text": {
+        "name": "9 实际文字 (STRING)",
+        "tooltip": "旧版文字槽位的实际文字。新版提示词节点使用共用 STRING 输入。"
+      },
+      "character9": {
+        "name": "9 提示词 / 文字 (STRING)",
+        "tooltip": "连接正向提示词 STRING；文字槽位连接实际文字。公共场景和风格在采样器中填写。"
+      },
+      "character10_enable": {
+        "name": "10 启用",
+        "tooltip": "是否使用此编号。关闭的槽位不参与生成。"
+      },
+      "character10_kind": {
+        "name": "10 区域类型",
+        "options": {
+          "character": "角色",
+          "text": "文字"
+        },
+        "tooltip": "同一 STRING 作为角色提示词或实际文字。文字需在位置节点中选矩形。"
+      },
+      "character10_text": {
+        "name": "10 实际文字 (STRING)",
+        "tooltip": "旧版文字槽位的实际文字。新版提示词节点使用共用 STRING 输入。"
+      },
+      "character10": {
+        "name": "10 提示词 / 文字 (STRING)",
+        "tooltip": "连接正向提示词 STRING；文字槽位连接实际文字。公共场景和风格在采样器中填写。"
+      }
+    },
+    "outputs": {
+      "0": {
+        "name": "构建管线"
+      }
+    }
+  },
+  "RSMultiCharacterLoRA": {
+    "display_name": "RS 角色 LoRA",
+    "description": "集中设置多个角色的 LoRA，应用到提示词表中相同编号的槽位。显示范围外视为 None。",
+    "inputs": {
+      "character_count": {
+        "name": "有效区域数（角色＋文字）",
+        "tooltip": "有效槽位数 1–10，包含文字。提示词节点排除超出此数量的编号，各节点编号应一致。"
+      },
+      "building_pipe": {
+        "name": "构建管线"
+      },
+      "character1_lora": {
+        "name": "1 LoRA",
+        "tooltip": "应用到此角色区域的 LoRA，须匹配基础模型。None 表示禁用。不同 LoRA 越多，耗时和内存越高。风格及加速 LoRA 请通过全局加载器应用。"
+      },
+      "character1_lora_strength": {
+        "name": "1 LoRA 模型强度",
+        "tooltip": "此区域的扩散模型 LoRA 强度。0 禁用模型部分。"
+      },
+      "character1_lora_clip_strength": {
+        "name": "1 LoRA CLIP 强度",
+        "tooltip": "仅在文件包含兼容的文本编码器权重时应用到此角色提示词。0 禁用文本编码器部分。"
+      },
+      "character2_lora": {
+        "name": "2 LoRA",
+        "tooltip": "应用到此角色区域的 LoRA，须匹配基础模型。None 表示禁用。不同 LoRA 越多，耗时和内存越高。风格及加速 LoRA 请通过全局加载器应用。"
+      },
+      "character2_lora_strength": {
+        "name": "2 LoRA 模型强度",
+        "tooltip": "此区域的扩散模型 LoRA 强度。0 禁用模型部分。"
+      },
+      "character2_lora_clip_strength": {
+        "name": "2 LoRA CLIP 强度",
+        "tooltip": "仅在文件包含兼容的文本编码器权重时应用到此角色提示词。0 禁用文本编码器部分。"
+      },
+      "character3_lora": {
+        "name": "3 LoRA",
+        "tooltip": "应用到此角色区域的 LoRA，须匹配基础模型。None 表示禁用。不同 LoRA 越多，耗时和内存越高。风格及加速 LoRA 请通过全局加载器应用。"
+      },
+      "character3_lora_strength": {
+        "name": "3 LoRA 模型强度",
+        "tooltip": "此区域的扩散模型 LoRA 强度。0 禁用模型部分。"
+      },
+      "character3_lora_clip_strength": {
+        "name": "3 LoRA CLIP 强度",
+        "tooltip": "仅在文件包含兼容的文本编码器权重时应用到此角色提示词。0 禁用文本编码器部分。"
+      },
+      "character4_lora": {
+        "name": "4 LoRA",
+        "tooltip": "应用到此角色区域的 LoRA，须匹配基础模型。None 表示禁用。不同 LoRA 越多，耗时和内存越高。风格及加速 LoRA 请通过全局加载器应用。"
+      },
+      "character4_lora_strength": {
+        "name": "4 LoRA 模型强度",
+        "tooltip": "此区域的扩散模型 LoRA 强度。0 禁用模型部分。"
+      },
+      "character4_lora_clip_strength": {
+        "name": "4 LoRA CLIP 强度",
+        "tooltip": "仅在文件包含兼容的文本编码器权重时应用到此角色提示词。0 禁用文本编码器部分。"
+      },
+      "character5_lora": {
+        "name": "5 LoRA",
+        "tooltip": "应用到此角色区域的 LoRA，须匹配基础模型。None 表示禁用。不同 LoRA 越多，耗时和内存越高。风格及加速 LoRA 请通过全局加载器应用。"
+      },
+      "character5_lora_strength": {
+        "name": "5 LoRA 模型强度",
+        "tooltip": "此区域的扩散模型 LoRA 强度。0 禁用模型部分。"
+      },
+      "character5_lora_clip_strength": {
+        "name": "5 LoRA CLIP 强度",
+        "tooltip": "仅在文件包含兼容的文本编码器权重时应用到此角色提示词。0 禁用文本编码器部分。"
+      },
+      "character6_lora": {
+        "name": "6 LoRA",
+        "tooltip": "应用到此角色区域的 LoRA，须匹配基础模型。None 表示禁用。不同 LoRA 越多，耗时和内存越高。风格及加速 LoRA 请通过全局加载器应用。"
+      },
+      "character6_lora_strength": {
+        "name": "6 LoRA 模型强度",
+        "tooltip": "此区域的扩散模型 LoRA 强度。0 禁用模型部分。"
+      },
+      "character6_lora_clip_strength": {
+        "name": "6 LoRA CLIP 强度",
+        "tooltip": "仅在文件包含兼容的文本编码器权重时应用到此角色提示词。0 禁用文本编码器部分。"
+      },
+      "character7_lora": {
+        "name": "7 LoRA",
+        "tooltip": "应用到此角色区域的 LoRA，须匹配基础模型。None 表示禁用。不同 LoRA 越多，耗时和内存越高。风格及加速 LoRA 请通过全局加载器应用。"
+      },
+      "character7_lora_strength": {
+        "name": "7 LoRA 模型强度",
+        "tooltip": "此区域的扩散模型 LoRA 强度。0 禁用模型部分。"
+      },
+      "character7_lora_clip_strength": {
+        "name": "7 LoRA CLIP 强度",
+        "tooltip": "仅在文件包含兼容的文本编码器权重时应用到此角色提示词。0 禁用文本编码器部分。"
+      },
+      "character8_lora": {
+        "name": "8 LoRA",
+        "tooltip": "应用到此角色区域的 LoRA，须匹配基础模型。None 表示禁用。不同 LoRA 越多，耗时和内存越高。风格及加速 LoRA 请通过全局加载器应用。"
+      },
+      "character8_lora_strength": {
+        "name": "8 LoRA 模型强度",
+        "tooltip": "此区域的扩散模型 LoRA 强度。0 禁用模型部分。"
+      },
+      "character8_lora_clip_strength": {
+        "name": "8 LoRA CLIP 强度",
+        "tooltip": "仅在文件包含兼容的文本编码器权重时应用到此角色提示词。0 禁用文本编码器部分。"
+      },
+      "character9_lora": {
+        "name": "9 LoRA",
+        "tooltip": "应用到此角色区域的 LoRA，须匹配基础模型。None 表示禁用。不同 LoRA 越多，耗时和内存越高。风格及加速 LoRA 请通过全局加载器应用。"
+      },
+      "character9_lora_strength": {
+        "name": "9 LoRA 模型强度",
+        "tooltip": "此区域的扩散模型 LoRA 强度。0 禁用模型部分。"
+      },
+      "character9_lora_clip_strength": {
+        "name": "9 LoRA CLIP 强度",
+        "tooltip": "仅在文件包含兼容的文本编码器权重时应用到此角色提示词。0 禁用文本编码器部分。"
+      },
+      "character10_lora": {
+        "name": "10 LoRA",
+        "tooltip": "应用到此角色区域的 LoRA，须匹配基础模型。None 表示禁用。不同 LoRA 越多，耗时和内存越高。风格及加速 LoRA 请通过全局加载器应用。"
+      },
+      "character10_lora_strength": {
+        "name": "10 LoRA 模型强度",
+        "tooltip": "此区域的扩散模型 LoRA 强度。0 禁用模型部分。"
+      },
+      "character10_lora_clip_strength": {
+        "name": "10 LoRA CLIP 强度",
+        "tooltip": "仅在文件包含兼容的文本编码器权重时应用到此角色提示词。0 禁用文本编码器部分。"
+      },
+      "lora_application_mode": {
+        "name": "LoRA 应用模式",
+        "options": {
+          "normal": "普通应用",
+          "precision": "精确应用"
+        },
+        "tooltip": "普通模式共享受支持的 Anima/SDXL 线性 LoRA 计算。精确模式按 LoRA 设置独立预测，并保留低秩优化。默认精确模式，不保证质量更高。普通模式可能改变细节；不支持的模型或 LoRA 自动转为精确模式并报告原因。应用到全部槽位。细节修复始终逐角色使用精确模式。"
+      }
+    },
+    "outputs": {
+      "0": {
+        "name": "构建管线"
+      }
+    }
+  },
+  "RSMultiCharacterPosition": {
+    "display_name": "RS 角色位置",
+    "description": "在布局图上选择编号，拖动点、矩形或遮罩。用角点或 −/+ 缩放矩形与遮罩；仅裁剪超出画布的遮罩部分，保留编号和原始形状。角色构建节点的连接顺序不限。",
+    "inputs": {
+      "character_count": {
+        "name": "有效区域数（角色＋文字）",
+        "tooltip": "有效槽位数 1–10，包含文字。提示词节点排除超出此数量的编号，各节点编号应一致。"
+      },
+      "building_pipe": {
+        "name": "构建管线"
+      },
+      "character1_geometry": {
+        "name": "1 位置方式",
+        "options": {
+          "point": "点",
+          "box": "矩形"
+        },
+        "tooltip": "点使用 X/Y，矩形使用中心与宽高。文字必须用矩形，混合布局中矩形优先。"
+      },
+      "character1_x": {
+        "name": "1 X",
+        "tooltip": "水平中心坐标 0–1，0 为左，1 为右。控制提示词区域，不保证准确人物位置。"
+      },
+      "character1_y": {
+        "name": "1 Y",
+        "tooltip": "垂直中心坐标 0–1，0 为上，1 为下。控制提示词区域，不保证准确人物位置。"
+      },
+      "character1_width": {
+        "name": "1 矩形宽度",
+        "tooltip": "矩形占整图的宽度比例 0.01–1，仅用于矩形布局，不是输出分辨率。"
+      },
+      "character1_height": {
+        "name": "1 矩形高度",
+        "tooltip": "矩形占整图的高度比例 0.01–1，仅用于矩形布局，不是输出分辨率。"
+      },
+      "character2_geometry": {
+        "name": "2 位置方式",
+        "options": {
+          "point": "点",
+          "box": "矩形"
+        },
+        "tooltip": "点使用 X/Y，矩形使用中心与宽高。文字必须用矩形，混合布局中矩形优先。"
+      },
+      "character2_x": {
+        "name": "2 X",
+        "tooltip": "水平中心坐标 0–1，0 为左，1 为右。控制提示词区域，不保证准确人物位置。"
+      },
+      "character2_y": {
+        "name": "2 Y",
+        "tooltip": "垂直中心坐标 0–1，0 为上，1 为下。控制提示词区域，不保证准确人物位置。"
+      },
+      "character2_width": {
+        "name": "2 矩形宽度",
+        "tooltip": "矩形占整图的宽度比例 0.01–1，仅用于矩形布局，不是输出分辨率。"
+      },
+      "character2_height": {
+        "name": "2 矩形高度",
+        "tooltip": "矩形占整图的高度比例 0.01–1，仅用于矩形布局，不是输出分辨率。"
+      },
+      "character3_geometry": {
+        "name": "3 位置方式",
+        "options": {
+          "point": "点",
+          "box": "矩形"
+        },
+        "tooltip": "点使用 X/Y，矩形使用中心与宽高。文字必须用矩形，混合布局中矩形优先。"
+      },
+      "character3_x": {
+        "name": "3 X",
+        "tooltip": "水平中心坐标 0–1，0 为左，1 为右。控制提示词区域，不保证准确人物位置。"
+      },
+      "character3_y": {
+        "name": "3 Y",
+        "tooltip": "垂直中心坐标 0–1，0 为上，1 为下。控制提示词区域，不保证准确人物位置。"
+      },
+      "character3_width": {
+        "name": "3 矩形宽度",
+        "tooltip": "矩形占整图的宽度比例 0.01–1，仅用于矩形布局，不是输出分辨率。"
+      },
+      "character3_height": {
+        "name": "3 矩形高度",
+        "tooltip": "矩形占整图的高度比例 0.01–1，仅用于矩形布局，不是输出分辨率。"
+      },
+      "character4_geometry": {
+        "name": "4 位置方式",
+        "options": {
+          "point": "点",
+          "box": "矩形"
+        },
+        "tooltip": "点使用 X/Y，矩形使用中心与宽高。文字必须用矩形，混合布局中矩形优先。"
+      },
+      "character4_x": {
+        "name": "4 X",
+        "tooltip": "水平中心坐标 0–1，0 为左，1 为右。控制提示词区域，不保证准确人物位置。"
+      },
+      "character4_y": {
+        "name": "4 Y",
+        "tooltip": "垂直中心坐标 0–1，0 为上，1 为下。控制提示词区域，不保证准确人物位置。"
+      },
+      "character4_width": {
+        "name": "4 矩形宽度",
+        "tooltip": "矩形占整图的宽度比例 0.01–1，仅用于矩形布局，不是输出分辨率。"
+      },
+      "character4_height": {
+        "name": "4 矩形高度",
+        "tooltip": "矩形占整图的高度比例 0.01–1，仅用于矩形布局，不是输出分辨率。"
+      },
+      "character5_geometry": {
+        "name": "5 位置方式",
+        "options": {
+          "point": "点",
+          "box": "矩形"
+        },
+        "tooltip": "点使用 X/Y，矩形使用中心与宽高。文字必须用矩形，混合布局中矩形优先。"
+      },
+      "character5_x": {
+        "name": "5 X",
+        "tooltip": "水平中心坐标 0–1，0 为左，1 为右。控制提示词区域，不保证准确人物位置。"
+      },
+      "character5_y": {
+        "name": "5 Y",
+        "tooltip": "垂直中心坐标 0–1，0 为上，1 为下。控制提示词区域，不保证准确人物位置。"
+      },
+      "character5_width": {
+        "name": "5 矩形宽度",
+        "tooltip": "矩形占整图的宽度比例 0.01–1，仅用于矩形布局，不是输出分辨率。"
+      },
+      "character5_height": {
+        "name": "5 矩形高度",
+        "tooltip": "矩形占整图的高度比例 0.01–1，仅用于矩形布局，不是输出分辨率。"
+      },
+      "character6_geometry": {
+        "name": "6 位置方式",
+        "options": {
+          "point": "点",
+          "box": "矩形"
+        },
+        "tooltip": "点使用 X/Y，矩形使用中心与宽高。文字必须用矩形，混合布局中矩形优先。"
+      },
+      "character6_x": {
+        "name": "6 X",
+        "tooltip": "水平中心坐标 0–1，0 为左，1 为右。控制提示词区域，不保证准确人物位置。"
+      },
+      "character6_y": {
+        "name": "6 Y",
+        "tooltip": "垂直中心坐标 0–1，0 为上，1 为下。控制提示词区域，不保证准确人物位置。"
+      },
+      "character6_width": {
+        "name": "6 矩形宽度",
+        "tooltip": "矩形占整图的宽度比例 0.01–1，仅用于矩形布局，不是输出分辨率。"
+      },
+      "character6_height": {
+        "name": "6 矩形高度",
+        "tooltip": "矩形占整图的高度比例 0.01–1，仅用于矩形布局，不是输出分辨率。"
+      },
+      "character7_geometry": {
+        "name": "7 位置方式",
+        "options": {
+          "point": "点",
+          "box": "矩形"
+        },
+        "tooltip": "点使用 X/Y，矩形使用中心与宽高。文字必须用矩形，混合布局中矩形优先。"
+      },
+      "character7_x": {
+        "name": "7 X",
+        "tooltip": "水平中心坐标 0–1，0 为左，1 为右。控制提示词区域，不保证准确人物位置。"
+      },
+      "character7_y": {
+        "name": "7 Y",
+        "tooltip": "垂直中心坐标 0–1，0 为上，1 为下。控制提示词区域，不保证准确人物位置。"
+      },
+      "character7_width": {
+        "name": "7 矩形宽度",
+        "tooltip": "矩形占整图的宽度比例 0.01–1，仅用于矩形布局，不是输出分辨率。"
+      },
+      "character7_height": {
+        "name": "7 矩形高度",
+        "tooltip": "矩形占整图的高度比例 0.01–1，仅用于矩形布局，不是输出分辨率。"
+      },
+      "character8_geometry": {
+        "name": "8 位置方式",
+        "options": {
+          "point": "点",
+          "box": "矩形"
+        },
+        "tooltip": "点使用 X/Y，矩形使用中心与宽高。文字必须用矩形，混合布局中矩形优先。"
+      },
+      "character8_x": {
+        "name": "8 X",
+        "tooltip": "水平中心坐标 0–1，0 为左，1 为右。控制提示词区域，不保证准确人物位置。"
+      },
+      "character8_y": {
+        "name": "8 Y",
+        "tooltip": "垂直中心坐标 0–1，0 为上，1 为下。控制提示词区域，不保证准确人物位置。"
+      },
+      "character8_width": {
+        "name": "8 矩形宽度",
+        "tooltip": "矩形占整图的宽度比例 0.01–1，仅用于矩形布局，不是输出分辨率。"
+      },
+      "character8_height": {
+        "name": "8 矩形高度",
+        "tooltip": "矩形占整图的高度比例 0.01–1，仅用于矩形布局，不是输出分辨率。"
+      },
+      "character9_geometry": {
+        "name": "9 位置方式",
+        "options": {
+          "point": "点",
+          "box": "矩形"
+        },
+        "tooltip": "点使用 X/Y，矩形使用中心与宽高。文字必须用矩形，混合布局中矩形优先。"
+      },
+      "character9_x": {
+        "name": "9 X",
+        "tooltip": "水平中心坐标 0–1，0 为左，1 为右。控制提示词区域，不保证准确人物位置。"
+      },
+      "character9_y": {
+        "name": "9 Y",
+        "tooltip": "垂直中心坐标 0–1，0 为上，1 为下。控制提示词区域，不保证准确人物位置。"
+      },
+      "character9_width": {
+        "name": "9 矩形宽度",
+        "tooltip": "矩形占整图的宽度比例 0.01–1，仅用于矩形布局，不是输出分辨率。"
+      },
+      "character9_height": {
+        "name": "9 矩形高度",
+        "tooltip": "矩形占整图的高度比例 0.01–1，仅用于矩形布局，不是输出分辨率。"
+      },
+      "character10_geometry": {
+        "name": "10 位置方式",
+        "options": {
+          "point": "点",
+          "box": "矩形"
+        },
+        "tooltip": "点使用 X/Y，矩形使用中心与宽高。文字必须用矩形，混合布局中矩形优先。"
+      },
+      "character10_x": {
+        "name": "10 X",
+        "tooltip": "水平中心坐标 0–1，0 为左，1 为右。控制提示词区域，不保证准确人物位置。"
+      },
+      "character10_y": {
+        "name": "10 Y",
+        "tooltip": "垂直中心坐标 0–1，0 为上，1 为下。控制提示词区域，不保证准确人物位置。"
+      },
+      "character10_width": {
+        "name": "10 矩形宽度",
+        "tooltip": "矩形占整图的宽度比例 0.01–1，仅用于矩形布局，不是输出分辨率。"
+      },
+      "character10_height": {
+        "name": "10 矩形高度",
+        "tooltip": "矩形占整图的高度比例 0.01–1，仅用于矩形布局，不是输出分辨率。"
+      },
+      "mask_transforms": {
+        "name": "遮罩位置变换",
+        "tooltip": "保存的遮罩位置。请在布局上方选择编号以移动或缩放。"
+      }
+    },
+    "outputs": {
+      "0": {
+        "name": "构建管线"
+      }
+    }
+  },
+  "RSMultiCharacterFinalize": {
+    "display_name": "RS 角色管线汇总",
+    "description": "按编号汇总设置并连接采样器或细节修复节点，连接顺序不限。可省略 LoRA 和位置，默认使用 None 和中心。最多 10 个区域，更多区域不保证更高质量。",
+    "inputs": {
+      "building_pipe": {
+        "name": "构建管线"
+      }
+    },
+    "outputs": {
+      "0": {
+        "name": "角色管线"
+      }
+    }
+  },
+  "RSMultiCharacterMask": {
+    "display_name": "RS 角色遮罩",
+    "description": "将人物轮廓或手绘 MASK 用作指定编号的角色区域，覆盖其坐标或矩形，节点顺序不限。不会锁定准确姿势。",
+    "inputs": {
+      "character_id": {
+        "name": "角色编号",
+        "tooltip": "对应提示词行编号。每个需要指定形状的角色连接一张遮罩。"
+      },
+      "enabled": {
+        "name": "启用遮罩",
+        "tooltip": "关闭后清除此编号的遮罩，恢复坐标或矩形。其他角色不变。"
+      },
+      "margin": {
+        "name": "留白（原图像素）",
+        "tooltip": "按原图像素扩张白色区域，为头发、衣物和接触留出空间。"
+      },
+      "threshold": {
+        "name": "二值化阈值",
+        "tooltip": "亮于此值的像素作为角色区域，灰度转为黑白。"
+      },
+      "building_pipe": {
+        "name": "构建管线"
+      },
+      "mask": {
+        "name": "输入遮罩",
+        "tooltip": "一张全画布 MASK，白色为区域。移动或缩放后裁剪超出部分；姿势仅作引导。"
+      },
+      "offset_x": {
+        "name": "水平偏移比例",
+        "tooltip": "相对画布宽度偏移，+0.1 向右移动 10%。超出部分会裁剪。"
+      },
+      "offset_y": {
+        "name": "垂直偏移比例",
+        "tooltip": "相对画布高度偏移，+0.1 向下移动 10%。超出部分会裁剪。"
+      },
+      "scale": {
+        "name": "遮罩缩放比例",
+        "tooltip": "以画布中心等比缩放：0.5 为一半，1 为原始，2 为两倍。超出部分会裁剪。"
+      }
+    },
+    "outputs": {
+      "0": {
+        "name": "构建管线"
+      },
+      "1": {
+        "name": "扩张后的遮罩"
+      }
+    }
+  },
+  "RSMultiCharacterMaskDraw": {
+    "display_name": "RS 角色遮罩绘制",
+    "description": "在参考图上按编号绘制区域，应用相同编号的提示词与 LoRA。底图不参与生成。移动和缩放时裁剪超出画布的部分。",
+    "inputs": {
+      "drawing": {
+        "name": "绘制数据",
+        "tooltip": "选择编号，在底图上绘制。底图仅供参考，编号遮罩保存在工作流中。"
+      },
+      "margin": {
+        "name": "留白（原图像素）",
+        "tooltip": "按原图像素扩张白色区域，为头发、衣物和接触留出空间。"
+      },
+      "building_pipe": {
+        "name": "构建管线"
+      }
+    },
+    "outputs": {
+      "0": {
+        "name": "构建管线"
+      }
+    }
+  },
+  "RSMultiCharacterReference": {
+    "display_name": "RS 角色图像参考（实验性）",
+    "description": "实验性支持，不推荐使用。为每个编号连接一张参考图，再汇总管线并生成。不同模型的还原程度不同，优先推荐角色 LoRA。保存元数据不包含参考图；细节修复不使用此功能。",
+    "inputs": {
+      "image": {
+        "name": "参考图像",
+        "tooltip": "从 PNG/WebP 读取图像及角色设置。模型、CLIP、VAE 需另行连接。"
+      },
+      "character_id": {
+        "name": "角色编号",
+        "tooltip": "对应提示词行编号。每个需要指定形状的角色连接一张遮罩。"
+      },
+      "resolution": {
+        "name": "参考分辨率"
+      },
+      "strength": {
+        "name": "参考强度"
+      },
+      "enabled": {
+        "name": "启用参考",
+        "tooltip": "关闭后清除此编号的遮罩，恢复坐标或矩形。其他角色不变。"
+      },
+      "building_pipe": {
+        "name": "构建管线"
+      }
+    },
+    "outputs": {
+      "0": {
+        "name": "构建管线"
+      },
+      "building_pipe": {
+        "name": "构建管线"
+      }
+    }
+  },
+  "RSMultiCharacterPoseMasks": {
+    "display_name": "RS OpenPose 自动遮罩",
+    "description": "从彩色 OpenPose 骨架 PNG 创建人物遮罩，可调节粗细。PNG 按颈部位置从左到右编号。部位名称仅提供很弱的注意力引导，不向模型输入骨架本身。",
+    "inputs": {
+      "pose_json": {
+        "name": "OpenPose JSON"
+      },
+      "thickness": {
+        "name": "遮罩粗细"
+      },
+      "body_part_strength": {
+        "name": "部位名称引导强度",
+        "tooltip": "默认 0（关闭）。在骨架对应部位加入头、手、胸部、大腿、腿、脚的名称，提供很弱的注意力引导。"
+      },
+      "confidence": {
+        "name": "最低关节置信度"
+      },
+      "canvas_width": {
+        "name": "原始宽度（优先自动）"
+      },
+      "canvas_height": {
+        "name": "原始高度（优先自动）"
+      },
+      "pose_image": {
+        "name": "骨架 PNG",
+        "tooltip": "黑色或透明背景的彩色 OpenPose PNG。请检查各编号遮罩；无法从照片、黑白图或被遮挡的关节恢复骨架。"
+      },
+      "image": {
+        "name": "骨架图像",
+        "tooltip": "也可连接 Load Image 输出的单张彩色骨架 IMAGE，优先于文件选择。"
+      },
+      "building_pipe": {
+        "name": "构建管线"
+      },
+      "pose_keypoints": {
+        "name": "姿势关键点"
+      }
+    },
+    "outputs": {
+      "0": {
+        "name": "构建管线"
+      },
+      "1": {
+        "name": "姿势预览"
+      },
+      "2": {
+        "name": "人物遮罩"
+      },
+      "3": {
+        "name": "姿势信息"
+      }
+    }
+  },
+  "RSMultiCharacterInteraction": {
+    "display_name": "RS 角色重叠控制",
+    "description": "在 Anima/SDXL 中延长非重叠区域的角色分离。重叠部分和背景沿用采样器原有的边界设置。",
+    "inputs": {
+      "preset": {
+        "name": "预设"
+      },
+      "delay_steps": {
+        "name": "额外保持步数"
+      },
+      "decrement": {
+        "name": "边界衰减量"
+      },
+      "building_pipe": {
+        "name": "构建管线"
+      }
+    },
+    "outputs": {
+      "0": {
+        "name": "构建管线"
+      }
+    }
+  }
+}

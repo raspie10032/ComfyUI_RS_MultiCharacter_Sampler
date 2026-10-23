@@ -1,6 +1,6 @@
 # Documentation / 문서 모음 / ドキュメント
 
-[English README](../README.md) · [한국어 README](../README.ko.md) · [日本語 README](../README.ja.md) · [Changelog](../CHANGELOG.md)
+[English README](../README.md) · [한국어 README](../README.ko.md) · [日本語 README](../README.ja.md) · [简体中文 README](../README.zh-CN.md) · [繁體中文 README](../README.zh-TW.md) · [Changelog](../CHANGELOG.md)
 
 Start with your language's README for installation and a first workflow. This
 index groups detailed guides and evidence by task. Release notes describe changes

@@ -1,11 +1,12 @@
 // SPDX-License-Identifier: GPL-3.0-only
+import { chineseLocale, chineseText } from "./i18n.js";
 import { app } from '../../scripts/app.js';
 import { api } from '../../scripts/api.js';
 import { maskState } from './mask_preview.js';
 const states=new WeakMap();
 const names=['pose_json','canvas_width','canvas_height','thickness','confidence','pose_image'];
 const val=(node,key)=>node.widgets?.find(w=>w.name===key)?.value;
-const label=(en,ko,ja)=>{const lang=app.extensionManager?.setting?.get?.('Comfy.Locale')??'en';return lang.startsWith('ko')?ko:lang.startsWith('ja')?ja:en;};
+const label=(en,ko,ja)=>{const lang=app.extensionManager?.setting?.get?.('Comfy.Locale')??'en';return chineseLocale(lang)?chineseText(en,lang):lang.startsWith('ko')?ko:lang.startsWith('ja')?ja:en;};
 const relevant=name=>names.includes(name)||name==='pose_keypoints'||name==='image';
 const linked=node=>node.inputs?.some(i=>relevant(i.name)&&i.link!=null);
 // Include the link itself: switching outputs on the same upstream node must

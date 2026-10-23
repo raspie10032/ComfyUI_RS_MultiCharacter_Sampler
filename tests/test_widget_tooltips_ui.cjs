@@ -35,15 +35,21 @@ const app={registerExtension(e){extensions.push(e);},graph,
 };
 const sandbox={app,window,document,navigator:{language:'en'}};
 vm.createContext(sandbox);
-vm.runInContext(fs.readFileSync('web/widget_tooltips.js','utf8')
+vm.runInContext(require("./ui_source.cjs")('web/widget_tooltips.js')
   .replace(/^import[^\n]*\n/gm,'').replaceAll('export function','function').replaceAll('export const','var'),sandbox);
 const {fieldHelp,hoverController,HOVER_DELAY}=sandbox;
 assert.equal(HOVER_DELAY,2000);
-for(const lang of ['ko','ja','en']) {
+for(const lang of ['ko','ja','en','zh','zh-TW']) {
   for(const name of ['character1_lora','character10_kind','character10_width','steps','batch_size','initial_common_prior','boundary_decrement','save_format']) {
     const text=fieldHelp('RSMultiCharacterSampler',name,lang);
     assert.ok(text.length>8,`${lang}:${name}`);
     assert.ok(text.length<=200,`${lang}:${name}: too long`);
+  }
+}
+// Every custom control has Chinese help without changing its internal key.
+for (const name of vm.runInContext('Object.keys(tips)', sandbox)) {
+  for (const lang of ['zh','zh-TW']) {
+    assert.match(fieldHelp('RSMultiCharacterSampler',name,lang), /[\u3400-\u9fff]/, `${lang}:${name}`);
   }
 }
 assert.match(fieldHelp('','character1_width','en'),/fraction/);
@@ -59,11 +65,11 @@ if(process.env.RS_MC_SCHEMA_PATH) {
     if(!type.startsWith('RSMultiCharacter'))continue;
     for(const group of Object.values(schema.input))for(const [name,spec]of Object.entries(group)) {
       if(!Array.isArray(spec)||spec[1]?.forceInput||!(['STRING','INT','FLOAT','BOOLEAN'].includes(spec[0])||Array.isArray(spec[0])))continue;
-      for(const lang of ['en','ko','ja']) assert.ok(fieldHelp(type,name,lang),`${type}.${name}: ${lang}`);
+      for(const lang of ['en','ko','ja','zh','zh-TW']) assert.ok(fieldHelp(type,name,lang),`${type}.${name}: ${lang}`);
       count++;
     }
   }
-  console.log(`Live schema tooltip coverage: ${count} controls in three languages`);
+  console.log(`Live schema tooltip coverage: ${count} controls in five languages`);
 }
 let shown=[], hiddenCount=0,valid=true;
 const controller=hoverController({...clock,show(t){shown.push(t);},hide(){hiddenCount++;},valid(){return valid;}});

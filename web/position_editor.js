@@ -1,4 +1,5 @@
 // SPDX-License-Identifier: GPL-3.0-only
+import { chineseLocale, chineseText } from "./i18n.js";
 import { app } from "../../scripts/app.js";
 import { api } from "../../scripts/api.js";
 
@@ -6,7 +7,7 @@ const clamp = (v, lo, hi) => Math.max(lo, Math.min(hi, v));
 const widget = (node, name) => node.widgets?.find(w => w.name === name);
 const val = (node, name, fallback) => widget(node, name)?.value ?? fallback;
 const language = () => String(app.extensionManager?.setting?.get?.("Comfy.Locale") ?? globalThis.navigator?.language ?? "en");
-const text = (en, ko, ja) => language().startsWith("ko") ? ko : language().startsWith("ja") ? ja : en;
+const text = (en, ko, ja) => chineseLocale(language()) ? chineseText(en, language()) : language().startsWith("ko") ? ko : language().startsWith("ja") ? ja : en;
 
 export function maskPlacements(node) {
     try { return JSON.parse(val(node, "mask_transforms", "{}")); } catch { return {}; }
