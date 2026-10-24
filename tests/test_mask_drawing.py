@@ -129,3 +129,20 @@ class MaskDrawingTests(unittest.TestCase):
         ):
             value = self.drawing(); mutation(value)
             with self.assertRaises(ValueError): d.RSMultiCharacterMaskDraw().apply(json.dumps(value),0)
+
+    def test_replacing_pose_masks_clears_old_body_guidance_without_mutating_source(self):
+        from dataclasses import replace
+        original, = d.RSMultiCharacterMaskDraw().apply(json.dumps(self.drawing()), 0)
+        original = replace(original, slots=tuple(replace(slot,
+            body_parts=(('head', slot.region_mask),), body_part_strength=.2)
+            if slot.region_mask is not None else slot for slot in original.slots))
+        data = self.drawing()
+        data['layers'].pop('2')  # Blank rows fall back to points as well.
+        changed, = d.RSMultiCharacterMaskDraw().apply(json.dumps(data), 0, original)
+        for slot in changed.slots:
+            self.assertEqual(slot.body_parts, ())
+            self.assertEqual(slot.body_part_strength, 0.)
+        self.assertTrue(original.slots[0].body_parts)
+        self.assertEqual(original.slots[0].body_part_strength, .2)
+        self.assertIsNotNone(changed.slots[0].region_mask)
+        self.assertIsNone(changed.slots[1].region_mask)

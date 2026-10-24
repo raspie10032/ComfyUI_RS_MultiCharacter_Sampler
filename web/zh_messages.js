@@ -1,6 +1,22 @@
 // SPDX-License-Identifier: GPL-3.0-only
 // Simplified Chinese / Traditional Chinese (Taiwan) display text.
 export const zhMessages = {
+  "Baseline: no extra separation. Delay and decrement values are inactive.": [
+    "默认：不增加分离。延迟和递减值不生效。",
+    "預設：不增加分離。延遲和遞減值不生效。"
+  ],
+  "Custom: use delay_steps and decrement below.": [
+    "自定义：使用下方的延迟步数和递减值。",
+    "自訂：使用下方的延遲步數和遞減值。"
+  ],
+  "delay3 / delay6: hold exclusive boundaries 3 / 6 extra steps; decay follows the sampler. Custom values are inactive.": [
+    "delay3 / delay6：非重叠边界额外保持3 / 6步，递减幅度遵循采样器。不使用自定义值。",
+    "delay3 / delay6：非重疊邊界額外保持3 / 6步，遞減幅度遵循取樣器。不使用自訂值。"
+  ],
+  "Only non-overlapping character regions are protected. Overlap/background keep their schedule. Extra separation supports Anima, SDXL and SD1.5; it does not lock poses.": [
+    "只额外保护非重叠的角色区域，重叠和背景保持原有调度。额外分离支持Anima、SDXL和SD1.5，不锁定姿势。",
+    "只額外保護非重疊的角色區域，重疊和背景保持原有排程。額外分離支援Anima、SDXL和SD1.5，不鎖定姿勢。"
+  ],
   "Autosave OFF: connect an image save node to keep the result.": [
     "自动保存已关闭：请连接图像保存节点以保留结果。",
     "自動儲存已關閉：請連線影像儲存節點以保留結果。"

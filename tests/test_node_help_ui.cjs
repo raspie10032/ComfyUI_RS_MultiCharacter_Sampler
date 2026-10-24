@@ -13,6 +13,7 @@ const specs = {
   RSMultiCharacterDetailer: {show_advanced:false,autosave:true,save_format:'PNG'},
   RSMultiCharacterTaggerLoader: {device:'auto',model_name:'WD ViT v3',batch_size:4},
   RSMultiCharacterPrompts: {layout_mode:'points'},
+  RSMultiCharacterInteraction: {preset:'baseline',delay_steps:6,decrement:.2},
 };
 function makeClass(type, settings) { return class {
   constructor() { this.type=type;this.widgets=Object.entries(settings).map(([name,value])=>({name,value,type:'combo',options:{},callback(...args){this.lastArgs=args;return 42;}}));this.inputs=[];this.size=[340,200];this.configures=0; }
@@ -35,7 +36,7 @@ const help=node=>sandbox.nodeHelp(node).join('\n');
     assert.equal(panel.serialize,false);assert.equal(panel.options.serialize,false);assert.equal(panel.serializeValue(),undefined);
     for (const locale of ['en','ko','ja','zh','zh-TW']) {
       lang=locale;node.onDrawForeground();
-      assert.ok(help(node).length>80);
+      assert.ok(help(node).length>(type==='RSMultiCharacterInteraction'?40:80));
       for (const width of [340,600,1000]) {
         node.size[0]=width;node.onResize();
         const draw=[];panel.draw({save(){},restore(){},fillRect(){},fillText(text,x,y,max){draw.push({text,x,y,max});}},node,width,0);
@@ -48,6 +49,12 @@ const help=node=>sandbox.nodeHelp(node).join('\n');
     assert.deepEqual(node.widgets.filter(w=>w.serialize!==false).map(w=>[w.name,w.value]),before);
   }
   lang='en';
+  const interaction=nodes.RSMultiCharacterInteraction;
+  assert.match(help(interaction),/Baseline: no extra/);
+  choose(interaction,'preset','delay3');assert.match(help(interaction),/decay follows the sampler/);
+  choose(interaction,'preset','custom');assert.match(help(interaction),/Custom: use/);
+  interaction.inputs=[{name:'preset',link:1}];interaction.onConnectionsChange();
+  assert.match(help(interaction),/resolved at execution/);
   const prompt=nodes.RSMultiCharacterPrompt;
   assert.match(help(prompt),/Character: 1 \/ Text: 2/);assert.match(help(prompt),/Text needs a box/);
   assert.equal(choose(prompt,'character2_kind','character'),42);assert.deepEqual(get(prompt,'character2_kind').lastArgs,['event']);

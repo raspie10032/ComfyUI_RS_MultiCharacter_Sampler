@@ -5,7 +5,7 @@ import { app } from "../../scripts/app.js";
 const targets = new Set([
     "RSMultiCharacterPrompt", "RSMultiCharacterPosition", "RSMultiCharacterFinalize", "RSMultiCharacterMask", "RSMultiCharacterMaskDraw",
     "RSMultiCharacterSampler", "RSMultiCharacterLoadImage", "RSMultiCharacterDetailer",
-    "RSMultiCharacterTaggerLoader", "RSMultiCharacterPrompts", "RSMultiCharacterReference",
+    "RSMultiCharacterTaggerLoader", "RSMultiCharacterPrompts", "RSMultiCharacterReference", "RSMultiCharacterInteraction",
 ]);
 const locale = () => String(app.extensionManager?.setting?.get?.("Comfy.Locale")
     ?? app.ui?.settings?.getSettingValue?.("Comfy.Locale") ?? globalThis.navigator?.language ?? "en");
@@ -26,6 +26,15 @@ export function nodeHelp(node) {
         if (format === "WebP lossy") add("Lossy WebP changes pixels; quality controls compression, not generation.", "손실 WebP는 픽셀이 달라집니다. 품질 값은 생성 품질이 아닌 저장 압축률입니다.", "非可逆WebPは画素が変わります。品質値は生成品質ではなく保存時の圧縮設定です。");
     };
     switch (typeOf(node)) {
+        case "RSMultiCharacterInteraction":
+            if (v("preset", "baseline") === "baseline")
+                add("Baseline: no extra separation. Delay and decrement values are inactive.", "기본: 추가 분리를 적용하지 않습니다. 지연·감소 값은 사용하지 않습니다.", "Baseline：追加分離なし。遅延・減少値は使いません。");
+            else if (v("preset", "baseline") === "custom")
+                add("Custom: use delay_steps and decrement below.", "사용자 지정: 아래 지연 스텝·감소 값을 사용합니다.", "Custom：下の遅延ステップ・減少値を使います。");
+            else
+                add("delay3 / delay6: hold exclusive boundaries 3 / 6 extra steps; decay follows the sampler. Custom values are inactive.", "delay3·delay6: 비겹침 경계를 3·6스텝 더 유지하고 감소폭은 샘플러를 따릅니다. 사용자 지정 값은 사용하지 않습니다.", "delay3・delay6：非重複境界を3・6ステップ長く保ち、減少幅はサンプラーに従います。Custom値は使いません。");
+            add("Only non-overlapping character regions are protected. Overlap/background keep their schedule. Extra separation supports Anima, SDXL and SD1.5; it does not lock poses.", "겹치지 않는 캐릭터 영역만 더 보호합니다. 겹침·배경의 일정은 유지됩니다. 추가 분리는 Anima·SDXL·SD1.5를 지원하며 자세 고정은 아닙니다.", "非重複の人物領域だけを追加保護。重複・背景の予定は維持します。追加分離はAnima・SDXL・SD1.5対応で、ポーズ固定ではありません。");
+            break;
         case "RSMultiCharacterReference":
             add("Experimental support · NOT RECOMMENDED", "실험적 지원 · 권장하지 않음", "実験的対応・非推奨");
             add(`Character ${v("character_id", 1)} · ${v("resolution", 384)}px · strength ${v("strength", .6)}`, `캐릭터 ${v("character_id", 1)} · ${v("resolution", 384)}px · 강도 ${v("strength", .6)}`, `キャラクター${v("character_id", 1)} · ${v("resolution", 384)}px · 強度${v("strength", .6)}`);

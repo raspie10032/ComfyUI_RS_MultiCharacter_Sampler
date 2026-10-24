@@ -111,7 +111,9 @@ class RSMultiCharacterMaskDraw:
                     region = prepare_mask(raster, margin=margin, offset_x=layer.get("x", 0),
                                           offset_y=layer.get("y", 0), scale=layer.get("scale", 1))
                     populated = True
-            pipe = update_slot(pipe, i, region_mask=region)
+            # The painted table replaces pose-derived masks as well. Keeping
+            # their part labels would guide the old pose under the new drawing.
+            pipe = update_slot(pipe, i, region_mask=region, body_parts=(), body_part_strength=0.)
         if not populated:
             raise ValueError("Paint at least one character region. / 캐릭터 번호를 선택하고 영역을 칠해 주세요. / キャラクター番号を選んで領域を塗ってください。")
         validate_mask_budget(pipe.slots)

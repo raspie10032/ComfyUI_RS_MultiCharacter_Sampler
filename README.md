@@ -132,6 +132,6 @@ python -m unittest discover -s tests -p 'test_*.py' -v
 node tests/test_ui.cjs
 ```
 
-Set `RS_MC_TEST_COMFYUI` to a ComfyUI checkout for native integrations. The [CI workflow](.github/workflows/tests.yml) lists all eleven JavaScript UI suites and the core/OS matrix.
+Set `RS_MC_TEST_COMFYUI` to a ComfyUI checkout for native integrations. The [CI workflow](.github/workflows/tests.yml) lists all twelve JavaScript UI suites and the core/OS matrix.
 
 GPL-3.0-only. See [COPYING](COPYING), [third-party notices](THIRD_PARTY_NOTICES.md) and [source lineage](docs/source-lineage.json).

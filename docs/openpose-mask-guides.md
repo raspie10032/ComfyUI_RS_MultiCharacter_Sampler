@@ -27,6 +27,8 @@ Input coordinates must be pixels, with a `people` array containing COCO-18 (54 v
 | delay6 | Keep exclusive boundaries for 6 additional steps |
 | custom | Choose the additional hold steps and decay amount |
 
+Only **custom** uses the `delay_steps` and `decrement` controls; they are folded for fixed presets while their saved values remain intact. `delay3` / `delay6` use the sampler's boundary decrement, and `baseline` adds no extra protection. The node's panel explains the selected preset. Connected preset values are resolved at execution.
+
 The sampler's boundary hold and decay settings still govern the ordinary schedule. This extra path is implemented for Anima/SDXL and experimental SD1.5. Other families report a clear error when additional separation is requested. The baseline preset and automatic masks remain usable with existing model families. Body-part name guidance is limited to Anima/SDXL.
 
 ## Preview, saving and limits
@@ -34,6 +36,8 @@ The sampler's boundary hold and decay settings still govern the ordinary schedul
 The pose node shows numbered person masks. Position and Finalize show their transformed placement. Uploaded PNG selection, thickness changes and direct JSON edits update the diagram before generation. For a connected `IMAGE`, JSON, `POSE_KEYPOINT`, or connected thickness/confidence/canvas controls, **run the graph once**: its executed masks populate the diagram and position editor without evaluating arbitrary upstream nodes in the browser. You can then edit unconnected thickness/confidence controls and move/resize the masks. Changing the upstream source or its connection hides the old masks and requests another execution. Execution snapshots are temporary; reloaded workflows with connected inputs need another execution. ComfyUI's intermediate-output replay also supplies the masks when that execution is fully cached.
 
 Connect `pose_preview` to Preview Image to inspect joints and person masks; `person_masks` outputs a mask batch. Automatic masks and part regions are preserved in the extension's PNG/WebP metadata, together with interaction settings. The image loader restores the effective placed masks; metadata is not a saved skeleton editor.
+
+The Detailer also preserves the current part regions, their strengths and interaction settings in its output pipe and PNG/WebP, including when its input comes directly from Finalize. A later Mask Drawing replaces the whole mask table and clears old pose-part guidance, including blank rows; it never applies the old body-part regions under a new painted silhouette.
 
 These controls do not guarantee exact joint angles, correct hand contact, character identity or anatomy. The SDXL 20 OFF / 20 ON comparison did **not** demonstrate improved high-five pose accuracy; names can change clothing and appearance. Part-name guidance therefore defaults OFF. Keep using character prompts and suitable model-specific settings.
 

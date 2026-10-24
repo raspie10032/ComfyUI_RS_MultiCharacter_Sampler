@@ -192,6 +192,41 @@ class DetailerTests(unittest.TestCase):
                         enriched = m.pipe_from_record(restored)
         self.assertEqual(len(json.loads(enriched.generation_json)["detail_history"]),3)
 
+    def test_detail_metadata_keeps_current_pose_and_interaction_from_direct_pipe(self):
+        from dataclasses import replace
+        from importlib import import_module
+        masks = import_module(pkg + '.region_mask')
+        region = masks.prepare_mask(torch.ones(48, 64), margin=0)
+        character = replace(self.pipe.characters[0], region_mask=region,
+                            body_parts=(('head', region),), body_part_strength=.2)
+        interaction = json.dumps(dict(preset='delay6', delay_steps=6, decrement=.2))
+        direct = replace(self.pipe, characters=(character,), interaction_json=interaction)
+        # The returned pipe must work for another sampler/detail pass before saving.
+        detailed = self.run_detail(character_pipe=direct)['result'][2]
+        self.assertEqual(detailed.characters, direct.characters)
+        self.assertEqual(detailed.interaction_json, interaction)
+        stale = m.build_record(self.pipe, {'seed': 55, 'steps': 30, 'cfg': 4.,
+            'width': 64, 'height': 48, 'sampler_name': 'euler_ancestral',
+            'scheduler': 'sgm_uniform'}, {}, [], {'spatial_slots': 2})['rs_multicharacter']
+        stale.update(body_parts=[[], []], body_part_strengths=[0., 0.],
+                     interaction=dict(preset='baseline', delay_steps=6, decrement=.2))
+        for source in (direct, replace(direct, generation_json=json.dumps(stale))):
+            record = d.detail_record(source, 64, 48, {'seed': 9}, {}, {})
+            with tempfile.TemporaryDirectory() as folder:
+                for fmt in m.FORMATS:
+                    path = m.save_image(Image.new('RGB', (64,48)), Path(folder)/'detail', record, fmt)
+                    with Image.open(path) as image:
+                        restored = m.pipe_from_record(m.read_record(image))
+                    self.assertEqual(restored.characters, source.characters)
+                    self.assertEqual(json.loads(restored.interaction_json), json.loads(interaction))
+            self.assertEqual(len(record['rs_multicharacter']['detail_history']), 1)
+
+        cleared = replace(direct, characters=(self.pipe.characters[0],), interaction_json=None,
+                          generation_json=json.dumps(stale))
+        restored = m.pipe_from_record(d.detail_record(cleared, 64, 48, {'seed': 9}, {}, {}))
+        self.assertEqual(restored.characters, cleared.characters)
+        self.assertIsNone(restored.interaction_json)
+
     def test_crop_sampler_supports_2d_and_anima_single_frame_latents(self):
         for video in (False,True):
             class VAE:

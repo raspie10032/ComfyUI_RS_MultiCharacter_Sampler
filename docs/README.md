@@ -32,6 +32,7 @@ and limits before generalizing its result.
 | Scope | Reports |
 | --- | --- |
 | Core/API compatibility and CI | [Compatibility snapshots](compatibility.md) · [CI workflow](../.github/workflows/tests.yml) |
+| Node-page review and regression fixes | [comfy.icu: all 15 nodes, findings and verification](comfyicu-audit-20261025.md) |
 | Initial Anima generation and metadata | [Original validation](validation.md) |
 | SDXL and SD1.5 generation | [SDXL](sdxl-validation.md) · [SD1.5: unstable](sd15-validation.md) |
 | Krea 2, MOSS and FLUX generation | [Krea 2 / MOSS](krea-moss-validation.md) · [MOSS acceleration](moss-8step.md) · [FLUX variant matrix](flux-validation.md) |
