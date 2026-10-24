@@ -42,7 +42,7 @@ const covers = (expected, actual, key) => {
 for (const locale of ['zh','zh-TW']) {
   const catalog = JSON.parse(fs.readFileSync(`locales/${locale}/nodeDefs.json`,'utf8'));
   covers(base, catalog, locale);
-  assert.equal(Object.keys(catalog).length, 15);
+  assert.equal(Object.keys(catalog).length, 16);
   for (const [id, def] of Object.entries(catalog)) {
     assert.match(def.display_name, /[\u4e00-\u9fff]/u, id);
     assert.doesNotMatch(JSON.stringify(def), /[\uac00-\ud7af\u3041-\u3096\u30a1-\u30fa]/u, id);
@@ -61,4 +61,4 @@ for (const file of ['README.zh-CN.md','README.zh-TW.md']) {
   for (const term of ['moss_native','regional','character_pipe','use_image_settings','RS_MC_TEST_COMFYUI']) assert.ok(text.includes(term), `${file}: missing ${term}`);
   assert.equal((text.match(/^## /gm)??[]).length, (fs.readFileSync('README.md','utf8').match(/^## /gm)??[]).length);
 }
-console.log(`Chinese: 15 nodes, ${Object.keys(zhMessages).length} messages, locale aliases, placeholders, 18 presets, readable panels and both README links passed`);
+console.log(`Chinese: 16 nodes, ${Object.keys(zhMessages).length} messages, locale aliases, placeholders, 18 presets, readable panels and both README links passed`);

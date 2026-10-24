@@ -8,6 +8,8 @@ Regional generation and local detailing for ComfyUI. Give each character a promp
 
 ![Two-character Anima example without LoRA](examples/two-characters-result.png)
 
+**Development candidate:** [RS Camera Control](docs/camera-control.md) adds smoothly blended camera captions to shared RS/NAI contexts, with an interactive view/weight editor. It guides captions; it does not rotate masks or enforce a 3D camera.
+
 ## What you can do
 
 - Write a shared scene and separate character prompts, with up to **10 character/text regions**.

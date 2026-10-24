@@ -1771,5 +1771,44 @@
         "name": "構建管線"
       }
     }
+  },
+  "RSCameraControl": {
+    "display_name": "RS 相機視角",
+    "description": "使用視角標籤進行引導，並非3D相機。不會改變角色遮罩和座標。繼承提示詞時請連接上下文輸出。",
+    "inputs": {
+      "azimuth": {
+        "name": "水平角度"
+      },
+      "elevation": {
+        "name": "俯仰角度"
+      },
+      "distance": {
+        "name": "拍攝距離"
+      },
+      "roll": {
+        "name": "傾斜"
+      },
+      "strength": {
+        "name": "視角強度"
+      },
+      "weighting": {
+        "name": "權重格式"
+      },
+      "prompt_syntax": {
+        "name": "提示詞語法"
+      },
+      "enabled": {
+        "name": "啟用"
+      },
+      "context": {
+        "name": "共用上下文"
+      },
+      "base_prompt": {
+        "name": "場景提示詞"
+      },
+      "scope": {
+        "name": "套用範圍"
+      }
+    }
   }
 }

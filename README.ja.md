@@ -8,6 +8,8 @@ ComfyUIでキャラクター別のプロンプト・LoRA・領域を設定して
 
 ![LoRAなしのAnima 2人生成例](examples/two-characters-result.png)
 
+**開発候補:** [RS Camera Control](docs/camera-control.md) はRS・NAI共通コンテキストに視点タグを追加します。方向・高さ・距離と重み曲線をノード内で確認できます。マスク回転や3Dカメラの強制ではありません。
+
 ## 主な機能
 
 - 共通の場面と人物別の文章を分け、**キャラクター・文字を合計10領域まで**設定します。

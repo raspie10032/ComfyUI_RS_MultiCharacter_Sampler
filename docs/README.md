@@ -11,6 +11,7 @@ at a particular version; current usage belongs in the feature guides below.
 | Task | Guide | Examples |
 | --- | --- | --- |
 | Build character settings | [Modular Prompt / LoRA / Position / Finalize](modular-characters.md) | [Two-character Anima](../examples/modular/two-characters-anima.json) |
+| Add camera captions | [Shared RS/NAI Camera Control](camera-control.md) | View/framing captions; fixed masks |
 | Choose starting settings | [Model presets](model-presets.md) · [Anima sampler/scheduler comparisons](sampler-combinations.md) | [Model preset catalog](../web/model_presets.json) |
 | Use quantized models | [FP8/INT8 compatibility and limits](quantization-compatibility.md) · [GGUF setup](gguf-compatibility.md) | Use the matching model loader |
 | Apply character LoRAs | [LoRA setup and cost](regional-lora.md) · [Normal/Precision modes](shared-lora-experiment.md) · [Adapter formats and limits](adapter-formats.md) | [Character LoRA](../examples/character-lora/README.md) |

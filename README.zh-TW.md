@@ -8,6 +8,8 @@
 
 ![未使用 LoRA 的 Anima 雙角色示例](examples/two-characters-result.png)
 
+**開發候選功能：** [RS Camera Control](docs/camera-control.md) 向RS與NAI共用上下文加入視角標籤，可在節點內調整方向、高度、距離並查看權重曲線。不旋轉遮罩，也不強制三維相機。
+
 ## 主要功能
 
 - 公共場景提示詞與獨立角色提示詞，最多 **10 個角色/文字區域**。

@@ -10,8 +10,10 @@ from .detector_bundle import RSMultiCharacterDetectionLoader
 from .wd_tagger import RSMultiCharacterTaggerLoader
 from .mask_drawing import RSMultiCharacterMaskDraw
 from .image_reference import RSMultiCharacterReference
+from .camera_control import RSCameraControl
 
 NODE_CLASS_MAPPINGS = {
+    "RSCameraControl": RSCameraControl,
     "RSMultiCharacterPoseMasks": RSMultiCharacterPoseMasks,
     "RSMultiCharacterInteraction": RSMultiCharacterInteraction,
     "RSMultiCharacterReference": RSMultiCharacterReference,
@@ -29,6 +31,7 @@ NODE_CLASS_MAPPINGS = {
     "RSMultiCharacterTaggerLoader": RSMultiCharacterTaggerLoader,
 }
 NODE_DISPLAY_NAME_MAPPINGS = {
+    "RSCameraControl": "RS Camera Control",
     "RSMultiCharacterPoseMasks": "RS OpenPose Masks (Experimental)",
     "RSMultiCharacterInteraction": "RS Character Interaction",
     "RSMultiCharacterReference": "RS Image Reference (Experimental · Not Recommended)",
