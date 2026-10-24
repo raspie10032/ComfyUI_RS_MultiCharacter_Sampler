@@ -95,6 +95,20 @@ class CharacterPipe:
     text_regions: tuple = ()
     lora_application_mode: str = field(default="precision", kw_only=True)
     interaction_json: str | None = field(default=None, kw_only=True)
+    # Converted character-only pipes need not share the receiver text syntax.
+    character_syntax: str | None = field(default=None, kw_only=True)
+
+    nai_settings_json: str | None = field(default=None, kw_only=True)
+
+    def __len__(self):
+        return len(self.characters)
+
+    def as_local_character_pipe(self):
+        return self
+
+    def rs_context_record(self):
+        from .metadata import pipe_record
+        return pipe_record(self)
 
     @property
     def regions(self):
@@ -102,6 +116,8 @@ class CharacterPipe:
 
     def __post_init__(self):
         validate_lora_mode(self.lora_application_mode)
+        if self.character_syntax not in (None, "NovelAI", "ComfyUI"):
+            raise ValueError("Unsupported character prompt syntax.")
         if not isinstance(self.characters, tuple) or not isinstance(self.text_regions, tuple) or not 1 <= len(self.regions) <= 10:
             raise ValueError("Use 1–10 active regions in total. / 활성 캐릭터와 텍스트 영역을 합쳐 1~10개 입력해 주세요.")
         if any(type(c) is not Character or not c.prompt.strip() for c in self.characters):
@@ -129,7 +145,7 @@ class RSMultiCharacterPrompts:
                 f"character{i}_enable": ("BOOLEAN", {"default": True}),
                 f"character{i}": ("STRING", {"default": "", "multiline": True}),
                 f"character{i}_uc": ("STRING", {"default": "", "multiline": True,
-                    "tooltip": "Reserved for metadata round trips. Regional sampling supports a common negative only; nonempty character negatives give an explicit error."}),
+                    "tooltip": "Sampler merges character negatives into its common negative branch. Detailer uses each matched character's negative separately."}),
                 f"character{i}_x": ("FLOAT", {"default": .5, "min": 0., "max": 1., "step": .05}),
                 f"character{i}_y": ("FLOAT", {"default": .5, "min": 0., "max": 1., "step": .05}),
             })

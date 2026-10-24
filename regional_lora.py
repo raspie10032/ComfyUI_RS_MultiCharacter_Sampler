@@ -137,8 +137,13 @@ class RegionalLoras:
         result = [], []
         for hook, mask in groups:
             for source, dest in zip((positive, negative), result):
-                cond = comfy.hooks.set_mask_for_conditioning(source, mask, "default", 1.)
-                dest.extend(comfy.hooks.set_hooks_for_conditioning(cond, hook))
+                for tokens, meta in source:
+                    own = meta.get('mask')
+                    combined = mask if own is None else own * mask.to(own)
+                    if not bool(combined.any()):
+                        continue
+                    cond = comfy.hooks.set_mask_for_conditioning([[tokens, meta]], combined, "default", meta.get('mask_strength', 1.))
+                    dest.extend(comfy.hooks.set_hooks_for_conditioning(cond, hook))
         return result
 
 

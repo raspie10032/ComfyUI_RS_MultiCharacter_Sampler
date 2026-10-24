@@ -69,6 +69,8 @@ jobs:
         run: node tests/test_builder_ui.cjs
       - name: Localized selection help and serialization
         run: node tests/test_node_help_ui.cjs
+      - name: Metadata character count notice
+        run: node tests/test_metadata_notice_ui.cjs
       - name: Interaction preset controls and help ordering
         run: node tests/test_interaction_ui.cjs
       - name: Delayed localized control tooltips

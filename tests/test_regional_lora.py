@@ -4,6 +4,7 @@ from pathlib import Path
 import sys
 import unittest
 from dataclasses import replace
+from types import SimpleNamespace
 
 import torch
 sys.path.insert(0,str(Path(__file__).resolve().parents[2]))
@@ -12,6 +13,24 @@ c,l,m,n,r=[importlib.import_module(PKG+'.'+s) for s in ('characters','layout','m
 
 
 class RegionalLoraTests(unittest.TestCase):
+    def test_precision_hooks_intersect_existing_negative_region_masks(self):
+        import comfy.hooks
+        hooks = [comfy.hooks.HookGroup(), comfy.hooks.HookGroup()]
+        for hook in hooks:
+            hook.add(comfy.hooks.WeightHook())
+        plan = object.__new__(r.RegionalLoras)
+        plan.hooks = hooks; plan.bypasses = {}
+        regions = (c.Character('a'), c.Character('b'))
+        masks = torch.zeros(2,4,4); masks[0,:,:2]=1; masks[1,:,2:]=1
+        positive = [[torch.zeros(1,2,3),{}]]
+        negative = [[torch.zeros(1,2,3),{'mask': masks[0].unsqueeze(0), 'mask_strength':.8}]]
+        model = SimpleNamespace()
+        _, result = plan.condition_pair(model, positive, negative, masks, regions, 'precision')
+        self.assertEqual(len(result),1)
+        self.assertEqual(result[0][1]['mask_strength'],.8)
+        torch.testing.assert_close(result[0][1]['mask'],masks[0].unsqueeze(0))
+        self.assertIs(result[0][1]['hooks'],hooks[0])
+
     def test_optional_old_inputs_and_hidden_slots_do_not_apply_lora(self):
         p,=c.RSMultiCharacterPrompts().build(1,character1='woman',character2='hidden',character2_lora='missing.safetensors')
         self.assertEqual(p.characters[0].lora_name,'None')

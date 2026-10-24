@@ -45,6 +45,12 @@ NODE_DISPLAY_NAME_MAPPINGS = {
     "RSMultiCharacterDetectionLoader": "RS Detection Combine Loader",
     "RSMultiCharacterTaggerLoader": "RS Character Tagger Loader",
 }
+from .pipe_compat import shared_pipe_inputs
+from . import metadata_notice
+
+for node_class in NODE_CLASS_MAPPINGS.values():
+    shared_pipe_inputs(node_class)
+
 WEB_DIRECTORY = "./web"
 __version__ = "1.0.4"
 

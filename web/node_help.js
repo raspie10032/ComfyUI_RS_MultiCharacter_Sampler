@@ -94,6 +94,12 @@ export function nodeHelp(node) {
             break;
         case "RSMultiCharacterLoadImage":
             add("Image load · restore the character pipe", "이미지 로드 · 캐릭터 파이프 복원", "画像読込 · キャラクターパイプの復元");
+            if (node._rsMetadataNotice?.truncated) {
+                const count = node._rsMetadataNotice.character_count;
+                add(`Metadata has ${count} characters. Local nodes use 1–10; source data stays intact.`,
+                    `메타데이터 캐릭터 ${count}명: 로컬은 1~10번을 사용하며 원본 데이터는 보존합니다.`,
+                    `メタデータは${count}人です。ローカルは1～10番を使用し、元データは保持します。`);
+            }
             add("Reads supported PNG/WebP character metadata, including per-slot LoRAs and Normal/Precision mode. Use the generation info output to check what was restored.", "지원하는 PNG/WebP 메타데이터에서 캐릭터·슬롯별 LoRA·일반/정밀 방식을 복원합니다. 생성 정보 출력에서 복원 내용을 확인하세요.", "対応PNG/WebPのメタデータからキャラクター・枠別LoRA・通常/精密モードを復元します。生成情報出力で内容を確認してください。");
             add("Files are not embedded: base model and global LoRAs must be connected manually. Missing character LoRAs cause an error at sampling. Enable sampler use_image_settings to restore sampling too.", "모델 파일 자체는 포함되지 않습니다. 기본 모델·전역 LoRA는 직접 연결하고, 캐릭터 LoRA 파일이 없으면 생성 시 오류가 납니다. 생성 설정까지 쓰려면 샘플러의 이미지 설정 복원을 켜세요.", "モデルファイル自体は含まれません。基本モデル・全体LoRAは手動接続し、キャラクターLoRAがなければ生成時にエラーになります。生成設定も使う場合はサンプラーの画像設定復元をオンにしてください。");
             break;

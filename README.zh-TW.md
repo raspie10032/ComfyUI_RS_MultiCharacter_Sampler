@@ -57,6 +57,8 @@ git clone https://github.com/raspie10032/ComfyUI_RS_MultiCharacter_Sampler.git
 
 ## 模型與示例
 
+**RS NAI 互通：** 更新兩個擴充套件後，角色與上下文管線、偵測組合載入器及標籤器可相互連接。共用提示詞與座標，並在往返時保留本機遮罩、LoRA 和各後端的生成設定。[行為與限制](docs/shared-nai-context.md)。
+
 下列配置是起點，並非通用的品質保證。FLUX 各變體有不同工作流與取樣要求。
 
 | 模型系列 | 工作流 | 起始設定與範圍 |

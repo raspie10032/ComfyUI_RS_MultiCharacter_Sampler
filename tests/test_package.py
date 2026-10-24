@@ -33,7 +33,8 @@ class PackageTests(unittest.TestCase):
         self.assertIn("RSMultiCharacterPoseMasks", pkg.NODE_CLASS_MAPPINGS)
         self.assertIn("RSMultiCharacterInteraction", pkg.NODE_CLASS_MAPPINGS)
         self.assertFalse(any("NAI_API" in key for key in sys.modules))
-        self.assertEqual(len(c.RSMultiCharacterPrompts.INPUT_TYPES()["required"]), 51)
+        with patch.dict(sys.modules, {"folder_paths": SimpleNamespace(get_filename_list=lambda _: [])}):
+            self.assertEqual(len(c.RSMultiCharacterPrompts.INPUT_TYPES()["required"]), 51)
 
     def test_hidden_disabled_empty_slots_never_enter_pipe(self):
         values = {f"character{i}": f"person {i}" for i in range(1, 11)}
@@ -85,7 +86,7 @@ class PackageTests(unittest.TestCase):
         record = m.captions(pipe)
         restored = m.pipe_from_record(record)
         self.assertEqual(restored.characters,pipe.characters)
-        self.assertEqual(restored.syntax,"NovelAI")
+        self.assertEqual(restored.syntax,"ComfyUI")
         self.assertIsNone(restored.generation_json)
 
     def test_flux_guidance_round_trip(self):

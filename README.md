@@ -55,6 +55,8 @@ Autosave writes to `output/RS_MultiCharacter/` as PNG, lossless WebP or lossy We
 
 ## Models and examples
 
+**RS NAI interoperability:** share character/context pipes, detection combine loaders and taggers with the updated RS NAI extension. Prompts and positions transfer; local masks/LoRAs and each backend's settings survive round trips. [Behavior and limits](docs/shared-nai-context.md).
+
 These are example starting points, not universal quality settings. FLUX variants have separate workflows and sampling requirements.
 
 | Model family | Workflow | Starting point and scope |

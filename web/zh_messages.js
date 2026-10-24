@@ -1,6 +1,10 @@
 // SPDX-License-Identifier: GPL-3.0-only
 // Simplified Chinese / Traditional Chinese (Taiwan) display text.
 export const zhMessages = {
+  "Metadata has {0} characters. Local nodes use 1–10; source data stays intact.": [
+    "元数据含{0}个角色。本地节点使用第1–10个，原始数据会保留。",
+    "後設資料含{0}個角色。本機節點使用第1–10個，原始資料會保留。"
+  ],
   "Baseline: no extra separation. Delay and decrement values are inactive.": [
     "默认：不增加分离。延迟和递减值不生效。",
     "預設：不增加分離。延遲和遞減值不生效。"

@@ -10,19 +10,26 @@ import torch.nn.functional as F
 
 from .characters import CharacterPipe, PIPE_TYPE
 from .detection import RepairedDetector, _detect, _context_crop, _crop_box, _native_crop_mask
-from .detector_bundle import DetectionBundle
+from .detector_bundle import DetectionBundle, detection_bundle
 from .detailer_matching import Match, match_characters, selected_prompts
 from .image_utils import tensor_to_pil, validate_single_image
 from .metadata import FORMATS, captions, graph_assets, object_json, save_image, validate_format, text_region_records
-from .prompt_syntax import parse_naiv4, to_comfyui
 from .runtime_control import check_interrupted
 from .regional_lora import RegionalLoras, active_lora, lora_records
 
 
 def _prompts(pipe):
-    convert = (lambda text: to_comfyui(parse_naiv4(text))) if pipe.syntax == "NovelAI" else (lambda text: text)
-    chars = [SimpleNamespace(prompt=convert(c.prompt), uc=convert(c.uc)) for c in pipe.characters]
-    return convert(pipe.prompt or ""), convert(pipe.negative_prompt or ""), chars
+    from .nai_prompts import local_prompts
+    if pipe.syntax == "NovelAI":
+        prompt, negative = local_prompts(pipe.prompt or "", pipe.negative_prompt or "")
+    else:
+        prompt, negative = pipe.prompt or "", pipe.negative_prompt or ""
+    convert = local_prompts if (pipe.character_syntax or pipe.syntax) == "NovelAI" else lambda p, n: (p, n)
+    chars = []
+    for character in pipe.characters:
+        positive, uc = convert(character.prompt, character.uc)
+        chars.append(SimpleNamespace(prompt=positive, uc=uc))
+    return prompt, negative, chars
 
 
 def _resize(image, size):
@@ -111,6 +118,11 @@ def detail_record(pipe, width, height, settings, assets, report):
     else:
         from .interaction import interaction_settings
         local["interaction"] = interaction_settings(pipe.interaction_json)
+    if pipe.nai_settings_json:
+        local["nai_context"] = object_json(pipe.nai_settings_json)
+    else:
+        local.pop("nai_context", None)
+    local["character_syntax"] = pipe.character_syntax
     original = local.get("settings", {})
     record = {"prompt": pipe.prompt or "", "uc": pipe.negative_prompt or "", "width": width, "height": height,
               **captions(pipe), "rs_multicharacter": local}
@@ -127,12 +139,12 @@ class RSMultiCharacterDetailer:
         from comfy.samplers import KSampler
         return {"required": {
             "image": ("IMAGE",), "model": ("MODEL",), "clip": ("CLIP",), "vae": ("VAE",),
-            "character_pipe": (PIPE_TYPE,), "detectors": ("RS_MC_DETECTION_BUNDLE",),
+            "character_pipe": ("RS_MC_CHARACTER_PIPE,NAI_CONTEXT",), "detectors": ("RS_MC_DETECTION_BUNDLE,NAI_DETECTION_BUNDLE",),
             "denoise": ("FLOAT", {"default": .25, "min": .01, "max": 1., "step": .01}),
             "seed": ("INT", {"default": 0, "min": 0, "max": 0xffffffffffffffff, "control_after_generate": True}),
             "autosave": ("BOOLEAN", {"default": True}),
         }, "optional": {
-            "tagger": ("RS_MC_TAGGER", {"tooltip": "Required for multiple characters. Scores only select your original prompt; ambiguous regions are preserved."}),
+            "tagger": ("RS_MC_TAGGER,RS_WD_TAGGER", {"tooltip": "Required for multiple characters. Scores only select your original prompt; ambiguous regions are preserved."}),
             "show_advanced": ("BOOLEAN", {"default": False}),
             "steps": ("INT", {"default": 20, "min": 1, "max": 100}),
             "cfg": ("FLOAT", {"default": 4., "min": 0., "max": 30., "step": .1}),
@@ -183,6 +195,7 @@ class RSMultiCharacterDetailer:
         validate_format(save_format, webp_quality)
         if not isinstance(character_pipe, CharacterPipe):
             raise ValueError("Connect an RS MultiCharacter pipe. / 전용 캐릭터 파이프를 연결해 주세요.")
+        detectors = detection_bundle(detectors)
         if not isinstance(detectors, DetectionBundle) or (detectors.segm_detector is None and detectors.bbox_detector is None):
             raise ValueError("Select SEGM or BBOX in RS Detection Loader. SAM alone cannot find regions. / SEGM 또는 BBOX를 선택해 주세요.")
         if not character_pipe.characters:
@@ -262,7 +275,8 @@ class RSMultiCharacterDetailer:
         enriched = CharacterPipe(character_pipe.characters, character_pipe.prompt, character_pipe.negative_prompt,
                                  character_pipe.syntax, json.dumps(record["rs_multicharacter"], ensure_ascii=True, allow_nan=False),
                                  text_regions=character_pipe.text_regions, lora_application_mode=character_pipe.lora_application_mode,
-                                 interaction_json=character_pipe.interaction_json)
+                                 interaction_json=character_pipe.interaction_json,
+            character_syntax=character_pipe.character_syntax, nai_settings_json=character_pipe.nai_settings_json)
         text = f"{edited_count}/{len(regions)} regions corrected · {report['skipped']} preserved"
         ui = {"text": [text], "rs_mc_report": [report]}
         if autosave:

@@ -12,6 +12,7 @@ from .characters import CharacterPipe, PIPE_TYPE, TextRegion
 from .layout import effective_centers, character_masks, moss_layout_prompt
 from .metadata import (FORMATS, build_record, graph_assets, pipe_from_record,
                        read_record, save_image, validate_format, object_json)
+from .pipe_compat import sampling_pipe, regional_negatives
 from .prompt_syntax import parse_naiv4, to_comfyui
 from .region_mask import explicit_region
 
@@ -61,7 +62,7 @@ class RSMultiCharacterSampler:
         from comfy.samplers import KSampler
         return {"required": {
             "model": ("MODEL",), "clip": ("CLIP",), "vae": ("VAE",),
-            "character_pipe": (PIPE_TYPE,),
+            "character_pipe": ("RS_MC_CHARACTER_PIPE,NAI_CONTEXT",),
             "prompt": ("STRING", {"default": "masterpiece, best quality, 5girls, university campus", "multiline": True}),
             "negative_prompt": ("STRING", {"default": "low quality, bad anatomy, text, watermark", "multiline": True}),
             "width": ("INT", {"default": 1536, "min": 64, "max": 4096, "step": 16}),
@@ -137,11 +138,9 @@ class RSMultiCharacterSampler:
         transformer_options = model.model_options.get("transformer_options", {})
         if any(transformer_options.get(k) for k in ("patches", "patches_replace", "optimized_attention_override")):
             raise ValueError("Use an unpatched model, optionally with ordinary LoRA loaders. Other attention patches are unsupported.")
-        if any(c.uc.strip() for c in character_pipe.regions):
-            raise ValueError("Character-specific negatives are not supported in this beta. Move them to the common negative prompt. / 캐릭터별 네거티브는 현재 미지원입니다. 공통 네거티브에 입력해 주세요.")
         settings = {k: v for k, v in locals().items() if k in DEFAULTS or k == "seed"}
-        if character_pipe.prompt is not None:
-            prompt, negative_prompt, prompt_syntax = character_pipe.prompt, character_pipe.negative_prompt, character_pipe.syntax
+        resolved_pipe = sampling_pipe(character_pipe, prompt, negative_prompt, prompt_syntax)
+        prompt, negative_prompt, prompt_syntax = resolved_pipe.prompt, resolved_pipe.negative_prompt, resolved_pipe.syntax
         if use_image_settings:
             if character_pipe.generation_json is None:
                 raise ValueError("No local settings in this pipe. Disable 'use_image_settings' and use the sampler settings.")
@@ -166,9 +165,7 @@ class RSMultiCharacterSampler:
         validate_format(save_format, webp_quality)
         if not isinstance(prompt, str) or not isinstance(negative_prompt, str) or prompt_syntax not in ("ComfyUI", "NovelAI"):
             raise ValueError("Choose valid prompt text and syntax.")
-        pipe = CharacterPipe(character_pipe.characters, prompt, negative_prompt, prompt_syntax,
-                             text_regions=character_pipe.text_regions, lora_application_mode=lora_application_mode,
-                             interaction_json=character_pipe.interaction_json)
+        pipe = resolved_pipe
         from .image_reference import prepare_model_references
         model = prepare_model_references(model, clip, vae, pipe, family, layout_method, unique_id)
         centers, moved = effective_centers(pipe.regions)
@@ -178,7 +175,7 @@ class RSMultiCharacterSampler:
         if native_prompt is not None and prompt_syntax != "ComfyUI":
             raise ValueError("MOSS native layout uses literal captions. Choose ComfyUI syntax and remove prompt-weight syntax. / MOSS 레이아웃에는 가중치 문법 없는 일반 문장을 사용해 주세요.")
         masks = character_masks(pipe.regions, centers, settings["width"], settings["height"], settings["region_feather"])
-        convert = (lambda text: to_comfyui(parse_naiv4(text))) if prompt_syntax == "NovelAI" else (lambda text: text)
+        convert = lambda text: text
 
         from .regional_lora import RegionalLoras, active_lora
         loras = RegionalLoras(model, clip, pipe.characters) if any(active_lora(c) for c in pipe.characters) else None
@@ -229,11 +226,13 @@ class RSMultiCharacterSampler:
                     meta = {**meta, "guidance": flux_guidance}
             return [[t, dict(meta)]]
 
-        positive, negative = encode(native_prompt if native_prompt is not None else prompt), encode(negative_prompt)
+        positive = encode(native_prompt if native_prompt is not None else prompt)
+        negative = regional_negatives(encode, negative_prompt, pipe.regions, masks, loras.clips if loras else None)
         conditions = [encode(text_region_caption(c, convert, family not in ("Krea2", "MOSS", "FLUX1", "FLUX2", "FLUX3")), converted=True)[0]
                       if isinstance(c, TextRegion) else encode(c.prompt, encoder=loras.clips[i] if loras else clip, reference_slot=i)[0]
                       for i, c in enumerate(pipe.regions)] if native_prompt is None else []
-        audit = {"layout_method": layout_method,
+        audit = {"layout_method": layout_method, "negative_policy": "regional" if any(c.uc.strip() for c in pipe.regions) else "common",
+                 "effective_negative_prompt": negative_prompt,
                  "region_geometry": "masks" if all(c.region_mask is not None for c in pipe.regions) else
                                     "mixed" if any(c.region_mask is not None for c in pipe.regions) else
                                     "boxes" if all(geometry) else "mixed" if any(geometry) else "points",
@@ -329,10 +328,13 @@ class RSMultiCharacterSampler:
         record["rs_multicharacter"]["lora_application"] = audit["lora_application"]
         enriched = CharacterPipe(pipe.characters, prompt, negative_prompt, prompt_syntax,
             json.dumps(record["rs_multicharacter"], ensure_ascii=True), text_regions=pipe.text_regions,
-            lora_application_mode=lora_application_mode, interaction_json=pipe.interaction_json)
+            lora_application_mode=lora_application_mode, interaction_json=pipe.interaction_json,
+            character_syntax=pipe.character_syntax, nai_settings_json=pipe.nai_settings_json)
         summary = {**record, "auto_layout_groups": moved, "cross_attention_calls": audit["cross_calls"],
                    "self_attention_calls": audit["self_calls"], "restored_forwards": audit["restored_forwards"], "routing_audit": audit}
         ui = {"text": [f"{len(pipe.characters)} characters + {len(pipe.text_regions)} text regions · seed {settings['seed']} · {family}"]}
+        if any(c.uc.strip() for c in pipe.regions):
+            ui["text"].append("Character negatives use their own regional masks. / 캐릭터 네거티브는 각자의 영역 마스크에 적용합니다.")
         execution = audit["lora_application"]
         ui["text"].append(f"Character LoRA: {execution['requested']} → {execution['effective']}"
                           + (f" ({execution['fallback_reason']})" if execution["fallback_reason"] else ""))

@@ -73,7 +73,12 @@ class NativeModelTests(unittest.TestCase):
     def test_sdxl_shape_mask_native_sampling(self): self.unet_node("SDXL", boxes="shape")
     def test_sd15_shape_mask_native_sampling(self): self.unet_node("SD1.5", boxes="shape")
 
-    def unet_node(self, family, boxes=False, lora_trial=False):
+    def test_nai_scene_and_negatives_reach_real_cpu_samplers(self):
+        for family in ("SD1.5", "SDXL"):
+            with self.subTest(family=family):
+                self.unet_node(family, nai_trial=True)
+
+    def unet_node(self, family, boxes=False, lora_trial=False, nai_trial=False):
         """Run the public node through real SD1.5/SDXL U-Net/sampler wrappers on CPU.
 
         A small random UNet and synthetic CLIP/VAE keep this an API integration
@@ -130,6 +135,30 @@ class NativeModelTests(unittest.TestCase):
         self.assertEqual(model.model_options, original)
         self.assertEqual(audit['pooled_conditioning'], 'none' if sd15 else 'common_prompt_native_adm')
         self.assertEqual(json.loads(restored_pipe.generation_json)['engine'], family.lower() + '-spatial-alpha-1')
+        if nai_trial:
+            nai_pipe = chars.CharacterPipe((chars.Character('left, -3::hat::', 'blur', .25),
+                                            chars.Character('right', '', .75)),
+                                           '2::common::, -2::text::', 'negative', 'NovelAI')
+            # Synthetic encodings, real model/sampler execution. Assert the
+            # exact strings that arrive at the encoder, including local UC.
+            encodings = {'(common:2)': contexts['common'], 'left': contexts['left'], 'right': contexts['right'],
+                         'negative, text, local bad': contexts['negative'],
+                         'negative, text, local bad, blur, hat': contexts['negative']}
+            seen = []
+            def encode(text):
+                seen.append(text)
+                return encodings[text]
+            with patch.object(clip, 'encode_from_tokens_scheduled', side_effect=encode), patch.object(args, 'preview_method', LatentPreviewMethod.NoPreviews), torch.no_grad():
+                result = nodes.RSMultiCharacterSampler().generate(model, clip, vae, nai_pipe, 'ignored', 'local bad',
+                    width=64, height=64, seed=617, steps=2, cfg=3., sampler_name='euler_ancestral', scheduler='normal', autosave=False)
+                again = nodes.RSMultiCharacterSampler().generate(model, clip, vae, result['result'][2], 'ignored', 'local bad',
+                    width=64, height=64, seed=617, steps=2, cfg=3., sampler_name='euler_ancestral', scheduler='normal', autosave=False)
+            self.assertTrue(torch.isfinite(result['result'][0]).all())
+            self.assertTrue(torch.equal(result['result'][0], again['result'][0]))
+            self.assertEqual(set(seen), set(encodings))
+            self.assertEqual(result['result'][2].characters[0].uc, 'blur, hat')
+            self.assertEqual(result['result'][2].negative_prompt, 'negative, text, local bad')
+            self.assertEqual(nai_pipe.syntax, 'NovelAI')
         if boxes == "shape":
             self.assertEqual(audit['mask_slots'], [1])
             self.assertEqual(json.loads(restored_pipe.generation_json)['character_masks'][0], region.record())

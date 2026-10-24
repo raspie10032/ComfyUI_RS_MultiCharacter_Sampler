@@ -31,6 +31,7 @@ class Slot:
     body_parts: tuple = ()
     body_part_strength: float = 0.
     reference: object = field(default=None, repr=False, compare=False)
+    uc: str = ""
 
 
 @dataclass(frozen=True)
@@ -39,6 +40,7 @@ class BuildPipe:
     prompt_count: int | None = None
     lora_application_mode: str = "precision"
     interaction_json: str | None = None
+    source_pipe: CharacterPipe | None = field(default=None, repr=False)
 
 
 def update_slot(pipe, character_id, **changes):
@@ -71,9 +73,17 @@ def finalize(pipe):
         raise ValueError("Connect a building pipe first. / 조립 파이프를 연결해 주세요. / 組み立てパイプを接続してください。")
     if pipe.prompt_count is None:
         raise ValueError("Connect a Character Prompts node anywhere before Finalize. / 최종 파이프 앞에 캐릭터 프롬프트 노드를 연결해 주세요. / プロンプトノードを接続してください。")
+    from .pipe_compat import building_pipe
+    source = pipe.source_pipe
+    source_slots = {s.number: s for s in building_pipe(source).slots} if source is not None else {}
     chars, texts = [], []
     for s in pipe.slots:
         if s.number > pipe.prompt_count or not s.enabled:
+            continue
+        original = source_slots.get(s.number)
+        if original is not None and s == original and s.reference is original.reference:
+            region = source.regions[s.number-1]
+            (texts if isinstance(region, TextRegion) else chars).append(region)
             continue
         if s.prompt is None or not s.prompt.strip():
             raise ValueError(f"Character {s.number}: connect a nonempty STRING to the matching Prompt row, or disable that row. / 캐릭터 {s.number}: 프롬프트 노드의 해당 번호에 STRING을 연결하거나 그 행의 사용을 꺼 주세요. / 同じ番号のプロンプトに文字列を接続するか無効にしてください。")
@@ -89,16 +99,19 @@ def finalize(pipe):
                 raise ValueError(f"Character {s.number}: text needs a Position node in box mode. / 글자 영역은 위치 노드를 상자로 설정해 주세요. / 文字領域にはボックス位置が必要です。")
             if s.lora_name != "None":
                 raise ValueError(f"Character {s.number}: text regions do not use character LoRAs; choose None. / 글자 영역의 LoRA는 None으로 설정해 주세요. / 文字領域のLoRAはNoneにしてください。")
-            texts.append(TextRegion(s.prompt, "", s.x, s.y, box, s.literal_text))
+            texts.append(TextRegion(s.prompt, s.uc, s.x, s.y, box, s.literal_text))
         else:
             region = place_mask(s.region_mask, s.mask_transform) if s.region_mask is not None else None
             x, y = region.center if region is not None else (s.x, s.y)
-            chars.append(Character(s.prompt, "", x, y, box, lora_name=s.lora_name,
+            chars.append(Character(s.prompt, s.uc, x, y, box, lora_name=s.lora_name,
                                    lora_strength=s.strength_model, lora_clip_strength=s.strength_clip,
                                    region_mask=region, reference=s.reference,
                                    body_parts=placed_parts(s), body_part_strength=s.body_part_strength))
     if not chars and not texts:
         raise ValueError("Enable at least one nonempty prompt. / 최소 한 개의 프롬프트를 켜 주세요. / 少なくとも1つのプロンプトを有効にしてください。")
+    if source is not None:
+        return replace(source, characters=tuple(chars), text_regions=tuple(texts),
+                       lora_application_mode=pipe.lora_application_mode, interaction_json=pipe.interaction_json)
     return CharacterPipe(tuple(chars), text_regions=tuple(texts), lora_application_mode=pipe.lora_application_mode,
                          interaction_json=pipe.interaction_json)
 
