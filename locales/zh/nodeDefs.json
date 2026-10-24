@@ -1808,6 +1808,12 @@
       },
       "scope": {
         "name": "应用范围"
+      },
+      "random_mode": {
+        "name": "随机构图"
+      },
+      "random_seed": {
+        "name": "相机随机种子"
       }
     }
   }

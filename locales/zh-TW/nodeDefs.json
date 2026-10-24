@@ -1808,6 +1808,12 @@
       },
       "scope": {
         "name": "套用範圍"
+      },
+      "random_mode": {
+        "name": "隨機構圖"
+      },
+      "random_seed": {
+        "name": "相機隨機種子"
       }
     }
   }

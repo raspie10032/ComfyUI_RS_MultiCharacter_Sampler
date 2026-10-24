@@ -1094,6 +1094,12 @@
       },
       "scope": {
         "name": "適用範囲"
+      },
+      "random_mode": {
+        "name": "ランダム構図"
+      },
+      "random_seed": {
+        "name": "カメラ乱数シード"
       }
     }
   }
