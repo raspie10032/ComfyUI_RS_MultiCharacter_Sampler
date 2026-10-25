@@ -105,3 +105,16 @@ The projection orbits the canvas centre with coordinates X=(x−0.5)×aspect, Y=
 **마스크 배치 연동을 perspective로 선택**하면 좌우·상하 각도에 따라 전체 마스크 평면을 원근 변형합니다. 거리·회전도 함께 적용됩니다. 가까운 쪽은 커지고 먼 쪽은 작아지며, 전체·부위 마스크와 좌표를 같은 방식으로 바꿉니다. 글자는 고정입니다. **인물 입체 형상이나 가려진 부분을 복원하는 기능은 아닙니다.** 뒤쪽에서는 평면이 좌우 반전되며, ±90°에서는 마스크가 선이 되어 오류로 안내합니다. 각도를 줄이거나 distance_and_roll을 사용하세요. 기본 fixed와 기존 거리·기울기 모드의 결과는 유지됩니다.
 
 Perspective validation (2026-10-25): local Python 269 cases (261 passed, 8 skipped); NAI Python 300 passed; 24 cross-package cases passed; both camera editor test files passed. Forward projection matched Python/JavaScript; tests cover mask/body-part warps, edge-on rejection, zero-angle compatibility, and NAI/local round trips. Two controlled Anima images used the same camera captions/seed, 1216x832, RSCV5 0.9, 30 steps, Euler ancestral / SGM uniform (yaw 45, elevation 25, distance 0.65, roll 12). PNG-restored masks exactly matched the expected warp. An additional live UI generation at yaw 50 verified interactive preview execution. This does not establish pose fidelity or results on other model families; no live NAI request was made for perspective.
+
+
+### Plain caption axis independence / 일반 태그의 축별 선택
+
+In `plain` mode, tags are selected against half of their own axis's peak weight (azimuth, elevation, distance and roll separately). Turning the horizontal camera no longer changes distance tags when distance stays fixed. Weighted captions and the underlying continuous weights are unchanged. Plain captions discard numerical strength, so small nonzero elevation/roll can still produce a view/tilt tag; use weighted mode where supported for gradual strength. Conflicting original captions and model-specific interpretation can still prevent side/rear views.
+
+`plain`에서는 좌우·상하·거리·기울기별 최대 가중치의 절반 이상인 태그를 선택합니다. 거리를 고정하면 좌우 각도를 바꿔도 거리 태그가 유지됩니다. 가중치 문법과 원래 연속 계산은 같습니다. 숫자 강도가 없는 일반 태그 특성상 작은 상하각·기울기도 태그로 표시될 수 있습니다. 세밀한 강도 표현이 가능한 경로에서는 weighted를 사용하세요. 기존 문장과의 충돌이나 모델 해석 때문에 측면·후면이 보장되지는 않습니다.
+
+### MOSS side/rear prompts / MOSS 측면·후면 문장
+
+For side/rear shots, start with a short scene and identity/outfit descriptions. Eye color, facial expression and a front-facing gesture can compete with view captions. In a same-seed MOSS native JSON check, simplified scene/character captions produced a rear view at 8 accelerated steps, while the original detailed captions stayed frontal. Several descriptions changed together, so this does not identify a single conflicting token or establish a general success rate. Keep camera captions on both scene and characters; compare simplified prompts before increasing steps or strength.
+
+측면·후면은 짧은 장면과 캐릭터·의상 설명부터 시작하세요. 눈 색·표정·정면 동작은 시점 태그와 충돌할 수 있습니다. 같은 시드의 MOSS 네이티브 JSON 시험에서 기존 상세 문장은 정면에 머물렀지만, 문장을 줄인 조건은 8스텝 고속화에서도 후면이 나왔습니다. 여러 표현을 함께 바꾼 비교이므로 특정 단어의 원인이나 일반 성공률을 확정한 결과는 아닙니다. 공통 장면과 캐릭터 모두에 시점을 적용하고, 스텝이나 강도를 높이기 전에 문장을 줄여 비교해보세요.
