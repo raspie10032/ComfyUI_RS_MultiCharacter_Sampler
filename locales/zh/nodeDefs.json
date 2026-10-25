@@ -1774,7 +1774,7 @@
   },
   "RSCameraControl": {
     "display_name": "RS 相机视角",
-    "description": "视角标签引导与可选2D布局联动。距离和倾斜用于缩放和旋转蒙版。",
+    "description": "视角标签与蒙版布局联动。perspective按水平/俯仰角做平面透视，distance_and_roll仅缩放和旋转。不重建立体轮廓或遮挡。",
     "inputs": {
       "azimuth": {
         "name": "水平角度"
@@ -1816,7 +1816,8 @@
         "name": "相机随机种子"
       },
       "layout_sync": {
-        "name": "蒙版布局联动"
+        "name": "蒙版布局联动",
+        "tooltip": "perspective：平面透视＋缩放/旋转。±90°会退化成线，请调整角度。文本框固定。"
       },
       "canvas_aspect": {
         "name": "输出宽高比"

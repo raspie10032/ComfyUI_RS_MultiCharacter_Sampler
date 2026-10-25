@@ -1774,7 +1774,7 @@
   },
   "RSCameraControl": {
     "display_name": "RS 相機視角",
-    "description": "視角標籤引導與可選2D配置連動。距離和傾斜用於縮放與旋轉遮罩。",
+    "description": "視角標籤與遮罩配置連動。perspective依水平/俯仰角做平面透視，distance_and_roll僅縮放和旋轉。不重建立體輪廓或遮擋。",
     "inputs": {
       "azimuth": {
         "name": "水平角度"
@@ -1816,7 +1816,8 @@
         "name": "相機隨機種子"
       },
       "layout_sync": {
-        "name": "遮罩配置連動"
+        "name": "遮罩配置連動",
+        "tooltip": "perspective：平面透視＋縮放/旋轉。±90°會退化成線，請調整角度。文字框固定。"
       },
       "canvas_aspect": {
         "name": "輸出寬高比"

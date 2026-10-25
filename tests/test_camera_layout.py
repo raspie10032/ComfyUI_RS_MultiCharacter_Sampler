@@ -89,5 +89,74 @@ class CameraLayoutTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError,'연동'):
             node.apply(context=self.pipe,layout_sync='wrong')
 
+    def test_perspective_front_is_exact_legacy_and_edge_on_is_explicit(self):
+        for distance,roll in ((.5,0),(.75,20),(0,-15)):
+            a=layout.camera_layout(self.pipe,distance,roll,1.5)
+            b=layout.camera_layout(self.pipe,distance,roll,1.5,perspective=True)
+            self.assertEqual(a,b)
+        for yaw,pitch in ((90,0),(-90,0),(0,90),(30,-90)):
+            with self.assertRaisesRegex(ValueError,'선이 됩니다'):
+                layout.camera_layout(self.pipe,.5,0,1.5,yaw,pitch,True)
+        node=camera.RSCameraControl()
+        self.assertIs(node.apply(context=self.pipe,azimuth=90,enabled=False,layout_sync='perspective')['result'][0],self.pipe)
+        self.assertIs(node.apply(context=self.pipe,azimuth=90,strength=0,layout_sync='perspective')['result'][0],self.pipe)
+
+    def test_perspective_pinhole_values_and_near_far_magnification(self):
+        transform=layout.perspective_framing(.5,0,1.5,60,0)
+        focal=2*math.hypot(1.5,1)
+        # A point .3 canvas widths to the right is closer to a right-side camera.
+        x,y=layout.project(.8,.25,transform)
+        depth=1-math.sin(math.pi/3)*.45/focal
+        self.assertAlmostEqual(x,.5+.15/depth)
+        self.assertAlmostEqual(y,.5-.25/depth)
+        height=lambda x: layout.project(x,.8,transform)[1]-layout.project(x,.2,transform)[1]
+        self.assertGreater(height(.8),height(.2))
+        transform=layout.perspective_framing(.5,0,1.5,0,50)
+        width=lambda y: layout.project(.8,y,transform)[0]-layout.project(.2,y,transform)[0]
+        self.assertGreater(width(.2),width(.8))
+        self.assertEqual(layout.project(.5,.5,transform),(.5,.5))
+
+    def test_perspective_masks_parts_boxes_and_points_use_same_plane(self):
+        transform=layout.perspective_framing(.65,12,1.5,45,25)
+        old=self.pipe.rs_context_record()
+        updated=layout.camera_layout(self.pipe,.65,12,1.5,45,25,True)
+        self.assertNotEqual(updated.characters[0].region_mask,self.pipe.characters[0].region_mask)
+        part=updated.characters[0].body_parts[0][1].tensor()
+        self.assertTrue(torch.all(part<=updated.characters[0].region_mask.tensor()))
+        self.assertEqual((updated.characters[1].x,updated.characters[1].y),layout.project(.7,.5,transform))
+        self.assertEqual(updated.characters[0].region_mask.center,(updated.characters[0].x,updated.characters[0].y))
+        self.assertEqual(self.pipe.rs_context_record(),old)
+        self.assertEqual(m.pipe_from_record(updated.rs_context_record()).rs_context_record(),updated.rs_context_record())
+        box=c.Character('woman',x=.5,y=.5,bbox=(.3,.2,.7,.8))
+        text=c.TextRegion('title',x=.5,y=.1,text='HELLO',bbox=(.1,0,.9,.2))
+        result=layout.camera_layout(replace(self.pipe,characters=(box,),text_regions=(text,)),.65,12,1.5,45,25,True)
+        ps=[layout.project(x,y,transform) for x in (.3,.7) for y in (.2,.8)]
+        self.assertEqual(result.characters[0].bbox,(min(p[0] for p in ps),min(p[1] for p in ps),max(p[0] for p in ps),max(p[1] for p in ps)))
+        self.assertEqual(result.text_regions,(text,))
+
+    def test_perspective_raster_matches_independent_pillow_projection(self):
+        import numpy as np
+        from PIL import Image
+        mask=self.pipe.characters[0].region_mask
+        transform=layout.perspective_framing(.65,-12,1.5,-50,35)
+        actual=layout._warp(mask,transform).tensor().numpy().astype(bool)
+        # Pixel-space homography for Pillow's independent perspective resampler.
+        pixel=np.diag([mask.width,mask.height,1.])
+        inverse=np.linalg.inv(pixel@np.array(transform).reshape(3,3)@np.linalg.inv(pixel))
+        inverse/=inverse[2,2]
+        reference=np.array(Image.fromarray(mask.tensor().numpy().astype('uint8')*255).transform(
+            (mask.width,mask.height),Image.Transform.PERSPECTIVE,tuple(inverse.reshape(-1)[:8]),resample=Image.Resampling.NEAREST))>0
+        self.assertTrue(np.array_equal(actual,reference))
+
+    def test_perspective_random_matches_manual_and_legacy_ignores_view(self):
+        node=camera.RSCameraControl()
+        result=node.apply(context=self.pipe,random_mode='balanced',random_seed=20261025,layout_sync='perspective',canvas_aspect=1.5)
+        manual=node.apply(context=self.pipe,**result['ui']['camera_values'][0],layout_sync='perspective',canvas_aspect=1.5)
+        self.assertEqual(result['result'],manual['result'])
+        a=node.apply(context=self.pipe,azimuth=50,elevation=25,layout_sync='distance_and_roll')['result'][0]
+        b=node.apply(context=self.pipe,azimuth=0,elevation=0,layout_sync='distance_and_roll')['result'][0]
+        self.assertEqual(a.characters[0].region_mask,b.characters[0].region_mask)
+        self.assertNotEqual(result['result'][0].characters[0].region_mask,a.characters[0].region_mask)
+
 
 if __name__=='__main__':unittest.main()
