@@ -8,7 +8,9 @@ ComfyUI에서 캐릭터별 프롬프트·LoRA·영역을 지정해 생성하고,
 
 ![LoRA 없이 생성한 Anima 2인 예제](examples/two-characters-result.png)
 
-**개발 후보 기능:** [RS 카메라 시점](docs/camera-control.md)은 NAI·로컬 공통 컨텍스트에 시점 태그를 더합니다. 노드 안에서 방향·높이·거리와 가중치 곡선을 조절하며, 마스크를 회전하거나 3D 시점을 강제하지 않습니다.
+**개발 후보 기능:** [RS 카메라 시점](docs/camera-control.md)은 NAI·로컬 공통 컨텍스트에 시점 태그를 더합니다. 노드 안에서 방향·높이·거리·랜덤 구도와 가중치 곡선을 조절하고, 영역의 확대·축소·회전·평면 원근 변형을 선택합니다. 실제 3D 자세 재현은 모델에 따라 달라집니다.
+
+**카메라 참고 출처:** [Anima 카메라 태그 도우미](https://arca.live/b/aiart/179423561) / `ComfyUI-KR-Camera-Control` (원본 표기: `ComfyUI_bsk_UI` / 灰暗x). [참고 범위·출처 안내](THIRD_PARTY_NOTICES.md#camera-control-references).
 
 ## 주요 기능
 

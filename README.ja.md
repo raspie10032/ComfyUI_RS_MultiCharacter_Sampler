@@ -8,7 +8,9 @@ ComfyUIでキャラクター別のプロンプト・LoRA・領域を設定して
 
 ![LoRAなしのAnima 2人生成例](examples/two-characters-result.png)
 
-**開発候補:** [RS Camera Control](docs/camera-control.md) はRS・NAI共通コンテキストに視点タグを追加します。方向・高さ・距離と重み曲線をノード内で確認できます。マスク回転や3Dカメラの強制ではありません。
+**開発候補:** [RS Camera Control](docs/camera-control.md) はRS・NAI共通コンテキストに視点タグを追加します。方向・高さ・距離・ランダム視点と重み曲線をノード内で調整し、領域の拡縮・回転・平面透視変換を選べます。生成される3D姿勢はモデルに依存します。
+
+**カメラ機能の参考元:** [Animaカメラタグ補助](https://arca.live/b/aiart/179423561) / `ComfyUI-KR-Camera-Control`（原典表記：`ComfyUI_bsk_UI` / 灰暗x）。[参考範囲とクレジット](THIRD_PARTY_NOTICES.md#camera-control-references)。
 
 ## 主な機能
 

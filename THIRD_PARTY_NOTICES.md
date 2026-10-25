@@ -21,3 +21,10 @@ Research references, not copied implementations:
 - SD attention, Redux conditioning and FLUX native reference paths use ComfyUI's installed runtime. MOSS/Krea edit weights are downloaded separately; no third-party custom-node runtime import is required.
 
 Weight repositories, pinned revisions and download hashes are in `reference_assets.json`. Weight licenses are separate from extension code, are not granted by this repository's GPL-3.0 license, and must be checked at the linked model repositories. No weights or reference pictures are distributed with the extension.
+
+## Camera control references
+
+- **Article:** [Anima camera-tag helper](https://arca.live/b/aiart/179423561), supplied by the user as the camera-control reference.
+- **Inspected package:** `ComfyUI-KR-Camera-Control`. Its README and source headers attribute its camera prompt algorithm and interaction design to `ComfyUI_bsk_UI`, Copyright © 2026 灰暗x, and identify the inspected package as `AGPL-3.0-or-later`. This records the inspected package's attribution; it does not establish the current licensing of every upstream version.
+- **Reference scope:** camera-direction/framing tags, interactive camera controls, default weights and boundary behavior were studied and compared. The RS/NAI implementation uses its own continuous caption-weight formulas, seeded random views, shared-context integration and flat-plane region transforms. See the [camera guide](docs/camera-control.md) for formulas and limitations.
+- **Distribution:** the inspected package's source, archive and assets are not bundled. Its license is not a grant for model weights or external services. The two RS extensions share their own camera implementation under their existing GPL-3.0-only license.
