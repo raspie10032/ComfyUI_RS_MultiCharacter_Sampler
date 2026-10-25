@@ -4,11 +4,11 @@
 
 [English](README.md) · [한국어](README.ko.md) · [日本語](README.ja.md) · **简体中文** · [繁體中文](README.zh-TW.md) · [详细文档](docs/README.md) · [更新记录](CHANGELOG.md) · [发布版本](https://github.com/raspie10032/ComfyUI_RS_MultiCharacter_Sampler/releases)
 
-**当前版本：[1.0.4 Hangeul](docs/release-1.0.4.md)。** 使用本地模型，无需安装 RS NovelAI 扩展或提供 API 密钥。
+**当前版本：[1.0.5 Hangeul](docs/release-1.0.5.md)。** 使用本地模型，无需安装 RS NovelAI 扩展或提供 API 密钥。
 
 ![未使用 LoRA 的 Anima 双角色示例](examples/two-characters-result.png)
 
-**开发候选功能：** [RS Camera Control](docs/camera-control.md) 向RS与NAI共用上下文添加视角标签，可在节点内调整方向、高度、距离、随机视角，还可选择区域缩放、旋转和平面透视变换。生成的三维姿态取决于模型。
+**相机视角：** [RS Camera Control](docs/camera-control.md) 向RS与NAI共用上下文添加视角标签，可在节点内调整方向、高度、距离、随机视角，还可选择区域缩放、旋转和平面透视变换。生成的三维姿态取决于模型。
 
 **相机功能参考：** [Anima 相机标签辅助](https://arca.live/b/aiart/179423561) / `ComfyUI-KR-Camera-Control`（原始署名：`ComfyUI_bsk_UI` / 灰暗x）。[参考范围与来源说明](THIRD_PARTY_NOTICES.md#camera-control-references)。
 

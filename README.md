@@ -4,11 +4,11 @@ Regional generation and local detailing for ComfyUI. Give each character a promp
 
 [한국어](README.ko.md) · [日本語](README.ja.md) · [Documentation](docs/README.md) · [Changelog](CHANGELOG.md) · [Releases](https://github.com/raspie10032/ComfyUI_RS_MultiCharacter_Sampler/releases) · [简体中文](README.zh-CN.md) · [繁體中文](README.zh-TW.md)
 
-**Current release: [1.0.4 Hangeul](docs/release-1.0.4.md).** Runs with local models; no RS NovelAI extension or API key is required.
+**Current release: [1.0.5 Hangeul](docs/release-1.0.5.md).** Runs with local models; no RS NovelAI extension or API key is required.
 
 ![Two-character Anima example without LoRA](examples/two-characters-result.png)
 
-**Development candidate:** [RS Camera Control](docs/camera-control.md) adds smoothly blended camera captions to shared RS/NAI contexts, with an interactive view editor. It supports random views and optional region zoom, rotation and flat-plane perspective; generated 3D pose remains model-dependent.
+**Camera control:** [RS Camera Control](docs/camera-control.md) adds smoothly blended camera captions to shared RS/NAI contexts, with an interactive view editor. It supports random views and optional region zoom, rotation and flat-plane perspective; generated 3D pose remains model-dependent.
 
 **Camera reference:** [Anima camera-tag helper](https://arca.live/b/aiart/179423561) / `ComfyUI-KR-Camera-Control` (credits `ComfyUI_bsk_UI` / 灰暗x). [Reference scope and notices](THIRD_PARTY_NOTICES.md#camera-control-references).
 
