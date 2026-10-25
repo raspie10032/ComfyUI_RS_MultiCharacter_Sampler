@@ -1800,9 +1800,6 @@
       "enabled": {
         "name": "启用"
       },
-      "context": {
-        "name": "共享上下文"
-      },
       "base_prompt": {
         "name": "场景提示词"
       },
@@ -1821,6 +1818,14 @@
       },
       "canvas_aspect": {
         "name": "输出宽高比"
+      },
+      "building_pipe": {
+        "name": "building_pipe"
+      }
+    },
+    "outputs": {
+      "0": {
+        "name": "building_pipe"
       }
     }
   }

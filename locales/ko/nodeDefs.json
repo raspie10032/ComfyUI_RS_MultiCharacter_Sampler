@@ -1086,9 +1086,6 @@
       "enabled": {
         "name": "사용"
       },
-      "context": {
-        "name": "공용 컨텍스트"
-      },
       "base_prompt": {
         "name": "공통 프롬프트"
       },
@@ -1107,6 +1104,14 @@
       },
       "canvas_aspect": {
         "name": "생성 화면 비율"
+      },
+      "building_pipe": {
+        "name": "building_pipe"
+      }
+    },
+    "outputs": {
+      "0": {
+        "name": "building_pipe"
       }
     }
   }

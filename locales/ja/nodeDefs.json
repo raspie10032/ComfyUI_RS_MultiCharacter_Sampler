@@ -1086,9 +1086,6 @@
       "enabled": {
         "name": "有効"
       },
-      "context": {
-        "name": "共通コンテキスト"
-      },
       "base_prompt": {
         "name": "共通プロンプト"
       },
@@ -1107,6 +1104,14 @@
       },
       "canvas_aspect": {
         "name": "出力の縦横比"
+      },
+      "building_pipe": {
+        "name": "building_pipe"
+      }
+    },
+    "outputs": {
+      "0": {
+        "name": "building_pipe"
       }
     }
   }
