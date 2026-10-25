@@ -1,7 +1,7 @@
 const fs=require('fs'),vm=require('vm'),assert=require('node:assert/strict');
 let extension;
 const src=require("./ui_source.cjs")('web/character_builder.js').replace(/^import[^\n]*\n/gm,'').replaceAll('export function','function');
-const sandbox={queueMicrotask,maskPreview:node=>node.testMask??null,rememberMaskPreview(){},app:{registerExtension(e){extension=e;}}};vm.runInNewContext(src,sandbox);
+const sandbox={queueMicrotask,poseSupports:node=>({masks:node.testPose??[],unknown:false}),maskPreview:node=>node.testMask??null,rememberMaskPreview(){},app:{registerExtension(e){extension=e;}}};vm.runInNewContext(src,sandbox);
 const previewSandbox={app:{},api:{apiURL:s=>s},URLSearchParams};
 vm.runInNewContext(require("./ui_source.cjs")('web/mask_preview.js').replace(/^import[^\n]*\n/gm,'').replaceAll('export function','function'),previewSandbox);
 sandbox.placedSupport=previewSandbox.placedSupport;
@@ -54,8 +54,9 @@ for(const type of ['RSCameraControl','NAICameraControl']) {
  assert.equal(collectSlots(next).slots[0].maskOriginal,carried.maskSupport);
  assert.deepEqual(Array.from(collectSlots(next).slots[0].maskSupport.data),Array.from(previewSandbox.placedSupport(carried.maskSupport,[-.1,0,1]).data));
  maskCamera.mode=4;
- assert.equal(collectSlots(next).slots[0].maskOriginal,mask.testMask);
- assert.deepEqual(Array.from(collectSlots(next).slots[0].maskSupport.data),Array.from(previewSandbox.placedSupport(mask.testMask,[-.1,0,1]).data));
+ const bypassed=collectSlots(make('RSMultiCharacterFinalize',{},positioned)).slots[0].maskSupport;
+ assert.equal(collectSlots(next).slots[0].maskOriginal,bypassed);
+ assert.deepEqual(Array.from(collectSlots(next).slots[0].maskSupport.data),Array.from(previewSandbox.placedSupport(bypassed,[-.1,0,1]).data));
  maskCamera.mode=0;
  const newMask=make('RSMultiCharacterMask',{character_id:1,enabled:true},maskCamera);newMask.testMask=mask.testMask;
  assert.equal(collectSlots(newMask).slots[0].maskSupport,mask.testMask); // No duplicate camera warp.
@@ -64,9 +65,50 @@ for(const type of ['RSCameraControl','NAICameraControl']) {
  assert.equal(collectSlots(make(type,{},native)).unknown,false);
  assert.equal(collectSlots(make(type,{},native)).slots.length,2);
 }
+const manual2=make('RSMultiCharacterMask',{character_id:2,enabled:true},root);manual2.testMask=mask.testMask;
+const pose1=make('RSMultiCharacterPoseMasks',{},manual2);pose1.testPose=[mask.testMask];
+assert.equal(collectSlots(pose1).slots[1].maskSupport,mask.testMask); // A smaller pose preserves a manual mask.
+const pose2=make('RSMultiCharacterPoseMasks',{},root);pose2.testPose=[mask.testMask,mask.testMask];
+const smallerPose=make('RSMultiCharacterPoseMasks',{},pose2);smallerPose.testPose=[mask.testMask];
+assert.equal(collectSlots(smallerPose).slots[1].masked,false); // Old pose-owned masks are cleared.
 const loop=make('RSCameraControl',{});loop.getInputNode=()=>loop;
 assert.equal(collectSlots(loop).unknown,true);
 assert.equal(collectSlots(make('UnknownPipe',{})).unknown,true);
+// All independent role permutations must produce the same effective diagram.
+function* permutations(items) {
+ if (!items.length) { yield []; return; }
+ for (let i=0;i<items.length;i++) for(const tail of permutations(items.filter((_,j)=>i!==j))) yield [items[i],...tail];
+}
+for(const cameraType of ['RSCameraControl','NAICameraControl']) {
+ const factories=[
+  up=>make('RSMultiCharacterPrompt',{character_count:3,character2_enable:false,character3_kind:'text'},up),
+  up=>make('RSMultiCharacterLoRA',{character_count:2},up),
+  up=>make('RSMultiCharacterPosition',{character_count:3,mask_transforms:'{"1":[0.125,0,1]}',character3_geometry:'box',character3_x:.6,character3_width:.4,character3_height:.1},up),
+  up=>{const m=make('RSMultiCharacterMask',{character_id:1,enabled:true},up);m.testMask=mask.testMask;return m;},
+  up=>make('RSMultiCharacterReference',{character_id:1},up),
+  up=>make('RSMultiCharacterInteraction',{preset:'delay6'},up),
+  up=>make(cameraType,{layout_sync:'perspective',distance:.65,roll:12,azimuth:25,elevation:15},up),
+ ];
+ function snapshot(order){const last=order.reduce((up,f)=>f(up),null);const result=collectSlots(make('RSMultiCharacterFinalize',{},last));assert.equal(result.unknown,false);return JSON.parse(JSON.stringify(result));}
+ const expected=snapshot(factories);let total=0;
+ for(const order of permutations(factories)){assert.deepEqual(snapshot(order),expected,cameraType+' role order '+total);total++;}
+ assert.equal(total,5040);
+ // A Position placed before Prompt/Mask can edit the same assembled source.
+ const pos=make('RSMultiCharacterPosition',{character_count:2},null);
+ const ref=make('RSMultiCharacterReference',{character_id:1},pos);
+ const pending=make(cameraType,{layout_sync:'perspective',distance:.8},ref);
+ const laterMask=make('RSMultiCharacterMask',{character_id:1,enabled:true},pending);laterMask.testMask=mask.testMask;
+ const prompt=make('RSMultiCharacterPrompt',{character_count:2},laterMask);
+ const final=make('RSMultiCharacterFinalize',{},prompt);
+ for(const [a,b] of [[pos,ref],[ref,pending],[pending,laterMask],[laterMask,prompt],[prompt,final]]) a.getOutputNodes=()=>[b];
+ const editor=sandbox.collectEditorSlots(pos);
+ assert.equal(editor.unknown,false);assert.equal(editor.slots[0].maskSupport,mask.testMask);
+ assert.equal(collectSlots(final).slots[0].maskSupport.width,2);
+ const other=make(cameraType,{layout_sync:'fixed'},pending);
+ assert.deepEqual(collectSlots(other).slots,collectSlots(ref).slots); // Latest draft camera replaces its predecessor.
+ pos.getOutputNodes=()=>[ref,make('RSMultiCharacterPrompt',{},pos)];
+ assert.equal(sandbox.editorSource(pos),pos); // An ambiguous fork stays on its own branch.
+}
 class Node {
  constructor(type='RSMultiCharacterPosition') {this.type=type;this.inputs=[];this.widgets=[{name:'character_count',value:2},...Array.from({length:10},(_,i)=>['geometry','x','y','width','height'].map(name=>({name:`character${i+1}_${name}`,value:name==='geometry'?'point':.5}))).flat()].map(w=>({...w,type:'number',computeSize:()=>[300,20]}));this.size=[340,200];}
  addCustomWidget(w){this.widgets.push(w);}computeSize(){return[340,200];}setSize(s){this.size=s;}setDirtyCanvas(){}addInput(name,type){this.inputs.push({name,type,link:null});}removeInput(i){this.inputs.splice(i,1);}

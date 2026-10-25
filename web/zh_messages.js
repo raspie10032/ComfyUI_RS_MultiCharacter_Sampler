@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: GPL-3.0-only
 // Simplified Chinese / Traditional Chinese (Taiwan) display text.
 export const zhMessages = {
+  "Editing before camera; see Finalize for its result.": ["当前编辑相机变换前的布局；请在最终管线查看效果。", "目前編輯相機變換前的配置；請在最終管線查看效果。"],
   "Metadata has {0} characters. Local nodes use 1–10; source data stays intact.": [
     "元数据含{0}个角色。本地节点使用第1–10个，原始数据会保留。",
     "後設資料含{0}個角色。本機節點使用第1–10個，原始資料會保留。"

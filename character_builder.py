@@ -41,6 +41,18 @@ class BuildPipe:
     lora_application_mode: str = "precision"
     interaction_json: str | None = None
     source_pipe: CharacterPipe | None = field(default=None, repr=False)
+    camera_settings: tuple = ()
+
+    def rs_defer_camera(self, options):
+        """A global view applies after slot assembly, independent of role order."""
+        return replace(self, camera_settings=(tuple(options.items()),))
+
+    def rs_camera_preview(self):
+        from .camera_layout import layout_preview
+        try:
+            return layout_preview(finalize(self, apply_cameras=False))
+        except ValueError:
+            return []  # An unfinished builder need not have its prompts yet.
 
 
 def update_slot(pipe, character_id, **changes):
@@ -68,7 +80,7 @@ def slot_box(slot):
     return tuple(min(1., max(0., v)) for v in box)
 
 
-def finalize(pipe):
+def finalize(pipe, *, apply_cameras=True):
     if not isinstance(pipe, BuildPipe):
         raise ValueError("Connect a building pipe first. / 조립 파이프를 연결해 주세요. / 組み立てパイプを接続してください。")
     if pipe.prompt_count is None:
@@ -110,10 +122,16 @@ def finalize(pipe):
     if not chars and not texts:
         raise ValueError("Enable at least one nonempty prompt. / 최소 한 개의 프롬프트를 켜 주세요. / 少なくとも1つのプロンプトを有効にしてください。")
     if source is not None:
-        return replace(source, characters=tuple(chars), text_regions=tuple(texts),
+        result = replace(source, characters=tuple(chars), text_regions=tuple(texts),
                        lora_application_mode=pipe.lora_application_mode, interaction_json=pipe.interaction_json)
-    return CharacterPipe(tuple(chars), text_regions=tuple(texts), lora_application_mode=pipe.lora_application_mode,
-                         interaction_json=pipe.interaction_json)
+    else:
+        result = CharacterPipe(tuple(chars), text_regions=tuple(texts), lora_application_mode=pipe.lora_application_mode,
+                               interaction_json=pipe.interaction_json)
+    if apply_cameras and pipe.camera_settings:
+        from .camera_control import RSCameraControl
+        for options in pipe.camera_settings:
+            result = RSCameraControl().apply(building_pipe=result, **dict(options))["result"][0]
+    return result
 
 
 def placed_parts(slot):

@@ -76,6 +76,12 @@ def building_pipe(value):
     from .character_builder import BuildPipe, Slot
     if value is None or isinstance(value, BuildPipe):
         return value
+    seed = getattr(value, "rs_as_building_pipe", None)
+    if callable(seed):
+        result = seed(BuildPipe)
+        if not isinstance(result, BuildPipe):
+            raise ValueError("Incompatible building pipe. / 조립 파이프 형식을 확인해 주세요.")
+        return result
     source = local_pipe(value)
     if source.syntax == "NovelAI" or source.character_syntax == "NovelAI":
         converted = sampling_pipe(source, source.prompt or "", source.negative_prompt or "", source.syntax)

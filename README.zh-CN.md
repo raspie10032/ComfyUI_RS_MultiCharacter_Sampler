@@ -8,7 +8,7 @@
 
 ![未使用 LoRA 的 Anima 双角色示例](examples/two-characters-result.png)
 
-**开发候选功能：** [RS Camera Control](docs/camera-control.md) 向RS与NAI共用上下文添加视角标签，可在节点内调整方向、高度、距离、随机视角并查看权重曲线，还可选择区域缩放、旋转和平面透视变换。生成的三维姿态取决于模型。
+**开发候选功能：** [RS Camera Control](docs/camera-control.md) 向RS与NAI共用上下文添加视角标签，可在节点内调整方向、高度、距离、随机视角，还可选择区域缩放、旋转和平面透视变换。生成的三维姿态取决于模型。
 
 **相机功能参考：** [Anima 相机标签辅助](https://arca.live/b/aiart/179423561) / `ComfyUI-KR-Camera-Control`（原始署名：`ComfyUI_bsk_UI` / 灰暗x）。[参考范围与来源说明](THIRD_PARTY_NOTICES.md#camera-control-references)。
 

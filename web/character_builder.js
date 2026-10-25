@@ -6,10 +6,10 @@ import { drawingSupports } from "./mask_drawing.js";
 import { addPositionEditor } from "./position_editor.js";
 import { cameraSlots } from "./camera_regions.js";
 
-const roles = new Set(["RSMultiCharacterPrompt", "RSMultiCharacterLoRA", "RSMultiCharacterPosition", "RSMultiCharacterMask", "RSMultiCharacterMaskDraw", "RSMultiCharacterPoseMasks", "RSMultiCharacterInteraction"]);
+const roles = new Set(["RSMultiCharacterPrompt", "RSMultiCharacterLoRA", "RSMultiCharacterPosition", "RSMultiCharacterMask", "RSMultiCharacterMaskDraw", "RSMultiCharacterPoseMasks", "RSMultiCharacterInteraction", "RSMultiCharacterReference"]);
 const finalType = "RSMultiCharacterFinalize";
 const colors = ["#ff8d91", "#81bcff", "#94dd9d", "#ffd27f", "#c3a0ff", "#7fe5df", "#f5a6d8", "#cedd78", "#c7b6a2", "#e0e5ed"];
-const typeOf = node => node.comfyClass ?? node.type;
+const typeOf = node => node?.comfyClass ?? node?.type;
 const value = (node, name, fallback) => node.widgets?.find(w => w.name === name)?.value ?? fallback;
 
 function inputNode(node, name) {
@@ -19,10 +19,11 @@ function inputNode(node, name) {
 }
 
 // Diagram only: never evaluates arbitrary STRING-producing nodes or changes prompts.
-export function collectSlots(node, seen = new Set()) {
+function collectState(node, seen = new Set()) {
     const chain = [];
     let seed = [];
-    let unknown = false;
+    let seedCount = null, seedLastCount = 0, seedDraft = false;
+    let unknown = false, cameras = [], draft = true;
     while (node && !seen.has(node)) {
         seen.add(node);
         const type = typeOf(node);
@@ -42,28 +43,44 @@ export function collectSlots(node, seen = new Set()) {
                     width:.4,height:.8,promptConnected:true,
                     dynamic:["x","y"].some(k=>!!inputNode(node,`character${id}_${k}`))});
             }
+            draft = false;
             node = null;
             break;
         } else if (type === "RSCameraControl" || type === "NAICameraControl") {
             const upstream = inputNode(node, "building_pipe") ?? inputNode(node, "context");
-            // Bypass forwards the draft itself, without finalizing mask placements.
+            // Bypass preserves the type and values of its upstream output.
             if (node.mode === 4) { node = upstream; continue; }
-            const source = collectSlots(upstream, seen);
-            const camera = cameraSlots(node, source.slots);
-            unknown ||= source.unknown || camera.unknown;
-            // A camera emits a finalized pipe. Its input placements are already
-            // applied; later Position edits start from the camera output masks.
-            seed = [...camera.slots.filter(s=>s.kind!=="text"), ...camera.slots.filter(s=>s.kind==="text")]
-                .map((s,i)=>({...s,id:i+1,maskOriginal:undefined,maskTransform:[0,0,1]}));
+            const source = collectState(upstream, seen);
+            unknown ||= source.unknown;
+            if (source.draft) {
+                seed = source.slots;
+                seedDraft = true;
+                seedCount = source.promptCount;
+                seedLastCount = source.lastCount;
+                cameras = [node];
+            } else {
+                const camera = cameraSlots(node, source.slots);
+                unknown ||= camera.unknown;
+                seed = finalizedSlots(camera.slots);
+                draft = false;
+            }
             node = null;
             break;
-        } else if (type === finalType) node = inputNode(node, "building_pipe");
+        } else if (type === finalType) {
+            const source = materialize(collectState(inputNode(node, "building_pipe"), seen));
+            seed = finalizedSlots(source.slots);
+            unknown ||= source.unknown;
+            draft = false;
+            node = null;
+            break;
+        }
         else if (type === "Reroute") node = node.getInputNode?.(0);
         else { unknown = true; break; }
     }
     if (node && seen.has(node)) unknown = true;
-    const slots = new Map(seed.map(s=>[s.id,s]));
-    let promptCount = seed.length || null, lastCount = seed.length;
+    if (chain.length) draft = true;
+    const slots = new Map(seed.map(s=>[s.id,{...s}]));
+    let promptCount = seedDraft ? seedCount : (seed.length || null), lastCount = seedDraft ? seedLastCount : seed.length;
     for (const item of chain.reverse()) {
         const count = Number(value(item, "character_count", 2));
         lastCount = Math.max(lastCount, count);
@@ -74,20 +91,23 @@ export function collectSlots(node, seen = new Set()) {
                 const slot = slots.get(id) ?? {id, enabled:true, kind:"character", geometry:"point", x:.5, y:.5, width:.4, height:.8};
                 slot.masked = masks.has(id);
                 slot.maskSupport = masks.get(id) ?? null;
+                slot.poseOwned = false;
                 slots.set(id, slot);
             }
             if (inputNode(item, "drawing") || inputNode(item, "margin")) unknown = true;
             lastCount = Math.max(lastCount, ...masks.keys());
             continue;
         }
-        if (type === "RSMultiCharacterInteraction") continue;
+        if (type === "RSMultiCharacterInteraction" || type === "RSMultiCharacterReference") continue;
         if (type === "RSMultiCharacterPoseMasks") {
             const pose = poseSupports(item);
-            for (const slot of slots.values()) { slot.masked = false; slot.maskSupport = null; }
+            for (const slot of slots.values()) if (slot.poseOwned && slot.id > pose.masks.length) {
+                slot.masked = false; slot.maskSupport = null; slot.poseOwned = false;
+            }
             pose.masks.forEach((support,index) => {
                 const id=index+1;
                 const slot=slots.get(id)??{id,enabled:true,kind:"character",geometry:"point",x:.5,y:.5,width:.4,height:.8};
-                slot.masked=true;slot.maskSupport=support;slots.set(id,slot);
+                slot.masked=true;slot.maskSupport=support;slot.poseOwned=true;slots.set(id,slot);
             });
             unknown ||= pose.unknown;
             lastCount=Math.max(lastCount,pose.masks.length);
@@ -98,6 +118,7 @@ export function collectSlots(node, seen = new Set()) {
             const slot = slots.get(id) ?? {id, enabled:true, kind:"character", geometry:"point", x:.5, y:.5, width:.4, height:.8};
             slot.masked = !!value(item, "enabled", true);
             slot.maskSupport = slot.masked ? maskPreview(item) : null;
+            slot.poseOwned = false;
             if (inputNode(item, "character_id") || inputNode(item, "enabled")) unknown = true;
             slots.set(id, slot);
             lastCount = Math.max(lastCount, id);
@@ -124,11 +145,55 @@ export function collectSlots(node, seen = new Set()) {
             slots.set(id,slot);
         }
     }
-    for (const slot of slots.values()) if (slot.masked && slot.maskSupport) {
-        slot.maskOriginal = slot.maskSupport;
-        slot.maskSupport = placedSupport(slot.maskOriginal, slot.maskTransform);
+    return {slots:[...slots.values()].sort((a,b)=>a.id-b.id),promptCount,lastCount,unknown,cameras,draft};
+}
+
+function finalizedSlots(slots) {
+    // The final backend orders characters before screen-fixed text regions.
+    return [...slots.filter(s=>s.kind!=="text"), ...slots.filter(s=>s.kind==="text")]
+        .map((s,i)=>({...s,id:i+1,maskOriginal:undefined,maskTransform:[0,0,1]}));
+}
+
+function materialize(state, applyCameras = true) {
+    let slots = state.slots.filter(s=>s.id<=(state.promptCount??state.lastCount) && s.enabled).map(slot => {
+        if (!slot.masked || !slot.maskSupport) return {...slot};
+        return {...slot,maskOriginal:slot.maskSupport,
+            maskSupport:placedSupport(slot.maskSupport,slot.maskTransform)};
+    });
+    let unknown = state.unknown;
+    if (applyCameras) for (const node of state.cameras) {
+        const camera = cameraSlots(node, slots);
+        slots = camera.slots;
+        unknown ||= camera.unknown;
     }
-    return {slots:[...slots.values()].filter(s=>s.id<=(promptCount??lastCount) && s.enabled),unknown};
+    return {slots,unknown};
+}
+
+// A position editor changes pre-camera coordinates. The final diagram shows
+// the composed camera transform; no inverse transform or duplicate warp is saved.
+export function collectSlots(node, seen = new Set()) {
+    return materialize(collectState(node, seen), typeOf(node)!=="RSMultiCharacterPosition");
+}
+
+// Follow a single assembly branch so Position can edit masks supplied later.
+// A fork or a second Position has no unique editable destination.
+export function editorSource(node) {
+    const seen = new Set();
+    while (node && !seen.has(node)) {
+        seen.add(node);
+        const children = node.getOutputNodes?.(0) ?? [];
+        if (children.length !== 1) break;
+        const next = children[0], type = typeOf(next);
+        if (type === finalType || type === "RSMultiCharacterPosition" ||
+            !(roles.has(type) || type === "RSCameraControl" || type === "NAICameraControl" || type === "Reroute")) break;
+        node = next;
+    }
+    return node;
+}
+
+export function collectEditorSlots(node) {
+    const state = collectState(editorSource(node));
+    return {...materialize(state, false), cameraPending:state.cameras.length>0};
 }
 
 export function centersFor(slots) {
@@ -343,11 +408,11 @@ function visibility(node, updateSockets = true) {
 app.registerExtension({
     name:"RS.MultiCharacter.Builder",
     async beforeRegisterNodeDef(nodeType,nodeData) {
-        if(nodeData.name === "RSMultiCharacterMaskDraw" || nodeData.name === "RSMultiCharacterInteraction" || (!roles.has(nodeData.name) && nodeData.name!==finalType)) return;
+        if(nodeData.name === "RSMultiCharacterMaskDraw" || nodeData.name === "RSMultiCharacterInteraction" || nodeData.name === "RSMultiCharacterReference" || (!roles.has(nodeData.name) && nodeData.name!==finalType)) return;
         const created=nodeType.prototype.onNodeCreated;
         nodeType.prototype.onNodeCreated=function(){
             const result=created?.apply(this,arguments);
-            if(nodeData.name==="RSMultiCharacterPosition" && this.addDOMWidget) addPositionEditor(this, { collectSlots, centersFor, colors });
+            if(nodeData.name==="RSMultiCharacterPosition" && this.addDOMWidget) addPositionEditor(this, { collectSlots:collectEditorSlots, editorSource, centersFor, colors });
             else if(nodeData.name==="RSMultiCharacterPosition" || nodeData.name===finalType || nodeData.name==="RSMultiCharacterMask") addDiagram(this);
             if(nodeData.name==="RSMultiCharacterLoRA") addLoraModeHelp(this);
             for(const widget of this.widgets ?? []) {

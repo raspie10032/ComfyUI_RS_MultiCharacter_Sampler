@@ -49,7 +49,7 @@ function reference(node) {
     return null;
 }
 
-export function addPositionEditor(node, { collectSlots, centersFor, colors }) {
+export function addPositionEditor(node, { collectSlots, editorSource = n => n, centersFor, colors }) {
     if (node.rsPositionEditor) return;
     node.rsPositionEditor = true;
     const storage = widget(node, "mask_transforms");
@@ -167,7 +167,7 @@ export function addPositionEditor(node, { collectSlots, centersFor, colors }) {
     function schedule() { if (!frame && !disposed) frame = requestAnimationFrame(() => { frame = 0; refresh(); }); }
     function refresh() {
         if (disposed) return;
-        const {slots,unknown} = collectSlots(node), centers = centersFor(slots);
+        const {slots,unknown,cameraPending} = collectSlots(node), centers = centersFor(slots);
         const count = Number(val(node,"character_count",2));
         const editable = slots.filter(s => s.id <= count);
         const kind = s => s.masked ? text("Mask","마스크","マスク") : s.geometry === "box" ? text("Box","박스","ボックス") : text("Point","포인트","点");
@@ -179,7 +179,7 @@ export function addPositionEditor(node, { collectSlots, centersFor, colors }) {
             if (!editable.some(s=>s.id===active)) active=editable[0]?.id ?? null;
             select.value=String(active);
         }
-        const descriptor = reference(node), newKey = JSON.stringify(descriptor);
+        const descriptor = reference(editorSource(node)), newKey = JSON.stringify(descriptor);
         if (refKey !== newKey) {
             refKey=newKey; background=null; const token=++generation;
             if (descriptor?.filename) {
@@ -195,7 +195,7 @@ export function addPositionEditor(node, { collectSlots, centersFor, colors }) {
         const support=slots.find(s=>s.maskOriginal)?.maskOriginal;
         const aspect=support ? support.width/support.height : background ? background.naturalWidth/background.naturalHeight : 1;
         const width=512, height=Math.round(width/clamp(aspect,.25,4));
-        const stamp=JSON.stringify([slots.map(s=>[s.id,s.geometry,s.x,s.y,s.width,s.height,s.dynamic,s.kind,s.masked,maskId(s.maskSupport)]),unknown,active,disabled,!!background,width,height,language()]);
+        const stamp=JSON.stringify([slots.map(s=>[s.id,s.geometry,s.x,s.y,s.width,s.height,s.dynamic,s.kind,s.masked,maskId(s.maskSupport)]),unknown,cameraPending,active,disabled,!!background,width,height,language()]);
         if (stamp===canvas.rsStamp) return;
         canvas.rsStamp=stamp; canvas.width=width; canvas.height=height;
         // Avoid object-fit letterboxing: events map directly onto the bitmap.
@@ -218,6 +218,7 @@ export function addPositionEditor(node, { collectSlots, centersFor, colors }) {
         });
         status.textContent=disabled ? text("Linked or unready values: edit the source or run the mask first.","연결값·미준비 마스크: 원본 입력을 조절하거나 마스크를 먼저 실행하세요.","接続値・未準備のマスク：元の入力を編集するか先に実行してください。") : text("Select a number above, then drag. Corner/−/+ resizes boxes and masks. Mask overflow is clipped; layout is approximate.","위에서 번호 선택 → 드래그로 이동. 모서리·−/+로 박스·마스크 크기 조절. 캔버스 밖 마스크는 잘리며 배치는 대략 유도합니다.","上で番号を選んでドラッグ。角・−/+で矩形・マスクを拡縮。外側のマスクは切り取り、配置は目安です。");
         if(selectedSlot?.masked && selectedSlot.maskSupport?.empty)status.textContent=text("Mask is outside the canvas. Move it back, enlarge it, or reset placement.","마스크가 캔버스 밖입니다. 안으로 옮기거나 확대·초기화하세요.","マスクがキャンバス外です。戻す・拡大・リセットしてください。");
+        if(cameraPending && !disabled) status.textContent += " " + text("Editing before camera; see Finalize for its result.","카메라 적용 전 배치입니다. 적용 결과는 최종 파이프에서 확인하세요.","カメラ適用前の配置です。結果は最終パイプで確認してください。");
     }
     const dom=node.addDOMWidget("rs_mc_position_editor","rs_mc_position_editor",root,{serialize:false,hideOnZoom:false});
     dom.computeSize=()=>[300,500]; dom.serialize=false; dom.serializeValue=()=>undefined;
