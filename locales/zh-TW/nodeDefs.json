@@ -1774,7 +1774,7 @@
   },
   "RSCameraControl": {
     "display_name": "RS 相機視角",
-    "description": "使用視角標籤進行引導，並非3D相機。不會改變角色遮罩和座標。繼承提示詞時請連接上下文輸出。",
+    "description": "視角標籤引導與可選2D配置連動。距離和傾斜用於縮放與旋轉遮罩。",
     "inputs": {
       "azimuth": {
         "name": "水平角度"
@@ -1814,6 +1814,12 @@
       },
       "random_seed": {
         "name": "相機隨機種子"
+      },
+      "layout_sync": {
+        "name": "遮罩配置連動"
+      },
+      "canvas_aspect": {
+        "name": "輸出寬高比"
       }
     }
   }

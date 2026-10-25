@@ -1774,7 +1774,7 @@
   },
   "RSCameraControl": {
     "display_name": "RS 相机视角",
-    "description": "使用视角标签进行引导，并非3D相机。不会改变角色蒙版和坐标。继承提示词时请连接上下文输出。",
+    "description": "视角标签引导与可选2D布局联动。距离和倾斜用于缩放和旋转蒙版。",
     "inputs": {
       "azimuth": {
         "name": "水平角度"
@@ -1814,6 +1814,12 @@
       },
       "random_seed": {
         "name": "相机随机种子"
+      },
+      "layout_sync": {
+        "name": "蒙版布局联动"
+      },
+      "canvas_aspect": {
+        "name": "输出宽高比"
       }
     }
   }
