@@ -4,6 +4,7 @@ import { maskPreview, rememberMaskPreview, placedSupport } from "./mask_preview.
 import { poseSupports } from "./pose_masks.js";
 import { drawingSupports } from "./mask_drawing.js";
 import { addPositionEditor } from "./position_editor.js";
+import { cameraSlots } from "./camera_regions.js";
 
 const roles = new Set(["RSMultiCharacterPrompt", "RSMultiCharacterLoRA", "RSMultiCharacterPosition", "RSMultiCharacterMask", "RSMultiCharacterMaskDraw", "RSMultiCharacterPoseMasks", "RSMultiCharacterInteraction"]);
 const finalType = "RSMultiCharacterFinalize";
@@ -18,8 +19,9 @@ function inputNode(node, name) {
 }
 
 // Diagram only: never evaluates arbitrary STRING-producing nodes or changes prompts.
-export function collectSlots(node) {
-    const chain = [], seen = new Set();
+export function collectSlots(node, seen = new Set()) {
+    const chain = [];
+    let seed = [];
     let unknown = false;
     while (node && !seen.has(node)) {
         seen.add(node);
@@ -27,12 +29,41 @@ export function collectSlots(node) {
         if (roles.has(type)) {
             if (node.mode !== 4) chain.push(node); // Match ComfyUI bypass.
             node = inputNode(node, "building_pipe");
+        } else if (type === "CharacterPromptSelect") {
+            // Native NAI points can feed either camera and then the shared builder.
+            const count = Number(value(node,"character_count",5));
+            unknown ||= !!inputNode(node,"character_count") || node.mode === 2;
+            for (let id=1; id<=Math.min(10,count); id++) {
+                const enabled = value(node,`character${id}_enable`,id===1 || id>=6);
+                if (inputNode(node,`character${id}_enable`)) unknown = true;
+                if (!enabled) continue;
+                seed.push({id:seed.length+1,enabled:true,kind:"character",geometry:"point",
+                    x:Number(value(node,`character${id}_x`,0)),y:Number(value(node,`character${id}_y`,0)),
+                    width:.4,height:.8,promptConnected:true,
+                    dynamic:["x","y"].some(k=>!!inputNode(node,`character${id}_${k}`))});
+            }
+            node = null;
+            break;
+        } else if (type === "RSCameraControl" || type === "NAICameraControl") {
+            const upstream = inputNode(node, "building_pipe") ?? inputNode(node, "context");
+            // Bypass forwards the draft itself, without finalizing mask placements.
+            if (node.mode === 4) { node = upstream; continue; }
+            const source = collectSlots(upstream, seen);
+            const camera = cameraSlots(node, source.slots);
+            unknown ||= source.unknown || camera.unknown;
+            // A camera emits a finalized pipe. Its input placements are already
+            // applied; later Position edits start from the camera output masks.
+            seed = [...camera.slots.filter(s=>s.kind!=="text"), ...camera.slots.filter(s=>s.kind==="text")]
+                .map((s,i)=>({...s,id:i+1,maskOriginal:undefined,maskTransform:[0,0,1]}));
+            node = null;
+            break;
         } else if (type === finalType) node = inputNode(node, "building_pipe");
         else if (type === "Reroute") node = node.getInputNode?.(0);
         else { unknown = true; break; }
     }
-    const slots = new Map();
-    let promptCount = null, lastCount = 0;
+    if (node && seen.has(node)) unknown = true;
+    const slots = new Map(seed.map(s=>[s.id,s]));
+    let promptCount = seed.length || null, lastCount = seed.length;
     for (const item of chain.reverse()) {
         const count = Number(value(item, "character_count", 2));
         lastCount = Math.max(lastCount, count);

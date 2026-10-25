@@ -14,6 +14,14 @@ Default `scene_and_characters` adds the view to both common and character captio
 
 The connected context determines ComfyUI or NovelAI prompt syntax. Without context, select `prompt_syntax`. Select `plain` for a text path that does not parse numerical prompt weights; it selects dominant tags rather than emitting numerical syntax. Both packages ship the same node ID and identical implementation; installing both registers one editor.
 
+### Position editing after a camera / 카메라 뒤의 위치 조절
+
+The shared Position and Finalize previews follow either `RSCameraControl` or `NAICameraControl` through `building_pipe` (including saved `context` links). Adding a camera does not disable box, point or mask editing. A camera at the start of an otherwise empty builder chain also leaves the later regions editable.
+
+When a finalized pipe enters a camera, its zoom/rotation/perspective is included in the downstream layout guide. A later Position node edits that camera output; a newly painted mask replaces the incoming mask without applying the earlier camera twice. Text boxes stay fixed during camera transforms. Connected numerical controls, arbitrary context-producing nodes, missing masks and singular perspective still need their source resolved before editing. Diagram rasters are bounded thumbnails; full-resolution sampling remains in Python.
+
+카메라 뒤에도 **위치 노드에서 번호 선택 → 드래그 이동·모서리 또는 −/+ 크기 조절**을 할 수 있습니다. 멀티캐릭터·NAI 카메라와 예전 `context` 연결을 모두 인식합니다. 카메라 앞에서 만든 영역은 카메라 변형을 반영하고, 뒤에서 새로 그린 마스크는 새 영역으로 사용합니다. 파이프 첫머리에 카메라를 둬도 이후 배치 편집을 잠그지 않습니다. 외부 연결 수치·미준비 마스크는 입력을 먼저 확인해 주세요.
+
 ## Controls and captions
 
 | Control | Range / default | Meaning |

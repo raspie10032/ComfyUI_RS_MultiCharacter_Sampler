@@ -5,6 +5,11 @@ const sandbox={queueMicrotask,maskPreview:node=>node.testMask??null,rememberMask
 const previewSandbox={app:{},api:{apiURL:s=>s},URLSearchParams};
 vm.runInNewContext(require("./ui_source.cjs")('web/mask_preview.js').replace(/^import[^\n]*\n/gm,'').replaceAll('export function','function'),previewSandbox);
 sandbox.placedSupport=previewSandbox.placedSupport;
+const cameraSandbox={app:{registerExtension(){}}};
+vm.runInNewContext(fs.readFileSync('web/camera_control.js','utf8').replace(/^import[^\n]*\n/gm,'').replaceAll('export function','function'),cameraSandbox);
+const regionSandbox={projectLayout:cameraSandbox.projectLayout,randomCamera:cameraSandbox.randomCamera};
+vm.runInNewContext(fs.readFileSync('web/camera_regions.js','utf8').replace(/^import[^\n]*\n/gm,'').replaceAll('export function','function'),regionSandbox);
+sandbox.cameraSlots=regionSandbox.cameraSlots;
 const {collectSlots,centersFor}=sandbox;
 function make(type,settings,upstream=null){return {type,widgets:Object.entries(settings).map(([name,value])=>({name,value})),inputs:[{name:'building_pipe'},{name:'character1'},{name:'character2'}],getInputNode(i){return i===0?upstream:type==='RSMultiCharacterPrompt'?{}:null;}};}
 const actions=[['RSMultiCharacterPrompt',{character_count:2}],['RSMultiCharacterPosition',{character_count:2,character1_x:.25,character2_x:.75}],['RSMultiCharacterLoRA',{character_count:2}]];
@@ -32,6 +37,36 @@ assert.equal(collectSlots(positioned).slots[0].maskOriginal,mask.testMask);
 const before=make('RSMultiCharacterMask',{character_id:1,enabled:true},make('RSMultiCharacterPosition',{character_count:2,mask_transforms:'{"1":[0.5,0,1]}'},build([actions[0]])));
 before.testMask=mask.testMask;
 assert.deepEqual(Array.from(collectSlots(before).slots[0].maskSupport.data),Array.from(collectSlots(positioned).slots[0].maskSupport.data));
+// Either camera may start a pipeline (the reported graph) or transform a finalized one.
+for(const type of ['RSCameraControl','NAICameraControl']) {
+ const start=make(type,{layout_sync:'perspective',azimuth:45});
+ const p=make('RSMultiCharacterPosition',{character_count:2,character1_geometry:'box',character1_x:.3},make('RSMultiCharacterPrompt',{character_count:2},start));
+ assert.equal(collectSlots(p).unknown,false);assert.equal(collectSlots(p).slots[0].x,.3);
+ const camera=make(type,{layout_sync:'distance_and_roll',distance:1},make('RSMultiCharacterFinalize',{},root));
+ const output=collectSlots(camera);assert.equal(output.unknown,false);assert.equal(output.slots[0].x,.375);
+ const after=make('RSMultiCharacterPosition',{character_count:2,character1_x:.2},camera);
+ assert.equal(collectSlots(after).slots[0].x,.2); // Downstream overrides camera coordinates.
+ const legacy=make(type,{});legacy.inputs[0].name='context';legacy.getInputNode=i=>i===0?root:null;
+ assert.equal(collectSlots(legacy).unknown,false);assert.equal(collectSlots(legacy).slots[0].x,.25);
+ const maskCamera=make(type,{layout_sync:'distance_and_roll',distance:.75},make('RSMultiCharacterFinalize',{},positioned));
+ const carried=collectSlots(maskCamera).slots[0];
+ const next=make('RSMultiCharacterPosition',{character_count:2,mask_transforms:'{"1":[-.1,0,1]}'},maskCamera);
+ assert.equal(collectSlots(next).slots[0].maskOriginal,carried.maskSupport);
+ assert.deepEqual(Array.from(collectSlots(next).slots[0].maskSupport.data),Array.from(previewSandbox.placedSupport(carried.maskSupport,[-.1,0,1]).data));
+ maskCamera.mode=4;
+ assert.equal(collectSlots(next).slots[0].maskOriginal,mask.testMask);
+ assert.deepEqual(Array.from(collectSlots(next).slots[0].maskSupport.data),Array.from(previewSandbox.placedSupport(mask.testMask,[-.1,0,1]).data));
+ maskCamera.mode=0;
+ const newMask=make('RSMultiCharacterMask',{character_id:1,enabled:true},maskCamera);newMask.testMask=mask.testMask;
+ assert.equal(collectSlots(newMask).slots[0].maskSupport,mask.testMask); // No duplicate camera warp.
+ camera.mode=4;assert.equal(collectSlots(camera).slots[0].x,.25);
+ const native=make('CharacterPromptSelect',{character_count:2,character1_x:.3,character2_enable:true,character2_x:.7});
+ assert.equal(collectSlots(make(type,{},native)).unknown,false);
+ assert.equal(collectSlots(make(type,{},native)).slots.length,2);
+}
+const loop=make('RSCameraControl',{});loop.getInputNode=()=>loop;
+assert.equal(collectSlots(loop).unknown,true);
+assert.equal(collectSlots(make('UnknownPipe',{})).unknown,true);
 class Node {
  constructor(type='RSMultiCharacterPosition') {this.type=type;this.inputs=[];this.widgets=[{name:'character_count',value:2},...Array.from({length:10},(_,i)=>['geometry','x','y','width','height'].map(name=>({name:`character${i+1}_${name}`,value:name==='geometry'?'point':.5}))).flat()].map(w=>({...w,type:'number',computeSize:()=>[300,20]}));this.size=[340,200];}
  addCustomWidget(w){this.widgets.push(w);}computeSize(){return[340,200];}setSize(s){this.size=s;}setDirtyCanvas(){}addInput(name,type){this.inputs.push({name,type,link:null});}removeInput(i){this.inputs.splice(i,1);}

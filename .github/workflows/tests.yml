@@ -86,3 +86,5 @@ jobs:
 
       - name: Shared camera editor and Python curve parity
         run: node tests/test_camera_ui.cjs
+      - name: Camera output regions and Python raster parity
+        run: node tests/test_camera_regions_ui.cjs
