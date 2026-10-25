@@ -125,6 +125,10 @@ class RSCameraControl:
         scene = base_prompt if base_prompt is not None else (context.prompt if context is not None else "")
         if enabled and strength and scene is None:
             raise ValueError("This pipe has no scene caption. Connect base_prompt so the sampler's scene is not replaced by camera tags. / 공통 프롬프트가 없는 파이프입니다. base_prompt에 장면 문장을 연결하세요.")
+        # Native NAI character editors may still carry legacy mutable slots.
+        # Ask the pipe to normalize them without importing its backend here.
+        if enabled and strength and callable(getattr(context, "as_camera_context", None)):
+            context = context.as_camera_context()
         syntax = context.syntax if context is not None else prompt_syntax
         if random_mode not in ("off", "balanced", "full"):
             raise ValueError("Choose off/balanced/full random view. / 랜덤 구도 모드를 선택해 주세요.")
