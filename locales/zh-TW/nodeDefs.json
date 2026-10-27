@@ -1828,5 +1828,133 @@
         "name": "building_pipe"
       }
     }
+  },
+  "RSMultiCharacterProgressiveSampler": {
+    "display_name": "RS 漸進解析度採樣器",
+    "description": "以部分細節換取大尺寸圖像的取樣速度。起始比例越低，細節損失或構圖變化可能越大，無法保證品質。保留現有多角色功能。1.0使用一般取樣。",
+    "inputs": {
+      "layout_method": {
+        "name": "佈局方式",
+        "tooltip": "regional：按區域控制注意力。moss_native：MOSS 原生 JSON。遮罩轉換為外接矩形，不保留輪廓細節；區域強度與邊界設定不生效。"
+      },
+      "flux_guidance": {
+        "name": "FLUX 引導強度",
+        "tooltip": "FLUX.1 Dev 和 FLUX.2 Dev 的內建引導，與 CFG 不同。Schnell、Klein 和 FLUX 3 忽略此項。FLUX 3 Base 使用 CFG。"
+      },
+      "model": {
+        "name": "模型"
+      },
+      "clip": {
+        "name": "CLIP"
+      },
+      "vae": {
+        "name": "VAE"
+      },
+      "character_pipe": {
+        "name": "角色管線"
+      },
+      "prompt": {
+        "name": "公共正向提示詞",
+        "tooltip": "公共場景、風格和總人數。影像管線自帶的提示詞優先於此項。"
+      },
+      "negative_prompt": {
+        "name": "公共負向提示詞",
+        "tooltip": "公共排除項，影像管線的負向可能覆蓋此項。生成文字時移除 text 等排除詞。"
+      },
+      "width": {
+        "name": "寬度",
+        "tooltip": "輸出寬度，單位畫素，須為 16 的倍數。越大越耗時和視訊記憶體。"
+      },
+      "height": {
+        "name": "高度",
+        "tooltip": "輸出高度，單位畫素，須為 16 的倍數。越大越耗時和視訊記憶體。"
+      },
+      "seed": {
+        "name": "種子",
+        "tooltip": "初始噪聲種子。對比設定時請固定。"
+      },
+      "steps": {
+        "name": "步數",
+        "tooltip": "去噪步數，越多越慢。請從對應模型預設開始，尤其是加速模型。"
+      },
+      "cfg": {
+        "name": "CFG",
+        "tooltip": "提示詞引導強度，過高可能失真。CFG++ 和蒸餾模型可能需要更低值。"
+      },
+      "sampler_name": {
+        "name": "取樣器",
+        "tooltip": "此 ComfyUI 的去噪演算法。排程器需單獨選擇；模型預設提供測試過的起始組合。"
+      },
+      "scheduler": {
+        "name": "排程器",
+        "tooltip": "各步噪聲水平的分佈方式。更改取樣器不會自動切換排程器。"
+      },
+      "autosave": {
+        "name": "自動儲存",
+        "tooltip": "自動儲存影像及生成/角色後設資料，不含工作流。需要工作流時請使用 Save Image。"
+      },
+      "save_format": {
+        "name": "儲存格式",
+        "tooltip": "PNG 和無損 WebP 保留畫素；有損 WebP 減小體積。均保留生成後設資料，不含工作流。"
+      },
+      "webp_quality": {
+        "name": "WebP 品質",
+        "tooltip": "有損 WebP 品質 1–100，越高通常檔案越大。"
+      },
+      "prompt_syntax": {
+        "name": "提示詞語法",
+        "tooltip": "選擇 ComfyUI 括號權重或 NovelAI 語法。影像管線保留記錄的語法。"
+      },
+      "use_image_settings": {
+        "name": "恢復影像設定",
+        "tooltip": "從影像管線恢復尺寸、種子及取樣/區域引數。關閉後仍保留管線中的角色提示詞。"
+      },
+      "region_feather": {
+        "name": "區域羽化",
+        "tooltip": "區域邊緣羽化寬度。提高可柔化過渡，也可能增加特徵混合。"
+      },
+      "initial_common_prior": {
+        "name": "初始公共強度",
+        "tooltip": "初期公共提示詞強度。較低有利於角色分割槽，較高強化公共場景。"
+      },
+      "common_after_step3_boost": {
+        "name": "第 3 步後公共強度增量",
+        "tooltip": "第 3 步後增加的公共強度，用於逐步補充共享場景。"
+      },
+      "initial_character_gain": {
+        "name": "初始角色強度",
+        "tooltip": "初期角色提示詞強度。過高可能誇大特徵或導致失真。"
+      },
+      "initial_spatial_separation": {
+        "name": "初始區域分離強度",
+        "tooltip": "初期區域分離強度。越高分割槽越嚴格，後期衰減允許互動。"
+      },
+      "boundary_hold_steps": {
+        "name": "邊界保持步數",
+        "tooltip": "衰減前保持初始分離的步數，不超過總步數。保持太久可能使區域割裂。"
+      },
+      "boundary_decrement": {
+        "name": "邊界衰減量",
+        "tooltip": "每個衰減階段減少的分離強度，越大釋放越快。"
+      },
+      "start_scale": {
+        "name": "起始比例",
+        "tooltip": "以部分細節換取大尺寸圖像的取樣速度。起始比例越低，細節損失或構圖變化可能越大，無法保證品質。保留現有多角色功能。1.0使用一般取樣。"
+      }
+    },
+    "outputs": {
+      "0": {
+        "name": "影像"
+      },
+      "1": {
+        "name": "潛空間"
+      },
+      "2": {
+        "name": "角色管線"
+      },
+      "3": {
+        "name": "生成資訊"
+      }
+    }
   }
 }

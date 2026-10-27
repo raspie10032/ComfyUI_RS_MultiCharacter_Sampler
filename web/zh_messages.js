@@ -1,6 +1,11 @@
 // SPDX-License-Identifier: GPL-3.0-only
 // Simplified Chinese / Traditional Chinese (Taiwan) display text.
 export const zhMessages = {
+  "Progressive resolution · existing multi-character features remain available.": ["渐进分辨率 · 保留现有多角色功能。", "漸進解析度 · 保留現有多角色功能。"],
+  "Trade some detail for faster large-image sampling. Lower start scales can lose more detail or change composition; quality is not guaranteed. 1.0 uses ordinary sampling. Lanczos expansion restarts the solver history.": ["以部分细节换取大尺寸图像的采样速度。起始比例越低，细节损失或构图变化可能越大，无法保证质量。1.0使用普通采样。Lanczos扩展会重新开始求解器历史。", "以部分細節換取大尺寸圖像的取樣速度。起始比例越低，細節損失或構圖變化可能越大，無法保證品質。1.0使用一般取樣。Lanczos擴展會重新開始求解器歷史。"],
+  "Linked/image settings: actual resolution plan is reported after execution.": ["使用连接或图像设置时，实际分辨率计划在执行后显示。", "使用連接或圖像設定時，實際解析度計劃在執行後顯示。"],
+  "Plan (model grids may round): {0}": ["计划（根据模型网格取整）：{0}", "計劃（根據模型網格取整）：{0}"],
+
   "Editing before camera; see Finalize for its result.": ["当前编辑相机变换前的布局；请在最终管线查看效果。", "目前編輯相機變換前的配置；請在最終管線查看效果。"],
   "Metadata has {0} characters. Local nodes use 1–10; source data stays intact.": [
     "元数据含{0}个角色。本地节点使用第1–10个，原始数据会保留。",

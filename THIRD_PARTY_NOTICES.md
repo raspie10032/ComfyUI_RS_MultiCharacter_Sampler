@@ -43,3 +43,8 @@ Weight repositories, pinned revisions and download hashes are in `reference_asse
 The reference's per-axis default weight of 5, dead zones, discrete category transitions, editable preset library and extra lens/DoF/movement settings were inspected; these are not reproduced as an identical settings system. RS uses its own continuous blend formulas, degree-based axes and default strength 1.2. It does not reproduce the reference's separate draggable 3D preview camera.
 
 **RS/NAI additions:** shared character-pipe/context input and output; ComfyUI/NovelAI caption syntax selection; scene/character caption routing; preservation of prompts, LoRAs and local region records; synchronized point/box/silhouette/body-part zoom, roll and flat-plane perspective; and transformed-region previews. Native NAI requests receive captions and character centers, while local silhouettes remain in the context for round trips. These additions are not attributed to the reference as existing features. Neither caption control nor flat-plane projection reconstructs a 3D person or guarantees a pose.
+
+
+## Progressive resolution references
+
+[SPEED](https://howardxiao.ca/speed/), its [research code](https://github.com/howardhx/speed) and [ComfyUI-SPEED](https://github.com/ruwwww/ComfyUI-SPEED) were studied and compared for frequency-preserving expansion, noise/time correction and expansion timing. RS Lanczos expansion and resolution-aware character separation predate that comparison. The shipped progressive sampler uses the preceding RS Lanczos design and native ComfyUI noise scaling, not the external DCT expansion implementation. No SPEED source is bundled in this node. See [the feature guide](docs/progressive-resolution.md).

@@ -9,6 +9,7 @@ native text, positions and attention. No model method or global is replaced.
 import math
 
 import torch
+from .resolution_control import separation_for_grid
 
 from .routing import (token_groups, BoxGroups, sigma_progress, stepped_common_weight,
                       character_value_gain, hold_decay_spatial_separation)
@@ -128,11 +129,18 @@ class JointRouting:
         gain = character_value_gain(progress, s['initial_character_gain'])
         separation = hold_decay_spatial_separation(progress, len(self.sigmas),
             s['initial_spatial_separation'], min(s['boundary_hold_steps'],len(self.sigmas)), s['boundary_decrement'])
+        config = options.get('rs_resolution_separation')
+        exclusive, control = None, None
+        if config is not None:
+            config = {**config, 'final_grid': config['final_latent_grid']}
+            exclusive, control = separation_for_grid(config, x.shape[-2:],
+                s['initial_spatial_separation'], separation, None)
         groups = token_groups(self.masks, *grid, x.device, boxes=self.boxes)
         self.audit.update(token_grid=list(grid), tokens_per_slot=[len(g) for g in groups])
         record = dict(sigma=sigma, progress=progress, kinds=list(kinds), common_prior=common,
                       character_value_gain=gain, spatial_separation=separation,
-                      joint_calls=0, text_refiner_calls=0)
+                      joint_calls=0, text_refiner_calls=0, exclusive_spatial_separation=exclusive,
+                      resolution_separation=control, token_grid=list(grid), latent_grid=list(x.shape[-2:]))
         self.audit['forwards'].append(record)
         previous = self.state
         outputs = []
@@ -153,7 +161,7 @@ class JointRouting:
                     cb = torch.cat(pieces, 1)
                     record['text_lengths'] = lengths
                     self.state = dict(lengths=lengths, groups=groups, image_tokens=grid[0]*grid[1],
-                                      common=common, gain=gain, separation=separation, record=record)
+                                      common=common, gain=gain, separation=separation, exclusive=exclusive, record=record)
                 outputs.append(invoke(x[batch:batch+1], tb, cb, branch_options))
             return torch.cat(outputs, 0)
         finally:
@@ -253,6 +261,10 @@ class JointRouting:
                     for slot in members:
                         bias[:, text_len+groups[slot]] = 0
                     bias[:, text_len+groups.background] = 0
+                if state.get('exclusive') is not None and len(members) == 1:
+                    for other, indices in groups.cells:
+                        if len(other) == 1 and other != members:
+                            bias[:, text_len+indices] = math.log1p(-state['exclusive'])
                 gain = q.new_ones(len(keys))
                 gain[common_len:text_len] = state['gain']
                 attend(queries+image_start, keys, bias, gain)

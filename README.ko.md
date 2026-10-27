@@ -1,5 +1,7 @@
 # RS MultiCharacter Sampler
 
+**점진적 해상도:** [RS 점진적 해상도 샘플러](docs/progressive-resolution.md)는 최종 가로·세로의 0.5~1.0 배율에서 시작해 Lanczos로 확대하며, **디테일을 일부 희생하는 대신 큰 해상도 이미지를 더 빠르게 샘플링하는 기능**입니다. 시작 배율이 낮을수록 디테일 손실·구도 변화가 커질 수 있어 품질을 보장하지 못합니다. 실제 속도는 모델·설정에 따라 달라집니다. **기존 멀티캐릭터 샘플링 기능은 그대로 사용할 수 있습니다.**
+
 ComfyUI에서 캐릭터별 프롬프트·LoRA·영역을 지정해 생성하고, 인물을 감지해 부분 보정하는 확장입니다. 좌표·박스·마스크로 각 캐릭터의 외형을 적용할 위치를 유도합니다.
 
 [English](README.md) · [日本語](README.ja.md) · [문서 모음](docs/README.md) · [변경 기록](CHANGELOG.md) · [릴리스](https://github.com/raspie10032/ComfyUI_RS_MultiCharacter_Sampler/releases) · [简体中文](README.zh-CN.md) · [繁體中文](README.zh-TW.md)

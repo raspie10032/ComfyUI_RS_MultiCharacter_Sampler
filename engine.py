@@ -10,6 +10,7 @@ from comfy.sampler_helpers import convert_cond
 from comfy.samplers import process_conds
 
 from .interaction import protected_self_bias, exclusive_schedule
+from .resolution_control import separation_for_grid
 from .routing import (installed_ops, route_cross, route_self, token_groups,
                       common_weight, stepped_common_weight, character_value_gain, staged_character_gain, spatial_separation, stepped_spatial_separation, hold2_decay_spatial_separation, hold_decay_spatial_separation, release_step2_spatial_separation, sigma_progress, weak_self_bias, sdpa)
 
@@ -95,7 +96,11 @@ class AnimaRouting:
             if self.process is None:
                 raise RuntimeError("Spatial adapter was not initialized by the sampler")
             self.contexts = self.process()
-        if self.groups is None:
+        actual_grid = [s // model.patch_spatial for s in x.shape[-2:]]
+        if self.groups is None or self.audit.get("token_grid") != actual_grid:
+            self.groups = self.part_cells = self.spatial_bias = None
+            self.spatial_bias_separation = None
+            self.audit.setdefault("grid_changes", []).append(dict(sigma=float(options["sigmas"][0]), grid=actual_grid))
             if any(s % model.patch_spatial for s in x.shape[-2:]):
                 raise ValueError("Image latent must align with Anima spatial patches")
             h, w = (s // model.patch_spatial for s in x.shape[-2:])
@@ -106,6 +111,13 @@ class AnimaRouting:
                 self.audit['pose_parts']['token_cells'] = [
                     {'owners': list(owners), 'parts': list(parts), 'tokens': len(indices)}
                     for owners, parts, indices in self.part_cells]
+            cells = getattr(self.groups, 'cells', None)
+            total_cells = h*w
+            self.audit['grid_changes'][-1].update(
+                canvas_tokens=total_cells,
+                tokens_per_slot=[len(g) for g in self.groups],
+                cells=[dict(owners=list(owners), tokens=len(ids), fraction=len(ids)/total_cells)
+                       for owners, ids in cells] if cells is not None else None)
             self.audit.update(token_grid=[h, w], spatial_slots=len(self.groups),
                               tokens_per_slot=[len(g) for g in self.groups])
         lengths = [context.shape[1]] + [c.shape[1] for c in self.contexts]
@@ -160,6 +172,12 @@ class AnimaRouting:
         interaction = self.audit.get("interaction")
         exclusive_separation = exclusive_schedule(interaction, progress, len(self.sigmas),
             self.initial_spatial_separation, self.boundary_hold_steps, self.boundary_decrement)
+        exclusive_separation, resolution_record = separation_for_grid(
+            options.get('rs_resolution_separation'), actual_grid,
+            self.initial_spatial_separation, separation, exclusive_separation)
+        if resolution_record is not None:
+            record['resolution_separation'] = resolution_record
+        record['token_grid'] = actual_grid
         record["exclusive_spatial_separation"] = exclusive_separation
         self.audit["forwards"].append(record)
 

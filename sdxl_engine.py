@@ -8,6 +8,7 @@ SD1.5 uses CLIP-L sequences and has no pooled ADM. The class name is retained
 for compatibility with existing SDXL callers.
 """
 import torch
+from .resolution_control import separation_for_grid
 from .interaction import protected_self_bias, exclusive_schedule
 
 from .routing import (route_cross, sdpa, token_groups, weak_self_bias,
@@ -110,6 +111,12 @@ class SDXLRouting:
             s["initial_spatial_separation"], min(s["boundary_hold_steps"], len(self.sigmas)), s["boundary_decrement"])
         exclusive = exclusive_schedule(self.audit.get('interaction'),progress,len(self.sigmas),
             s['initial_spatial_separation'],min(s['boundary_hold_steps'],len(self.sigmas)),s['boundary_decrement'])
+        config = options.get('rs_resolution_separation')
+        resolution_record = None
+        if config is not None:
+            config = {**config, 'final_grid': config['final_latent_grid']}
+            exclusive, resolution_record = separation_for_grid(config, x.shape[-2:],
+                s['initial_spatial_separation'], separation, exclusive)
         lengths = [context.shape[1]]
         pieces = [context]
         for condition, _ in self.conditions:
@@ -120,7 +127,7 @@ class SDXLRouting:
             lengths.append(c.shape[1])
         record = dict(sigma=sigma, progress=progress, kinds=list(kinds), text_lengths=lengths,
                       common_prior=common, character_value_gain=gain, spatial_separation=separation,
-                      exclusive_spatial_separation=exclusive,
+                      exclusive_spatial_separation=exclusive, resolution_separation=resolution_record, latent_grid=list(x.shape[-2:]),
                       cross_calls=0, self_calls=0)
         self.audit["forwards"].append(record)
         previous = self.state

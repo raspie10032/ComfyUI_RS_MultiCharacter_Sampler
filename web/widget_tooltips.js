@@ -84,6 +84,10 @@ const tips = {
 };
 
 export function fieldHelp(type, name, locale = "en") {
+    if (name === "start_scale") {
+        const messages = ["Starting width/height ratio. Lower values may reduce quality or change composition; 1.0 is ordinary sampling.", "시작 너비·높이 비율. 낮을수록 품질 저하·구도 변화 가능. 1.0은 일반 생성입니다.", "開始幅・高さの倍率。低いほど品質低下・構図変化の可能性。1.0は通常生成。"];
+        return locale.startsWith("ko") ? messages[1] : locale.startsWith("ja") ? messages[2] : messages[0];
+    }
     if (type === "RSMultiCharacterReference") {
         const reference = {
             character_id: ["Character Prompt number; shares its point, box or mask.", "프롬프트의 번호와 맞추세요. 같은 포인트·박스·마스크를 씁니다.", "Promptと同じ番号に指定。同じPoint・Box・Maskを使います。"],

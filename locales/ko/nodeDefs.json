@@ -1114,5 +1114,23 @@
         "name": "building_pipe"
       }
     }
+  },
+  "RSMultiCharacterProgressiveSampler": {
+    "display_name": "RS 점진적 해상도 샘플러",
+    "description": "큰 해상도를 더 빠르게 샘플링하는 대신 디테일을 일부 희생합니다. 낮은 시작 배율은 디테일 손실·구도 변화가 커질 수 있어 품질을 보장하지 못합니다. 기존 멀티캐릭터 프롬프트·마스크·텍스트·LoRA를 사용합니다. 1.0은 일반 생성입니다.",
+    "inputs": {
+      "layout_method": {
+        "name": "레이아웃 처리",
+        "tooltip": "regional: 영역별 attention 제어. moss_native: MOSS 전용 JSON. 마스크는 외곽 사각형으로 변환되며 세부 모양은 반영되지 않습니다. 영역 강도 설정은 적용하지 않습니다."
+      },
+      "flux_guidance": {
+        "name": "FLUX 가이던스",
+        "tooltip": "FLUX.1 Dev·FLUX.2 Dev의 내장 가이던스입니다. CFG와 별개입니다. Schnell·Klein·FLUX 3에는 적용되지 않습니다. FLUX 3 Base는 CFG를 사용합니다."
+      },
+      "start_scale": {
+        "name": "시작 배율",
+        "tooltip": "큰 해상도를 더 빠르게 샘플링하는 대신 디테일을 일부 희생합니다. 낮은 시작 배율은 디테일 손실·구도 변화가 커질 수 있어 품질을 보장하지 못합니다. 기존 멀티캐릭터 프롬프트·마스크·텍스트·LoRA를 사용합니다. 1.0은 일반 생성입니다."
+      }
+    }
   }
 }

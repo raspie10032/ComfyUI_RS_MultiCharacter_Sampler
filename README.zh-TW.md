@@ -1,5 +1,7 @@
 # RS MultiCharacter Sampler
 
+**漸進解析度：**[RS 漸進解析度取樣器](docs/progressive-resolution.md)以最終寬高的0.5–1.0倍開始，使用Lanczos逐步放大，以部分細節換取大尺寸圖像的取樣速度。起始比例越低，細節損失和構圖變化可能越大，無法保證品質。實際速度取決於模型和設定。原有多角色取樣功能仍可使用。
+
 用於 ComfyUI 的區域生成與本地細節修復。為每個角色提供獨立提示詞、可選 LoRA，以及點、矩形或遮罩，引導角色特徵在畫面中的分佈。
 
 [English](README.md) · [한국어](README.ko.md) · [日本語](README.ja.md) · [简体中文](README.zh-CN.md) · **繁體中文** · [詳細文件](docs/README.md) · [更新記錄](CHANGELOG.md) · [釋出版本](https://github.com/raspie10032/ComfyUI_RS_MultiCharacter_Sampler/releases)

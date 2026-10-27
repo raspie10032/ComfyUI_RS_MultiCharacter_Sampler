@@ -56,7 +56,7 @@ let catalog;
 app.registerExtension({
     name: "RS.MultiCharacter.Presets",
     async beforeRegisterNodeDef(nodeType, nodeData) {
-        if (nodeData.name !== "RSMultiCharacterSampler") return;
+        if (!["RSMultiCharacterSampler", "RSMultiCharacterProgressiveSampler"].includes(nodeData.name)) return;
         // Fetch once from this extension's static assets. No model auto-detection or execution override.
         try {
             catalog ??= fetch(new URL("./model_presets.json", import.meta.url)).then(r => {

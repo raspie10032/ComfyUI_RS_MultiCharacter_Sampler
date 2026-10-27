@@ -1,5 +1,7 @@
 # RS MultiCharacter Sampler
 
+**Progressive resolution:** [RS Progressive Resolution Sampler](docs/progressive-resolution.md) samples larger images faster by starting at 0.5–1.0 of the final side lengths and expanding with Lanczos. This trades some detail for speed; lower start scales can lose more detail or change composition, and quality is not guaranteed. Actual speed depends on the model and settings. Existing multi-character sampling remains available.
+
 Regional generation and local detailing for ComfyUI. Give each character a prompt, an optional LoRA, and a point, box or mask to guide where their attributes appear.
 
 [한국어](README.ko.md) · [日本語](README.ja.md) · [Documentation](docs/README.md) · [Changelog](CHANGELOG.md) · [Releases](https://github.com/raspie10032/ComfyUI_RS_MultiCharacter_Sampler/releases) · [简体中文](README.zh-CN.md) · [繁體中文](README.zh-TW.md)

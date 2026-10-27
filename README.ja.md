@@ -1,5 +1,7 @@
 # RS MultiCharacter Sampler
 
+**段階的な解像度:** [RS 段階的解像度サンプラー](docs/progressive-resolution.md)は最終サイズの各辺の0.5〜1.0倍から開始し、Lanczosで拡大して、大きな画像をより速くサンプリングします。細部と速度のトレードオフであり、開始倍率が低いほど細部の損失や構図変化が増える場合があります。品質は保証されず、実際の速度はモデルと設定で異なります。既存のマルチキャラクター生成機能は引き続き利用できます。
+
 ComfyUIでキャラクター別のプロンプト・LoRA・領域を設定して生成し、検出した人物を部分補正する拡張です。座標・枠・マスクで、それぞれの外見を適用する場所を誘導します。
 
 [English](README.md) · [한국어](README.ko.md) · [ドキュメント](docs/README.md) · [変更履歴](CHANGELOG.md) · [リリース](https://github.com/raspie10032/ComfyUI_RS_MultiCharacter_Sampler/releases) · [简体中文](README.zh-CN.md) · [繁體中文](README.zh-TW.md)

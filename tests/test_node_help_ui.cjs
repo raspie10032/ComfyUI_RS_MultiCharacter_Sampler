@@ -8,6 +8,7 @@ const specs = {
   RSMultiCharacterPosition: {character_count:2,character1_geometry:'point',character2_geometry:'box'},
   RSMultiCharacterFinalize: {},
   RSMultiCharacterMask: {character_id:1,enabled:true,margin:24,threshold:.5},
+  RSMultiCharacterProgressiveSampler: {width:1152,height:1728,steps:30,start_scale:.67,layout_method:"regional",autosave:true},
   RSMultiCharacterSampler: {layout_method:'regional',use_image_settings:false,autosave:true,save_format:'PNG',sampler_name:'euler',scheduler:'simple'},
   RSMultiCharacterLoadImage: {image:'example.png'},
   RSMultiCharacterDetailer: {show_advanced:false,autosave:true,save_format:'PNG'},

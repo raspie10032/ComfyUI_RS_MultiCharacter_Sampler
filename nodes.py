@@ -313,11 +313,7 @@ class RSMultiCharacterSampler:
             latent = comfy.sample.fix_empty_latent_channels(work, latent)
         else:
             latent = comfy.sample.fix_empty_latent_channels(work, latent, downscale_ratio_spacial=8)
-        noise = comfy.sample.prepare_noise(latent, settings["seed"])
-        samples = comfy.sample.sample(work, noise, settings["steps"], settings["cfg"],
-            settings["sampler_name"], settings["scheduler"], positive, negative, latent, denoise=1.,
-            callback=latent_preview.prepare_callback(work, settings["steps"]),
-            disable_pbar=not comfy.utils.PROGRESS_BAR_ENABLED, seed=settings["seed"], force_full_denoise=False)
+        samples = self._sample_latent(work, latent, settings, positive, negative, audit)
         images = vae.decode(samples)
         if images.ndim == 5 and images.shape[1] == 1:
             images = images.flatten(0, 1)
@@ -351,6 +347,17 @@ class RSMultiCharacterSampler:
                 raise RuntimeError(f"Generation completed, but autosave failed: {error}") from error
             ui["images"] = [{"filename": path.name, "subfolder": subfolder, "type": "output"}]
         return {"ui": ui, "result": (images, {"samples": samples}, enriched, json.dumps(summary, ensure_ascii=False))}
+
+    def _sample_latent(self, work, latent, settings, positive, negative, audit):
+        import comfy.sample
+        import comfy.utils
+        import latent_preview
+        noise = comfy.sample.prepare_noise(latent, settings["seed"])
+        samples = comfy.sample.sample(work, noise, settings["steps"], settings["cfg"],
+            settings["sampler_name"], settings["scheduler"], positive, negative, latent, denoise=1.,
+            callback=latent_preview.prepare_callback(work, settings["steps"]),
+            disable_pbar=not comfy.utils.PROGRESS_BAR_ENABLED, seed=settings["seed"], force_full_denoise=False)
+        return samples
 
 
 class RSMultiCharacterLoadImage:

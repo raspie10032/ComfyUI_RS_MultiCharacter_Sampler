@@ -4,7 +4,7 @@ import { app } from "../../scripts/app.js";
 
 const targets = new Set([
     "RSMultiCharacterPrompt", "RSMultiCharacterPosition", "RSMultiCharacterFinalize", "RSMultiCharacterMask", "RSMultiCharacterMaskDraw",
-    "RSMultiCharacterSampler", "RSMultiCharacterLoadImage", "RSMultiCharacterDetailer",
+    "RSMultiCharacterProgressiveSampler", "RSMultiCharacterSampler", "RSMultiCharacterLoadImage", "RSMultiCharacterDetailer",
     "RSMultiCharacterTaggerLoader", "RSMultiCharacterPrompts", "RSMultiCharacterReference", "RSMultiCharacterInteraction",
 ]);
 const locale = () => String(app.extensionManager?.setting?.get?.("Comfy.Locale")
@@ -80,6 +80,26 @@ export function nodeHelp(node) {
             add("Prompt, LoRA and Position merge by slot number in any order. Prompt determines count; missing LoRA/Position default to None/center.", "프롬프트·LoRA·위치는 연결 순서와 무관하게 같은 번호끼리 합쳐집니다. 프롬프트가 사용 수를 결정하고 생략한 LoRA·위치는 없음·중앙이 됩니다.", "Prompt・LoRA・Positionは順序に関係なく同じ番号で統合します。Promptが使用数を決め、省略したLoRA・位置はNone・中央になります。");
             add("Up to 10 character/text slots. Missing prompts are reported at execution. More processed regions do not guarantee quality.", "캐릭터·텍스트 합계 최대 10개입니다. 누락 프롬프트는 실행 시 안내합니다. 처리수가 많을수록 품질을 보장하지 못합니다.", "キャラクター・テキスト合計10枠までです。欠落プロンプトは実行時に報告します。処理数が多いほど品質は保証できません。");
             break;
+        case "RSMultiCharacterProgressiveSampler": {
+            add("Progressive resolution · existing multi-character features remain available.", "점진적 해상도 · 기존 멀티캐릭터 기능을 그대로 사용합니다.", "段階的解像度・既存の複数キャラクター機能を利用できます。");
+            add("Trade some detail for faster large-image sampling. Lower start scales can lose more detail or change composition; quality is not guaranteed. 1.0 uses ordinary sampling. Lanczos expansion restarts the solver history.", "큰 해상도를 더 빠르게 샘플링하는 대신 디테일을 일부 희생합니다. 낮은 시작 배율은 디테일 손실·구도 변화가 커질 수 있어 품질을 보장하지 못합니다. 1.0은 일반 생성입니다. Lanczos 확대 시 솔버의 이력을 새로 시작합니다.", "細部と引き換えに大きな画像をより速く生成します。開始倍率が低いほど細部の損失や構図変化が増える場合があり、品質は保証されません。1.0は通常生成。Lanczos拡大時にソルバー履歴を再開します。");
+            const linked = new Set((node.inputs ?? []).filter(i => i.link != null).map(i => i.name));
+            if (["width", "height", "steps", "start_scale"].some(n => linked.has(n)) || v("use_image_settings", false)) {
+                add("Linked/image settings: actual resolution plan is reported after execution.", "연결·이미지 설정 사용 중: 실제 해상도 계획은 실행 결과에 표시됩니다.", "接続・画像設定使用中：実際の解像度計画は実行結果に表示します。");
+            } else {
+                const width = Number(v("width",1536)), height = Number(v("height",768));
+                const steps = Number(v("steps",30)), scale = Number(v("start_scale",.67));
+                const stages = [];
+                for (const [start, factor] of [[0,scale],[Math.max(1,Math.round(steps*8/30)),(1+scale)/2],[Math.min(steps-1,Math.max(1,Math.round(steps*16/30))),1]]) {
+                    const w = Math.max(16,Math.min(width,Math.round(width*factor/16)*16)), h = Math.max(16,Math.min(height,Math.round(height*factor/16)*16));
+                    if (stages.at(-1)?.start === start) stages.pop();
+                    if (stages.at(-1)?.w === w && stages.at(-1)?.h === h) continue;
+                    stages.push({start,w,h});
+                }
+                const planText = stages.map((s,i)=>`${s.w}×${s.h} [${s.start+1}–${stages[i+1]?.start??steps}]`).join(" → ");
+                add(`Plan (model grids may round): ${planText}`, `계획(모델 격자에 따라 반올림): ${planText}`, `予定（モデルのグリッドで丸め）：${planText}`);
+            }
+        }
         case "RSMultiCharacterSampler":
             add("Sampling · current selections", "샘플링 · 현재 선택 안내", "サンプリング · 現在の選択");
             if (v("use_image_settings", false)) add("Image settings ON: the image pipe supplies dimensions, seed and sampling/routing settings as well as prompts. Select MODEL/CLIP/VAE and global LoRAs manually.", "이미지 설정 복원 ON: 이미지 파이프의 프롬프트뿐 아니라 해상도·시드·샘플링·영역 설정도 사용합니다. MODEL/CLIP/VAE와 전역 LoRA는 직접 연결하세요.", "画像設定復元ON：画像パイプのプロンプトに加え、解像度・シード・サンプリング・領域設定も使います。MODEL/CLIP/VAEと全体LoRAは手動接続してください。");

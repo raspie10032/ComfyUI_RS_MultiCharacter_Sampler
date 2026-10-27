@@ -1114,5 +1114,23 @@
         "name": "building_pipe"
       }
     }
+  },
+  "RSMultiCharacterProgressiveSampler": {
+    "display_name": "RS 段階的解像度サンプラー",
+    "description": "細部と引き換えに大きな画像をより速く生成します。開始倍率が低いほど細部の損失や構図変化が増える場合があり、品質は保証されません。既存の複数キャラクタープロンプト・マスク・テキスト・LoRAを利用できます。1.0は通常生成。",
+    "inputs": {
+      "layout_method": {
+        "name": "レイアウト処理",
+        "tooltip": "regional: 領域別attention制御。moss_native: MOSS専用JSON。マスクは外接矩形に変換され、輪郭は反映されません。領域強度設定は適用しません。"
+      },
+      "flux_guidance": {
+        "name": "FLUXガイダンス",
+        "tooltip": "FLUX.1 Dev・FLUX.2 Devの内蔵ガイダンスです。CFGとは別です。Schnell・Klein・FLUX 3には適用されません。FLUX 3 BaseはCFGを使用します。"
+      },
+      "start_scale": {
+        "name": "開始倍率",
+        "tooltip": "細部と引き換えに大きな画像をより速く生成します。開始倍率が低いほど細部の損失や構図変化が増える場合があり、品質は保証されません。既存の複数キャラクタープロンプト・マスク・テキスト・LoRAを利用できます。1.0は通常生成。"
+      }
+    }
   }
 }

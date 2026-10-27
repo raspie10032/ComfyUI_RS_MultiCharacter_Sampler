@@ -11,8 +11,10 @@ from .wd_tagger import RSMultiCharacterTaggerLoader
 from .mask_drawing import RSMultiCharacterMaskDraw
 from .image_reference import RSMultiCharacterReference
 from .camera_control import RSCameraControl
+from .progressive import RSMultiCharacterProgressiveSampler
 
 NODE_CLASS_MAPPINGS = {
+    "RSMultiCharacterProgressiveSampler": RSMultiCharacterProgressiveSampler,
     "RSCameraControl": RSCameraControl,
     "RSMultiCharacterPoseMasks": RSMultiCharacterPoseMasks,
     "RSMultiCharacterInteraction": RSMultiCharacterInteraction,
@@ -31,6 +33,7 @@ NODE_CLASS_MAPPINGS = {
     "RSMultiCharacterTaggerLoader": RSMultiCharacterTaggerLoader,
 }
 NODE_DISPLAY_NAME_MAPPINGS = {
+    "RSMultiCharacterProgressiveSampler": "RS Progressive Resolution Sampler",
     "RSCameraControl": "RS Camera Control",
     "RSMultiCharacterPoseMasks": "RS OpenPose Masks (Experimental)",
     "RSMultiCharacterInteraction": "RS Character Interaction",

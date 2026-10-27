@@ -42,7 +42,7 @@ const covers = (expected, actual, key) => {
 for (const locale of ['zh','zh-TW']) {
   const catalog = JSON.parse(fs.readFileSync(`locales/${locale}/nodeDefs.json`,'utf8'));
   covers(base, catalog, locale);
-  assert.equal(Object.keys(catalog).length, 16);
+  assert.equal(Object.keys(catalog).length, 17);
   for (const [id, def] of Object.entries(catalog)) {
     assert.match(def.display_name, /[\u4e00-\u9fff]/u, id);
     assert.doesNotMatch(JSON.stringify(def), /[\uac00-\ud7af\u3041-\u3096\u30a1-\u30fa]/u, id);
