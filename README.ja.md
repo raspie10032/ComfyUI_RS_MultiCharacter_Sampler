@@ -6,7 +6,7 @@ ComfyUIでキャラクター別のプロンプト・LoRA・領域を設定して
 
 [English](README.md) · [한국어](README.ko.md) · [ドキュメント](docs/README.md) · [変更履歴](CHANGELOG.md) · [リリース](https://github.com/raspie10032/ComfyUI_RS_MultiCharacter_Sampler/releases) · [简体中文](README.zh-CN.md) · [繁體中文](README.zh-TW.md)
 
-**現在のバージョン：[1.0.5 Hangeul](docs/release-1.0.5.md)。** ローカルモデルで動作し、RS NovelAI拡張やAPIキーは不要です。
+**現在のバージョン：[1.0.6 Hangeul](docs/release-1.0.6.md)。** ローカルモデルで動作し、RS NovelAI拡張やAPIキーは不要です。
 
 ![LoRAなしのAnima 2人生成例](examples/two-characters-result.png)
 

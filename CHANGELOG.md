@@ -6,6 +6,7 @@ versions and downloadable assets, see [GitHub Releases](https://github.com/raspi
 
 | Version | Main change | Details |
 | --- | --- | --- |
+| **1.0.6 Hangeul** | Separate progressive resolution sampler: Lanczos expansion, start scale 0.5–1.0, existing character pipes and metadata. | [Release notes](docs/release-1.0.6.md) |
 | **1.0.5 Hangeul** | Shared RS/NAI contexts, interactive camera captions and order-independent building pipes; position editing through camera nodes. | [Release notes](docs/release-1.0.5.md) |
 | **1.0.4 Hangeul** | Compatibility improvements for some quantized models. | [Release notes](docs/release-1.0.4.md) |
 | **1.0.3 Hangeul** | MOSS native mask-to-box conversion and localized panel/tooltips. Main also adds Simplified/Traditional Chinese UI and READMEs. | [Release notes](docs/release-1.0.3.md) |
