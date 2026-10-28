@@ -207,6 +207,24 @@ class AnimaRouting:
 
         def spatial(q, k, v, transformer_options=None, preferred_attention=None):
             q, k, v = (t if isinstance(t, torch.Tensor) else t.take() for t in (q, k, v))
+            if (weak_spatial and options.get('rs_reference_compact_spatial')
+                    and options.get('rs_reference_frame') and not options.get('rs_reference_slots')):
+                from .reference_spatial import compact_bias, compact_attention
+                size = actual_grid[0]*actual_grid[1]
+                bias_key = ('compact_reference', separation, exclusive_separation, q.shape[1])
+                if self.spatial_bias is None or self.spatial_bias_separation != bias_key:
+                    self.spatial_bias = compact_bias(self.groups, size, q.shape[1], q,
+                                                     separation, exclusive_separation)
+                    self.spatial_bias_separation = bias_key
+                if 'self_bias_foreign' not in record and len(self.groups) > 1:
+                    record['self_bias_foreign'] = self.spatial_bias.at(self.groups[0][0], self.groups[1][0])
+                    record['self_bias_own'] = self.spatial_bias.at(self.groups[0][0], self.groups[0][0])
+                self.audit['compact_reference_spatial'] = True
+                self.audit['peak_spatial_bias_bytes'] = max(self.audit.get('peak_spatial_bias_bytes', 0),
+                    self.spatial_bias.rows.numel()*self.spatial_bias.rows.element_size())
+                self.audit['self_calls'] += 1
+                record['self_blocks'].append(transformer_options['block_index'])
+                return compact_attention(q, k, v, self.spatial_bias)
             if weak_spatial:
                 reference_slots = options.get('rs_reference_slots', ())
                 bias_key = (separation, exclusive_separation, bool(options.get('rs_reference_frame')), bool(reference_slots), q.shape[1])

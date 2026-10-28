@@ -157,6 +157,48 @@ def encode_reference(pixels, vae, width, height):
     return value
 
 
+def prepare_reference_latents(plan, refs, vae, width, height, steps,
+                              start_scale=1., follow=False, end_step=None):
+    """Encode only grids used while references are active, once per source/grid.
+
+    All encodes precede diffusion so VAE/model residency does not alternate
+    between progressive stages. Tensors remain local to this sampling call.
+    """
+    from .progressive import resolution_plan
+    end_step = steps if end_step is None else end_step
+    if type(end_step) is not int or not 1 <= end_step <= steps:
+        raise ValueError('Reference end step must be an integer within the sampling schedule.')
+    stages = resolution_plan(width, height, steps, start_scale) if follow else [
+        dict(start=0, end=steps, width=width, height=height)]
+    active = [stage for stage in stages if stage['start'] < end_step]
+    sources = {}
+    if refs:
+        for _, ref in refs:
+            if ref.source not in sources:
+                sources[ref.source] = torch.from_numpy(np.asarray(ref.image()).copy()).float()[None]/255.
+        ordered = [ref.source for _, ref in refs]
+    else:
+        sources[None] = plan.pixels
+        ordered = [None]
+    encoded, grids = {}, {}
+    encodes = []
+    for stage in active:
+        rw, rh = (max(16, round(stage[k]*plan.reference_scale/16)*16) for k in ('width', 'height'))
+        banks = []
+        for source in ordered:
+            key = (source, rw, rh)
+            if key not in encoded:
+                encoded[key] = encode_reference(sources[source], vae, rw, rh)
+                encodes.append(dict(width=rw, height=rh))
+            banks.append(encoded[key])
+        grids[(stage['height']//8, stage['width']//8)] = torch.cat(banks, 2)
+    first = next(iter(grids.values()))
+    details = dict(unique_reference_encodes=len(encoded), unique_reference_sources=len(sources),
+                   reference_encode_grids=encodes, reference_end_step=end_step,
+                   skipped_reference_stages=len(stages)-len(active))
+    return first, grids if follow else None, details
+
+
 def frame_rope(pe, hp, wp, device, count=1, reference_grid=None):
     """The trained offset: reference begins one target height below the target."""
     h, w = torch.meshgrid(torch.arange(hp, device=device), torch.arange(wp, device=device), indexing='ij')
@@ -248,6 +290,8 @@ class FrameRuntime:
         self.rope_cache.clear()
         self.weights = None
         self.bytes = 0
+        if hasattr(self, 'stage_references'):
+            self.stage_references.clear()
         self.audit['cache_bytes_after_sample'] = 0
 
     def sample(self, executor, *args, **kwargs):
@@ -260,6 +304,20 @@ class FrameRuntime:
         options = dict(kwargs.get('transformer_options', {}))
         if 'cond_or_uncond' in options:
             options['cond_or_uncond'] = [0 if k == 0 else 1 for k in options['cond_or_uncond']]
+        if kwargs.get(KEY) is not None and hasattr(self, 'stage_references'):
+            # Numbered precision predictions carry exactly one reference bank.
+            full = kwargs[KEY]
+            staged = self.stage_references[tuple(x.shape[-2:])]
+            if full.shape[2] == 1 and len(self.slots) > 1:
+                # The guider selects the numbered bank explicitly.
+                bank = int(options['rs_reference_bank'])
+                staged = staged[:, :, bank:bank+1]
+            kwargs[KEY] = staged
+        if kwargs.get(KEY) is not None:
+            entry = dict(target_grid=list(x.shape[-2:]), reference_shape=list(kwargs[KEY].shape), bank=options.get('rs_reference_bank'))
+            rows = self.audit.setdefault('reference_grid_evaluations', [])
+            if entry not in rows:
+                rows.append(entry)
         options['rs_reference_frame'] = kwargs.get(KEY) is not None
         options['rs_reference_count'] = kwargs[KEY].shape[2] if options['rs_reference_frame'] else 0
         if options['rs_reference_frame']:
@@ -513,7 +571,8 @@ def reference_guider(model, positive, negative, runtime, cfg):
             result = baseline*(1-weights.sum(0)).reshape(1,1,*([1]*(x.ndim-4)),*x.shape[-2:])
             for bank,strength in enumerate(runtime.strengths):
                 pair=[self.conds[f'positive_{bank}'],self.conds[f'negative_{bank}']]
-                refpos,refneg = comfy.samplers.calc_cond_batch(self.inner_model,pair,x,timestep,model_options)
+                bank_options = {**model_options, 'transformer_options': {**model_options.get('transformer_options', {}), 'rs_reference_bank': bank}}
+                refpos,refneg = comfy.samplers.calc_cond_batch(self.inner_model,pair,x,timestep,bank_options)
                 guided = neg+runtime.plan.guidance*(refneg-neg)+self.cfg*(refpos-refneg)
                 guided = self.correction(guided,refpos)
                 guided = baseline+strength*(guided-baseline)
@@ -522,6 +581,19 @@ def reference_guider(model, positive, negative, runtime, cfg):
 
         def predict_noise(self, x, timestep, model_options=None, seed=None):
             model_options = {} if model_options is None else model_options
+            schedule = model_options.get('transformer_options', {}).get('sample_sigmas')
+            step_index = int(torch.argmin((schedule[:-1].to(timestep)-timestep.flatten()[0]).abs()))
+            enabled = step_index < getattr(runtime, 'end_step', len(schedule)-1)
+            runtime.audit.setdefault('reference_schedule', []).append(dict(step=step_index+1, enabled=enabled, target_grid=list(x.shape[-2:])))
+            if not enabled:
+                conds = [self.conds['positive_base'], self.conds['negative_base']]
+                pos, neg = comfy.samplers.calc_cond_batch(self.inner_model, conds, x, timestep, model_options)
+                guided = neg + self.cfg*(pos-neg)
+                for fn in model_options.get('sampler_post_cfg_function', []):
+                    guided = fn(dict(denoised=guided, cond=conds[0], uncond=conds[1], cond_scale=self.cfg,
+                        model=self.inner_model, uncond_denoised=neg, cond_denoised=pos, sigma=timestep,
+                        model_options=model_options, input=x))
+                return guided
             if runtime.slots and runtime.plan.character_mode == 'precision':
                 guided,pos,neg=self.numbered_prediction(x,timestep,model_options)
                 for fn in model_options.get('sampler_post_cfg_function',[]):
@@ -556,12 +628,12 @@ def reference_guider(model, positive, negative, runtime, cfg):
         guider.inner_set_conds(conditions)
     else:
         guider.inner_set_conds(dict(positive=node_helpers.conditioning_set_values(positive, refs),
-            negative=node_helpers.conditioning_set_values(negative, refs), negative_base=negative))
+            negative=node_helpers.conditioning_set_values(negative, refs), positive_base=positive, negative_base=negative))
     guider.set_cfg(cfg)
     return guider
 
 
-def sample_reference(model, latent, settings, positive, negative, audit):
+def sample_reference(model, latent, settings, positive, negative, audit, sampler_override=None):
     import comfy.sample
     import comfy.samplers
     import comfy.utils
@@ -569,7 +641,7 @@ def sample_reference(model, latent, settings, positive, negative, audit):
     from comfy_extras.nodes_custom_sampler import Noise_RandomNoise
     runtime = model.model_options['rs_anima_ref_frame_runtime']
     guider = reference_guider(model, positive, negative, runtime, settings['cfg'])
-    sampler = comfy.samplers.sampler_object(settings['sampler_name'])
+    sampler = sampler_override or comfy.samplers.sampler_object(settings['sampler_name'])
     sigmas = comfy.samplers.calculate_sigmas(model.get_model_object('model_sampling'), settings['scheduler'], settings['steps']).cpu()
     noise = Noise_RandomNoise(settings['seed']).generate_noise({'samples': latent})
     return guider.sample(noise, latent, sampler, sigmas,

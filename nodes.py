@@ -166,7 +166,7 @@ class RSMultiCharacterSampler:
         if not isinstance(prompt, str) or not isinstance(negative_prompt, str) or prompt_syntax not in ("ComfyUI", "NovelAI"):
             raise ValueError("Choose valid prompt text and syntax.")
         pipe = resolved_pipe
-        from .anima_ref_frame import PLAN, FrameRuntime, FrameImageReference, encode_reference, patch_extra_conds
+        from .anima_ref_frame import PLAN, FrameRuntime, FrameImageReference, patch_extra_conds
         frame_plan = model.model_options.get(PLAN)
         frame_refs = [(i, c.reference) for i, c in enumerate(pipe.characters)
                       if isinstance(c.reference, FrameImageReference) and c.reference.strength > 0]
@@ -175,8 +175,6 @@ class RSMultiCharacterSampler:
         if frame_plan is not None:
             if family != 'Anima':
                 raise ValueError('Reference-frame adapter requires Anima.')
-            if model.model_options.get('rs_progressive_scale', 1.) != 1.:
-                raise ValueError('Reference-frame trial needs ordinary sampling. Set start_scale to 1 or use RS MultiCharacter Sampler. / 참조 프레임 시험은 일반 샘플러를 사용해 주세요.')
             if any(c.reference is not None and c.reference.strength > 0 and not isinstance(c.reference, FrameImageReference) for c in pipe.characters):
                 raise ValueError('Use one reference method at a time: reference-frame adapter or the older image reference.')
             if frame_plan.pixels is not None and frame_refs:
@@ -282,24 +280,22 @@ class RSMultiCharacterSampler:
         work = model.clone()
         if frame_plan is not None:
             work.model_options.setdefault('transformer_options', {})['rs_anima_ref_ready'] = True
-            ref_width=max(16,round(settings['width']*frame_plan.reference_scale/16)*16)
-            ref_height=max(16,round(settings['height']*frame_plan.reference_scale/16)*16)
-            if frame_refs:
-                # Encode each distinct image once. Reusing identical images
-                # in two slots does not perform duplicate VAE encodes.
-                encoded, banks = {}, []
-                for _, ref in frame_refs:
-                    if ref.source not in encoded:
-                        pixels = torch.from_numpy(np.asarray(ref.image()).copy()).float()[None]/255.
-                        encoded[ref.source] = encode_reference(pixels, vae, ref_width, ref_height)
-                    banks.append(encoded[ref.source])
-                reference_latent = torch.cat(banks, 2)
-            else:
-                reference_latent = encode_reference(frame_plan.pixels, vae, ref_width, ref_height)
+            from .anima_ref_frame import prepare_reference_latents
+            reference_latent, stage_refs, preparation = prepare_reference_latents(
+                frame_plan, frame_refs, vae, settings['width'], settings['height'], settings['steps'],
+                start_scale=model.model_options.get('rs_progressive_scale', 1.),
+                follow=model.model_options.get('rs_reference_follow_resolution', False),
+                end_step=model.model_options.get('rs_reference_end_step'))
             frame_runtime = FrameRuntime(frame_plan,
                 reference_latent, audit, cache_allowed=loras is None,
                 slots=[i for i, _ in frame_refs], strengths=[r.strength for _, r in frame_refs], masks=masks)
-            frame_runtime.audit['unique_reference_encodes'] = len(encoded) if frame_refs else 1
+            frame_runtime.audit.update(preparation)
+            frame_runtime.end_step = preparation['reference_end_step']
+            if stage_refs is not None:
+                process_ref = work.get_model_object('process_latent_in')
+                frame_runtime.stage_references = {grid: process_ref(value) for grid, value in stage_refs.items()}
+                frame_runtime.audit['stage_reference_shapes'] = {str(k): list(v.shape) for k,v in frame_runtime.stage_references.items()}
+            work.model_options.setdefault('transformer_options', {})['rs_reference_compact_spatial'] = model.model_options.get('rs_reference_compact_spatial', False)
             work.model_options['rs_anima_ref_frame_runtime'] = frame_runtime
             patch_extra_conds(work)
             work.add_wrapper_with_key(WrappersMP.DIFFUSION_MODEL, 'rs_ref_frame_mark', frame_runtime.mark)

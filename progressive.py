@@ -201,6 +201,9 @@ class RSMultiCharacterProgressiveSampler(RSMultiCharacterSampler):
         sampler = comfy.samplers.KSAMPLER(stage_integrator(native, plan, settings,
             work.get_model_object('model_sampling'), latent.shape[-2:], audit['progressive_resolution']),
             inpaint_options=native.inpaint_options)
+        if 'rs_anima_ref_frame_runtime' in work.model_options:
+            from .anima_ref_frame import sample_reference
+            return sample_reference(work, latent, settings, positive, negative, audit, sampler_override=sampler)
         noise = comfy.sample.prepare_noise(latent, settings['seed'])
         return comfy.sample.sample_custom(work, noise, settings['cfg'], sampler, schedule, positive, negative,
             latent, callback=latent_preview.prepare_callback(work, settings['steps']),

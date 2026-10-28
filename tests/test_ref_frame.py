@@ -35,9 +35,10 @@ class RefFrameTests(unittest.TestCase):
         return rt
 
     def test_frame_rope_matches_upstream(self):
-        root=Path(__file__).resolve().parents[2]/'source/__init__.py'
+        roots=[p/'source/__init__.py' for p in Path(__file__).resolve().parents[2:4]]
+        root=next((p for p in roots if p.exists() and 'def _frame_positions' in p.read_text()),None)
+        if root is None:self.skipTest('Optional local upstream control')
         spec=importlib.util.spec_from_file_location('test_ref_upstream',root)
-        if not root.exists():self.skipTest('Optional local upstream control')
         up=importlib.util.module_from_spec(spec);spec.loader.exec_module(up)
         positions=[up._frame_positions(0,4,3,0,0,'cpu'),up._frame_positions(1,4,3,4,0,'cpu')]
         expected=up._rope_from_positions(self.dm.pos_embedder,*(torch.cat(a) for a in zip(*positions)))
