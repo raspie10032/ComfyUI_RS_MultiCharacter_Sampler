@@ -56,7 +56,7 @@ class RSAnimaCharacterReference:
     CATEGORY = 'RS MultiCharacter/Reference'
     EXPERIMENTAL = True
     DESCRIPTION = ('Anima numbered reference-frame image. Match the character number, then Finalize. '
-        'Connect RS Anima Reference Adapter to the sampler model without its global image. '
+        'The sampler prepares the default adapter automatically; an explicit adapter node is optional. '
         'Independent source predictions are blended in their numbered target masks. '
         'Overlaps blend both sources. Quality is experimental; more references cost memory/time.')
 
@@ -105,7 +105,7 @@ class RSAnimaReferenceAdapter:
     DESCRIPTION = ('Experimental Anima reference-frame adapter for RS MultiCharacter Sampler. '
         'Connect image for a global reference, or leave it unconnected and use numbered Character Reference nodes. '
         'Uses a separately downloaded learned adapter. Not Wan/AniSora or a universal IP-Adapter. '
-        'Progressive sampling and detailer reference transfer are not supported in this experiment.')
+        'RS progressive sampling is supported. The detailer ignores image references.')
 
     def apply(self, model, image=None, adapter_name=None, strength=1., reference_guidance=4.5,
               correction='apg', cache_text_kv=False, reference_scale=1.):
