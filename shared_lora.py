@@ -117,16 +117,22 @@ class SharedRegionalLora:
             self.mask_cache[key] = weights
         return self.mask_cache[key]
 
-    def layer_forward(self, original, adapters, role, grid, lengths, x, *args, **kwargs):
+    def layer_forward(self, original, adapters, role, grid, lengths, x, *args, reference_frame=False, **kwargs):
         base = original(x, *args, **kwargs)
         self.audit['base_layer_calls'] += 1
         if role == 'image':
-            if tuple(x.shape[1:-1]) not in ((grid[0] * grid[1],), (1, *grid)):
+            shapes = ((grid[0]*grid[1],), (1, *grid))
+            if reference_frame:
+                frames = 1+int(reference_frame)
+                shapes += ((frames*grid[0]*grid[1],), (frames, *grid))
+            if tuple(x.shape[1:-1]) not in shapes:
                 raise ValueError(f"Unexpected Anima image-token shape: {tuple(x.shape)}.")
         elif x.ndim != 3 or x.shape[1] != sum(lengths):
             raise ValueError("Unexpected Anima caption-token shape.")
         for adapter, mask, strengths in adapters:
             weights = self.token_weights(mask, strengths, grid, lengths, base.device, base.dtype, role)
+            if role == 'image' and reference_frame and x.numel()//(x.shape[0]*x.shape[-1]) == (1+int(reference_frame))*grid[0]*grid[1]:
+                weights = torch.cat([weights]+[torch.zeros_like(weights)]*int(reference_frame))
             weights = weights.reshape((1, *x.shape[1:-1], 1))
             base = base + adapter.h(x, base) * weights
             self.audit['adapter_calls'] += 1
@@ -153,7 +159,7 @@ class SharedRegionalLora:
         return base
 
     @contextmanager
-    def installed(self, runtime, grid, lengths):
+    def installed(self, runtime, grid, lengths, reference_frame=False):
         from comfy.weight_adapter.bypass import BypassForwardHook
         layers = {}
         for plan, mask, strengths in self.entries:
@@ -173,7 +179,8 @@ class SharedRegionalLora:
                 state = {k: module.__dict__[k] for k in ('forward', 'comfy_force_forward') if k in module.__dict__}
                 previous.append((module, state))
                 layer_forward = self.sdxl_layer_forward if getattr(self, 'is_sdxl', False) else self.layer_forward
-                module.forward = partial(layer_forward, module.forward, adapters, layer_role(path), grid, lengths)
+                options = {'reference_frame': reference_frame} if reference_frame and not self.is_sdxl else {}
+                module.forward = partial(layer_forward, module.forward, adapters, layer_role(path), grid, lengths, **options)
                 module.comfy_force_forward = True
             yield
         finally:
@@ -204,7 +211,9 @@ class SharedRegionalLora:
         if lengths[0] <= 0 or len(lengths) != len(self.entries[0][2]) + 1:
             raise ValueError("Shared regional LoRA caption layout mismatch.")
         grid = tuple(s // model.patch_spatial for s in x.shape[-2:])
-        with self.installed(model, grid, lengths):
+        opts = kwargs.get('transformer_options', {})
+        reference_frame = opts.get('rs_reference_count', 1) if opts.get('rs_reference_frame') else 0
+        with self.installed(model, grid, lengths, reference_frame=reference_frame):
             self.audit['diffusion_forwards'] += 1
             result = executor(x, timesteps, context, *args, **kwargs)
         self.audit['restored_forwards'] += 1

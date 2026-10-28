@@ -1132,5 +1132,57 @@
         "tooltip": "큰 해상도를 더 빠르게 샘플링하는 대신 디테일을 일부 희생합니다. 낮은 시작 배율은 디테일 손실·구도 변화가 커질 수 있어 품질을 보장하지 못합니다. 기존 멀티캐릭터 프롬프트·마스크·텍스트·LoRA를 사용합니다. 1.0은 일반 생성입니다."
       }
     }
+  },
+  "RSAnimaReferenceAdapter": {
+    "display_name": "RS 아니마 참조 어댑터 (시험판)",
+    "description": "전역 참조 또는 번호별 캐릭터 참조를 적용합니다. RS 멀티캐릭터 샘플러와 전용 어댑터 가중치가 필요합니다.",
+    "inputs": {
+      "model": {
+        "name": "모델"
+      },
+      "image": {
+        "name": "참조 이미지"
+      },
+      "adapter_name": {
+        "name": "어댑터 파일"
+      },
+      "strength": {
+        "name": "어댑터 강도"
+      },
+      "reference_guidance": {
+        "name": "참조 가이던스"
+      },
+      "correction": {
+        "name": "보정"
+      },
+      "cache_text_kv": {
+        "name": "텍스트 K/V 캐시"
+      },
+      "reference_scale": {
+        "name": "참조 배율",
+        "tooltip": "참조 가로·세로 배율입니다. 0.8이면 참조 토큰이 약 64%가 됩니다. 생성 해상도는 유지되며 결과 품질은 달라질 수 있습니다."
+      }
+    }
+  },
+  "RSAnimaCharacterReference": {
+    "display_name": "RS 아니마 캐릭터 참조 (실험)",
+    "description": "캐릭터 번호에 참조 이미지를 추가합니다. 전역 이미지 없이 참조 어댑터와 연결하세요.",
+    "inputs": {
+      "image": {
+        "name": "참조 이미지"
+      },
+      "character_id": {
+        "name": "캐릭터 번호"
+      },
+      "strength": {
+        "name": "참조 강도"
+      },
+      "enabled": {
+        "name": "사용"
+      },
+      "building_pipe": {
+        "name": "빌딩 파이프"
+      }
+    }
   }
 }

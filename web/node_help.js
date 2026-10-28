@@ -5,7 +5,7 @@ import { app } from "../../scripts/app.js";
 const targets = new Set([
     "RSMultiCharacterPrompt", "RSMultiCharacterPosition", "RSMultiCharacterFinalize", "RSMultiCharacterMask", "RSMultiCharacterMaskDraw",
     "RSMultiCharacterProgressiveSampler", "RSMultiCharacterSampler", "RSMultiCharacterLoadImage", "RSMultiCharacterDetailer",
-    "RSMultiCharacterTaggerLoader", "RSMultiCharacterPrompts", "RSMultiCharacterReference", "RSMultiCharacterInteraction",
+    "RSMultiCharacterTaggerLoader", "RSMultiCharacterPrompts", "RSMultiCharacterReference", "RSMultiCharacterInteraction", "RSAnimaReferenceAdapter", "RSAnimaCharacterReference",
 ]);
 const locale = () => String(app.extensionManager?.setting?.get?.("Comfy.Locale")
     ?? app.ui?.settings?.getSettingValue?.("Comfy.Locale") ?? globalThis.navigator?.language ?? "en");
@@ -26,6 +26,18 @@ export function nodeHelp(node) {
         if (format === "WebP lossy") add("Lossy WebP changes pixels; quality controls compression, not generation.", "손실 WebP는 픽셀이 달라집니다. 품질 값은 생성 품질이 아닌 저장 압축률입니다.", "非可逆WebPは画素が変わります。品質値は生成品質ではなく保存時の圧縮設定です。");
     };
     switch (typeOf(node)) {
+        case "RSAnimaReferenceAdapter":
+            add("Global image OR numbered character images; Anima + RS sampler only.", "전역 이미지 또는 번호별 캐릭터 이미지. Anima + RS 샘플러 전용입니다.", "全体画像または番号別人物画像。Anima + RSサンプラー専用。");
+            if (v("reference_scale", 1) < 1)
+                add("Smaller references change quality; target resolution stays unchanged.", "작은 참조는 품질이 달라질 수 있으며 생성 해상도는 유지됩니다.", "小さい参照では品質が変わります。生成解像度は変わりません。");
+            if (v("reference_guidance", 4.5) === 1)
+                add("Global image: guidance 1 skips an extra prediction; the image changes.", "전역 참조: 가이던스 1은 추가 예측을 생략하며 결과가 달라집니다.", "全体参照：Guidance 1は追加予測を省略。結果は変わります。");
+            add("Use dedicated adapter weights. Disconnect image for numbered references. Progressive sampling is unavailable.", "전용 어댑터를 선택하세요. 번호별 참조를 쓰려면 전역 이미지를 분리하세요. 단계적 확대는 지원하지 않습니다.", "専用アダプターを選択。番号別参照時は全体画像を外します。段階拡大は未対応。");
+            break;
+        case "RSAnimaCharacterReference":
+            add("Match the Prompt/Position number. Regions read their own references; overlaps read both.", "프롬프트·위치와 번호를 맞추세요. 각 영역은 자기 참조를 읽고 겹친 영역은 양쪽을 읽습니다.", "Prompt/Positionと番号を合わせます。各領域は自分の参照、重なりは両方を読みます。");
+            add("Connect the reference adapter to MODEL. More references increase memory and time; identity separation is experimental.", "모델에 참조 어댑터를 연결하세요. 참조 수에 따라 메모리·시간이 늘며 외형 분리는 실험 단계입니다.", "MODELへ参照アダプターを接続。参照が増えるとメモリと時間が増加。人物分離は実験段階。");
+            break;
         case "RSMultiCharacterInteraction":
             if (v("preset", "baseline") === "baseline")
                 add("Baseline: no extra separation. Delay and decrement values are inactive.", "기본: 추가 분리를 적용하지 않습니다. 지연·감소 값은 사용하지 않습니다.", "Baseline：追加分離なし。遅延・減少値は使いません。");

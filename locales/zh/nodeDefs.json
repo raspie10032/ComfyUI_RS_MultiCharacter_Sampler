@@ -1956,5 +1956,57 @@
         "name": "生成信息"
       }
     }
+  },
+  "RSAnimaReferenceAdapter": {
+    "display_name": "RS Anima 参考适配器（实验）",
+    "description": "支持全局参考或编号角色参考。需要 RS 多角色采样器和专用适配器权重。",
+    "inputs": {
+      "model": {
+        "name": "模型"
+      },
+      "image": {
+        "name": "参考图像"
+      },
+      "adapter_name": {
+        "name": "适配器"
+      },
+      "strength": {
+        "name": "强度"
+      },
+      "reference_guidance": {
+        "name": "参考引导"
+      },
+      "correction": {
+        "name": "校正"
+      },
+      "cache_text_kv": {
+        "name": "文本 K/V 缓存"
+      },
+      "reference_scale": {
+        "name": "参考比例",
+        "tooltip": "参考图宽高比例。0.8约使用64%的参考令牌。生成分辨率不变，质量可能改变。"
+      }
+    }
+  },
+  "RSAnimaCharacterReference": {
+    "display_name": "RS Anima 角色参考（实验）",
+    "description": "按角色编号添加参考图像。不要连接全局图像，并连接参考适配器。",
+    "inputs": {
+      "image": {
+        "name": "参考图像"
+      },
+      "character_id": {
+        "name": "角色编号"
+      },
+      "strength": {
+        "name": "参考强度"
+      },
+      "enabled": {
+        "name": "启用"
+      },
+      "building_pipe": {
+        "name": "构建管线"
+      }
+    }
   }
 }

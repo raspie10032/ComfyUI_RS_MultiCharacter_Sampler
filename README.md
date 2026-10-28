@@ -106,6 +106,8 @@ Open an original saved PNG/WebP in **RS MultiCharacter Load Image** and connect 
 
 Model, LoRA, CLIP and VAE connections must be supplied explicitly. Metadata does not download or load those assets. Reference images must be reconnected. This is text-and-seed regeneration; the detailer separately performs masked img2img. NAI V4-style character captions can be imported, but their sampling settings cannot be replayed locally. [Metadata and restoration boundaries](docs/architecture.md)
 
+**Anima reference-frame experiment:** [Connection and limits](docs/anima-reference-frame.md). This separate Anima-only adapter supports one global reference or independent numbered character references, while retaining regional prompts. It requires separately downloaded weights. Character reference separation is experimental and costs additional predictions.
+
 ## Node reference
 
 The extension registers **15 nodes**. UI labels and contextual help follow ComfyUI's English, Korean, Japanese, Simplified Chinese or Traditional Chinese locale.

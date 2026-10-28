@@ -1,6 +1,23 @@
 // SPDX-License-Identifier: GPL-3.0-only
 // Simplified Chinese / Traditional Chinese (Taiwan) display text.
 export const zhMessages = {
+  "Global image: guidance 1 skips an extra prediction; the image changes.": ["全局图像：引导值1跳过额外预测，图像会改变。", "全域影像：引導值1略過額外預測，影像會改變。"],
+  "Smaller references change quality; target resolution stays unchanged.": ["缩小参考图可能改变质量；生成分辨率不变。", "縮小參考圖可能改變品質；生成解析度不變。"],
+  "Global image OR numbered character images; Anima + RS sampler only.": ["全局图像或按角色编号的图像；仅限Anima和RS采样器。", "全域影像或按角色編號的影像；僅限Anima和RS採樣器。"],
+  "Use dedicated adapter weights. Disconnect image for numbered references. Progressive sampling is unavailable.": ["请选择专用适配器。逐角色参考时断开全局图像。暂不支持渐进采样。", "請選擇專用轉接器。逐角色參考時中斷全域影像。暫不支援漸進採樣。"],
+  "Match the Prompt/Position number. Regions read their own references; overlaps read both.": ["与提示词及位置的编号一致。各区域使用自己的参考，重叠区混合两者。", "與提示詞及位置的編號一致。各區域使用自己的參考，重疊區混合兩者。"],
+  "Connect the reference adapter to MODEL. More references increase memory and time; identity separation is experimental.": ["将参考适配器连接至MODEL。参考越多，耗时和内存越大；角色分离仍属实验。", "將參考轉接器連接至MODEL。參考越多，耗時和記憶體越大；角色分離仍屬實驗。"],
+  "One global reference; Anima + RS sampler only.": ["一张全局参考图；仅适用于 Anima + RS 采样器。", "一張全域參考圖；僅適用於 Anima + RS 採樣器。"],
+  "Guidance 1 skips an extra prediction; the image changes.": ["引导值为1时跳过额外预测，图像会改变。", "引導值為1時跳過額外預測，圖像會改變。"],
+  "Use dedicated adapter weights. Per-character references and progressive sampling cannot be combined.": ["请选择专用适配器权重。不可与逐角色参考或渐进采样同时使用。", "請選擇專用適配器權重。不可與逐角色參考或漸進採樣同時使用。"],
+  "Adapter strength; 0 bypasses reference processing.": ["适配器强度；0跳过参考处理。", "適配器強度；0跳過參考處理。"],
+  "Reference influence; 1 skips an extra prediction and changes the image.": ["参考影响；1跳过额外预测并改变图像。", "參考影響；1跳過額外預測並改變圖像。"],
+  "Dedicated Anima reference adapter, not a style LoRA.": ["Anima专用参考适配器，并非风格LoRA。", "Anima專用參考適配器，並非風格LoRA。"],
+  "Temporary text cache, up to 256 MiB; disabled with character LoRAs.": ["临时文本缓存，上限256MiB；使用角色LoRA时禁用。", "暫存文字快取，上限256MiB；使用角色LoRA時停用。"],
+  "Reference guidance correction: APG, rescale or none.": ["参考引导校正：APG、缩放或无。", "參考引導校正：APG、縮放或無。"],
+  "One reference influences the whole image, including other characters.": ["一张参考图影响整张图像，包括其他角色。", "一張參考圖影響整張圖像，包括其他角色。"],
+
+  "Filter by the connected model. Unknown files stay visible; All shows every file. Existing selections are kept.": ["按连接的模型筛选。保留未知文件；可选择显示全部。保留原有选项。", "依連接的模型篩選。保留未知檔案；可選擇顯示全部。保留原有選項。"],
   "Progressive resolution · existing multi-character features remain available.": ["渐进分辨率 · 保留现有多角色功能。", "漸進解析度 · 保留現有多角色功能。"],
   "Trade some detail for faster large-image sampling. Lower start scales can lose more detail or change composition; quality is not guaranteed. 1.0 uses ordinary sampling. Lanczos expansion restarts the solver history.": ["以部分细节换取大尺寸图像的采样速度。起始比例越低，细节损失或构图变化可能越大，无法保证质量。1.0使用普通采样。Lanczos扩展会重新开始求解器历史。", "以部分細節換取大尺寸圖像的取樣速度。起始比例越低，細節損失或構圖變化可能越大，無法保證品質。1.0使用一般取樣。Lanczos擴展會重新開始求解器歷史。"],
   "Linked/image settings: actual resolution plan is reported after execution.": ["使用连接或图像设置时，实际分辨率计划在执行后显示。", "使用連接或圖像設定時，實際解析度計劃在執行後顯示。"],

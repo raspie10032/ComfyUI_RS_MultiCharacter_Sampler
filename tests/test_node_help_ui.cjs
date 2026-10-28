@@ -4,6 +4,8 @@ let extension, lang = 'en';
 const app = {registerExtension(e) { extension = e; }, extensionManager: {setting: {get() { return lang; }}}};
 const sandbox = {app}; vm.runInNewContext(source, sandbox);
 const specs = {
+  RSAnimaReferenceAdapter: {reference_guidance:1},
+  RSAnimaCharacterReference: {character_id:1,strength:1,enabled:true},
   RSMultiCharacterPrompt: {character_count:2,character1_kind:'character',character2_kind:'text'},
   RSMultiCharacterPosition: {character_count:2,character1_geometry:'point',character2_geometry:'box'},
   RSMultiCharacterFinalize: {},
@@ -37,7 +39,7 @@ const help=node=>sandbox.nodeHelp(node).join('\n');
     assert.equal(panel.serialize,false);assert.equal(panel.options.serialize,false);assert.equal(panel.serializeValue(),undefined);
     for (const locale of ['en','ko','ja','zh','zh-TW']) {
       lang=locale;node.onDrawForeground();
-      assert.ok(help(node).length>(type==='RSMultiCharacterInteraction'?40:80));
+      assert.ok(help(node).length>(['RSMultiCharacterInteraction','RSAnimaReferenceAdapter','RSAnimaCharacterReference'].includes(type)?40:80));
       for (const width of [340,600,1000]) {
         node.size[0]=width;node.onResize();
         const draw=[];panel.draw({save(){},restore(){},fillRect(){},fillText(text,x,y,max){draw.push({text,x,y,max});}},node,width,0);

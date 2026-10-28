@@ -88,7 +88,19 @@ export function fieldHelp(type, name, locale = "en") {
         const messages = ["Starting width/height ratio. Lower values may reduce quality or change composition; 1.0 is ordinary sampling.", "시작 너비·높이 비율. 낮을수록 품질 저하·구도 변화 가능. 1.0은 일반 생성입니다.", "開始幅・高さの倍率。低いほど品質低下・構図変化の可能性。1.0は通常生成。"];
         return locale.startsWith("ko") ? messages[1] : locale.startsWith("ja") ? messages[2] : messages[0];
     }
-    if (type === "RSMultiCharacterReference") {
+    if (type === "RSAnimaReferenceAdapter") {
+        const rows = {
+            strength: ["Adapter strength; 0 bypasses reference processing.", "어댑터 강도. 0이면 참조 처리를 생략합니다.", "アダプター強度。0で参照処理を省略。"],
+            reference_guidance: ["Reference influence. For a global image, 1 skips an extra prediction.", "참조 영향. 전역 참조에서 1은 추가 예측을 생략합니다.", "参照の影響。全体参照では1で追加予測を省略。"],
+            adapter_name: ["Dedicated Anima reference adapter, not a style LoRA.", "스타일 LoRA가 아닌 Anima 전용 참조 어댑터입니다.", "Style LoRAではなくAnima専用参照アダプター。"],
+            cache_text_kv: ["Temporary text cache, up to 256 MiB; disabled with character LoRAs.", "최대 256MiB 임시 텍스트 캐시. 캐릭터별 LoRA와 함께 쓰면 꺼집니다.", "最大256MiBの一時テキストキャッシュ。人物別LoRA併用時は無効。"],
+            correction: ["Reference guidance correction: APG, rescale or none.", "참조 가이던스 보정: APG·리스케일·없음.", "参照ガイダンス補正：APG・Rescale・なし。"],
+            image: ["One reference influences the whole image, including other characters.", "참조 한 장이 다른 캐릭터를 포함한 이미지 전체에 영향을 줍니다.", "参照1枚が他の人物を含む画像全体に影響。"],
+        };
+        const row = rows[name];
+        if (row) return chineseLocale(locale) ? chineseText(row[0], locale) : row[locale.startsWith("ko") ? 1 : locale.startsWith("ja") ? 2 : 0];
+    }
+    if (type === "RSMultiCharacterReference" || type === "RSAnimaCharacterReference") {
         const reference = {
             character_id: ["Character Prompt number; shares its point, box or mask.", "프롬프트의 번호와 맞추세요. 같은 포인트·박스·마스크를 씁니다.", "Promptと同じ番号に指定。同じPoint・Box・Maskを使います。"],
             image: ["One reference image; experimental and not recommended.", "참조 이미지 한 장. 실험적 지원이며 권장하지 않습니다.", "参照画像1枚。実験的対応・非推奨です。"],
@@ -107,7 +119,7 @@ export function fieldHelp(type, name, locale = "en") {
     return chineseLocale(locale) ? chineseText(row?.[0] ?? "", locale) : row?.[locale.startsWith("ko") ? 1 : locale.startsWith("ja") ? 2 : 0] ?? "";
 }
 
-const isOurs = node => String(node?.comfyClass ?? node?.type ?? "").startsWith("RSMultiCharacter");
+const isOurs = node => String(node?.comfyClass ?? node?.type ?? "").startsWith("RSMultiCharacter") || ["RSAnimaReferenceAdapter", "RSAnimaCharacterReference"].includes(String(node?.comfyClass ?? node?.type ?? ""));
 const hidden = widget => widget.hidden || widget.type === "hidden" || String(widget.type).startsWith("converted-widget");
 
 // Timer logic is independent of the renderer so cancellation can be tested.

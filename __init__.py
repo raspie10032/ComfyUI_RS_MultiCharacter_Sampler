@@ -12,8 +12,11 @@ from .mask_drawing import RSMultiCharacterMaskDraw
 from .image_reference import RSMultiCharacterReference
 from .camera_control import RSCameraControl
 from .progressive import RSMultiCharacterProgressiveSampler
+from .anima_ref_frame import RSAnimaReferenceAdapter, RSAnimaCharacterReference
 
 NODE_CLASS_MAPPINGS = {
+    "RSAnimaCharacterReference": RSAnimaCharacterReference,
+    "RSAnimaReferenceAdapter": RSAnimaReferenceAdapter,
     "RSMultiCharacterProgressiveSampler": RSMultiCharacterProgressiveSampler,
     "RSCameraControl": RSCameraControl,
     "RSMultiCharacterPoseMasks": RSMultiCharacterPoseMasks,
@@ -33,6 +36,8 @@ NODE_CLASS_MAPPINGS = {
     "RSMultiCharacterTaggerLoader": RSMultiCharacterTaggerLoader,
 }
 NODE_DISPLAY_NAME_MAPPINGS = {
+    "RSAnimaCharacterReference": "RS Anima Character Reference (Experimental)",
+    "RSAnimaReferenceAdapter": "RS Anima Reference Frame (Experimental)",
     "RSMultiCharacterProgressiveSampler": "RS Progressive Resolution Sampler",
     "RSCameraControl": "RS Camera Control",
     "RSMultiCharacterPoseMasks": "RS OpenPose Masks (Experimental)",

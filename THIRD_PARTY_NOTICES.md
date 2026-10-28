@@ -48,3 +48,7 @@ The reference's per-axis default weight of 5, dead zones, discrete category tran
 ## Progressive resolution references
 
 [SPEED](https://howardxiao.ca/speed/), its [research code](https://github.com/howardhx/speed) and [ComfyUI-SPEED](https://github.com/ruwwww/ComfyUI-SPEED) were studied and compared for frequency-preserving expansion, noise/time correction and expansion timing. RS Lanczos expansion and resolution-aware character separation predate that comparison. The shipped progressive sampler uses the preceding RS Lanczos design and native ComfyUI noise scaling, not the external DCT expansion implementation. No SPEED source is bundled in this node. See [the feature guide](docs/progressive-resolution.md).
+
+## Anima clean reference-frame adapter (experimental)
+
+`anima_ref_frame.py` adapts reference-frame RoPE offsets, conditional adapter application and reference/APG guidance from [ElectronGirl/ComfyUI-Anima-Ref-Adapter](https://github.com/ElectronGirl/ComfyUI-Anima-Ref-Adapter) at `af9a438d` (Apache-2.0). The full license is preserved in `ANIMA-REF-ADAPTER-LICENSE`. RS integration adds generation-scoped lifecycle, bounded text K/V reuse, regional target-token routing and LoRA isolation. Weights are not redistributed and retain their own license.

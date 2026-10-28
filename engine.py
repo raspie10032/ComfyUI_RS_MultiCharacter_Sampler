@@ -183,6 +183,13 @@ class AnimaRouting:
 
         def cross(q, k, v, transformer_options=None, preferred_attention=None):
             q, k, v = (t if isinstance(t, torch.Tensor) else t.take() for t in (q, k, v))
+            reference_q = None
+            if options.get('rs_reference_frame'):
+                size = actual_grid[0]*actual_grid[1]
+                ref_size=options.get('rs_reference_token_count',options.get('rs_reference_count',1)*size)
+                if q.shape[1] != size+ref_size:
+                    raise ValueError('Reference-frame token layout does not match the target grid.')
+                q, reference_q = q[:, :size], q[:, size:]
             if self.pose is not None:
                 from .pose_parts import route_parts
                 result = route_parts(q, k, v, self.groups, lengths, kinds, self.part_cells,
@@ -192,19 +199,36 @@ class AnimaRouting:
                                      include_common=self.mode != "cross_exclusive", weights=weights, character_gain=gain)
             self.audit["cross_calls"] += 1
             record["cross_blocks"].append(transformer_options["block_index"])
+            if reference_q is not None:
+                # The reference reads the original common caption. Regional
+                # target prompts must not rewrite the reference's identity.
+                result = torch.cat((result, sdpa(reference_q, k[:, :lengths[0]], v[:, :lengths[0]])), 1)
             return result
 
         def spatial(q, k, v, transformer_options=None, preferred_attention=None):
             q, k, v = (t if isinstance(t, torch.Tensor) else t.take() for t in (q, k, v))
             if weak_spatial:
-                bias_key = (separation, exclusive_separation)
+                reference_slots = options.get('rs_reference_slots', ())
+                bias_key = (separation, exclusive_separation, bool(options.get('rs_reference_frame')), bool(reference_slots), q.shape[1])
                 if self.spatial_bias is None or self.spatial_bias_separation != bias_key:
-                    self.spatial_bias = protected_self_bias(self.groups, q.shape[1], q, separation, exclusive_separation)
+                    size = actual_grid[0]*actual_grid[1] if options.get('rs_reference_frame') else q.shape[1]
+                    self.spatial_bias = protected_self_bias(self.groups, size, q, separation, exclusive_separation)
+                    if options.get('rs_reference_frame') and not reference_slots:
+                        # Preserve target/reference communication. Only target
+                        # character regions receive the existing separation.
+                        extra=q.shape[1]-size
+                        self.spatial_bias = torch.nn.functional.pad(self.spatial_bias, (0, extra, 0, extra))
                     self.spatial_bias_separation = bias_key
                 if "self_bias_foreign" not in record and len(self.groups) > 1:
                     record["self_bias_foreign"] = float(self.spatial_bias[self.groups[0][0], self.groups[1][0]])
                     record["self_bias_own"] = float(self.spatial_bias[self.groups[0][0], self.groups[0][0]])
-                result = sdpa(q, k, v, self.spatial_bias)
+                if reference_slots:
+                    from .anima_ref_frame import route_character_references
+                    result = route_character_references(q, k, v, self.groups,
+                        actual_grid[0]*actual_grid[1], self.spatial_bias, reference_slots,
+                        options['rs_reference_strengths'])
+                else:
+                    result = sdpa(q, k, v, self.spatial_bias)
             else:
                 result = route_self(q, k, v, self.groups)
             self.audit["self_calls"] += 1

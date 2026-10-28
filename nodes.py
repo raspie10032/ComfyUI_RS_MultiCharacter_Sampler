@@ -166,6 +166,23 @@ class RSMultiCharacterSampler:
         if not isinstance(prompt, str) or not isinstance(negative_prompt, str) or prompt_syntax not in ("ComfyUI", "NovelAI"):
             raise ValueError("Choose valid prompt text and syntax.")
         pipe = resolved_pipe
+        from .anima_ref_frame import PLAN, FrameRuntime, FrameImageReference, encode_reference, patch_extra_conds
+        frame_plan = model.model_options.get(PLAN)
+        frame_refs = [(i, c.reference) for i, c in enumerate(pipe.characters)
+                      if isinstance(c.reference, FrameImageReference) and c.reference.strength > 0]
+        if frame_refs and frame_plan is None:
+            raise ValueError('Character reference frames need RS Anima Reference Frame on the model connection. / 모델에 RS 아니마 참조 어댑터를 연결해 주세요.')
+        if frame_plan is not None:
+            if family != 'Anima':
+                raise ValueError('Reference-frame adapter requires Anima.')
+            if model.model_options.get('rs_progressive_scale', 1.) != 1.:
+                raise ValueError('Reference-frame trial needs ordinary sampling. Set start_scale to 1 or use RS MultiCharacter Sampler. / 참조 프레임 시험은 일반 샘플러를 사용해 주세요.')
+            if any(c.reference is not None and c.reference.strength > 0 and not isinstance(c.reference, FrameImageReference) for c in pipe.characters):
+                raise ValueError('Use one reference method at a time: reference-frame adapter or the older image reference.')
+            if frame_plan.pixels is not None and frame_refs:
+                raise ValueError('Choose global or per-character reference. Disconnect the global image to use numbered references. / 캐릭터별 참조를 쓰려면 어댑터의 전역 이미지를 분리해 주세요.')
+            if frame_plan.pixels is None and not frame_refs:
+                raise ValueError('Connect a global reference image or numbered Character Reference nodes. / 전역 이미지 또는 번호별 캐릭터 참조 이미지를 연결해 주세요.')
         from .image_reference import prepare_model_references
         model = prepare_model_references(model, clip, vae, pipe, family, layout_method, unique_id)
         centers, moved = effective_centers(pipe.regions)
@@ -263,6 +280,30 @@ class RSMultiCharacterSampler:
                 parts=[dict(owner=p['owner'],name=p['name']) for p in pose['parts']])
             settings['body_part_strength'] = pose['strength']
         work = model.clone()
+        if frame_plan is not None:
+            work.model_options.setdefault('transformer_options', {})['rs_anima_ref_ready'] = True
+            ref_width=max(16,round(settings['width']*frame_plan.reference_scale/16)*16)
+            ref_height=max(16,round(settings['height']*frame_plan.reference_scale/16)*16)
+            if frame_refs:
+                # Encode each distinct image once. Reusing identical images
+                # in two slots does not perform duplicate VAE encodes.
+                encoded, banks = {}, []
+                for _, ref in frame_refs:
+                    if ref.source not in encoded:
+                        pixels = torch.from_numpy(np.asarray(ref.image()).copy()).float()[None]/255.
+                        encoded[ref.source] = encode_reference(pixels, vae, ref_width, ref_height)
+                    banks.append(encoded[ref.source])
+                reference_latent = torch.cat(banks, 2)
+            else:
+                reference_latent = encode_reference(frame_plan.pixels, vae, ref_width, ref_height)
+            frame_runtime = FrameRuntime(frame_plan,
+                reference_latent, audit, cache_allowed=loras is None,
+                slots=[i for i, _ in frame_refs], strengths=[r.strength for _, r in frame_refs], masks=masks)
+            frame_runtime.audit['unique_reference_encodes'] = len(encoded) if frame_refs else 1
+            work.model_options['rs_anima_ref_frame_runtime'] = frame_runtime
+            patch_extra_conds(work)
+            work.add_wrapper_with_key(WrappersMP.DIFFUSION_MODEL, 'rs_ref_frame_mark', frame_runtime.mark)
+            work.add_wrapper_with_key(WrappersMP.SAMPLER_SAMPLE, 'rs_ref_frame_cleanup', frame_runtime.sample)
         if native_prompt is not None:
             audit.update(spatial_slots=len(pipe.regions), cross_calls=0, self_calls=0,
                          restored_forwards=0, native_layout_json=native_prompt,
@@ -307,6 +348,8 @@ class RSMultiCharacterSampler:
             audit["lora_application"] = loras.execution
         else:
             audit["lora_application"] = {"requested": lora_application_mode, "effective": "none", "fallback_reason": None}
+        if frame_plan is not None:
+            work.add_wrapper_with_key(WrappersMP.DIFFUSION_MODEL, 'rs_ref_frame', frame_runtime.forward)
         latent = torch.zeros((1, 4, settings["height"] // 8, settings["width"] // 8), device=comfy.model_management.intermediate_device())
         if family in ("SD1.5", "SDXL"):
             # Already 4-channel H/8 x W/8; older ComfyUI has no ratio keyword.
@@ -352,6 +395,9 @@ class RSMultiCharacterSampler:
         import comfy.sample
         import comfy.utils
         import latent_preview
+        if 'rs_anima_ref_frame_runtime' in work.model_options:
+            from .anima_ref_frame import sample_reference
+            return sample_reference(work, latent, settings, positive, negative, audit)
         noise = comfy.sample.prepare_noise(latent, settings["seed"])
         samples = comfy.sample.sample(work, noise, settings["steps"], settings["cfg"],
             settings["sampler_name"], settings["scheduler"], positive, negative, latent, denoise=1.,

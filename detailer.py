@@ -186,6 +186,8 @@ class RSMultiCharacterDetailer:
                crop_factor=3., dilation=8, fill_holes=True, closing=True, mask_feather=8,
                match_min_score=.25, match_min_margin=.08, match_crop_factor=2., save_format="PNG",
                webp_quality=90, workflow_prompt=None, unique_id=None):
+        if getattr(model, 'model_options', {}).get('rs_anima_ref_frame_plan') is not None:
+            raise ValueError('Reference-frame trial applies to RS generation only. Connect the original model to the detailer. / 디테일러에는 참조 어댑터 이전 모델을 연결해 주세요.')
         settings = {k: v for k, v in locals().items() if k in (
             "denoise", "seed", "steps", "cfg", "sampler_name", "scheduler", "guide_size", "max_size", "max_regions",
             "bbox_threshold", "crop_factor", "dilation", "fill_holes", "closing", "mask_feather",

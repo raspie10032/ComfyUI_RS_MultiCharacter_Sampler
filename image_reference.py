@@ -74,6 +74,12 @@ def prepare_model_references(model, clip, vae, pipe, family, layout_method='regi
     refs = [(i, c.reference) for i, c in enumerate(pipe.characters) if c.reference is not None and c.reference.strength > 0]
     if not refs:
         return model
+    from .anima_ref_frame import FrameImageReference
+    if any(isinstance(r, FrameImageReference) for _, r in refs):
+        if not all(isinstance(r, FrameImageReference) for _, r in refs):
+            raise ValueError('Use one reference method at a time. / 참조 프레임과 기존 이미지 참조를 함께 쓸 수 없습니다.')
+        # The sampler prepares VAE reference frames after masks and geometry.
+        return model
     if layout_method != 'regional':
         raise ValueError('Image reference requires regional layout; moss_native is not supported. / 이미지 참조는 regional 모드를 사용해 주세요.')
     if family not in ('Anima', 'SD1.5', 'SDXL', 'FLUX1', 'FLUX2', 'FLUX3', 'Krea2', 'MOSS'):

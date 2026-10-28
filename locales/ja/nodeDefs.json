@@ -1132,5 +1132,57 @@
         "tooltip": "細部と引き換えに大きな画像をより速く生成します。開始倍率が低いほど細部の損失や構図変化が増える場合があり、品質は保証されません。既存の複数キャラクタープロンプト・マスク・テキスト・LoRAを利用できます。1.0は通常生成。"
       }
     }
+  },
+  "RSAnimaReferenceAdapter": {
+    "display_name": "RS Anima参照アダプター（実験版）",
+    "description": "全体参照または番号別人物参照。RS MultiCharacter Samplerと専用アダプターの重みが必要です。",
+    "inputs": {
+      "model": {
+        "name": "モデル"
+      },
+      "image": {
+        "name": "参照画像"
+      },
+      "adapter_name": {
+        "name": "アダプター"
+      },
+      "strength": {
+        "name": "強度"
+      },
+      "reference_guidance": {
+        "name": "参照ガイダンス"
+      },
+      "correction": {
+        "name": "補正"
+      },
+      "cache_text_kv": {
+        "name": "テキストK/Vキャッシュ"
+      },
+      "reference_scale": {
+        "name": "参照倍率",
+        "tooltip": "参照の縦横倍率。0.8では参照トークンが約64%に減少。生成解像度は変わりませんが品質は変わる場合があります。"
+      }
+    }
+  },
+  "RSAnimaCharacterReference": {
+    "display_name": "RS Anima キャラクター参照（実験）",
+    "description": "番号別の参照画像です。全体参照画像を外し、参照アダプターと併用します。",
+    "inputs": {
+      "image": {
+        "name": "参照画像"
+      },
+      "character_id": {
+        "name": "人物番号"
+      },
+      "strength": {
+        "name": "参照強度"
+      },
+      "enabled": {
+        "name": "有効"
+      },
+      "building_pipe": {
+        "name": "ビルドパイプ"
+      }
+    }
   }
 }
