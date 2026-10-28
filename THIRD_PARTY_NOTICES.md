@@ -52,3 +52,13 @@ The reference's per-axis default weight of 5, dead zones, discrete category tran
 ## Anima clean reference-frame adapter (experimental)
 
 `anima_ref_frame.py` adapts reference-frame RoPE offsets, conditional adapter application and reference/APG guidance from [ElectronGirl/ComfyUI-Anima-Ref-Adapter](https://github.com/ElectronGirl/ComfyUI-Anima-Ref-Adapter) at `af9a438d` (Apache-2.0). The full license is preserved in `ANIMA-REF-ADAPTER-LICENSE`. RS integration adds generation-scoped lifecycle, bounded text K/V reuse, regional target-token routing and LoRA isolation. Weights are not redistributed and retain their own license.
+
+## Regional reference backend update
+
+The common numbered Image Reference input now uses ElectronGirl reference frames
+for Anima, conradlocke Identity Edit v2 for Krea 2, and ComfyUI native reference
+latents for FLUX (Kontext for FLUX.1). RS adds slot-specific captions, region
+ownership and repeated-prior sharing. The SD1.5/SDXL IP-Adapter and MOSS PoC
+paths are retained. The earlier Anima IP-Adapter and Redux source notices remain
+for retained historical helper modules; these are not the new default paths.
+The linked model repositories and pinned revisions are in `reference_assets.json`.

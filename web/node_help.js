@@ -32,7 +32,7 @@ export function nodeHelp(node) {
                 add("Smaller references change quality; target resolution stays unchanged.", "작은 참조는 품질이 달라질 수 있으며 생성 해상도는 유지됩니다.", "小さい参照では品質が変わります。生成解像度は変わりません。");
             if (v("reference_guidance", 4.5) === 1)
                 add("Global image: guidance 1 skips an extra prediction; the image changes.", "전역 참조: 가이던스 1은 추가 예측을 생략하며 결과가 달라집니다.", "全体参照：Guidance 1は追加予測を省略。結果は変わります。");
-            add("Use dedicated adapter weights. Disconnect image for numbered references. Progressive sampling is unavailable.", "전용 어댑터를 선택하세요. 번호별 참조를 쓰려면 전역 이미지를 분리하세요. 단계적 확대는 지원하지 않습니다.", "専用アダプターを選択。番号別参照時は全体画像を外します。段階拡大は未対応。");
+            add("Use dedicated adapter weights. Disconnect image for numbered references. Progressive sampling is supported.", "전용 어댑터를 선택하세요. 번호별 참조를 쓰려면 전역 이미지를 분리하세요. 단계적 확대도 지원합니다.", "専用アダプターを選択。番号別参照時は全体画像を外します。段階拡大にも対応。");
             break;
         case "RSAnimaCharacterReference":
             add("Match the Prompt/Position number. Regions read their own references; overlaps read both.", "프롬프트·위치와 번호를 맞추세요. 각 영역은 자기 참조를 읽고 겹친 영역은 양쪽을 읽습니다.", "Prompt/Positionと番号を合わせます。各領域は自分の参照、重なりは両方を読みます。");

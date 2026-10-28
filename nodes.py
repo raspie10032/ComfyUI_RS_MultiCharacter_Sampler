@@ -166,7 +166,20 @@ class RSMultiCharacterSampler:
         if not isinstance(prompt, str) or not isinstance(negative_prompt, str) or prompt_syntax not in ("ComfyUI", "NovelAI"):
             raise ValueError("Choose valid prompt text and syntax.")
         pipe = resolved_pipe
-        from .anima_ref_frame import PLAN, FrameRuntime, FrameImageReference, patch_extra_conds
+        from .anima_ref_frame import PLAN, FrameRuntime, FrameImageReference, patch_extra_conds, ReferencePlan
+        if family == 'Anima' and any(c.reference is not None and c.reference.strength > 0 for c in pipe.characters):
+            from dataclasses import replace
+            from .reference_assets import asset
+            model = model.clone()
+            pipe = replace(pipe, characters=tuple(replace(c, reference=FrameImageReference(
+                c.reference.pixels, c.reference.size, c.reference.resolution,
+                c.reference.strength, c.reference.character_id)) if c.reference is not None else c
+                for c in pipe.characters))
+            if PLAN not in model.model_options:
+                model.model_options[PLAN] = ReferencePlan(None, str(asset('anima_frame', unique_id)),
+                    1., 4.5, 'apg', False)
+            model.model_options.setdefault('rs_reference_follow_resolution', True)
+            model.model_options.setdefault('rs_reference_compact_spatial', True)
         frame_plan = model.model_options.get(PLAN)
         frame_refs = [(i, c.reference) for i, c in enumerate(pipe.characters)
                       if isinstance(c.reference, FrameImageReference) and c.reference.strength > 0]

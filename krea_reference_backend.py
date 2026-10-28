@@ -253,7 +253,7 @@ def krea2_edit_forward(m, x, timesteps, context, src_latent, transformer_options
 
     txtlen, tgtlen = context.shape[1], tgt_img.shape[1]
     srclen = sum(si.shape[1] for si in src_imgs)
-    combined = torch.cat([context] + [tgt_img] + src_imgs, dim=1)  # [text | refs... | target]
+    combined = torch.cat([context] + src_imgs + [tgt_img], dim=1)  # [text | refs... | target]
 
     device = combined.device
     if pos_mode == "stride1" and ref_native:
@@ -265,13 +265,9 @@ def krea2_edit_forward(m, x, timesteps, context, src_latent, transformer_options
     # per-ref placement, same convention as ref_boost/ref_boost_a: last ref = subject (ref_position),
     # earlier refs = scene (ref_position_a)
     ref_ids = _place_refs(ref_ids, [ref_position_a] * (len(ref_ids) - 1) + [ref_position], h_, w_)
-    for refids,(cx,cy),(gh,gw) in zip(ref_ids,transformer_options.get('rs_mc_ref_centers',[]),src_grids):
-        refids[...,1]+=cy-(gh-1)/2
-        refids[...,2]+=cx-(gw-1)/2
     pos = torch.cat([
         torch.zeros(bs, txtlen, 3, device=device, dtype=torch.float32)]   # text @ 0
-        + [_imgids(bs, 0, h_, w_, device)]
-        + ref_ids,                                    # target frame=0
+        + ref_ids + [_imgids(bs, 0, h_, w_, device)],  # target frame=0
         dim=1)
     freqs = m.pe_embedder(pos)
 
@@ -288,7 +284,7 @@ def krea2_edit_forward(m, x, timesteps, context, src_latent, transformer_options
         combined = block(combined, tvec, freqs, attn_bias, transformer_options=transformer_options)
 
     final = m.last(combined, t)
-    out = final[:, txtlen: txtlen + tgtlen, :]         # target tokens only
+    out = final[:, txtlen + srclen: txtlen + srclen + tgtlen, :]  # target only
     out = rearrange(out, "b (h w) (c ph pw) -> b c (h ph) (w pw)",
                     h=h_, w=w_, ph=patch, pw=patch, c=m.channels)
     out = out[:, :, :H_orig, :W_orig]

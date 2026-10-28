@@ -58,10 +58,10 @@
   "krea_edit": {
     "repo": "conradlocke/krea2-identity-edit",
     "revision": "f33b26291c640e8ec50b0da420bfee3c9a660daa",
-    "file": "krea2_identity_edit_v1_2_r64.safetensors",
+    "file": "krea2_identity_edit_v2_r64.safetensors",
     "folder": "ipadapter",
     "subdir": "krea_edit",
-    "sha256": "f794b47142555c929cf536a2f1e4f335174b9aedbb08572b07d45814d4242423"
+    "sha256": "2b35d52aec027fa627fd0b98adff405ee030edecbb816608ed7fc445a69a756b"
   },
   "moss_edit": {
     "repo": "thearkorbit/moss-image-edit-lora-poc",
@@ -86,5 +86,13 @@
     "folder": "clip_vision",
     "subdir": "redux_encoder",
     "sha256": null
+  },
+  "anima_frame": {
+    "repo": "ElectronGirl/anima-ref-adapter",
+    "revision": "fed1e98a11a9b81d4ad274fd23cacc531fd4617e",
+    "file": "anima_ref_adapter_pilot_r32.safetensors",
+    "folder": "ipadapter",
+    "subdir": "anima_frame",
+    "sha256": "d42a07284a82ababd783a893db48048d0cfa0c3fdc0cda51fa82369755ed13ab"
   }
 }

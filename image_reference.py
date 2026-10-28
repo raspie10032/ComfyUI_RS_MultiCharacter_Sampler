@@ -40,7 +40,7 @@ class RSMultiCharacterReference:
             'image': ('IMAGE',),
             'character_id': ('INT', {'default': 1, 'min': 1, 'max': 10, 'tooltip': 'Match the number in Character Prompt. References follow its point, box or mask.'}),
             'resolution': reference_size_input(),
-            'strength': ('FLOAT', {'default': .6, 'min': 0., 'max': 2., 'step': .05, 'tooltip': '0 disables reference processing. Start low; trials used FLUX.1 0.1, SDXL 0.5, FLUX.2/3 1.5 and other families 0.6.'}),
+            'strength': ('FLOAT', {'default': .6, 'min': 0., 'max': 2., 'step': .05, 'tooltip': '0 disables processing. Start low; strength meaning depends on the backend. FLUX.1 references require a Kontext checkpoint.'}),
             'enabled': ('BOOLEAN', {'default': True}),
         }, 'optional': {'building_pipe': (BUILD_PIPE_TYPE,)}}
 
@@ -51,7 +51,7 @@ class RSMultiCharacterReference:
     EXPERIMENTAL = True
     DESCRIPTION = ('Experimental image reference: supported, NOT RECOMMENDED. Quality varies by model; use a character LoRA when available. '
                    'Connect one image per numbered character, then Finalize and Sampler. Point/box/mask placement is shared. '
-                   'Downloads matching weights on first sampling; optional requirements-reference.txt. Detailer ignores this input. '
+                   'Anima reference frames, Krea 2 Identity Edit v2 and FLUX native references; FLUX.1 requires Kontext. Downloads matching weights on first sampling; optional requirements-reference.txt. Detailer ignores this input. '
                    '/ 실험적 이미지 참조: 지원하지만 권장하지 않습니다. 캐릭터별 큰 특징을 유도하며 품질은 모델에 따라 다릅니다. '
                    '/ 実験的画像参照: 対応していますが推奨しません。画質はモデルによって異なります。')
 
@@ -95,29 +95,8 @@ def prepare_model_references(model, clip, vae, pipe, family, layout_method='regi
     def common(slot, ref, geometry):
         return dict(slot=slot, source=ref.source, strength=ref.strength, geometry=geometry)
     if family == 'Anima':
-        from transformers import SiglipVisionModel
-        from .anima_reference import ReferenceCondition
-        # Keep these files together for from_pretrained, even when config is already cached.
-        paths = [asset('anima_' + key, node_id) for key in ('config', 'preprocessor_config', 'model')]
-        from transformers import SiglipVisionConfig
-        configuration = json.loads(paths[0].read_text())
-        config = SiglipVisionConfig(**configuration.get('vision_config', configuration))
-        encoder = SiglipVisionModel.from_pretrained(str(paths[2].parent), config=config, local_files_only=True).eval()
-        encoder.requires_grad_(False)
-        plan = []
-        try:
-            for slot, ref in refs:
-                comfy.model_management.throw_exception_if_processing_interrupted()
-                key = (ref.source, ref.resolution)
-                if key not in cache:
-                    px, _ = pixels(ref)
-                    with torch.inference_mode():
-                        cache[key] = encoder(px.permute(0, 3, 1, 2) * 2 - 1, interpolate_pos_encoding=True).last_hidden_state.detach().cpu()
-                plan.append(ReferenceCondition(slot, cache[key], ref.strength, ref.source, ref.resolution))
-        finally:
-            del encoder
-        model.model_options['rs_image_reference'] = (tuple(plan), 'upstream_cross')
-    elif family in ('SD1.5', 'SDXL', 'FLUX1'):
+        raise RuntimeError('Anima references must be prepared as reference frames by the sampler.')
+    elif family in ('SD1.5', 'SDXL'):
         import comfy.clip_vision
         import comfy.sd
         encoder = comfy.clip_vision.load(str(asset('redux_encoder' if family == 'FLUX1' else 'sd_encoder', node_id)))
@@ -149,7 +128,18 @@ def prepare_model_references(model, clip, vae, pipe, family, layout_method='regi
             comfy.model_management.throw_exception_if_processing_interrupted()
             key = (ref.source, ref.resolution)
             if key not in cache:
-                px, geometry = pixels(ref)
+                if family == 'MOSS':
+                    px, geometry = pixels(ref)
+                else:
+                    # Native reference encoders keep the source aspect ratio;
+                    # white square padding can otherwise become scene content.
+                    image, geometry = prepare_reference(ref.image(), ref.resolution, square_padding=False)
+                    px = torch.from_numpy(np.asarray(image).copy()).float()[None] / 255.
+                    import comfy.utils
+                    height, width = px.shape[1:3]
+                    px = comfy.utils.common_upscale(px.movedim(-1, 1),
+                        max(16, width // 16 * 16), max(16, height // 16 * 16),
+                        'lanczos', 'disabled').movedim(1, -1)
                 with torch.inference_mode():
                     latent = vae.encode(px).detach().cpu()
                 cache[key] = (latent, px, geometry)

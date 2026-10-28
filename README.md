@@ -43,7 +43,7 @@ Optional features have separate setup:
 | Feature | Setup |
 | --- | --- |
 | Local detailer | Install **ComfyUI-Impact-Pack** and **ComfyUI-Impact-Subpack** through Manager, then install `requirements-detailer.txt` with ComfyUI's Python. SAM is optional. Selected missing detector/tagger catalog models download when executed. |
-| Image references · experimental | Install `requirements-reference.txt` with ComfyUI's Python. Active references can download additional models; OFF/strength 0 loads none. [Backends and limits](docs/image-reference.md) |
+| Image references · experimental | Anima reference frames, Krea 2 Identity Edit v2 and native FLUX references (FLUX.1 needs Kontext); SD1.5/SDXL/MOSS keep their existing paths. Install `requirements-reference.txt`. Active references download weights; OFF/strength 0 loads none. [Backends and limits](docs/image-reference.md) |
 
 ## Start with a workflow
 

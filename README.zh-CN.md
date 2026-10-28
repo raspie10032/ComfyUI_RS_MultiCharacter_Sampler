@@ -45,7 +45,7 @@ git clone https://github.com/raspie10032/ComfyUI_RS_MultiCharacter_Sampler.git
 | 功能 | 配置 |
 | --- | --- |
 | 本地细节修复 | 通过 Manager 安装 **ComfyUI-Impact-Pack** 和 **ComfyUI-Impact-Subpack**，再用 ComfyUI 的 Python 安装 `requirements-detailer.txt`。SAM 可选。执行时自动下载所选且缺失的检测/标签目录模型。 |
-| 图像参考 · 实验性 | 用 ComfyUI 的 Python 安装 `requirements-reference.txt`。启用参考可能下载额外模型；关闭或强度为 0 时不加载。[后端与限制](docs/image-reference.md) |
+| 图像参考 · 实验性 | Anima 使用参考帧，Krea 2 使用 Identity Edit v2，FLUX 使用原生参考（FLUX.1 需要 Kontext）。SD1.5、SDXL、MOSS 保留现有方式。用 ComfyUI 的 Python 安装 `requirements-reference.txt`。启用参考可能下载额外模型；关闭或强度为 0 时不加载。[后端与限制](docs/image-reference.md) |
 
 ## 从示例工作流开始
 

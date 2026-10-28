@@ -89,10 +89,10 @@ class JointRouting:
             self.reference_lengths = [((r.shape[-2]+patch-1)//patch)*((r.shape[-1]+patch-1)//patch) for r in refs]
             self.reference_audit['reference_lengths'] = self.reference_lengths
             if refs:
-                hgrid=(xb.shape[-2]+patch-1)//patch;wgrid=(xb.shape[-1]+patch-1)//patch
-                options['rs_mc_ref_centers']=[(float((self.state['groups'][r['slot']]%wgrid).float().mean()),float((self.state['groups'][r['slot']]//wgrid).float().mean())) for r in self.reference_plan]
                 from .krea_reference_backend import krea2_edit_forward
-                return krea2_edit_forward(self.reference_dm, xb, tb, cb, refs, options, ref_native=True)
+                return krea2_edit_forward(self.reference_dm, xb, tb, cb, refs, options,
+                    ref_native=True, pos_mode='stride1', ref_position='beside (right of target)',
+                    ref_position_a='beside (right of target)')
             return executor(xb, tb, cb, None, None, options, **kwargs)
         return self.forward(invoke, x, timesteps, context, transformer_options,
                             ((x.shape[-2]+patch-1)//patch, (x.shape[-1]+patch-1)//patch))

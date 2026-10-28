@@ -43,7 +43,7 @@ Python **3.11以上**とTorch・NumPy・Pillowが必要です。ComfyUI本体が
 | 機能 | 準備 |
 | --- | --- |
 | ローカルディテイラー | Managerで **ComfyUI-Impact-Pack**・**ComfyUI-Impact-Subpack** を導入し、ComfyUIのPythonで `requirements-detailer.txt` をインストールします。SAMは任意です。選択した検出・タグ付け用カタログモデルがない場合は実行時に取得します。 |
-| 画像参照・実験的 | ComfyUIのPythonで `requirements-reference.txt` をインストールします。有効な参照での生成時に追加モデルを取得する場合があります。OFF・強度0では読み込みません。[方式と制限](docs/image-reference.md) |
+| 画像参照・実験的 | Animaは参照フレーム、Krea 2はIdentity Edit v2、FLUXはネイティブ参照です（FLUX.1はKontextが必要）。SD1.5・SDXL・MOSSは従来方式を維持します。ComfyUIのPythonで `requirements-reference.txt` をインストールします。有効な参照での生成時に追加モデルを取得する場合があります。OFF・強度0では読み込みません。[方式と制限](docs/image-reference.md) |
 
 ## ワークフローから始める
 

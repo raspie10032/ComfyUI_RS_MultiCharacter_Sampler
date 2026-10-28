@@ -2,80 +2,94 @@
 
 **Supported, NOT RECOMMENDED · 지원하지만 권장하지 않음 · 対応していますが非推奨**
 
-This optional feature transfers broad visual cues, not a character's exact identity.
-Use a character LoRA when available. SDXL/Illustrious can lose clothing details and
-oversaturate colors. More references, arbitrary masks, model variants and LoRA
-combinations have not received the same coverage as the two-person trials.
+This optional feature transfers broad visual cues. Exact face identity, small
+accessories and separation in overlapping regions are not guaranteed. Prefer a
+character LoRA when available. Reference processing adds model weights, memory
+and generation time.
 
 ## Connect
 
-`Character Prompt → Character Image Reference → Position / LoRA → Finalize → Sampler`
+`Character Prompt → Image Reference → Position / LoRA → Finalize → Sampler`
 
-Role order is free: references bind to the same character number as Prompt,
-LoRA and Position. Add one Reference node per image, connect a normal ComfyUI
-Load Image output, and choose the number. Only active character slots survive
-Finalize; text slots cannot have image references. Point, box and mask geometry
-come from the existing Position/Mask nodes. No external IP-Adapter patch node is
-needed; model family selection happens inside this sampler.
+Building-node order is free. One Reference node binds one image to the same
+character number used by Prompt, LoRA and Position. Use ordinary Load Image
+outputs. Finalize discards disabled/out-of-range characters. Text regions cannot
+have references. Existing point, box and silhouette masks select the target region.
+No external IP-Adapter/model-patch node is needed for this input.
 
-- Resolution: **64–1024, step 64, default 384**. Resize the longest edge and keep
-  aspect ratio; smaller inputs are enlarged. Encoder padding does not crop the image.
-- Strength: **0–2, default 0.6**. Larger is not always better. The exchange trials
-  used FLUX.1 **0.1**, SDXL **0.5**, FLUX.2/3 **1.5**, others **0.6**. These are
-  experiment settings, not universal presets.
-- OFF / strength 0: no encoder, adapter or edit weight is loaded or downloaded.
-- This is **Sampler-only**. Detailer keeps its existing prompt/LoRA behavior and
-  does not apply image references.
-- PNG/WebP metadata records reference number, hash, resolution and strength, **not
-  the image**. Load Image restores ordinary generation settings; reconnect the
-  original reference images to reproduce referenced generation.
+- **Resolution:** 64–1024 in 64px steps, default 384. Resize the longest edge while
+  retaining aspect ratio. Native VAE backends align to model grids; SD encoders
+  use their fixed internal grid. Anima reference-frame encoding also follows the
+  target canvas grid, so this control is not a universal token/memory budget.
+- **Strength:** 0–2, default 0.6. Start low; stronger references can copy poses,
+  distort colors or compete with character LoRAs. The updated native paths have
+  different strength semantics from Redux/IP-Adapter: old values are retained,
+  but they do not reproduce old pixels.
+- **OFF / strength 0:** loads/downloads no reference weights for that character.
+- **Sampler only:** the detailer retains its prompt/LoRA behavior and ignores
+  references. Basic generation requires no optional reference dependencies.
+- **Metadata:** saves reference number, fingerprint, resolution and strength,
+  not image pixels. Reconnect source images after loading generation metadata.
 
-## Backends and dependencies
+## Model-specific paths
 
-Install `requirements-reference.txt` with the Python used by ComfyUI, then restart.
-Basic generation and importing this extension do not require optional reference
-packages. Downloads occur only during sampling with an active reference; the
-Sampler's progress panel shows the file and download progress. Model licenses
-are separate; pinned source repositories are listed in `reference_assets.json`.
+Install `requirements-reference.txt` using ComfyUI's Python and restart. Weight
+downloads happen only when sampling with active references, with node progress.
+Model licenses are separate. Sources and revisions are in `reference_assets.json`.
 
-| Family | Applied reference path | Resolution behavior |
+| Family | Reference processing | Requirements and limits |
 |---|---|---|
-| Anima | learned IP-Adapter residual + cross-attention helper LoRA | square padded, variable SigLIP2 grid; 384 = 576 tokens |
-| SD1.5 | learned IP-Adapter Plus | pre-resized image, then native fixed 224px CLIP-Vision grid; 16 adapter tokens |
-| SDXL / Illustrious | SDXL IP-Adapter Plus | same fixed-grid restriction; quality is inconsistent |
-| FLUX.1 | Redux image conditioning with regional attention priors | fixed SigLIP grid; selection does not proportionally reduce tokens |
-| FLUX.2 / FLUX 3 | native reference latents with regional attention | reference latent grid follows padded resolution |
-| Krea 2 | separately downloaded edit LoRA + reference latents / vision text | reference latent grid follows resolution |
-| MOSS | separately downloaded edit LoRA + reference latents | reference latent grid follows resolution |
+| **Anima** | ElectronGirl clean reference frames with the optimized RS regional attention | Automatically loads the pinned reference adapter. The common Image Reference node works; no extra MODEL adapter is required. Reference text K/V cache defaults OFF. Progressive resolution is supported. |
+| **Krea 2** | Identity Edit **v2 r64**, image-grounded per-character text and clean VAE source tokens | Preserves source aspect ratio and uses the upstream `[text, references, target]` order. References sit beside the target in position space. Models without the matching vision text encoder are unsupported. |
+| **FLUX.1** | Native Kontext reference latents with per-character routing | **Select a Kontext checkpoint** with its matching CLIP/T5 and VAE. Ordinary Dev/Schnell are not trained as Kontext; this node does not switch checkpoints automatically. Redux is no longer used for this input. |
+| **FLUX.2 / FLUX 3** | Native reference latents with per-character routing | Keep source aspect ratio, align to VAE grid and share repeated attention-prior rows. Variant-specific encoders and VAE remain required. |
+| **SD1.5** | Existing IP-Adapter Plus | Unchanged backend; fixed 224px CLIP-Vision grid. Quality is experimental. |
+| **SDXL / Illustrious** | Existing SDXL IP-Adapter Plus | Unchanged backend; fixed encoder grid. Clothing and colors can drift. |
+| **MOSS** | Existing experimental edit-LoRA reference path | Unchanged backend. This update does not add CharRef or claim reference quality improvements for MOSS. |
 
-Reference routing is available with `regional` layout. `moss_native` rejects active
-references instead of silently mixing two conditioning paths. Model architecture,
-matching text encoder and VAE requirements still apply. Arbitrary foreign attention
-patches are not made compatible by this feature.
+Only `regional` layout accepts this input. `moss_native` rejects active image
+references. Foreign attention patches are not made compatible automatically.
+
+A target region reads its own reference directly; overlaps can read both. Later
+self-attention and the shared scene can still transfer features between people.
+This is regional guidance, not a guarantee of isolated character identities.
+
+The advanced **Anima Reference Frame** and **Anima Character Reference** nodes are
+also available for explicit adapter/guidance controls. Use either the automatic
+numbered input or an explicit global reference image; do not mix a global image
+with numbered references. See [Anima adapter controls](anima-reference-frame.md).
 
 ## 한국어
 
-**캐릭터의 큰 특징을 유도하는 실험 기능이며 권장하지 않습니다.** 참조마다 이미지
-한 장과 캐릭터 번호를 지정하고 기존 조립 파이프에 연결하세요. 프롬프트·LoRA·위치
-노드와 연결 순서는 자유입니다. 참조 모델은 활성 참조로 생성할 때만 내려받으며
-처음에는 파일이 커서 오래 걸릴 수 있습니다. `requirements-reference.txt`가 필요합니다.
-참조 해상도는 긴 변 기준 64px 단위이며, SD/Redux 인코더는 내부 고정 크기를 사용하므로
-해상도를 낮춰도 토큰 수가 비례해서 줄지는 않습니다. 저장 메타데이터에는 이미지가
-없으므로 재생성하려면 원본 참조를 다시 연결해야 합니다. 디테일러에는 적용하지 않습니다.
+기존 이미지 참조 노드의 연결은 유지됩니다. **Anima는 최적화한 참조 프레임,
+Krea 2는 Identity Edit v2, FLUX는 네이티브 참조**를 사용합니다. Anima는 별도
+모델 어댑터 노드를 연결하지 않아도 전용 가중치를 자동으로 준비합니다.
+**FLUX.1은 Kontext 체크포인트를 직접 선택**하세요. 일반 Dev/Schnell이 자동으로
+Kontext가 되는 것은 아닙니다. MOSS·SD1.5·SDXL 참조 방식은 유지합니다.
+
+참조 번호는 프롬프트·위치·마스크·LoRA와 같게 맞추세요. 참조끼리 겹치면 특징이
+섞일 수 있습니다. 해상도는 긴 변 기준 64px 단위이며 모델에 따라 실제 내부 토큰
+수가 달라집니다. 참조 원본은 메타데이터에 저장하지 않으며 디테일러에는 적용하지
+않습니다. 처리 시간이 늘고 기존 버전과 결과가 달라질 수 있습니다.
 
 ## 日本語
 
-**大まかな外見を誘導する実験機能で、推奨しません。** 画像1枚とキャラクター番号を
-指定し、既存の組み立てパイプへ接続してください。役割ノードの接続順は自由です。
-`requirements-reference.txt`が必要です。参照用モデルは有効な参照で生成するときだけ
-取得します。解像度は長辺基準・64px単位ですが、SD/Reduxは内部で固定グリッドを使います。
-保存メタデータに参照画像は含まれません。再現時は元の画像を接続してください。
-Detailerには適用しません。
+既存の画像参照ノードの接続を維持し、Animaは参照フレーム、Krea 2はIdentity
+Edit v2、FLUXはネイティブ参照へ切り替えます。FLUX.1はKontextモデルを選択して
+ください。MOSS・SD1.5・SDXLの参照方式は維持します。番号をPrompt・Positionと
+合わせてください。重なりでは特徴が混ざる場合があります。画像はメタデータに
+含まれず、Detailerには適用しません。
 
-## Experiment report
+## References
 
-Comparison images, per-run settings, hashes and limitations are downloadable from
-[0.2.5 Release attachments](https://github.com/raspie10032/ComfyUI_RS_MultiCharacter_Sampler/releases/tag/v0.2.5).
-The report bundle is **not tracked in git** and is not included in `git clone`,
-source archives or Registry packages. `export-ignore` alone would not exclude a
-tracked report from cloning, so the report itself lives in Release assets.
+- [Anima Ref Adapter](https://github.com/ElectronGirl/ComfyUI-Anima-Ref-Adapter),
+  Apache-2.0; adapted source license in `ANIMA-REF-ADAPTER-LICENSE`.
+- [Krea 2 Edit](https://github.com/lbouaraba/comfyui-krea2edit), Apache-2.0;
+  adapted source license in `KREA2EDIT-LICENSE`.
+- [Krea 2 Identity Edit weights](https://huggingface.co/conradlocke/krea2-identity-edit).
+- FLUX native image-reference processing is provided by the installed ComfyUI;
+  use the matching model's license and intended reference recipe.
+
+Full experiment reports and images remain external release assets; they are not
+bundled into git installations. Integration evidence is summarized in
+[the replacement validation report](reference-replacement-validation.md).

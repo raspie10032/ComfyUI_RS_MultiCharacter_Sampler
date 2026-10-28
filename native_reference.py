@@ -32,6 +32,8 @@ def reference_joint(routing, original,q,k,v,heads,mask=None,**kwargs):
     if n!=ni+nt+nr:raise ValueError(f'{routing.family} reference sequence mismatch: {n} vs {ni}+{nt}+{nr}')
     if routing.family in ('FLUX3','MOSS'):
         istart=0;rstart=ni;tstart=ni+nr
+    elif routing.family == 'Krea2':
+        tstart=0;rstart=nt;istart=nt+nr
     else:tstart=0;istart=nt;rstart=nt+ni
     def ids(a,b):return torch.arange(a,b,device=q.device)
     text=[];start=tstart
@@ -63,12 +65,14 @@ def reference_joint(routing, original,q,k,v,heads,mask=None,**kwargs):
         refkeys=[refs[j] for j in matching]
         keys=torch.cat((text[0],*captions,images,*refkeys))
         nc=len(text[0]);ntc=sum(len(t) for t in captions);mass=nc/(1+state['common'])
-        bias=q.new_zeros((len(queries),len(keys)))
+        # Each ownership cell shares the same key priors. Broadcast one row
+        # rather than materializing a quadratic query-by-key table.
+        bias=q.new_zeros((len(queries) if routing.family == 'MOSS' else 1,len(keys)))
         bias[:,:nc]=-torch.inf if not state['common'] else math.log(state['common']*mass/nc)
         start=nc
         for t in captions:bias[:,start:start+len(t)]=math.log(mass/(len(members)*len(t)));start+=len(t)
         if state['separation']:
-            bias[:,start:start+ni]=math.log1p(-state['separation'])
+            bias[:,start:start+ni]=-torch.inf if state['separation'] == 1 else math.log1p(-state['separation'])
             for i in members:bias[:,start+groups[i]]=0
             if isinstance(groups,BoxGroups):bias[:,start+groups.background]=0
         gain=q.new_ones(len(keys));gain[nc:nc+ntc]=state['gain']

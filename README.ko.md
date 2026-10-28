@@ -43,7 +43,7 @@ Python **3.11 이상**과 Torch·NumPy·Pillow가 필요합니다. ComfyUI 자�
 | 기능 | 준비 |
 | --- | --- |
 | 로컬 디테일러 | Manager에서 **ComfyUI-Impact-Pack**·**ComfyUI-Impact-Subpack**을 설치하고 ComfyUI의 Python으로 `requirements-detailer.txt`를 설치합니다. SAM은 선택 사항입니다. 선택한 감지·태거 카탈로그 모델이 없으면 실행할 때 내려받습니다. |
-| 이미지 참조 · 실험적 | ComfyUI의 Python으로 `requirements-reference.txt`를 설치합니다. 활성 참조로 생성할 때 추가 모델을 받을 수 있으며 OFF·강도 0에서는 읽지 않습니다. [방식과 한계](docs/image-reference.md) |
+| 이미지 참조 · 실험적 | Anima는 참조 프레임, Krea 2는 Identity Edit v2, FLUX는 네이티브 참조를 사용합니다(FLUX.1은 Kontext 필요). SD1.5·SDXL·MOSS는 기존 방식입니다. ComfyUI의 Python으로 `requirements-reference.txt`를 설치합니다. 활성 참조로 생성할 때 추가 모델을 받을 수 있으며 OFF·강도 0에서는 읽지 않습니다. [방식과 한계](docs/image-reference.md) |
 
 ## 예제로 시작하기
 
