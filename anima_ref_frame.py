@@ -8,6 +8,7 @@ No upstream custom node import, permanent hooks, or process-global GPU cache.
 from collections import OrderedDict
 from contextlib import contextmanager
 from dataclasses import dataclass
+import inspect
 import math
 from .image_reference import ImageReference
 
@@ -401,12 +402,20 @@ class FrameRuntime:
                     # absence of an override, on cancellation or failure.
                     previous.append((attn, attn.__dict__.get('compute_qkv')))
                     original = attn.compute_qkv
+                    # Older Cosmos attention predates transformer_options.
+                    # Inspect once per wrapper, never retry an internal TypeError.
+                    accepts_options = 'transformer_options' in inspect.signature(original).parameters
                     def cached(x, context=None, rope_emb=None, transformer_options=None,
-                               attn=attn, original=original, index=index):
+                               attn=attn, original=original, index=index,
+                               accepts_options=accepts_options):
                         key = (context_id, index, x.device, x.dtype)
                         pair = self.kv.get(key)
                         if pair is None:
-                            q, k, v = original(x, context, rope_emb, {} if transformer_options is None else transformer_options)
+                            if accepts_options:
+                                q, k, v = original(x, context, rope_emb,
+                                    transformer_options={} if transformer_options is None else transformer_options)
+                            else:
+                                q, k, v = original(x, context, rope_emb)
                             size = sum(t.numel()*t.element_size() for t in (k, v))
                             # A cyclic block traversal thrashes an LRU when all
                             # blocks do not fit. Keep an admitted subset instead.

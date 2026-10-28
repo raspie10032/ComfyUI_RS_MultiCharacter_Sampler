@@ -18,6 +18,48 @@ interaction = importlib.import_module(PKG+'.interaction')
 
 
 class ReferenceOptimizationTests(unittest.TestCase):
+    def test_text_cache_handles_old_and_current_attention_signatures(self):
+        for current_api in (False, True):
+            with self.subTest(current_api=current_api):
+                calls = []
+                def legacy(x, context=None, rope_emb=None):
+                    calls.append(rope_emb)
+                    return x.unsqueeze(2), context.unsqueeze(2), context.unsqueeze(2)
+                def current(x, context=None, rope_emb=None, *, transformer_options=None):
+                    calls.append(transformer_options)
+                    return x.unsqueeze(2), context.unsqueeze(2), context.unsqueeze(2)
+                original = current if current_api else legacy
+                attn = SimpleNamespace(compute_qkv=original, n_heads=1, head_dim=2,
+                    q_norm=lambda x:x, q_proj=lambda x:x)
+                dm = SimpleNamespace(blocks=[SimpleNamespace(cross_attn=attn)])
+                plan = ref.ReferencePlan(None, 'unused', 1., 4.5, 'none', True)
+                rt = ref.FrameRuntime(plan, torch.zeros(1,16,1,8,8), {})
+                x, context = torch.randn(1,4,2), torch.randn(1,3,2)
+                options = {'sentinel': object()}
+                with rt.installed(dm, context, False):
+                    first = attn.compute_qkv(x, context, transformer_options=options)
+                    second = attn.compute_qkv(x, context, transformer_options=options)
+                self.assertIs(attn.compute_qkv, original)
+                self.assertEqual(len(calls), 1)
+                if current_api:self.assertIs(calls[0], options)
+                for a,b in zip(first,second):self.assertTrue(torch.equal(a,b))
+                self.assertEqual(rt.audit['kv_hits'], 1)
+
+    def test_text_cache_preserves_original_attention_typeerror(self):
+        calls = []
+        def failing(x, context=None, rope_emb=None, transformer_options=None):
+            calls.append(True)
+            raise TypeError('attention implementation error')
+        attn = SimpleNamespace(compute_qkv=failing)
+        dm = SimpleNamespace(blocks=[SimpleNamespace(cross_attn=attn)])
+        plan = ref.ReferencePlan(None, 'unused', 1., 4.5, 'none', True)
+        rt = ref.FrameRuntime(plan, torch.zeros(1,16,1,8,8), {})
+        context = torch.zeros(1,3,2)
+        with self.assertRaisesRegex(TypeError, 'attention implementation error'):
+            with rt.installed(dm, context, False):attn.compute_qkv(context,context)
+        self.assertEqual(len(calls), 1)
+        self.assertIs(attn.compute_qkv, failing)
+
     def test_encode_only_active_grids_and_share_duplicate_source(self):
         plan = SimpleNamespace(reference_scale=1.)
         source = SimpleNamespace(source='shared', image=lambda:np.zeros((8,8,3),dtype=np.uint8))

@@ -123,7 +123,10 @@ class RefFrameTests(unittest.TestCase):
         self.assertEqual(self.ref.require_sampler(lambda **k:42,transformer_options={'rs_anima_ref_ready':True}),42)
 
     def test_zero_bypass_does_not_resolve_or_load_adapter(self):
-        from comfy.model_base import Anima
+        import comfy.model_base
+        Anima = getattr(comfy.model_base, 'Anima', None)
+        if Anima is None:
+            self.skipTest('This ComfyUI predates Anima model support')
         from unittest.mock import Mock
         parent=Mock();parent.model=Mock(spec=Anima)
         child=parent.clone.return_value;child.model_options={self.ref.PLAN:object()}
