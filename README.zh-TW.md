@@ -24,6 +24,9 @@
 
 座標與遮罩只引導提示詞影響區域，不保證準確人數、身份、姿勢或文字拼寫。[角色影像參考](docs/image-reference.md) 為**實驗性支援，不推薦使用**；有合適的角色 LoRA 時優先使用 LoRA。
 
+
+**Anima Role K/V · 實驗性：** 影像參考節點可選擇編號區域各自獨立的參考K/V。首次生成時自動下載約504 MiB專用轉接器，預設仍使用原有參考影格。[使用方法、限制與驗證](docs/anima-role-kv.md)。
+
 ## 安裝與更新
 
 在 ComfyUI-Manager 中搜尋 **RS MultiCharacter Sampler**，或檢視 [Comfy Registry 頁面](https://registry.comfy.org/publishers/raspie10032/nodes/comfyui-rs-multicharacter-sampler)。包 ID：`comfyui-rs-multicharacter-sampler`。

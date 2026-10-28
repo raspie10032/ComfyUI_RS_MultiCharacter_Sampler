@@ -1685,6 +1685,14 @@
       },
       "building_pipe": {
         "name": "構建管線"
+      },
+      "anima_method": {
+        "name": "Anima 參考方式",
+        "tooltip": "reference_frame為原有方式；role_kv自動下載專用轉接器。僅Anima Base BF16/FP32。角色LoRA請選擇一般模式。",
+        "options": {
+          "reference_frame": "原有參考影格",
+          "role_kv": "分區Role K/V"
+        }
       }
     },
     "outputs": {
@@ -2006,6 +2014,14 @@
       },
       "building_pipe": {
         "name": "建構管線"
+      },
+      "anima_method": {
+        "name": "Anima 參考方式",
+        "tooltip": "reference_frame為原有方式；role_kv自動下載專用轉接器。僅Anima Base BF16/FP32。角色LoRA請選擇一般模式。",
+        "options": {
+          "reference_frame": "原有參考影格",
+          "role_kv": "分區Role K/V"
+        }
       }
     }
   }

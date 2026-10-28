@@ -1,4 +1,12 @@
 {
+  "anima_role_kv": {
+    "repo": "AnticPan/Anima-Role-Ref-KV",
+    "revision": "259a0dce876ed70fc8835b888139756e23fb8a9f",
+    "file": "comfy/anima-role-ref-kv-v1.0.safetensors",
+    "folder": "ipadapter",
+    "subdir": "anima_role_kv",
+    "sha256": "102dcc38b48f984844305fff5c04730a857603f8796f47e92b67c61baef124bb"
+  },
   "anima_adapter": {
     "repo": "LuciferTC/Anima-IP-Adapter",
     "revision": "99e9c351c9f00bdd188b5added0066a80d3b1de6",

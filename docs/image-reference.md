@@ -31,6 +31,12 @@ No external IP-Adapter/model-patch node is needed for this input.
 - **Metadata:** saves reference number, fingerprint, resolution and strength,
   not image pixels. Reconnect source images after loading generation metadata.
 
+## Optional Anima Role K/V
+
+Choose `anima_method = role_kv` on each numbered Image Reference node to use the
+new dedicated adapter. It downloads automatically on first sampling.
+`reference_frame` remains the default. [Connection, routing differences and limits](anima-role-kv.md).
+
 ## Model-specific paths
 
 Install `requirements-reference.txt` using ComfyUI's Python and restart. Weight

@@ -24,6 +24,9 @@ ComfyUI에서 캐릭터별 프롬프트·LoRA·영역을 지정해 생성하고,
 
 좌표와 마스크는 프롬프트를 적용할 영역을 유도합니다. 정확한 인원수·정체성·자세·철자는 모델에 따라 달라집니다. [캐릭터 이미지 참조](docs/image-reference.md)도 **실험적으로 지원하지만 권장하지 않습니다.** 맞는 캐릭터 LoRA가 있다면 우선 사용하세요.
 
+
+**Anima Role K/V · 실험적:** 이미지 참조 노드에서 번호별 영역에 독립적인 참조 K/V를 넣는 방식을 선택할 수 있습니다. 전용 어댑터 약 504 MiB는 최초 생성 시 자동으로 받습니다. 기본값은 기존 참조 프레임입니다. [사용법·제어 범위·검증](docs/anima-role-kv.md).
+
 ## 설치와 업데이트
 
 ComfyUI-Manager에서 **RS MultiCharacter Sampler**를 검색하거나 [Comfy Registry](https://registry.comfy.org/publishers/raspie10032/nodes/comfyui-rs-multicharacter-sampler)에서 설치하세요. 패키지 ID는 `comfyui-rs-multicharacter-sampler`입니다.

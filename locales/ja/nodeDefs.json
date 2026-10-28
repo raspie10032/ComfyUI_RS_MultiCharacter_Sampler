@@ -1002,6 +1002,14 @@
       },
       "building_pipe": {
         "name": "組み立てパイプ"
+      },
+      "anima_method": {
+        "name": "Anima参照方式",
+        "tooltip": "reference_frameは従来方式。role_kvは専用アダプターを自動取得。Anima Base BF16/FP32専用。人物LoRAは通常モードを選択。",
+        "options": {
+          "reference_frame": "従来の参照フレーム",
+          "role_kv": "領域別Role K/V"
+        }
       }
     },
     "outputs": {
@@ -1182,6 +1190,14 @@
       },
       "building_pipe": {
         "name": "ビルドパイプ"
+      },
+      "anima_method": {
+        "name": "Anima参照方式",
+        "tooltip": "reference_frameは従来方式。role_kvは専用アダプターを自動取得。Anima Base BF16/FP32専用。人物LoRAは通常モードを選択。",
+        "options": {
+          "reference_frame": "従来の参照フレーム",
+          "role_kv": "領域別Role K/V"
+        }
       }
     }
   }

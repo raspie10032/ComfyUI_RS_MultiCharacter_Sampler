@@ -10,7 +10,7 @@ from contextlib import contextmanager
 from dataclasses import dataclass
 import inspect
 import math
-from .image_reference import ImageReference
+from .image_reference import ImageReference, RoleKVImageReference, anima_method_input
 
 import numpy as np
 from PIL import Image
@@ -48,7 +48,7 @@ class RSAnimaCharacterReference:
             'strength': ('FLOAT', {'default': 1., 'min': 0., 'max': 2., 'step': .05,
                 'tooltip': 'Reference prediction strength in this character region. Zero removes the reference.'}),
             'enabled': ('BOOLEAN', {'default': True}),
-        }, 'optional': {'building_pipe': ('RS_MC_BUILD_PIPE',)}}
+        }, 'optional': {'building_pipe': ('RS_MC_BUILD_PIPE',), 'anima_method': anima_method_input()}}
 
     RETURN_TYPES = ('RS_MC_BUILD_PIPE',)
     RETURN_NAMES = ('building_pipe',)
@@ -60,8 +60,11 @@ class RSAnimaCharacterReference:
         'Independent source predictions are blended in their numbered target masks. '
         'Overlaps blend both sources. Quality is experimental; more references cost memory/time.')
 
-    def apply(self, image, character_id=1, strength=1., enabled=True, building_pipe=None):
+    def apply(self, image, character_id=1, strength=1., enabled=True, building_pipe=None,
+              anima_method='reference_frame'):
         from .character_builder import update_slot
+        if anima_method not in ('reference_frame', 'role_kv'):
+            raise ValueError('Choose reference_frame or role_kv for the Anima reference method.')
         if (type(enabled) is not bool or isinstance(strength, bool)
                 or not isinstance(strength, (int, float)) or not math.isfinite(strength) or not 0 <= strength <= 2):
             raise ValueError('Character reference strength must be 0–2 and enabled must be on/off.')
@@ -70,7 +73,13 @@ class RSAnimaCharacterReference:
             validate_image(image)
             pixels = (image[0].detach().cpu().clamp(0, 1).numpy()*255).round().astype(np.uint8)
             src = Image.fromarray(pixels)
-            ref = FrameImageReference(src.tobytes(), src.size, max(src.size), float(strength), character_id)
+            if anima_method == 'role_kv':
+                # The dedicated node keeps full source pixels; bound preparation
+                # separately to the tested adapter's reference token budget.
+                from .reference_image import prepare_reference
+                src, _ = prepare_reference(src, 768)
+            factory = RoleKVImageReference if anima_method == 'role_kv' else FrameImageReference
+            ref = factory(src.tobytes(), src.size, max(src.size), float(strength), character_id)
         return (update_slot(building_pipe, character_id, reference=ref),)
 
 

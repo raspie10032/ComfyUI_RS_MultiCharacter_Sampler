@@ -24,6 +24,9 @@ ComfyUIでキャラクター別のプロンプト・LoRA・領域を設定して
 
 座標やマスクはプロンプトの適用領域を誘導します。正確な人数・同一性・姿勢・綴りはモデルに依存します。[画像参照](docs/image-reference.md)も**実験的に対応していますが非推奨**です。対応するキャラクターLoRAがあれば優先してください。
 
+
+**Anima Role K/V・実験的:** 画像参照ノードから番号別領域用の独立したK/Vを選択できます。専用アダプター約504 MiBは初回生成時に自動取得します。既定値は従来の参照フレームです。[使い方・制限・検証](docs/anima-role-kv.md)。
+
 ## インストールと更新
 
 ComfyUI-Managerで **RS MultiCharacter Sampler** を検索するか、[Comfy Registry](https://registry.comfy.org/publishers/raspie10032/nodes/comfyui-rs-multicharacter-sampler)からインストールします。パッケージIDは `comfyui-rs-multicharacter-sampler` です。

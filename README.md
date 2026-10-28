@@ -24,6 +24,9 @@ Regional generation and local detailing for ComfyUI. Give each character a promp
 
 Coordinates and masks guide prompt regions. Exact people counts, identity, poses and text spelling remain model-dependent. [Character image references](docs/image-reference.md) are also available as an **experimental, not recommended** option; prefer a matching character LoRA when available.
 
+
+**Anima Role K/V (experimental):** the Image Reference node can optionally prepare independent K/V banks for numbered character regions. Its dedicated 504 MiB adapter is downloaded automatically on first use. Default reference-frame behavior is retained. [Setup, routing limits and validation](docs/anima-role-kv.md).
+
 ## Install or update
 
 Find **RS MultiCharacter Sampler** in ComfyUI-Manager, or use the [Comfy Registry listing](https://registry.comfy.org/publishers/raspie10032/nodes/comfyui-rs-multicharacter-sampler). Package ID: `comfyui-rs-multicharacter-sampler`.

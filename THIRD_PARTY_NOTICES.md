@@ -62,3 +62,16 @@ ownership and repeated-prior sharing. The SD1.5/SDXL IP-Adapter and MOSS PoC
 paths are retained. The earlier Anima IP-Adapter and Redux source notices remain
 for retained historical helper modules; these are not the new default paths.
 The linked model repositories and pinned revisions are in `reference_assets.json`.
+
+
+## Anima Role Ref K/V (experimental)
+
+`anima_role_native.py` adapts `comfyui/native.py` from
+https://huggingface.co/AnticPan/Anima-Role-Ref-KV at
+`259a0dce876ed70fc8835b888139756e23fb8a9f` (Apache-2.0). The original license
+is preserved in `ANIMA-ROLE-KV-CODE-LICENSE` and `ANIMA-ROLE-KV-MODEL-LICENSE`; the pinned weight revision is also in
+`reference_assets.json`. The adapter weights are downloaded by the user, not
+redistributed. RS adds separate numbered reference banks, point/box/mask
+ownership, overlapping-reference selection, conditional-only reference access,
+invocation-scoped cleanup and progressive-grid cache rebuilding.
+Original discussion: https://arca.live/b/aiart/187357665 .

@@ -1,6 +1,8 @@
 // SPDX-License-Identifier: GPL-3.0-only
 // Simplified Chinese / Traditional Chinese (Taiwan) display text.
 export const zhMessages = {
+  "Role K/V: no MODEL adapter node. Downloads 504 MiB once; balanced routing, Normal character LoRAs only.": ["Role K/V：无需MODEL适配器节点。首次下载504MiB，采用均衡分区控制，角色LoRA仅支持普通模式。", "Role K/V：無需MODEL轉接器節點。首次下載504MiB，採用均衡分區控制，角色LoRA僅支援一般模式。"],
+  "Anima Role K/V: downloads a 504 MiB adapter once. Balanced routing; character LoRAs need Normal mode. Reference methods cannot be mixed.": ["Anima Role K/V：首次下载504MiB适配器。均衡分区控制，角色LoRA需普通模式，不可混用参考方式。", "Anima Role K/V：首次下載504MiB轉接器。均衡分區控制，角色LoRA需一般模式，不可混用參考方式。"],
   "Global image: guidance 1 skips an extra prediction; the image changes.": ["全局图像：引导值1跳过额外预测，图像会改变。", "全域影像：引導值1略過額外預測，影像會改變。"],
   "Smaller references change quality; target resolution stays unchanged.": ["缩小参考图可能改变质量；生成分辨率不变。", "縮小參考圖可能改變品質；生成解析度不變。"],
   "Global image OR numbered character images; Anima + RS sampler only.": ["全局图像或按角色编号的图像；仅限Anima和RS采样器。", "全域影像或按角色編號的影像；僅限Anima和RS採樣器。"],

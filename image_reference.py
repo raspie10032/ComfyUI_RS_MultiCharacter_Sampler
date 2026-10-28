@@ -32,6 +32,18 @@ class ImageReference:
         return Image.frombytes('RGB', self.size, self.pixels)
 
 
+@dataclass(frozen=True)
+class RoleKVImageReference(ImageReference):
+    """Anima learned Role K/V adapter, not the reference-frame adapter."""
+
+
+def anima_method_input():
+    return (['reference_frame', 'role_kv'], {'default': 'reference_frame',
+        'tooltip': 'Anima only: reference_frame preserves existing behavior. '
+                   'role_kv downloads a dedicated 504 MiB adapter on first sampling; '
+                   'experimental balanced regional routing, BF16/FP32 only.'})
+
+
 class RSMultiCharacterReference:
     @classmethod
     def INPUT_TYPES(cls):
@@ -42,7 +54,7 @@ class RSMultiCharacterReference:
             'resolution': reference_size_input(),
             'strength': ('FLOAT', {'default': .6, 'min': 0., 'max': 2., 'step': .05, 'tooltip': '0 disables processing. Start low; strength meaning depends on the backend. FLUX.1 references require a Kontext checkpoint.'}),
             'enabled': ('BOOLEAN', {'default': True}),
-        }, 'optional': {'building_pipe': (BUILD_PIPE_TYPE,)}}
+        }, 'optional': {'building_pipe': (BUILD_PIPE_TYPE,), 'anima_method': anima_method_input()}}
 
     RETURN_TYPES = ('RS_MC_BUILD_PIPE',)
     RETURN_NAMES = ('building_pipe',)
@@ -55,9 +67,12 @@ class RSMultiCharacterReference:
                    '/ 실험적 이미지 참조: 지원하지만 권장하지 않습니다. 캐릭터별 큰 특징을 유도하며 품질은 모델에 따라 다릅니다. '
                    '/ 実験的画像参照: 対応していますが推奨しません。画質はモデルによって異なります。')
 
-    def apply(self, image, character_id=1, resolution=384, strength=.6, enabled=True, building_pipe=None):
+    def apply(self, image, character_id=1, resolution=384, strength=.6, enabled=True, building_pipe=None,
+              anima_method='reference_frame'):
         from .character_builder import update_slot
         validate_reference_size(resolution)
+        if anima_method not in ('reference_frame', 'role_kv'):
+            raise ValueError('Choose reference_frame or role_kv for the Anima reference method.')
         if type(enabled) is not bool or isinstance(strength, bool) or not isinstance(strength, (int, float)) or not math.isfinite(strength) or not 0 <= strength <= 2:
             raise ValueError('Reference strength must be 0–2 and enabled must be on/off.')
         ref = None
@@ -66,13 +81,19 @@ class RSMultiCharacterReference:
                 raise ValueError('Connect one valid RGB image per reference. / 참조마다 RGB 이미지 한 장을 연결해 주세요.')
             pixels = (image[0, :, :, :3].detach().cpu().clamp(0, 1).numpy() * 255).astype(np.uint8)
             fitted, _ = prepare_reference(Image.fromarray(pixels), resolution, square_padding=False)
-            ref = ImageReference(fitted.tobytes(), fitted.size, resolution, float(strength), character_id)
+            factory = RoleKVImageReference if anima_method == 'role_kv' else ImageReference
+            ref = factory(fitted.tobytes(), fitted.size, resolution, float(strength), character_id)
         return (update_slot(building_pipe, character_id, reference=ref),)
 
 
 def prepare_model_references(model, clip, vae, pipe, family, layout_method='regional', node_id=None):
     refs = [(i, c.reference) for i, c in enumerate(pipe.characters) if c.reference is not None and c.reference.strength > 0]
     if not refs:
+        return model
+    if any(isinstance(r, RoleKVImageReference) for _, r in refs):
+        if family != 'Anima' or not all(isinstance(r, RoleKVImageReference) for _, r in refs):
+            raise ValueError('Role K/V requires Anima and one shared reference method. / '
+                             'Role K/V는 Anima 전용입니다. 활성 참조의 방식을 모두 맞춰 주세요.')
         return model
     from .anima_ref_frame import FrameImageReference
     if any(isinstance(r, FrameImageReference) for _, r in refs):

@@ -45,6 +45,7 @@ class AnimaRouting:
         self.sigmas = None
         self.spatial_bias = None
         self.spatial_bias_separation = None
+        self.role_kv_runtime = None
 
     def sample(self, executor, *args, **kwargs):
         guider, sigmas, extra, _, noise, latent, denoise_mask, *_ = args
@@ -77,6 +78,9 @@ class AnimaRouting:
 
         self.process = process
         try:
+            if self.role_kv_runtime is not None:
+                with self.role_kv_runtime.sampling():
+                    return executor(*args, **kwargs)
             return executor(*args, **kwargs)
         finally:
             self.contexts = self.groups = self.process = self.part_cells = None
@@ -96,6 +100,8 @@ class AnimaRouting:
             if self.process is None:
                 raise RuntimeError("Spatial adapter was not initialized by the sampler")
             self.contexts = self.process()
+        if self.role_kv_runtime is not None:
+            self.role_kv_runtime.prepare_grid(model, x)
         actual_grid = [s // model.patch_spatial for s in x.shape[-2:]]
         if self.groups is None or self.audit.get("token_grid") != actual_grid:
             self.groups = self.part_cells = self.spatial_bias = None

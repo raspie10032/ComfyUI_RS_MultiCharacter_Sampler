@@ -67,10 +67,12 @@ def build_record(pipe, settings, assets, centers, audit, engine="anima-spatial-a
             "character_loras": lora_records(pipe),
             "image_references": [{"character_id": c.reference.character_id, "resolution": c.reference.resolution,
                                   "strength": c.reference.strength, "source": c.reference.source,
+                                  **({"method": "anima_role_kv"} if type(c.reference).__name__ == 'RoleKVImageReference' else {}),
                                   **({"method": "anima_reference_frame"} if type(c.reference).__name__ == 'FrameImageReference' else {})}
                                  for c in pipe.characters if c.reference is not None],
             **({"anima_reference_frame": dict(audit['anima_reference_frame'])}
                if 'anima_reference_frame' in audit else {}),
+            **({"anima_role_kv": dict(audit['anima_role_kv'])} if 'anima_role_kv' in audit else {}),
             "lora_application_mode": pipe.lora_application_mode,
             "text_regions": text_region_records(pipe),
             **({"nai_context": object_json(pipe.nai_settings_json)} if pipe.nai_settings_json else {}),

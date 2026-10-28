@@ -167,7 +167,25 @@ class RSMultiCharacterSampler:
             raise ValueError("Choose valid prompt text and syntax.")
         pipe = resolved_pipe
         from .anima_ref_frame import PLAN, FrameRuntime, FrameImageReference, patch_extra_conds, ReferencePlan
-        if family == 'Anima' and any(c.reference is not None and c.reference.strength > 0 for c in pipe.characters):
+        from .image_reference import RoleKVImageReference
+        role_refs = [(i, c.reference) for i, c in enumerate(pipe.characters)
+                     if isinstance(c.reference, RoleKVImageReference) and c.reference.strength > 0]
+        if role_refs and (family != 'Anima' or PLAN in model.model_options or
+                any(c.reference is not None and c.reference.strength > 0 and
+                    not isinstance(c.reference, RoleKVImageReference) for c in pipe.characters)):
+            raise ValueError('Role K/V needs Anima and matching reference methods. Disconnect the reference-frame adapter. / '
+                             'Anima 모델과 동일한 참조 방식을 사용하고 참조 프레임 어댑터는 분리해 주세요.')
+        if role_refs:
+            role_net = model.get_model_object('diffusion_model')
+            if len(role_net.blocks) != 28 or any(
+                    block.self_attn.q_proj.weight.dtype not in (torch.bfloat16, torch.float32)
+                    for block in role_net.blocks):
+                raise ValueError('Role K/V requires native Anima Base BF16/FP32; quantized models are not supported. / '
+                                 'Role K/V는 Anima Base BF16·FP32 전용이며 양자화 모델은 지원하지 않습니다.')
+            if any(c.body_part_strength > 0 and c.body_parts for c in pipe.characters):
+                raise ValueError('Role K/V does not apply body-part name guidance yet. Set body-part strength to 0; masks remain usable. / '
+                                 'Role K/V는 부위 이름 유도를 아직 지원하지 않습니다. 부위 강도를 0으로 두세요. 마스크는 사용할 수 있습니다.')
+        if family == 'Anima' and not role_refs and any(c.reference is not None and c.reference.strength > 0 for c in pipe.characters):
             from dataclasses import replace
             from .reference_assets import asset
             model = model.clone()
@@ -206,6 +224,9 @@ class RSMultiCharacterSampler:
         convert = lambda text: text
 
         from .regional_lora import RegionalLoras, active_lora
+        if role_refs and lora_application_mode != 'normal' and any(active_lora(c) for c in pipe.characters):
+            raise ValueError('Role K/V with character LoRAs currently requires Normal application mode. / '
+                             'Role K/V와 캐릭터 LoRA를 함께 쓸 때는 LoRA 노드에서 일반 적용을 선택해 주세요.')
         loras = RegionalLoras(model, clip, pipe.characters) if any(active_lora(c) for c in pipe.characters) else None
         if native_prompt is not None and loras is not None and any(c is not clip for c in loras.clips):
             raise ValueError("MOSS native layout uses one text encoding. Use regional layout for per-character CLIP LoRA, or set each CLIP strength to zero.")
@@ -276,6 +297,9 @@ class RSMultiCharacterSampler:
         pose = None
         active = [(i,c) for i,c in enumerate(pipe.characters) if c.body_parts and c.body_part_strength > 0]
         if active:
+            if role_refs:
+                raise ValueError('Role K/V currently uses character masks only. Set body-part strength to 0. / '
+                                 'Role K/V 사용 시 부위 유도 강도를 0으로 설정해 주세요. 인물 마스크는 사용할 수 있습니다.')
             if family not in ('Anima', 'SDXL') or pipe.text_regions:
                 raise ValueError('Experimental body-part prompts support Anima/SDXL character-only layouts. Set body-part strength to 0 to use masks alone. / 부위 조건은 Anima·SDXL 캐릭터 배치만 지원합니다. 강도 0이면 마스크만 사용합니다.')
             strengths = {c.body_part_strength for _,c in active}
@@ -328,6 +352,21 @@ class RSMultiCharacterSampler:
                 boundary_hold_steps=min(settings["boundary_hold_steps"], settings["steps"]), boundary_decrement=settings["boundary_decrement"],
                 common_after_step3_boost=settings["common_after_step3_boost"], boxes=boxes)
             routing.pose = pose
+            if role_refs:
+                if interaction is not None and interaction['preset'] != 'baseline':
+                    raise ValueError('Role K/V uses balanced routing. Select the baseline interaction preset. / '
+                                     'Role K/V에서는 겹침 제어 프리셋을 baseline으로 선택해 주세요.')
+                from .anima_role_kv import RoleKVRuntime, encode_role_references
+                from .reference_assets import role_kv_adapter
+                role_latents = encode_role_references(role_refs, vae, work.get_model_object('process_latent_in'))
+                role_runtime = RoleKVRuntime(role_refs, role_latents, role_kv_adapter(unique_id), routing, audit)
+                routing.role_kv_runtime = role_runtime
+                # Strong RS isolation collapsed the trained Role adapter in the
+                # research comparison. Keep character text/ownership, use the
+                # validated balanced profile. Record this rather than silently
+                # claiming the sampler's normal strength schedule was applied.
+                routing.mode = 'weighted_static'
+                routing.initial_spatial_separation = routing.late_spatial_separation = 0.
             work.add_wrapper_with_key(WrappersMP.SAMPLER_SAMPLE, "rs_multicharacter", routing.sample)
             work.add_wrapper_with_key(WrappersMP.DIFFUSION_MODEL, "rs_multicharacter", routing.forward)
         elif family in ("SD1.5", "SDXL"):
@@ -353,12 +392,17 @@ class RSMultiCharacterSampler:
         if loras is not None:
             positive, negative = loras.condition_pair(work, positive, negative, masks, pipe.regions,
                                                      mode=lora_application_mode)
+            if role_refs and loras.execution['effective'] == 'precision':
+                raise ValueError('This character LoRA needs precision hooks, unsupported by Role K/V. / '
+                                 '이 LoRA는 정밀 적용이 필요합니다. 참조 방식을 reference_frame으로 바꿔 주세요.')
             audit["regional_loras"] = loras.audit
             audit["lora_application"] = loras.execution
         else:
             audit["lora_application"] = {"requested": lora_application_mode, "effective": "none", "fallback_reason": None}
         if frame_plan is not None:
             work.add_wrapper_with_key(WrappersMP.DIFFUSION_MODEL, 'rs_ref_frame', frame_runtime.forward)
+        if role_refs:
+            work.add_wrapper_with_key(WrappersMP.DIFFUSION_MODEL, 'rs_anima_role_kv', role_runtime.forward)
         latent = torch.zeros((1, 4, settings["height"] // 8, settings["width"] // 8), device=comfy.model_management.intermediate_device())
         if family in ("SD1.5", "SDXL"):
             # Already 4-channel H/8 x W/8; older ComfyUI has no ratio keyword.
@@ -388,6 +432,9 @@ class RSMultiCharacterSampler:
                           + (f" ({execution['fallback_reason']})" if execution["fallback_reason"] else ""))
         if any(c.reference is not None and c.reference.strength > 0 for c in pipe.characters):
             ui["text"].append("Experimental image reference: supported, not recommended. / 이미지 참조: 실험적 지원, 권장하지 않음. / 画像参照: 実験的対応・非推奨。")
+        if role_refs:
+            ui['text'].append('Role K/V: balanced regional routing; normal isolation strength schedules are not applied. / '
+                              'Role K/V: 균형 영역 제어를 사용하며 기존 강도·경계 스케줄은 적용하지 않습니다.')
         if autosave:
             folder, filename, counter, subfolder, _ = folder_paths.get_save_image_path(
                 "RS_MultiCharacter/RS_MC", folder_paths.get_output_directory(), settings["width"], settings["height"])

@@ -1002,6 +1002,14 @@
       },
       "building_pipe": {
         "name": "조립 파이프"
+      },
+      "anima_method": {
+        "name": "Anima 참조 방식",
+        "tooltip": "기존 reference_frame 또는 전용 어댑터를 자동으로 받는 role_kv입니다. Anima Base BF16/FP32 전용. Role K/V 캐릭터 LoRA는 일반 적용으로 선택하세요.",
+        "options": {
+          "reference_frame": "기존 참조 프레임",
+          "role_kv": "영역별 Role K/V"
+        }
       }
     },
     "outputs": {
@@ -1182,6 +1190,14 @@
       },
       "building_pipe": {
         "name": "빌딩 파이프"
+      },
+      "anima_method": {
+        "name": "Anima 참조 방식",
+        "tooltip": "기존 reference_frame 또는 전용 어댑터를 자동으로 받는 role_kv입니다. Anima Base BF16/FP32 전용. Role K/V 캐릭터 LoRA는 일반 적용으로 선택하세요.",
+        "options": {
+          "reference_frame": "기존 참조 프레임",
+          "role_kv": "영역별 Role K/V"
+        }
       }
     }
   }
