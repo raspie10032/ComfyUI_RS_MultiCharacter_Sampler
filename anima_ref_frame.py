@@ -301,7 +301,8 @@ class FrameRuntime:
             kv_cache_enabled=self.cache_enabled, cache_limit_bytes=cache_limit,
             cache_disabled_reason='per-character LoRA' if plan.cache and not cache_allowed else None,
             kv_hits=0, kv_misses=0, kv_skipped=0, peak_cache_bytes=0, reference_forwards=0,
-            base_forwards=0, restored_forwards=0)
+            base_forwards=0, restored_forwards=0,
+            cancelled_reference_negative_predictions=0, cancelled_base_positive_predictions=0)
         self.weights = None
         self.rope_cache = OrderedDict()
         self.kv = OrderedDict()
@@ -599,6 +600,18 @@ def reference_guider(model, positive, negative, runtime, cfg):
     import comfy.samplers
     import node_helpers
     class Guider(comfy.samplers.CFGGuider):
+        fold_reference_guidance = True
+
+        def can_fold_guidance(self, model_options):
+            # g*(Rneg-N) + cfg*(Rpos-Rneg): Rneg cancels only when
+            # g == cfg. Keep the independent source banks and spatial blend.
+            return (self.fold_reference_guidance and runtime.plan.guidance == self.cfg
+                    and not model_options.get('disable_cfg1_optimization', False)
+                    and not model_options.get('sampler_pre_cfg_function')
+                    and not model_options.get('sampler_cfg_function')
+                    and not model_options.get('sampler_post_cfg_function')
+                    and not model_options.get('sampler_calc_cond_batch_function'))
+
         def correction(self, guided, pos):
             dims = tuple(range(1, pos.ndim))
             if runtime.plan.correction == 'apg':
@@ -613,20 +626,40 @@ def reference_guider(model, positive, negative, runtime, cfg):
         def numbered_prediction(self, x, timestep, model_options):
             # Like precision LoRA: independent two-frame predictions, followed
             # by normalized spatial composition. No shared source hidden state.
-            pos, neg = comfy.samplers.calc_cond_batch(self.inner_model,
-                [self.conds['positive_base'],self.conds['negative_base']],x,timestep,model_options)
-            baseline = neg+self.cfg*(pos-neg)
             raw = F.interpolate(runtime.masks[list(runtime.slots)].float()[:,None],
                 size=x.shape[-2:],mode='nearest').to(x)[:,0]
             weights = raw/raw.sum(0,keepdim=True).clamp_min(1)
-            result = baseline*(1-weights.sum(0)).reshape(1,1,*([1]*(x.ndim-4)),*x.shape[-2:])
+            # Unit-strength references covering every pixel also cancel the
+            # baseline positive. Partial masks, uncovered background and
+            # non-unit strengths retain the original baseline prediction.
+            covered = (self.can_fold_guidance(model_options)
+                       and all(s == 1. for s in runtime.strengths)
+                       and bool((weights.sum(0)==1).all().item()))
+            if covered:
+                neg = comfy.samplers.calc_cond_batch(self.inner_model,
+                    [self.conds['negative_base']],x,timestep,model_options)[0]
+                pos = neg  # unused: post-CFG hooks disable the fold above
+                baseline = neg
+                result = torch.zeros_like(x)
+                runtime.audit['cancelled_base_positive_predictions'] += 1
+            else:
+                pos, neg = comfy.samplers.calc_cond_batch(self.inner_model,
+                    [self.conds['positive_base'],self.conds['negative_base']],x,timestep,model_options)
+                baseline = neg+self.cfg*(pos-neg)
+                result = baseline*(1-weights.sum(0)).reshape(1,1,*([1]*(x.ndim-4)),*x.shape[-2:])
             for bank,strength in enumerate(runtime.strengths):
                 pair=[self.conds[f'positive_{bank}'],self.conds[f'negative_{bank}']]
                 bank_options = {**model_options, 'transformer_options': {**model_options.get('transformer_options', {}), 'rs_reference_bank': bank}}
-                refpos,refneg = comfy.samplers.calc_cond_batch(self.inner_model,pair,x,timestep,bank_options)
-                guided = neg+runtime.plan.guidance*(refneg-neg)+self.cfg*(refpos-refneg)
+                if self.can_fold_guidance(model_options):
+                    refpos = comfy.samplers.calc_cond_batch(self.inner_model,pair[:1],x,timestep,bank_options)[0]
+                    guided = neg+self.cfg*(refpos-neg)
+                    runtime.audit['cancelled_reference_negative_predictions'] += 1
+                else:
+                    refpos,refneg = comfy.samplers.calc_cond_batch(self.inner_model,pair,x,timestep,bank_options)
+                    guided = neg+runtime.plan.guidance*(refneg-neg)+self.cfg*(refpos-refneg)
                 guided = self.correction(guided,refpos)
-                guided = baseline+strength*(guided-baseline)
+                if not covered:
+                    guided = baseline+strength*(guided-baseline)
                 result = result+weights[bank].reshape(1,1,*([1]*(x.ndim-4)),*x.shape[-2:])*guided
             return result,pos,neg
 
@@ -652,13 +685,19 @@ def reference_guider(model, positive, negative, runtime, cfg):
                         cond_scale=self.cfg,model=self.inner_model,uncond_denoised=neg,cond_denoised=pos,
                         sigma=timestep,model_options=model_options,input=x))
                 return guided
-            conds = [self.conds['positive'], self.conds['negative']]
-            if runtime.plan.guidance != 1.:
-                conds.append(self.conds['negative_base'])
-            values = comfy.samplers.calc_cond_batch(self.inner_model, conds, x, timestep, model_options)
-            pos, neg = values[:2]
-            base = values[2] if len(values) == 3 else neg
-            guided = base + runtime.plan.guidance*(neg-base) + self.cfg*(pos-neg)
+            if self.can_fold_guidance(model_options):
+                conds = [self.conds['positive'], self.conds['negative_base']]
+                pos, neg = comfy.samplers.calc_cond_batch(self.inner_model, conds, x, timestep, model_options)
+                guided = neg + self.cfg*(pos-neg)
+                runtime.audit['cancelled_reference_negative_predictions'] += 1
+            else:
+                conds = [self.conds['positive'], self.conds['negative']]
+                if runtime.plan.guidance != 1.:
+                    conds.append(self.conds['negative_base'])
+                values = comfy.samplers.calc_cond_batch(self.inner_model, conds, x, timestep, model_options)
+                pos, neg = values[:2]
+                base = values[2] if len(values) == 3 else neg
+                guided = base + runtime.plan.guidance*(neg-base) + self.cfg*(pos-neg)
             guided = self.correction(guided,pos)
             for fn in model_options.get('sampler_post_cfg_function', []):
                 guided = fn(dict(denoised=guided, cond=conds[0], uncond=conds[1], cond_scale=self.cfg,

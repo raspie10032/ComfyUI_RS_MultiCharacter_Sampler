@@ -6,6 +6,7 @@ versions and downloadable assets, see [GitHub Releases](https://github.com/raspi
 
 | Version | Main change | Details |
 | --- | --- | --- |
+| **Unreleased** | Avoid algebraically cancelled Anima reference predictions while preserving independent character regions; guarded by exact guidance and CFG compatibility checks. | [Validation and limitations](docs/anima-reference-prediction-optimization.md) |
 | **1.0.7 Hangeul** | Experimental skinned 3D pose/mask editor and native Anima 2B LLLite integration; selectable cached reference v2, Role K/V and pilot 2.9B adapters. | [Release notes](docs/release-1.0.7.md) |
 | **1.0.6 Hangeul** | Separate progressive resolution sampler: Lanczos expansion, start scale 0.5–1.0, existing character pipes and metadata. | [Release notes](docs/release-1.0.6.md) |
 | **1.0.5 Hangeul** | Shared RS/NAI contexts, interactive camera captions and order-independent building pipes; position editing through camera nodes. | [Release notes](docs/release-1.0.5.md) |
