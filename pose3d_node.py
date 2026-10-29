@@ -10,18 +10,19 @@ from PIL import Image, ImageDraw
 import torch
 
 from .character_builder import BUILD_PIPE_TYPE, BuildPipe, update_slot
-from .pose3d import default_scene, read_scene, rasterize, render_pose_condition
+from .pose3d import read_scene, _rasterize
+from .mhr import default_scene
 from .region_mask import RegionMask
 
 COLORS = [(255, 141, 145), (129, 188, 255), (148, 221, 157), (255, 210, 127), (195, 160, 255)]
-def render_scene(raw, max_side=None):
+def render_scene(raw, max_side=None, shaded=False):
     scene = read_scene(raw)
-    full, visible = rasterize(scene, max_side)
+    full, visible, rgb = _rasterize(scene, max_side, shaded=shaded)
     masks = full if scene['mask_mode'] == 'full' else visible
     for p, mask in zip(scene['people'], masks):
         if not mask.any():
             raise ValueError(f"Character {p['id']}: no silhouette on the canvas. Move it into view; if hidden, choose full silhouettes. / 캐릭터 {p['id']}: 화면 안에 보이는 영역이 없습니다. 카메라·위치를 조정하거나 전체 실루엣을 선택해 주세요.")
-    return scene, full, visible
+    return (scene, full, visible, rgb) if shaded else (scene, full, visible)
 
 
 def preview(scene, full, visible):
@@ -67,13 +68,13 @@ class RSMultiCharacterPose3D:
                    'each character number creates a 2D region mask. Full silhouettes overlap; visible silhouettes remove occluded areas. '
                    'Canvas overflow is clipped. Editing and masks need no extra weights. A composition guide, not exact pose enforcement. '
                    'pose_image outputs shaded bodies on black for a compatible pose adapter; connect it to Apply Anima LLLite separately. '
-                   'This experimental pose image has not demonstrated reliable pose following. Masks alone do not enforce joint angles. '
+                   'New scenes use a native MHR skinned body. Anima 2B pose following has been observed with a separately trained adapter; exact joints and contacts are not guaranteed. Legacy ellipsoid scenes are preserved. Masks alone do not enforce joint angles. '
                    'Scene data is stored in the workflow. Connect anywhere before Finalize.')
 
     def apply(self, scene_json, building_pipe=None, unique_id=None):
         if building_pipe is not None and not isinstance(building_pipe, BuildPipe):
             raise ValueError('Connect an RS building pipe. / RS 조립 파이프를 연결해 주세요.')
-        scene, full, visible = render_scene(scene_json)
+        scene, full, visible, pose_rgb = render_scene(scene_json, shaded=True)
         selected = full if scene['mask_mode'] == 'full' else visible
         pipe = building_pipe or BuildPipe()
         numbers = {p['id'] for p in scene['people']}
@@ -89,7 +90,7 @@ class RSMultiCharacterPose3D:
             owned.append((p['id'], region))
         pipe = replace(pipe, pose3d_masks=tuple(owned))
         image = preview(scene, full, visible)
-        pose_image = torch.from_numpy(render_pose_condition(scene).astype(np.float32)/255)[None]
+        pose_image = torch.from_numpy(pose_rgb.astype(np.float32)/255)[None]
         images = []
         if unique_id is not None:
             import folder_paths
@@ -99,7 +100,7 @@ class RSMultiCharacterPose3D:
             image.save(directory/filename)
             images = [{'filename': filename, 'subfolder': 'RS_Pose3D', 'type': 'temp'}]
         info = json.dumps(dict(character_ids=sorted(numbers), mask_mode=scene['mask_mode'],
-                               canvas=[scene['width'], scene['height']], controlnet_used=False,
+                               canvas=[scene['width'], scene['height']], body_model="MHR" if scene["version"] == 2 else "legacy", controlnet_used=False,
                                pose_enforcement=False), ensure_ascii=False)
         # Small UI rasters are separate from full-resolution sampling masks.
         return {'ui': {'images': images, 'text': [info], 'pose3d': [preview_payload(scene)]},

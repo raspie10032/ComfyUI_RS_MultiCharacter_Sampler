@@ -22,6 +22,7 @@
     <label>FOV<input id="fov" type="range" min="15" max="90" step="1"><output id="fov-value"></output></label>
     <div class="row"><label>W<input id="width" type="number" min="64" max="2048" step="64"></label><label>H<input id="height" type="number" min="64" max="2048" step="64"></label></div>
     <label><span data-i18n="masks">Pipe masks</span><select id="mask-mode"><option value="full">Full silhouettes (overlap)</option><option value="visible">Visible silhouettes (occlusion)</option></select></label>
+    <label><span>Pose image outline / 윤곽선</span><input id="outline" type="checkbox" checked></label>
     <canvas id="mask-preview" width="180" height="240" title="Projected character masks"></canvas>
     <p data-i18n="clipping">Only masks outside the canvas are clipped. Hidden people can have an empty visible mask. Character numbers stay fixed when people cross.</p>
     <div class="row"><button id="undo" data-i18n="undo">Undo</button><button id="redo" data-i18n="redo">Redo</button></div>

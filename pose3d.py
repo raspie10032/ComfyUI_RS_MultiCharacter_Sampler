@@ -59,7 +59,7 @@ def read_scene(raw):
             raw = json.loads(raw)
         except (ValueError, RecursionError) as error:
             raise ValueError('Cannot read 3D scene. Reopen the editor and apply. / 3D 편집기를 열어 다시 적용해 주세요.') from error
-    if not isinstance(raw, dict) or type(raw.get('version')) is not int or raw['version'] != 1:
+    if not isinstance(raw, dict) or type(raw.get('version')) is not int or raw['version'] not in (1, 2):
         raise ValueError('Unsupported 3D scene version. / 지원하지 않는 3D 장면 버전입니다.')
     for key in ('width', 'height'):
         if type(raw.get(key)) is not int or not 64 <= raw[key] <= 2048:
@@ -75,21 +75,30 @@ def read_scene(raw):
     direction = np.subtract(camera['position'], camera['target'])
     if np.linalg.norm(direction) < .5 or np.linalg.norm(np.cross(direction, [0, 1, 0])) < 1e-4:
         raise ValueError('Camera needs a distinct target and a nonvertical view. / 카메라를 대상에서 떨어뜨리고 수직 시점을 살짝 기울여 주세요.')
+    joint_names = JOINTS
+    if raw['version'] == 2:
+        from .mhr import asset
+        joint_names = asset()['controls']
+        if type(raw.get('outline', True)) is not bool:
+            raise ValueError('Outline must be true or false.')
     clean, ids = [], set()
     for p in people:
         if not isinstance(p, dict) or type(p.get('id')) is not int or not 1 <= p['id'] <= 10 or p['id'] in ids:
             raise ValueError('Each mannequin needs a unique character number 1–10. / 캐릭터 번호가 중복되거나 범위를 벗어났습니다.')
         ids.add(p['id'])
         rotations = p.get('joints', {})
-        if not isinstance(rotations, dict) or not rotations.keys() <= JOINTS.keys():
+        if not isinstance(rotations, dict) or not rotations.keys() <= joint_names.keys():
             raise ValueError('Unknown 3D joint name.')
         clean.append(dict(id=p['id'], position=vector(p.get('position'), -10, 10, 'Body position'),
                           rotation=vector(p.get('rotation'), -180, 180, 'Body rotation'),
                           scale=number(p.get('scale'), .4, 1.8, 'Body height'),
                           bulk=number(p.get('bulk'), .5, 1.8, 'Body width'),
                           joints={k: vector(v, -180, 180, k) for k, v in rotations.items()}))
-    return dict(version=1, width=raw['width'], height=raw['height'], mask_mode=raw['mask_mode'],
-                camera=camera, people=sorted(clean, key=lambda p: p['id']))
+    result = dict(version=raw['version'], width=raw['width'], height=raw['height'], mask_mode=raw['mask_mode'],
+                  camera=camera, people=sorted(clean, key=lambda p: p['id']))
+    if raw['version'] == 2:
+        result['outline'] = raw.get('outline', True)
+    return result
 
 
 def rotation(angles):
@@ -179,60 +188,85 @@ def clip_near(triangle, near=.05):
 
 
 def _rasterize(scene, max_side=None, shaded=False):
-    """Masks and an optional shaded pose image share geometry and depth."""
+    """Masks and pose shading use one mesh and camera; outlines never own masks."""
     w, h = scene['width'], scene['height']
     if max_side is not None:
         scale = min(1, max_side/max(w, h))
         w, h = max(1, round(w*scale)), max(1, round(h*scale))
     full = np.zeros((len(scene['people']), h, w), dtype=bool)
     owner = np.full((h, w), -1, dtype=np.int16)
-    depth = np.zeros((h, w), dtype=np.float64)  # inverse depth, larger = nearer
+    depth = np.zeros((h, w), dtype=np.float64)
+    rgb_depth = np.zeros((h, w), dtype=np.float64) if shaded else None
     rgb = np.zeros((h, w, 3), dtype=np.uint8) if shaded else None
     colors = [(255, 141, 145), (129, 188, 255), (148, 221, 157), (255, 210, 127), (195, 160, 255)]
-    light = np.array([-.35, .65, -.68])
-    light /= np.linalg.norm(light)
+    light = np.array([-.35, .65, -.68]); light /= np.linalg.norm(light)
     f = h/(2*math.tan(math.radians(scene['camera']['fov'])/2))
+    outline = shaded and scene['version'] == 2 and scene.get('outline', True)
     for index, person in enumerate(scene['people']):
-        vertices, faces, _ = mannequin(person)
+        if scene['version'] == 2:
+            from .mhr import mannequin as human
+            vertices, faces, _ = human(person)
+        else:
+            vertices, faces, _ = mannequin(person)
         view = camera_coordinates(vertices, scene['camera'])
+        face_normals = np.cross(view[faces[:, 1]]-view[faces[:, 0]], view[faces[:, 2]]-view[faces[:, 0]])
         if shaded:
-            face_normals = np.cross(view[faces[:, 1]]-view[faces[:, 0]], view[faces[:, 2]]-view[faces[:, 0]])
             normals = np.zeros_like(view)
             for corner in range(3):
                 np.add.at(normals, faces[:, corner], face_normals)
             normals /= np.maximum(np.linalg.norm(normals, axis=1, keepdims=True), 1e-12)
             color = np.array(colors[(person['id']-1) % len(colors)])
-        for face in faces:
-            tri = view[face]
-            triangles = [tri] if (tri[:, 2] >= .05).all() else clip_near(tri)
-            for t in triangles:
-                x, y, z = w/2+t[:, 0]*f/t[:, 2], h/2-t[:, 1]*f/t[:, 2], t[:, 2]
-                x0, x1 = max(0, math.floor(x.min())), min(w-1, math.ceil(x.max()))
-                y0, y1 = max(0, math.floor(y.min())), min(h-1, math.ceil(y.max()))
-                denom = (y[1]-y[2])*(x[0]-x[2])+(x[2]-x[1])*(y[0]-y[2])
-                if x0 > x1 or y0 > y1 or abs(denom) < 1e-12:
+        for hull in ([True, False] if outline else [False]):
+            for fi, face in enumerate(faces):
+                if hull and face_normals[fi, 2] >= 0:
                     continue
-                yy, xx = np.ogrid[y0:y1+1, x0:x1+1]
-                a = ((y[1]-y[2])*(xx+.5-x[2])+(x[2]-x[1])*(yy+.5-y[2]))/denom
-                b = ((y[2]-y[0])*(xx+.5-x[2])+(x[0]-x[2])*(yy+.5-y[2]))/denom
-                c = 1-a-b
-                inside = (a >= -1e-9) & (b >= -1e-9) & (c >= -1e-9)
-                full[index, y0:y1+1, x0:x1+1] |= inside
-                inv_z = a/z[0]+b/z[1]+c/z[2]
-                patch = depth[y0:y1+1, x0:x1+1]
-                nearer = inside & (inv_z > patch+1e-10)
-                patch[nearer] = inv_z[nearer]
-                owner[y0:y1+1, x0:x1+1][nearer] = index
-                if shaded:
-                    if len(triangles) == 1 and (tri[:, 2] >= .05).all():
-                        ns = normals[face]
-                        n = (a[..., None]*ns[0]/z[0]+b[..., None]*ns[1]/z[1]+c[..., None]*ns[2]/z[2])
-                        n /= np.maximum(np.linalg.norm(n, axis=-1, keepdims=True), 1e-12)
-                        brightness = .25+.75*np.abs(n @ light)
-                    else:
-                        normal = np.cross(t[1]-t[0], t[2]-t[0])
-                        brightness = np.full(a.shape, .25+.75*abs(normal @ light)/max(np.linalg.norm(normal), 1e-12))
-                    rgb[y0:y1+1, x0:x1+1][nearer] = np.clip(brightness[..., None]*color, 0, 255).astype(np.uint8)[nearer]
+                tri = view[face]
+                unclipped = (tri[:, 2] >= .05).all()
+                triangles = [tri] if unclipped else clip_near(tri)
+                for t in triangles:
+                    z = t[:, 2]
+                    xy = np.column_stack((w/2+t[:, 0]*f/z, h/2-t[:, 1]*f/z))
+                    if hull:
+                        ns = normals[face] if unclipped else np.tile(face_normals[fi], (3, 1))
+                        # View basis reverses handedness; mesh cross normals point inward.
+                        offsets = -ns[:, :2]*[1, -1]
+                        offsets /= np.maximum(np.linalg.norm(offsets, axis=1, keepdims=True), 1e-12)
+                        xy += offsets*(4*min(w, h)/768)
+                    x, y = xy.T
+                    x0, x1 = max(0, math.floor(x.min())), min(w-1, math.ceil(x.max()))
+                    y0, y1 = max(0, math.floor(y.min())), min(h-1, math.ceil(y.max()))
+                    den = (y[1]-y[2])*(x[0]-x[2])+(x[2]-x[1])*(y[0]-y[2])
+                    if x0 > x1 or y0 > y1 or abs(den) < 1e-12:
+                        continue
+                    yy, xx = np.ogrid[y0:y1+1, x0:x1+1]
+                    a = ((y[1]-y[2])*(xx+.5-x[2])+(x[2]-x[1])*(yy+.5-y[2]))/den
+                    b = ((y[2]-y[0])*(xx+.5-x[2])+(x[0]-x[2])*(yy+.5-y[2]))/den
+                    c = 1-a-b
+                    inside = (a >= -1e-9) & (b >= -1e-9) & (c >= -1e-9)
+                    inv_z = a/z[0]+b/z[1]+c/z[2]
+                    if not hull:
+                        full[index, y0:y1+1, x0:x1+1] |= inside
+                        patch = depth[y0:y1+1, x0:x1+1]
+                        nearer = inside & (inv_z > patch+1e-10)
+                        patch[nearer] = inv_z[nearer]
+                        owner[y0:y1+1, x0:x1+1][nearer] = index
+                    if shaded:
+                        patch = rgb_depth[y0:y1+1, x0:x1+1]
+                        nearer = inside & (inv_z > patch+1e-10)
+                        patch[nearer] = inv_z[nearer]
+                        if hull:
+                            value = np.broadcast_to(255-color, (*a.shape, 3))
+                        else:
+                            if unclipped:
+                                ns = normals[face]
+                                normal = a[..., None]*ns[0]/z[0]+b[..., None]*ns[1]/z[1]+c[..., None]*ns[2]/z[2]
+                                normal /= np.maximum(np.linalg.norm(normal, axis=-1, keepdims=True), 1e-12)
+                                brightness = .25+.75*np.abs(normal @ light)
+                            else:
+                                normal = face_normals[fi]
+                                brightness = np.full(a.shape, .25+.75*abs(normal @ light)/max(np.linalg.norm(normal), 1e-12))
+                            value = np.clip(brightness[..., None]*color, 0, 255).astype(np.uint8)
+                        rgb[y0:y1+1, x0:x1+1][nearer] = value[nearer]
     visible = np.stack([owner == i for i in range(len(scene['people']))])
     return full, visible, rgb
 

@@ -1,6 +1,6 @@
 # Experimental 3D Pose Masks
 
-Arrange procedural mannequins in a local 3D editor, then use their camera-projected silhouettes as numbered character regions. No inference model, ControlNet, external service or runtime CDN is required. Three.js is bundled with the extension.
+Arrange native skinned MHR bodies in a local 3D editor, then use their camera-projected silhouettes as numbered character regions. Editing and masks need no inference weights, external service or runtime CDN. Pose conditioning uses a separately trained compatible adapter. Three.js is bundled with the extension.
 
 1. Add **RS 3D Pose Masks (Experimental)** and click **Open 3D editor**.
 2. Choose a character number matching the Prompt/LoRA slot. Add or copy up to ten people. Numbers stay fixed when people cross; renumber explicitly to change the assignment.
@@ -17,14 +17,16 @@ The last output, `pose_image`, renders shaded colored bodies on black using the 
 
 For an experimental Anima 2B test, load compatible weights with ComfyUI's **Load Model Patch**, connect `pose_image` to **Apply Anima LLLite**, and feed its MODEL output to the RS sampler. The scene's building pipe still supplies numbered character masks. The sampler accepts complete native Anima LLLite patch groups while preserving RS routing, and rejects other attention replacements, mismatched adapter dimensions and simultaneous image references. Other model families' ControlNets, Anima 2.9B pose weights, progressive sampling and character-LoRA combinations have not been validated by this test.
 
-**Execution compatibility is demonstrated; reliable pose following from this procedural mannequin is not.** In 27 controlled and diagnostic generations on 2026-10-29, a published anatomical condition affected leg placement, while the current ellipsoid bodies did not consistently reproduce arm positions or seated poses. Neutral colors did not resolve this. An independently skinned MakeHuman mesh was also tested outside the extension, but its approximate rig produced artifacts and remains a research asset. It is not bundled or used by this node. Do not present this output as a finished pose-control feature.
+New scenes use the bundled native MHR mesh, bind transforms, skin weights and procedural twist supports. Body, hand and finger controls deform the mesh. Scene format v2 is shared by the browser and CPU renderer; existing v1 ellipsoid scenes retain their original geometry and output. The renderer deliberately omits learned pose correctives and facial/body-shape inference.
 
-Tested adapter: [toyxyz/Anima_ControlNet-LLLite](https://huggingface.co/toyxyz/Anima_ControlNet-LLLite), `anima_3dpose_6200.safetensors`, revision `37f3a4b6574f1dce3dfe3b5440285a39b11b3d8d`, SHA256 `97542346a658d23ca65368b568aa9aaf2486ccda8942612983aaffdc986cd495`, 51,133,576 bytes. It takes shaded body images, not OpenPose sticks. A native ComfyUI Anima LLLite implementation and matching base model are required; there is no automatic download in this experimental node.
+A successful output connection is not evidence of reliable pose following. The initial ellipsoid tests failed. Native anatomical renders subsequently induced seated and raised-arm poses in controlled Anima 2B tests; the integrated editor tests also show raised-arm transfer, but frontal two-person seating remains unreliable. Hand contact, exact joints, appearance and subject counts remain model-dependent. See the development validation report for paired seeds and failures.
+
+Tested with [toyxyz/Anima_ControlNet-LLLite](https://huggingface.co/toyxyz/Anima_ControlNet-LLLite), `anima_3dpose_outline_7000.safetensors`, strength 1, full denoising interval. This adapter expects anatomical shaded renders with outlines rather than OpenPose sticks. A matching Anima 2B base and a recent native ComfyUI Anima LLLite implementation are required. Load its weights separately with Model Patch Loader. Outline affects only the pose image, never silhouette ownership. The experimental node does not auto-download adapter weights.
 
 ## Boundaries
 
-- This guides composition and prompt ownership. The generation model receives 2D masks; it does not receive a 3D rig or a pose ControlNet. Exact joint angles, occlusion, people counts and physical contact remain model-dependent. In the initial Anima/SDXL smoke tests the same pose was also written in the common prompt; these are execution checks, not evidence that the mask alone improves pose accuracy.
-- Procedural bodies are simple ellipsoids, not anatomical meshes. Fingers, facial landmarks, clothing, body tracking and photo-to-pose estimation are not included.
+- The pipe alone guides composition and prompt ownership through 2D masks. Pose guidance is separate: connect pose_image through a compatible adapter to the sampler MODEL. The generation model never receives the 3D rig itself.
+- New bodies use a native skinned adult MHR mesh and hand/finger controls. Legacy scenes keep ellipsoid bodies. Clothing simulation, facial controls, body tracking and photo-to-pose estimation are not included.
 - Masks outside the canvas are clipped. If a selected silhouette is entirely outside/behind the camera or fully hidden in visible mode, Apply/execution explains which character needs correction. Full mode can retain hidden characters.
 - Moving a person does not change its prompt number. Prompt enable/count settings determine which numbered regions are used by generation.
 - New 3D masks preserve incoming prompts, LoRAs, placement transforms and camera settings. Position before/after this node gives the same result. Later mask producers overwrite earlier masks for their slot.
@@ -33,7 +35,9 @@ Tested adapter: [toyxyz/Anima_ControlNet-LLLite](https://huggingface.co/toyxyz/A
 
 ## References and build
 
-Interaction design was studied from [Online 3D OpenPose Editor](https://github.com/ZhUyU1997/open-pose-editor) (MIT, inspected revision `8e659f1f1995715621ac3f50d9c34d55faf5296d`) and its [ComfyUI wrapper](https://github.com/hinablue/ComfyUI_3dPoseEditor) (MIT, inspected revision `582c5b1410d5bd5a91465f05796f4e99a690cc52`). Their external mannequin and capture dependencies were not imported. The procedural geometry, scene format, rasterizer and RS building-pipe integration are implemented here.
+Interaction design was studied from [Online 3D OpenPose Editor](https://github.com/ZhUyU1997/open-pose-editor) (MIT, inspected revision `8e659f1f1995715621ac3f50d9c34d55faf5296d`) and its [ComfyUI wrapper](https://github.com/hinablue/ComfyUI_3dPoseEditor) (MIT, inspected revision `582c5b1410d5bd5a91465f05796f4e99a690cc52`). Their external mannequin and capture dependencies were not imported. RS scene format, rasterizer and building-pipe integration are implemented here.
+
+The native human asset is derived from the adult LOD1 MHR data bundled by [toyxyz/ComfyUI_toyxyz_test_nodes](https://github.com/toyxyz/ComfyUI_toyxyz_test_nodes), inspected revision `8291d9b65d56d65be55ee0f31df073d42b7d0eb6`. It retains native bind transforms and skinning; sparse SAM facial landmark mapping is excluded. MHR is Apache-2.0, with license and attribution in `web/pose3d/MHR-LICENSE.txt` and `MHR-NOTICE.txt`. The standalone gzip asset is about 1.1 MiB and needs no new Python dependencies.
 
 [Three.js](https://github.com/mrdoob/three.js) 0.170.0 supplies the WebGL renderer, OrbitControls and TransformControls under MIT. Its license is distributed in `web/pose3d/THREE-LICENSE.txt`. Rebuild the checked-in offline bundle with `cd tools/pose3d && npm ci && npm run build`. Python has no new dependencies.
 

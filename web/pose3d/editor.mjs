@@ -2,7 +2,19 @@
 import * as T from 'three';
 import {OrbitControls} from 'three/examples/jsm/controls/OrbitControls.js';
 import {TransformControls} from 'three/examples/jsm/controls/TransformControls.js';
-import {JOINTS,defaultScene,mannequin,skeleton,rotation,mv,sub,mm} from './model.mjs';
+import {JOINTS,defaultScene,mannequin as legacyMannequin,skeleton as legacySkeleton,rotation,mv,sub,mm} from './model.mjs';
+import {initRig,rigControls,defaultRigScene,defaultPerson,preset,rigMannequin,rigSkeleton} from './mhr.mjs';
+try {
+    const response=await fetch(new URL('./mhr-body.json.gz',import.meta.url));
+    if(!response.ok)throw Error(`MHR asset HTTP ${response.status}`);
+    initRig(await new Response(response.body.pipeThrough(new DecompressionStream('gzip'))).json());
+} catch(error) {
+    document.getElementById('status').textContent='Cannot load rigged body: '+error.message;
+    throw error;
+}
+const skeleton=p=>state.version===2?rigSkeleton(p):legacySkeleton(p);
+const mannequin=p=>state.version===2?rigMannequin(p):legacyMannequin(p);
+const jointNames=()=>state.version===2?rigControls():Object.keys(JOINTS);
 
 const $=id=>document.getElementById(id),colors=[0xff8d91,0x81bcff,0x94dd9d,0xffd27f,0xc3a0ff];
 const messages={
@@ -11,7 +23,7 @@ const messages={
  zh:{intro:'使用3D人体生成角色区域遮罩。仅引导构图，不保证精确姿势。',character:'角色',add:'添加',copy:'复制',remove:'删除',number:'提示词编号',joint:'关节',rotate:'旋转关节',move:'移动人物',height:'身高倍率',width:'身体宽度',preset:'姿势',setPose:'应用姿势',resetPerson:'重置所选人物',camera:'相机 / 画布',front:'正面',side:'侧面',back:'背面',masks:'管道遮罩',clipping:'只裁剪画布之外的遮罩。完全遮挡时可见遮罩可能为空。人物交换左右位置也保持编号。',undo:'撤销',redo:'重做',save:'保存场景',load:'加载场景',apply:'应用到节点',help:'拖动空白：旋转相机 · 右键拖动：平移 · 滚轮：缩放 · 选择关节后拖动旋转环。使用当前相机生成遮罩。',full:'完整轮廓（保留重叠）',visible:'可见轮廓（排除遮挡）',applied:'已应用到节点。',ready:'编辑后应用到节点。'},
  'zh-TW':{intro:'使用3D人體產生角色區域遮罩。僅引導構圖，不保證精確姿勢。',character:'角色',add:'新增',copy:'複製',remove:'刪除',number:'提示詞編號',joint:'關節',rotate:'旋轉關節',move:'移動人物',height:'身高倍率',width:'身體寬度',preset:'姿勢',setPose:'套用姿勢',resetPerson:'重設所選人物',camera:'相機 / 畫布',front:'正面',side:'側面',back:'背面',masks:'管線遮罩',clipping:'只裁剪畫布外的遮罩。完全遮擋時可見遮罩可能為空。人物交換左右位置也保持編號。',undo:'復原',redo:'重做',save:'儲存場景',load:'載入場景',apply:'套用到節點',help:'拖動空白：旋轉相機 · 右鍵拖動：平移 · 滾輪：縮放 · 選取關節後拖動旋轉環。使用目前相機產生遮罩。',full:'完整輪廓（保留重疊）',visible:'可見輪廓（排除遮擋）',applied:'已套用到節點。',ready:'編輯後套用到節點。'},
 };
-let state=defaultScene(),selected=1,joint='left_elbow',mode='rotate',locale='en',history=[],future=[],rebuilding=false,dragging=false,initialized=false;
+let state=defaultRigScene(),selected=1,joint='left_elbow',mode='rotate',locale='en',history=[],future=[],rebuilding=false,dragging=false,initialized=false;
 let previewTimer,previewRequest=0;
 const person=()=>state.people.find(p=>p.id===selected),token=location.hash.slice(1);
 const tell=(type,extra={})=>{if(parent!==window)parent.postMessage({type,token,...extra},location.origin);};
@@ -43,7 +55,10 @@ function resize(){
 }
 new ResizeObserver(resize).observe($('viewport'));
 function setCamera(){camera.position.fromArray(state.camera.position);camera.fov=state.camera.fov;camera.updateProjectionMatrix();orbit.target.fromArray(state.camera.target);orbit.update();}
-function readCamera(){state.camera.position=camera.position.toArray();state.camera.target=orbit.target.toArray();state.camera.fov=camera.fov;}
+function readCamera(){
+    const clean=v=>Number(v.toFixed(12));
+    state.camera.position=camera.position.toArray().map(clean);state.camera.target=orbit.target.toArray().map(clean);state.camera.fov=camera.fov;
+}
 function saveHistory(){
     const raw=JSON.stringify(state);if(history.at(-1)!==raw){history.push(raw);if(history.length>40)history.shift();future=[];}
     $('undo').disabled=history.length<2;$('redo').disabled=!future.length;
@@ -79,7 +94,11 @@ function build(){
     rebuilding=false;placeGizmo();render();
 }
 function controls(){
-    const p=person();$('person').replaceChildren(...state.people.map(p=>new Option(String(p.id),String(p.id))));$('person').value=String(selected);
+    const p=person();
+    if(!jointNames().includes(joint))joint='pelvis';
+    $('joint').replaceChildren(...jointNames().map(n=>new Option(n.replaceAll('_',' '),n)));
+    $('outline').checked=state.outline??false;$('outline').disabled=state.version!==2;
+    $('person').replaceChildren(...state.people.map(p=>new Option(String(p.id),String(p.id))));$('person').value=String(selected);
     $('number').value=selected;$('joint').value=joint;
     for(const k of ['scale','bulk']){$(k).value=p[k];$(k+'-value').textContent=p[k].toFixed(2);}
     const angles=p.joints[joint]??[0,0,0];for(let i=0;i<3;i++){$('angle'+i).value=angles[i];$('angle-value'+i).textContent=Math.round(angles[i]);}
@@ -98,15 +117,16 @@ gizmo.addEventListener('dragging-changed',event=>{dragging=event.value;orbit.ena
 gizmo.addEventListener('objectChange',()=>{
     if(rebuilding)return;
     const p=person();
-    if(mode==='translate')p.position=sub(proxy.position.toArray(),mv(rotation(p.rotation),[0,.94*p.scale,0])).map(v=>Math.max(-10,Math.min(10,v)));
+    if(mode==='translate')p.position=sub(proxy.position.toArray(),sub(skeleton(p).points.pelvis,p.position)).map(v=>Math.max(-10,Math.min(10,v)));
     else{
-        const parentJoint=JOINTS[joint][0],frames=skeleton(p).frames;
-        const parentR=parentJoint?frames[parentJoint]:rotation(p.rotation);
+        const sk=skeleton(p);
+        const parentJoint=state.version===2?null:JOINTS[joint][0];
+        const parentR=state.version===2?sk.baseFrames[joint]:(parentJoint?sk.frames[parentJoint]:rotation(p.rotation));
         const worldR=new T.Matrix4().makeRotationFromQuaternion(proxy.quaternion).elements;
         const world=[[worldR[0],worldR[4],worldR[8]],[worldR[1],worldR[5],worldR[9]],[worldR[2],worldR[6],worldR[10]]];
         const local=mm(parentR[0].map((_,i)=>parentR.map(row=>row[i])),world);
         const m=new T.Matrix4().set(...[...local[0],0,...local[1],0,...local[2],0,0,0,0,1]);
-        const e=new T.Euler().setFromRotationMatrix(m,'XYZ');p.joints[joint]=[e.x,e.y,e.z].map(v=>v*180/Math.PI);
+        const e=new T.Euler().setFromRotationMatrix(m,state.version===2?'ZYX':'XYZ');p.joints[joint]=[e.x,e.y,e.z].map(v=>v*180/Math.PI);
     }
     build();controls();
 });
@@ -133,7 +153,7 @@ $('number').onchange=()=>{
 function addPerson(copy){
     if(state.people.length>=10)return;
     const id=Array.from({length:10},(_,i)=>i+1).find(n=>!state.people.some(p=>p.id===n));
-    mutate(()=>{const p=structuredClone(copy?person():defaultScene().people[0]);p.id=id;p.position[0]=Math.min(9,p.position[0]+.5);state.people.push(p);state.people.sort((a,b)=>a.id-b.id);selected=id;});
+    mutate(()=>{const p=structuredClone(copy?person():(state.version===2?defaultPerson():defaultScene().people[0]));p.id=id;p.position[0]=Math.min(9,p.position[0]+.5);state.people.push(p);state.people.sort((a,b)=>a.id-b.id);selected=id;});
 }
 $('add').onclick=()=>addPerson(false);$('copy').onclick=()=>addPerson(true);
 $('remove').onclick=()=>{if(state.people.length>1)mutate(()=>{state.people=state.people.filter(p=>p.id!==selected);selected=state.people[0].id;});};
@@ -143,9 +163,9 @@ $('pose').onclick=()=>mutate(()=>{
     const presets={standing:{},wave:{left_shoulder:[0,0,-145],left_elbow:[-25,0,0]},
         seated:{right_hip:[-90,0,0],left_hip:[-90,0,0],right_knee:[90,0,0],left_knee:[90,0,0]},
         reach:{right_shoulder:[-80,0,-15],left_shoulder:[-80,0,15],right_elbow:[-15,0,0],left_elbow:[-15,0,0]}};
-    person().joints=structuredClone(presets[$('preset').value]);
+    person().joints=state.version===2?preset($('preset').value):structuredClone(presets[$('preset').value]);
 });
-$('reset-person').onclick=()=>mutate(()=>{person().joints={};person().rotation=[0,0,0];person().scale=1;person().bulk=1;});
+$('reset-person').onclick=()=>mutate(()=>{person().joints=state.version===2?preset('standing'):{};person().rotation=[0,0,0];person().scale=1;person().bulk=1;});
 for(const [id,offset] of [['front',[0,.25,4.1]],['side',[4.1,.25,0]],['back',[0,.25,-4.1]]])$(id).onclick=()=>mutate(()=>{
     state.camera.position=state.camera.target.map((v,i)=>v+offset[i]);setCamera();
 });
@@ -153,6 +173,7 @@ $('fov').oninput=()=>{state.camera.fov=Number($('fov').value);camera.fov=state.c
 for(const key of ['width','height'])$(key).onchange=()=>{
     const v=Number($(key).value);if(!Number.isInteger(v)||v<64||v>2048){status('Use 64–2048 pixels per side.');controls();return;}mutate(()=>{state[key]=v;});
 };
+$('outline').onchange=()=>mutate(()=>{state.outline=$('outline').checked;});
 $('mask-mode').onchange=()=>mutate(()=>{state.mask_mode=$('mask-mode').value;});
 $('undo').onclick=()=>undo();$('redo').onclick=()=>undo(true);
 $('save').onclick=()=>{
@@ -191,7 +212,7 @@ $('apply').onclick=async()=>{
 window.addEventListener('message',event=>{
     if(event.source!==parent||event.origin!==location.origin||event.data?.token!==token)return;
     if(event.data.type==='rs-pose3d-init'&&!initialized){
-        initialized=true;state=structuredClone(event.data.scene);selected=state.people[0].id;locale=/^zh[-_](TW|HK|Hant)/i.test(event.data.locale??'')?'zh-TW':(event.data.locale??'en').split(/[-_]/)[0];
+        initialized=true;history=[];future=[];state=structuredClone(event.data.scene);selected=state.people[0].id;locale=/^zh[-_](TW|HK|Hant)/i.test(event.data.locale??'')?'zh-TW':(event.data.locale??'en').split(/[-_]/)[0];
         document.documentElement.lang=locale;
         for(const el of document.querySelectorAll('[data-i18n]'))el.textContent=text(el.dataset.i18n,el.textContent);
         for(const [value,key] of [['full','full'],['visible','visible']])$('mask-mode').querySelector(`[value="${value}"]`).textContent=text(key,$('mask-mode').querySelector(`[value="${value}"]`).textContent);

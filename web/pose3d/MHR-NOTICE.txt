@@ -1,0 +1,7 @@
+MHR / Momentum Human Rig
+Copyright (c) Meta Platforms, Inc. and affiliates.
+https://github.com/facebookresearch/MHR
+Apache-2.0; see MHR-LICENSE.txt.
+
+Baked adult LOD1 preset obtained from toyxyz/ComfyUI_toyxyz_test_nodes, revision 8291d9b65d56d65be55ee0f31df073d42b7d0eb6.
+RS modification: retained native mesh, bind transforms, four skin weights and procedural rotations only. Removed facial landmark mapping and shape/inference metadata. No SAM model or SAM landmark mapping is distributed here. Neural pose correctives are not implemented.
