@@ -27,6 +27,8 @@
 
 **Anima Role K/V · 实验性：** 图像参考节点可选择编号区域各自独立的参考K/V。首次生成时自动下载约504 MiB专用适配器，默认仍使用原有参考帧。[使用方法、限制与验证](docs/anima-role-kv.md)。
 
+**Anima 2B/2.9B参考帧：** 用户自行选择检查点，采样器自动准备匹配的参考适配器。质量和速度可能不同。独立的Role K/V适配器目前仅支持2B。[用法与限制](docs/anima-reference-frame.md)。
+
 ## 安装与更新
 
 在 ComfyUI-Manager 中搜索 **RS MultiCharacter Sampler**，或查看 [Comfy Registry 页面](https://registry.comfy.org/publishers/raspie10032/nodes/comfyui-rs-multicharacter-sampler)。包 ID：`comfyui-rs-multicharacter-sampler`。

@@ -1688,7 +1688,7 @@
       },
       "anima_method": {
         "name": "Anima 参考方式",
-        "tooltip": "reference_frame为原有方式；role_kv自动下载专用适配器。仅Anima Base BF16/FP32。角色LoRA请选择普通模式。",
+        "tooltip": "Anima 2B/2.9B：reference_frame自动下载匹配模型的适配器。role_kv仅支持2B，首次下载504 MiB。仅BF16/FP32；角色LoRA使用普通模式。",
         "options": {
           "reference_frame": "原有参考帧",
           "role_kv": "分区Role K/V"
@@ -2017,7 +2017,7 @@
       },
       "anima_method": {
         "name": "Anima 参考方式",
-        "tooltip": "reference_frame为原有方式；role_kv自动下载专用适配器。仅Anima Base BF16/FP32。角色LoRA请选择普通模式。",
+        "tooltip": "Anima 2B/2.9B：reference_frame自动下载匹配模型的适配器。role_kv仅支持2B，首次下载504 MiB。仅BF16/FP32；角色LoRA使用普通模式。",
         "options": {
           "reference_frame": "原有参考帧",
           "role_kv": "分区Role K/V"

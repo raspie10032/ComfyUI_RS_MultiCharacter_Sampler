@@ -40,7 +40,8 @@ class RoleKVImageReference(ImageReference):
 def anima_method_input():
     return (['reference_frame', 'role_kv'], {'default': 'reference_frame',
         'tooltip': 'Anima only: reference_frame preserves existing behavior. '
-                   'role_kv downloads a dedicated 504 MiB adapter on first sampling; '
+                   '2B/2.9B matching frame weights download automatically. '
+                   'role_kv is 2B only and downloads a dedicated 504 MiB adapter; '
                    'experimental balanced regional routing, BF16/FP32 only.'})
 
 

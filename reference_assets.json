@@ -102,5 +102,13 @@
     "folder": "ipadapter",
     "subdir": "anima_frame",
     "sha256": "d42a07284a82ababd783a893db48048d0cfa0c3fdc0cda51fa82369755ed13ab"
+  },
+  "anima29_frame": {
+    "repo": "pamparamm/anima-ref-adapter-2.9B-converted",
+    "revision": "9ad676167584f291d08b4972db5de986ee03d6b4",
+    "file": "anima_ref_adapter_pilot_r32_29B.safetensors",
+    "folder": "ipadapter",
+    "subdir": "anima29B_frame",
+    "sha256": "fcf7c3b134a3fa522264cb8c3117bed9a32a634448cbf2a3d36213925ec52ebe"
   }
 }

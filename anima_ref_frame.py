@@ -362,6 +362,9 @@ class FrameRuntime:
     def load_weights(self, dm):
         if self.weights is not None:
             return
+        count = len(dm.blocks)
+        if count not in (28, 40):
+            raise ValueError('Anima reference adapter supports 2B (28 blocks) or 2.9B (40 blocks).')
         import comfy.utils
         state = comfy.utils.load_torch_file(self.plan.adapter_path, safe_load=True)
         weights = {}
@@ -370,23 +373,38 @@ class FrameRuntime:
                 continue
             name = key[len('diffusion_model.'):-len('.lora_down.weight')]
             up = state.get(key.replace('lora_down', 'lora_up'))
-            module = dm.get_submodule(name)
+            try:
+                module = dm.get_submodule(name)
+            except AttributeError as error:
+                raise ValueError(f'Anima reference adapter does not match this model: {name}') from error
             if (up is None or down.ndim != 2 or up.ndim != 2 or up.shape[1] != down.shape[0]
+                    or down.shape[0] < 1 or not down.is_floating_point() or not up.is_floating_point()
                     or tuple(module.weight.shape) != (up.shape[0], down.shape[1])
                     or not torch.isfinite(down).all() or not torch.isfinite(up).all()):
                 raise ValueError(f'Invalid Anima reference adapter layer: {name}')
-            alpha = float(state.get(key.replace('lora_down.weight', 'alpha'), down.shape[0]))
+            alpha_value = state.get(key.replace('lora_down.weight', 'alpha'), down.shape[0])
+            if isinstance(alpha_value, torch.Tensor) and alpha_value.numel() != 1:
+                raise ValueError(f'Invalid adapter alpha: {name}')
+            alpha = float(alpha_value)
             if not math.isfinite(alpha):
                 raise ValueError(f'Invalid adapter alpha: {name}')
             weights[name] = [down, up, self.plan.strength*alpha/down.shape[0]]
-        expected = {f'blocks.{i}.{part}' for i in range(len(dm.blocks)) for part in (
+        # The published 2.9B conversion maps the 28 trained blocks around
+        # twelve inserted blocks (Gazingstars123/Anima-2.9B expand_manifest.json).
+        # Those blocks run normally without adapter hooks.
+        inserted = {2, 5, 8, 11, 14, 17, 21, 24, 27, 30, 33, 36}
+        mapped = set(range(count)) - (inserted if count == 40 else set())
+        expected = {f'blocks.{i}.{part}' for i in mapped for part in (
             'self_attn.q_proj', 'self_attn.k_proj', 'self_attn.v_proj', 'self_attn.output_proj',
             'cross_attn.q_proj', 'cross_attn.k_proj', 'cross_attn.v_proj', 'cross_attn.output_proj',
             'mlp.layer1', 'mlp.layer2')}
         if set(weights) != expected:
-            raise ValueError('Select anima_ref_adapter_pilot_r32 weights, not an ordinary LoRA. / 참조 어댑터 전용 가중치를 선택해 주세요.')
+            variant = 'pilot_r32_29B' if count == 40 else 'pilot_r32'
+            raise ValueError(f'Anima reference adapter does not match this model. Select {variant} weights. / '
+                             '모델에 맞는 참조 어댑터를 선택해 주세요. 2.9B는 변환된 29B 가중치가 필요합니다.')
         self.weights = weights
-        self.audit['adapter_layers'] = len(weights)
+        self.audit.update(adapter_layers=len(weights), model_blocks=count, adapter_blocks=len(mapped),
+                          unchanged_new_blocks=sorted(set(range(count)) - mapped))
 
     @contextmanager
     def installed(self, dm, context, active):

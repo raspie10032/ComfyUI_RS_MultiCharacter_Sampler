@@ -27,6 +27,8 @@ ComfyUI에서 캐릭터별 프롬프트·LoRA·영역을 지정해 생성하고,
 
 **Anima Role K/V · 실험적:** 이미지 참조 노드에서 번호별 영역에 독립적인 참조 K/V를 넣는 방식을 선택할 수 있습니다. 전용 어댑터 약 504 MiB는 최초 생성 시 자동으로 받습니다. 기본값은 기존 참조 프레임입니다. [사용법·제어 범위·검증](docs/anima-role-kv.md).
 
+**Anima 2B·2.9B 참조 프레임:** 사용할 체크포인트는 직접 선택하며, 샘플러가 모델에 맞는 참조 어댑터를 자동으로 준비합니다. 품질·속도 차이는 선택 시 참고하세요. 별도 Role K/V 어댑터는 현재 2B 전용입니다. [사용법·한계](docs/anima-reference-frame.md).
+
 ## 설치와 업데이트
 
 ComfyUI-Manager에서 **RS MultiCharacter Sampler**를 검색하거나 [Comfy Registry](https://registry.comfy.org/publishers/raspie10032/nodes/comfyui-rs-multicharacter-sampler)에서 설치하세요. 패키지 ID는 `comfyui-rs-multicharacter-sampler`입니다.

@@ -75,3 +75,8 @@ redistributed. RS adds separate numbered reference banks, point/box/mask
 ownership, overlapping-reference selection, conditional-only reference access,
 invocation-scoped cleanup and progressive-grid cache rebuilding.
 Original discussion: https://arca.live/b/aiart/187357665 .
+
+
+## Anima 2.9B converted reference adapter
+
+The expanded-model reference path uses [Gazingstars123/Anima-2.9B](https://huggingface.co/Gazingstars123/Anima-2.9B) insertion positions and [pamparamm/anima-ref-adapter-2.9B-converted](https://huggingface.co/pamparamm/anima-ref-adapter-2.9B-converted). RS selects the matching adapter by architecture, validates its exact mapped modules and leaves the 12 inserted blocks without reference-adapter hooks. These blocks still execute normally. No weights are redistributed. Adapter revision and SHA256 are pinned in `reference_assets.json`; model and weight licenses remain separate from this code.

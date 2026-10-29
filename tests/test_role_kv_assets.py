@@ -15,16 +15,21 @@ runtime_module = importlib.import_module(assets.__package__ + '.runtime_control'
 
 
 class RoleKVAssets(unittest.TestCase):
+    asset_name = "anima_role_kv"
+
+    def resolve(self, node_id=None):
+        return assets._verified_adapter(self.asset_name, node_id)
+
     def setUp(self):
         self.directory = tempfile.TemporaryDirectory()
         self.addCleanup(self.directory.cleanup)
         self.root = Path(self.directory.name)
         self.contents = b'supported test adapter contents'
-        self.spec = {**assets.CATALOG['anima_role_kv'],
+        self.spec = {**assets.CATALOG[self.asset_name],
                      'sha256': hashlib.sha256(self.contents).hexdigest()}
         self.host = SimpleNamespace(models_dir=str(self.root), folder_names_and_paths={})
         self.reporter = Mock()
-        for context in (patch.dict(assets.CATALOG, {'anima_role_kv': self.spec}),
+        for context in (patch.dict(assets.CATALOG, {self.asset_name: self.spec}),
                         patch.dict(sys.modules, {'folder_paths': self.host}),
                         patch.object(runtime_module, 'check_interrupted'),
                         patch.object(runtime_module, 'is_interruption', return_value=False),
@@ -46,7 +51,7 @@ class RoleKVAssets(unittest.TestCase):
     def test_reuses_managed_file_without_hub_installed(self):
         target = self.write(self.target())
         with patch.dict(sys.modules, {'huggingface_hub': None}):
-            self.assertEqual(assets.role_kv_adapter('42'), target)
+            self.assertEqual(self.resolve('42'), target)
         self.assertEqual(self.reporter.report.call_args.args[1], 1.)
 
     def test_reuses_lora_and_extra_model_roots_without_download(self):
@@ -57,29 +62,29 @@ class RoleKVAssets(unittest.TestCase):
                 self.host.folder_names_and_paths = {'loras': object()} if external else {}
                 self.host.get_folder_paths = lambda folder: [str(root)]
                 with patch.dict(sys.modules, {'huggingface_hub': None}):
-                    self.assertEqual(assets.role_kv_adapter(), target)
+                    self.assertEqual(self.resolve(), target)
                 target.unlink()
 
     def test_download_is_pinned_verified_and_reused(self):
         def download(repo, filename, **kwargs):
-            self.assertEqual(repo, 'AnticPan/Anima-Role-Ref-KV')
+            self.assertEqual(repo, self.spec['repo'])
             self.assertEqual(filename, self.spec['file'])
             self.assertEqual(kwargs['revision'], self.spec['revision'])
             self.assertIs(kwargs['tqdm_class'], self.reporter.download_bar.return_value)
             return str(self.write(Path(kwargs['local_dir']) / filename))
         hub = SimpleNamespace(hf_hub_download=Mock(side_effect=download))
         with patch.dict(sys.modules, {'huggingface_hub': hub}):
-            self.assertEqual(assets.role_kv_adapter(), self.target())
-            self.assertEqual(assets.role_kv_adapter(), self.target())
+            self.assertEqual(self.resolve(), self.target())
+            self.assertEqual(self.resolve(), self.target())
         hub.hf_hub_download.assert_called_once()
 
     def test_changed_previously_verified_file_is_rejected_without_deleting_it(self):
         target = self.write(self.target())
-        self.assertEqual(assets.role_kv_adapter(), target)
+        self.assertEqual(self.resolve(), target)
         # Same size: file size alone cannot identify valid cached content.
         target.write_bytes(b'X' * len(self.contents))
         with self.assertRaisesRegex(RuntimeError, 'supported version'):
-            assets.role_kv_adapter()
+            self.resolve()
         self.assertEqual(target.read_bytes(), b'X' * len(self.contents))
 
     def test_corrupt_download_is_never_reported_ready(self):
@@ -89,7 +94,7 @@ class RoleKVAssets(unittest.TestCase):
         hub.hf_hub_download.side_effect = lambda *a, **k: str(self.write(self.target(), b'bad'))
         with patch.dict(sys.modules, {'huggingface_hub': hub}):
             with self.assertRaisesRegex(RuntimeError, 'supported version'):
-                assets.role_kv_adapter()
+                self.resolve()
         self.assertFalse(any('ready' in call.args[0] for call in self.reporter.report.call_args_list))
 
     def test_download_error_is_retryable_and_retains_cause(self):
@@ -97,10 +102,10 @@ class RoleKVAssets(unittest.TestCase):
         hub = SimpleNamespace(hf_hub_download=Mock(side_effect=failure))
         with patch.dict(sys.modules, {'huggingface_hub': hub}):
             with self.assertRaisesRegex(RuntimeError, 'free disk space') as caught:
-                assets.role_kv_adapter()
+                self.resolve()
             self.assertIs(caught.exception.__cause__, failure)
             hub.hf_hub_download.side_effect = lambda *a, **k: str(self.write(self.target()))
-            self.assertEqual(assets.role_kv_adapter(), self.target())
+            self.assertEqual(self.resolve(), self.target())
 
     def test_cancellation_propagates_instead_of_becoming_download_error(self):
         class Cancelled(Exception):
@@ -111,12 +116,20 @@ class RoleKVAssets(unittest.TestCase):
         with patch.dict(sys.modules, {'huggingface_hub': hub}), \
                 patch.object(runtime, 'is_interruption', side_effect=lambda e: e is cancelled):
             with self.assertRaises(Cancelled):
-                assets.role_kv_adapter()
+                self.resolve()
 
     def test_missing_dependency_explains_installation(self):
         with patch.dict(sys.modules, {'huggingface_hub': None}):
             with self.assertRaisesRegex(RuntimeError, 'requirements-reference.txt'):
-                assets.role_kv_adapter()
+                self.resolve()
+
+
+class ReferenceFrame2BAssets(RoleKVAssets):
+    asset_name = 'anima_frame'
+
+
+class ReferenceFrame29BAssets(RoleKVAssets):
+    asset_name = 'anima29_frame'
 
 
 if __name__ == '__main__':

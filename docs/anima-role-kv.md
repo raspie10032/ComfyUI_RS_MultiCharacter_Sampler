@@ -7,7 +7,7 @@ guaranteed. The shared image state still couples adjacent regions.
 
 ## Connect and download
 
-1. Use Anima Base v1.0 in native BF16 or FP32 and the usual CLIP/VAE loaders.
+1. Use Anima 2B Base v1.0 in native BF16 or FP32 and the usual CLIP/VAE loaders.
 2. Feed each ordinary Load Image output to an **Image Reference** node. Match its
    character number to Prompt, Position/Mask and optional character LoRA.
 3. Choose **Anima reference method → role_kv** on all enabled reference inputs.
@@ -106,3 +106,8 @@ https://huggingface.co/AnticPan/Anima-Role-Ref-KV
 The independent one-capture experiment at
 https://arca.live/b/aiart/187358922 is related research; Spectrum acceleration
 from that experiment is **not included** in this integration.
+
+
+## Anima 2.9B
+
+The published Role K/V weights target 28-block Anima 2B. For a 40-block Anima 2.9B checkpoint, choose `reference_frame` instead; its matching converted adapter is prepared automatically. This limitation belongs to this Role K/V adapter and does not remove 2.9B support from the sampler. See [Anima reference frames](anima-reference-frame.md).

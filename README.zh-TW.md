@@ -27,6 +27,8 @@
 
 **Anima Role K/V · 實驗性：** 影像參考節點可選擇編號區域各自獨立的參考K/V。首次生成時自動下載約504 MiB專用轉接器，預設仍使用原有參考影格。[使用方法、限制與驗證](docs/anima-role-kv.md)。
 
+**Anima 2B/2.9B參考影格：** 使用者自行選擇檢查點，採樣器自動準備符合模型的參考轉接器。品質與速度可能不同。獨立的Role K/V轉接器目前僅支援2B。[用法與限制](docs/anima-reference-frame.md)。
+
 ## 安裝與更新
 
 在 ComfyUI-Manager 中搜尋 **RS MultiCharacter Sampler**，或檢視 [Comfy Registry 頁面](https://registry.comfy.org/publishers/raspie10032/nodes/comfyui-rs-multicharacter-sampler)。包 ID：`comfyui-rs-multicharacter-sampler`。

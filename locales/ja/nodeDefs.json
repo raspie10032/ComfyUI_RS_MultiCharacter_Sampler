@@ -1005,7 +1005,7 @@
       },
       "anima_method": {
         "name": "Anima参照方式",
-        "tooltip": "reference_frameは従来方式。role_kvは専用アダプターを自動取得。Anima Base BF16/FP32専用。人物LoRAは通常モードを選択。",
+        "tooltip": "Anima 2B・2.9B：reference_frameはモデルに合うアダプターを自動取得。role_kvは2B専用、初回504 MiB取得。BF16/FP32・人物LoRAは通常モード専用。",
         "options": {
           "reference_frame": "従来の参照フレーム",
           "role_kv": "領域別Role K/V"
@@ -1193,7 +1193,7 @@
       },
       "anima_method": {
         "name": "Anima参照方式",
-        "tooltip": "reference_frameは従来方式。role_kvは専用アダプターを自動取得。Anima Base BF16/FP32専用。人物LoRAは通常モードを選択。",
+        "tooltip": "Anima 2B・2.9B：reference_frameはモデルに合うアダプターを自動取得。role_kvは2B専用、初回504 MiB取得。BF16/FP32・人物LoRAは通常モード専用。",
         "options": {
           "reference_frame": "従来の参照フレーム",
           "role_kv": "領域別Role K/V"

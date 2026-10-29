@@ -1,10 +1,14 @@
 # Anima reference frame adapter (experimental)
 
-This is a separate Anima-only reference-frame method; the existing numbered image-reference node is unchanged. Adapted from [ElectronGirl/ComfyUI-Anima-Ref-Adapter](https://github.com/ElectronGirl/ComfyUI-Anima-Ref-Adapter) at `af9a438d` under Apache-2.0. See `ANIMA-REF-ADAPTER-LICENSE` for the preserved license.
+This is the Anima-only reference-frame backend used by the numbered Image Reference input; advanced adapter nodes expose additional controls. Adapted from [ElectronGirl/ComfyUI-Anima-Ref-Adapter](https://github.com/ElectronGirl/ComfyUI-Anima-Ref-Adapter) at `af9a438d` under Apache-2.0. See `ANIMA-REF-ADAPTER-LICENSE` for the preserved license.
 
 ## Connect
 
-Download the author's Anima reference-frame adapter weights separately into `ComfyUI/models/loras`. Follow the weight download and licensing information in the upstream README. Do not select an ordinary style or character LoRA as the adapter.
+With the ordinary Image Reference node, keep `anima_method=reference_frame`. Select either an Anima **2B (28 blocks)** or **2.9B (40 blocks)** checkpoint in the model loader. The sampler detects its architecture and automatically prepares the matching pinned adapter (about 88 MiB). Model choice is yours; quality and generation cost can differ. No separate model adapter node is required. OFF/strength 0 prepares no adapter.
+
+The expanded 2.9B checkpoint itself must be downloaded separately. It requires a ComfyUI core that recognizes 40-block Anima; update ComfyUI if the model cannot load. The converted adapter maps the original 28 trained blocks around 12 inserted blocks. All 40 model blocks still run; the 12 inserted blocks have no reference-adapter LoRA hooks. This conversion is not a newly trained 2.9B reference model.
+
+For advanced controls, download the appropriate weights into `ComfyUI/models/loras` and select them explicitly in the adapter node below. Use `anima_ref_adapter_pilot_r32.safetensors` for 2B and `anima_ref_adapter_pilot_r32_29B.safetensors` for 2.9B. Wrong variants and incomplete module coverage produce an error. Follow the upstream weight license; ordinary style/character LoRAs are not reference adapters.
 
 `Load Diffusion Model → RS Anima Reference Adapter (Experimental) → RS MultiCharacter Sampler`
 
@@ -44,6 +48,15 @@ These are single warm-model measurements including conditioning, sampling and VA
 
 Generation metadata records adapter settings and numbered reference fingerprints for inspection. It does not embed reference pixels or automatically rebuild the reference connection. Keep the original images and save a workflow with the normal ComfyUI image save node if you need that connection. Metadata-only reload requires reconnecting these source images.
 
+## Model and weight sources
+
+- [Anima 2.9B model](https://huggingface.co/Gazingstars123/Anima-2.9B) and its `expand_manifest.json`.
+- [Converted 2.9B reference adapter](https://huggingface.co/pamparamm/anima-ref-adapter-2.9B-converted).
+- `reference_assets.json` pins adapter revisions and SHA256; downloads and reused files are checked.
+- `role_kv` remains a separate **2B-only** adapter. Choose `reference_frame` for 2.9B.
+
 ## Validation limits
 
 The initial native CPU tests cover RoPE offsets, cached/uncached equality, target/reference token routing, restoration and bounded cache. GPU results, timings and limitations are recorded in the external experiment directory. Test success does not establish reference fidelity across arbitrary images, quantized checkpoints or LoRAs.
+
+The expanded model mapping and public-node GPU regression results are documented in [Anima 2.9B reference validation](anima29-reference-validation.md).

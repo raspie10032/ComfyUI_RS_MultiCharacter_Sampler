@@ -27,6 +27,8 @@ Coordinates and masks guide prompt regions. Exact people counts, identity, poses
 
 **Anima Role K/V (experimental):** the Image Reference node can optionally prepare independent K/V banks for numbered character regions. Its dedicated 504 MiB adapter is downloaded automatically on first use. Default reference-frame behavior is retained. [Setup, routing limits and validation](docs/anima-role-kv.md).
 
+**Anima 2B / 2.9B reference frames:** select either checkpoint; the sampler automatically prepares its matching reference adapter. Model choice remains yours. The separate Role K/V adapter currently targets 2B only. [Setup and limits](docs/anima-reference-frame.md).
+
 ## Install or update
 
 Find **RS MultiCharacter Sampler** in ComfyUI-Manager, or use the [Comfy Registry listing](https://registry.comfy.org/publishers/raspie10032/nodes/comfyui-rs-multicharacter-sampler). Package ID: `comfyui-rs-multicharacter-sampler`.

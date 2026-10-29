@@ -177,7 +177,10 @@ class RSMultiCharacterSampler:
                              'Anima 모델과 동일한 참조 방식을 사용하고 참조 프레임 어댑터는 분리해 주세요.')
         if role_refs:
             role_net = model.get_model_object('diffusion_model')
-            if len(role_net.blocks) != 28 or any(
+            if len(role_net.blocks) != 28:
+                raise ValueError('Role K/V weights support Anima 2B only. For Anima 2.9B choose reference_frame on all reference nodes. / '
+                                 'Anima 2.9B는 모든 참조 노드에서 reference_frame을 선택해 주세요. Role K/V 가중치는 2B용입니다.')
+            if any(
                     block.self_attn.q_proj.weight.dtype not in (torch.bfloat16, torch.float32)
                     for block in role_net.blocks):
                 raise ValueError('Role K/V requires native Anima Base BF16/FP32; quantized models are not supported. / '
@@ -187,14 +190,14 @@ class RSMultiCharacterSampler:
                                  'Role K/V는 부위 이름 유도를 아직 지원하지 않습니다. 부위 강도를 0으로 두세요. 마스크는 사용할 수 있습니다.')
         if family == 'Anima' and not role_refs and any(c.reference is not None and c.reference.strength > 0 for c in pipe.characters):
             from dataclasses import replace
-            from .reference_assets import asset
+            from .reference_assets import frame_adapter
             model = model.clone()
             pipe = replace(pipe, characters=tuple(replace(c, reference=FrameImageReference(
                 c.reference.pixels, c.reference.size, c.reference.resolution,
                 c.reference.strength, c.reference.character_id)) if c.reference is not None else c
                 for c in pipe.characters))
             if PLAN not in model.model_options:
-                model.model_options[PLAN] = ReferencePlan(None, str(asset('anima_frame', unique_id)),
+                model.model_options[PLAN] = ReferencePlan(None, str(frame_adapter(model, unique_id)),
                     1., 4.5, 'apg', False)
             model.model_options.setdefault('rs_reference_follow_resolution', True)
             model.model_options.setdefault('rs_reference_compact_spatial', True)

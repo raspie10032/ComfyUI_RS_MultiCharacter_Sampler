@@ -27,6 +27,8 @@ ComfyUIでキャラクター別のプロンプト・LoRA・領域を設定して
 
 **Anima Role K/V・実験的:** 画像参照ノードから番号別領域用の独立したK/Vを選択できます。専用アダプター約504 MiBは初回生成時に自動取得します。既定値は従来の参照フレームです。[使い方・制限・検証](docs/anima-role-kv.md)。
 
+**Anima 2B・2.9B参照フレーム：** チェックポイントはユーザーが選択し、対応する参照アダプターを自動取得します。品質と速度はモデルによって異なります。別方式のRole K/Vは現在2B専用です。[使い方・制限](docs/anima-reference-frame.md)。
+
 ## インストールと更新
 
 ComfyUI-Managerで **RS MultiCharacter Sampler** を検索するか、[Comfy Registry](https://registry.comfy.org/publishers/raspie10032/nodes/comfyui-rs-multicharacter-sampler)からインストールします。パッケージIDは `comfyui-rs-multicharacter-sampler` です。
