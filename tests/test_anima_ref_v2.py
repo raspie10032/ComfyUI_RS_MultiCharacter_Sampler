@@ -100,7 +100,9 @@ class AsymmetricTests(unittest.TestCase):
   with self.assertRaisesRegex(ValueError,'attention patches'):
    rt.ref_forward(self.dm,None,None,None,None,{'patches':{'x':[]}})
  def test_auto_v2_rejects_29b_before_asset_resolution(self):
-  from comfy.model_base import Anima
+  from comfy import model_base
+  Anima=getattr(model_base,'Anima',None)
+  if Anima is None:self.skipTest('This ComfyUI predates Anima')
   ref=self.frame
   model=types.SimpleNamespace(model=Anima.__new__(Anima),get_model_object=lambda name:types.SimpleNamespace(blocks=[None]*40))
   with patch(ref.__package__+'.reference_assets._verified_adapter') as download:
@@ -108,7 +110,9 @@ class AsymmetricTests(unittest.TestCase):
     ref.RSAnimaReferenceAdapter().apply(model,adapter_name='Auto: Anima v2 (2B)')
    download.assert_not_called()
  def test_auto_v2_resolves_verified_adapter_with_progress_id(self):
-  from comfy.model_base import Anima
+  from comfy import model_base
+  Anima=getattr(model_base,'Anima',None)
+  if Anima is None:self.skipTest('This ComfyUI predates Anima')
   from safetensors.torch import save_file
   import tempfile,json
   ref=self.frame
