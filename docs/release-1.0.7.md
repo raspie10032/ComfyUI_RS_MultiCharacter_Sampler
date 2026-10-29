@@ -42,6 +42,12 @@ it does not enable all adapters together or replace existing sampling defaults.
 
 ## Evidence and update
 
+Legacy compatibility: actual CUDA attention tests passed with PyTorch 2.5.1,
+xFormers 0.0.28.post3 and ComfyUI v0.3.76 (FP16/BF16; native and regional
+paths). This is kernel/API verification, not a full image-quality benchmark.
+Windows now rechecks reference-weight hashes on reuse to avoid timestamp-cache
+collisions after a same-size file overwrite. [Scope and reproduction](xformers-validation.md).
+
 The 3D editor integration has 12 paired generation outputs and one complete
 UI-submitted workflow execution. A separate 24-image ablation uses three scenes,
 two seeds and four conditions: baseline, regional only, pose only, both. Style

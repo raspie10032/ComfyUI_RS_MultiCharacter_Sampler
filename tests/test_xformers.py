@@ -35,6 +35,7 @@ class XFormersTests(unittest.TestCase):
         if not torch.cuda.is_available() or not model_management.xformers_enabled():
             raise RuntimeError('The requested real CUDA/xFormers backend is unavailable')
         cls.native = staticmethod(attention.attention_xformers)
+        cls.attention_module = attention
         cls.routing = importlib.import_module(ROOT.name + '.routing')
         cls.joint = importlib.import_module(ROOT.name + '.joint_engine')
         torch.manual_seed(107)
@@ -84,8 +85,28 @@ class XFormersTests(unittest.TestCase):
                     groups, [2, 3, 4], [0, 1])
                 self.assert_close(actual, expected)
 
+    def test_native_crossattention_projects_through_real_kernel(self):
+        from unittest.mock import patch
+        import comfy.ops
+        for dtype in (torch.float16, torch.bfloat16):
+            with self.subTest(dtype=dtype), torch.inference_mode():
+                layer = self.attention_module.CrossAttention(
+                    128, context_dim=128, heads=2, dim_head=64,
+                    operations=comfy.ops.manual_cast).to(device='cuda', dtype=dtype)
+                for parameter in layer.parameters():
+                    torch.nn.init.uniform_(parameter, -.05, .05)
+                x = self.tensors(17, dtype)[0]
+                context = self.tensors(9, dtype)[0]
+                q, k, v = layer.to_q(x), layer.to_k(context), layer.to_v(context)
+                expected = F.scaled_dot_product_attention(
+                    *(t.unflatten(-1, (2, 64)).transpose(1, 2) for t in (q, k, v)))
+                expected = layer.to_out(expected.transpose(1, 2).flatten(2))
+                with patch.object(self.attention_module, 'optimized_attention', wraps=self.native) as calls:
+                    actual = layer(x, context=context)
+                self.assertEqual(calls.call_count, 1)
+                self.assert_close(actual, expected)
+
     def test_joint_routing_uses_real_backend_with_uneven_caption_lengths(self):
-        from types import SimpleNamespace
         from unittest.mock import patch
         import xformers.ops
         for family in ('Krea2', 'MOSS'):
@@ -95,7 +116,8 @@ class XFormersTests(unittest.TestCase):
                         with self.subTest(family=family, dtype=dtype, shaped=shaped,
                                           output_shaped=output_shaped):
                             router = self.joint.JointRouting(family, [], None, {},
-                                                            dict(text_refiner_calls=0))
+                                                            dict(cross_calls=0, self_calls=0,
+                                                                 text_refiner_calls=0))
                             router.state = dict(lengths=[2, 3, 4], image_tokens=8,
                                 groups=[torch.tensor([0, 1, 4, 5], device='cuda'),
                                         torch.tensor([2, 3, 6, 7], device='cuda')],

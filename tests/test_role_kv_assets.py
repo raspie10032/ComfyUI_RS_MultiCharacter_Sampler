@@ -97,6 +97,17 @@ class RoleKVAssets(unittest.TestCase):
                 self.resolve()
         self.assertFalse(any('ready' in call.args[0] for call in self.reporter.report.call_args_list))
 
+    def test_windows_rechecks_content_when_size_and_timestamps_are_unchanged(self):
+        target = self.write(self.target())
+        self.assertEqual(self.resolve(), target)
+        original_stat = target.stat()
+        target.write_bytes(b'X' * len(self.contents))
+        with patch.object(assets.sys, 'platform', 'win32'), \
+                patch.object(type(target), 'stat', return_value=original_stat):
+            with self.assertRaisesRegex(RuntimeError, 'supported version'):
+                self.resolve()
+        self.assertEqual(target.read_bytes(), b'X' * len(self.contents))
+
     def test_download_error_is_retryable_and_retains_cause(self):
         failure = OSError('No space left on device')
         hub = SimpleNamespace(hf_hub_download=Mock(side_effect=failure))

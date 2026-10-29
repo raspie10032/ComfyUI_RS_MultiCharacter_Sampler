@@ -4,6 +4,7 @@ import json
 import hashlib
 from pathlib import Path
 from functools import lru_cache
+import sys
 
 CATALOG = json.loads(Path(__file__).with_suffix('.json').read_text())
 
@@ -26,7 +27,10 @@ def _check_adapter(path, progress, name):
     label = _adapter_label(name)
     progress.report(f'Checking {label} adapter / 어댑터 파일 확인 중', force=True)
     stat = path.stat()
-    digest = _verified_digest(str(path.resolve()), stat.st_size, stat.st_mtime_ns, stat.st_ctime_ns)
+    # Windows ctime is creation time; quick same-size writes can retain mtime
+    # too. Rehash there instead of trusting a potentially unchanged cache key.
+    verify = _verified_digest.__wrapped__ if sys.platform == 'win32' else _verified_digest
+    digest = verify(str(path.resolve()), stat.st_size, stat.st_mtime_ns, stat.st_ctime_ns)
     if digest != spec['sha256']:
         progress.report(f'{label} adapter checksum mismatch', failed=True, force=True)
         raise RuntimeError(f'{label} adapter is incomplete or differs from the supported version: '
