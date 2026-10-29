@@ -72,11 +72,25 @@ class Pose3DTests(unittest.TestCase):
     def test_node_outputs_full_and_visible_and_exact_pipe_mask(self):
         s=self.scene();s['people'][0]['position'][0]=-.1;s['people'][1]['position'][0]=.1
         s['mask_mode']='visible';out=n.RSMultiCharacterPose3D().apply(json.dumps(s))
-        pipe,preview,full,visible,info=out['result']
+        pipe,preview,full,visible,info,pose_image=out['result']
         self.assertEqual(tuple(preview.shape),(1,256,192,3));self.assertEqual(tuple(full.shape),(2,256,192))
+        self.assertEqual(tuple(pose_image.shape),(1,256,192,3))
         self.assertFalse((visible[0]*visible[1]).any())
         for slot,mask in zip(pipe.slots,visible):np.testing.assert_array_equal(slot.region_mask.tensor(),mask)
         self.assertEqual(out['ui']['pose3d'][0]['masks'][1]['number'],2)
+
+    def test_pose_image_tracks_depth_and_excludes_background_and_editor_handles(self):
+        s=self.scene();s['people'][0]['position']=[0,0,-.05];s['people'][1]['position']=[.06,0,.08]
+        full,visible=p.rasterize(s);rgb=p.render_pose_condition(s)
+        np.testing.assert_array_equal(rgb.any(-1),visible.any(0))
+        # Shade varies over the same person's body; it is not a flat ID mask.
+        self.assertGreater(len(np.unique(rgb[visible[1]],axis=0)),20)
+        # The nearer, blue person retains blue-dominant shading at overlaps.
+        pixels=rgb[full[0]&visible[1]]
+        self.assertGreater(len(pixels),0);self.assertTrue(np.all(pixels[:,2]>pixels[:,0]))
+        changed=copy.deepcopy(s);changed['people'][1]['joints']['left_shoulder']=[0,0,-120]
+        self.assertFalse(np.array_equal(rgb,p.render_pose_condition(changed)))
+        tiny=p.render_pose_condition(s,64);self.assertEqual(tiny.shape,(64,48,3))
 
     def test_pipe_order_preserves_prompts_positions_and_loras(self):
         raw=json.dumps(self.scene());node=n.RSMultiCharacterPose3D()

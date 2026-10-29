@@ -178,8 +178,8 @@ def clip_near(triangle, near=.05):
     return [np.array([output[0], output[i], output[i+1]]) for i in range(1, len(output)-1)]
 
 
-def rasterize(scene, max_side=None):
-    """Full masks ignore other people. Visible masks share a depth buffer."""
+def _rasterize(scene, max_side=None, shaded=False):
+    """Masks and an optional shaded pose image share geometry and depth."""
     w, h = scene['width'], scene['height']
     if max_side is not None:
         scale = min(1, max_side/max(w, h))
@@ -187,10 +187,21 @@ def rasterize(scene, max_side=None):
     full = np.zeros((len(scene['people']), h, w), dtype=bool)
     owner = np.full((h, w), -1, dtype=np.int16)
     depth = np.zeros((h, w), dtype=np.float64)  # inverse depth, larger = nearer
+    rgb = np.zeros((h, w, 3), dtype=np.uint8) if shaded else None
+    colors = [(255, 141, 145), (129, 188, 255), (148, 221, 157), (255, 210, 127), (195, 160, 255)]
+    light = np.array([-.35, .65, -.68])
+    light /= np.linalg.norm(light)
     f = h/(2*math.tan(math.radians(scene['camera']['fov'])/2))
     for index, person in enumerate(scene['people']):
         vertices, faces, _ = mannequin(person)
         view = camera_coordinates(vertices, scene['camera'])
+        if shaded:
+            face_normals = np.cross(view[faces[:, 1]]-view[faces[:, 0]], view[faces[:, 2]]-view[faces[:, 0]])
+            normals = np.zeros_like(view)
+            for corner in range(3):
+                np.add.at(normals, faces[:, corner], face_normals)
+            normals /= np.maximum(np.linalg.norm(normals, axis=1, keepdims=True), 1e-12)
+            color = np.array(colors[(person['id']-1) % len(colors)])
         for face in faces:
             tri = view[face]
             triangles = [tri] if (tri[:, 2] >= .05).all() else clip_near(tri)
@@ -212,5 +223,31 @@ def rasterize(scene, max_side=None):
                 nearer = inside & (inv_z > patch+1e-10)
                 patch[nearer] = inv_z[nearer]
                 owner[y0:y1+1, x0:x1+1][nearer] = index
+                if shaded:
+                    if len(triangles) == 1 and (tri[:, 2] >= .05).all():
+                        ns = normals[face]
+                        n = (a[..., None]*ns[0]/z[0]+b[..., None]*ns[1]/z[1]+c[..., None]*ns[2]/z[2])
+                        n /= np.maximum(np.linalg.norm(n, axis=-1, keepdims=True), 1e-12)
+                        brightness = .25+.75*np.abs(n @ light)
+                    else:
+                        normal = np.cross(t[1]-t[0], t[2]-t[0])
+                        brightness = np.full(a.shape, .25+.75*abs(normal @ light)/max(np.linalg.norm(normal), 1e-12))
+                    rgb[y0:y1+1, x0:x1+1][nearer] = np.clip(brightness[..., None]*color, 0, 255).astype(np.uint8)[nearer]
     visible = np.stack([owner == i for i in range(len(scene['people']))])
+    return full, visible, rgb
+
+
+def rasterize(scene, max_side=None):
+    """Full masks ignore other people. Visible masks share a depth buffer."""
+    full, visible, _ = _rasterize(scene, max_side)
     return full, visible
+
+
+def render_pose_condition(scene, max_side=None):
+    """Shaded RGB bodies on black for a separately trained pose adapter.
+
+    Excludes editor grids, selection handles and joint gizmos. The scene's
+    camera, framing and depth are identical to the mask projection. Colors
+    distinguish people; they are not learned semantic character IDs.
+    """
+    return _rasterize(scene, max_side, shaded=True)[2]

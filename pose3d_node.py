@@ -10,7 +10,7 @@ from PIL import Image, ImageDraw
 import torch
 
 from .character_builder import BUILD_PIPE_TYPE, BuildPipe, update_slot
-from .pose3d import default_scene, read_scene, rasterize
+from .pose3d import default_scene, read_scene, rasterize, render_pose_condition
 from .region_mask import RegionMask
 
 COLORS = [(255, 141, 145), (129, 188, 255), (148, 221, 157), (255, 210, 127), (195, 160, 255)]
@@ -58,14 +58,16 @@ class RSMultiCharacterPose3D:
                 'tooltip': 'Open 3D editor, arrange mannequins, then Apply. Character numbers map to prompt slots. The scene is saved in the workflow.'})},
                 'optional': {'building_pipe': (BUILD_PIPE_TYPE,)}, 'hidden': {'unique_id': 'UNIQUE_ID'}}
 
-    RETURN_TYPES = (BUILD_PIPE_TYPE, 'IMAGE', 'MASK', 'MASK', 'STRING')
-    RETURN_NAMES = ('building_pipe', 'mask_preview', 'full_masks', 'visible_masks', 'scene_info')
+    RETURN_TYPES = (BUILD_PIPE_TYPE, 'IMAGE', 'MASK', 'MASK', 'STRING', 'IMAGE')
+    RETURN_NAMES = ('building_pipe', 'mask_preview', 'full_masks', 'visible_masks', 'scene_info', 'pose_image')
     FUNCTION = 'apply'
     CATEGORY = 'RS MultiCharacter/Characters'
     HAS_INTERMEDIATE_OUTPUT = True
     DESCRIPTION = ('Experimental 3D mannequin composition editor. Rotate joints and move people/camera; '
                    'each character number creates a 2D region mask. Full silhouettes overlap; visible silhouettes remove occluded areas. '
-                   'Canvas overflow is clipped. No ControlNet or additional model. A composition guide, not exact pose enforcement. '
+                   'Canvas overflow is clipped. Editing and masks need no extra weights. A composition guide, not exact pose enforcement. '
+                   'pose_image outputs shaded bodies on black for a compatible pose adapter; connect it to Apply Anima LLLite separately. '
+                   'This experimental pose image has not demonstrated reliable pose following. Masks alone do not enforce joint angles. '
                    'Scene data is stored in the workflow. Connect anywhere before Finalize.')
 
     def apply(self, scene_json, building_pipe=None, unique_id=None):
@@ -87,6 +89,7 @@ class RSMultiCharacterPose3D:
             owned.append((p['id'], region))
         pipe = replace(pipe, pose3d_masks=tuple(owned))
         image = preview(scene, full, visible)
+        pose_image = torch.from_numpy(render_pose_condition(scene).astype(np.float32)/255)[None]
         images = []
         if unique_id is not None:
             import folder_paths
@@ -102,7 +105,7 @@ class RSMultiCharacterPose3D:
         return {'ui': {'images': images, 'text': [info], 'pose3d': [preview_payload(scene)]},
                 'result': (pipe, torch.from_numpy(np.asarray(image).copy().astype(np.float32)/255)[None],
                            torch.from_numpy(full.astype(np.float32)), torch.from_numpy(visible.astype(np.float32)),
-                           info)}
+                           info, pose_image)}
 
 
 def register_routes():

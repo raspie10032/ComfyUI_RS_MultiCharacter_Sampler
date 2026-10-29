@@ -11,6 +11,16 @@ Arrange procedural mannequins in a local 3D editor, then use their camera-projec
 
 The node outputs its mask preview and two MASK batches (full/visible), sorted by character number. The chosen mode only selects which masks enter the building pipe. `scene_info` lists the batch's character IDs. Scene JSON is stored in the node's workflow widget. Save/load scene buttons also allow an independent JSON backup.
 
+## Experimental pose-adapter path
+
+The last output, `pose_image`, renders shaded colored bodies on black using the same scene, camera, depth ordering and aspect ratio as the masks. It excludes editor handles and grids. Existing output indices are unchanged. This image is separate from the character building pipe: connecting the pipe alone still supplies masks only.
+
+For an experimental Anima 2B test, load compatible weights with ComfyUI's **Load Model Patch**, connect `pose_image` to **Apply Anima LLLite**, and feed its MODEL output to the RS sampler. The scene's building pipe still supplies numbered character masks. The sampler accepts complete native Anima LLLite patch groups while preserving RS routing, and rejects other attention replacements, mismatched adapter dimensions and simultaneous image references. Other model families' ControlNets, Anima 2.9B pose weights, progressive sampling and character-LoRA combinations have not been validated by this test.
+
+**Execution compatibility is demonstrated; reliable pose following from this procedural mannequin is not.** In 27 controlled and diagnostic generations on 2026-10-29, a published anatomical condition affected leg placement, while the current ellipsoid bodies did not consistently reproduce arm positions or seated poses. Neutral colors did not resolve this. An independently skinned MakeHuman mesh was also tested outside the extension, but its approximate rig produced artifacts and remains a research asset. It is not bundled or used by this node. Do not present this output as a finished pose-control feature.
+
+Tested adapter: [toyxyz/Anima_ControlNet-LLLite](https://huggingface.co/toyxyz/Anima_ControlNet-LLLite), `anima_3dpose_6200.safetensors`, revision `37f3a4b6574f1dce3dfe3b5440285a39b11b3d8d`, SHA256 `97542346a658d23ca65368b568aa9aaf2486ccda8942612983aaffdc986cd495`, 51,133,576 bytes. It takes shaded body images, not OpenPose sticks. A native ComfyUI Anima LLLite implementation and matching base model are required; there is no automatic download in this experimental node.
+
 ## Boundaries
 
 - This guides composition and prompt ownership. The generation model receives 2D masks; it does not receive a 3D rig or a pose ControlNet. Exact joint angles, occlusion, people counts and physical contact remain model-dependent. In the initial Anima/SDXL smoke tests the same pose was also written in the common prompt; these are execution checks, not evidence that the mask alone improves pose accuracy.

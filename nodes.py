@@ -135,9 +135,13 @@ class RSMultiCharacterSampler:
             family = flux_kind
         else:
             raise ValueError("Connect Anima, SD1.5 base, SDXL base, Krea2, MOSS-Image or native FLUX.1/2/3. FLUX Fill/Control, SD2, Refiner, inpainting and instruct-pix2pix models need different inputs and are unsupported here.")
-        transformer_options = model.model_options.get("transformer_options", {})
-        if any(transformer_options.get(k) for k in ("patches", "patches_replace", "optimized_attention_override")):
-            raise ValueError("Use an unpatched model, optionally with ordinary LoRA loaders. Other attention patches are unsupported.")
+        from .anima_pose_control import validate_model_patches
+        pose_control = validate_model_patches(model, family)
+        if pose_control and (model.model_options.get('rs_anima_ref_frame_plan') is not None or
+                model.model_options.get('rs_image_reference') is not None or
+                any(c.reference is not None and c.reference.strength > 0 for c in character_pipe.characters)):
+            raise ValueError('Anima LLLite pose control with image references is not supported yet. Disconnect image references. / '
+                             '현재 포즈 제어와 이미지 참조는 동시에 지원하지 않습니다. 참조 연결을 분리해 주세요.')
         settings = {k: v for k, v in locals().items() if k in DEFAULTS or k == "seed"}
         resolved_pipe = sampling_pipe(character_pipe, prompt, negative_prompt, prompt_syntax)
         prompt, negative_prompt, prompt_syntax = resolved_pipe.prompt, resolved_pipe.negative_prompt, resolved_pipe.syntax
@@ -290,6 +294,9 @@ class RSMultiCharacterSampler:
                                     "boxes" if all(geometry) else "mixed" if any(geometry) else "points",
                  "box_slots": [i+1 for i, c in enumerate(pipe.regions) if c.bbox is not None and c.region_mask is None],
                  "mask_slots": [i+1 for i, c in enumerate(pipe.regions) if c.region_mask is not None]}
+        if pose_control:
+            from .anima_pose_control import patch_metadata
+            audit["anima_lllite"] = patch_metadata(model)
         from .interaction import interaction_settings
         interaction = interaction_settings(pipe.interaction_json)
         if interaction is not None:
