@@ -6,13 +6,15 @@ ComfyUI에서 캐릭터별 프롬프트·LoRA·영역을 지정해 생성하고,
 
 [English](README.md) · [日本語](README.ja.md) · [문서 모음](docs/README.md) · [변경 기록](CHANGELOG.md) · [릴리스](https://github.com/raspie10032/ComfyUI_RS_MultiCharacter_Sampler/releases) · [简体中文](README.zh-CN.md) · [繁體中文](README.zh-TW.md)
 
-**현재 버전: [1.0.6 한글](docs/release-1.0.6.md).** 로컬 모델로 실행하며 RS NovelAI 확장이나 API 키가 필요하지 않습니다.
+**현재 버전: [1.0.7 한글](docs/release-1.0.7.md).** 로컬 모델로 실행하며 RS NovelAI 확장이나 API 키가 필요하지 않습니다.
 
 ![LoRA 없이 생성한 Anima 2인 예제](examples/two-characters-result.png)
 
 **카메라 시점:** [RS 카메라 시점](docs/camera-control.md)은 NAI·로컬 공통 컨텍스트에 시점 태그를 더합니다. 노드 안에서 방향·높이·거리·랜덤 구도를 조절하고, 영역의 확대·축소·회전·평면 원근 변형을 선택합니다. 실제 3D 자세 재현은 모델에 따라 달라집니다.
 
 **카메라 참고 출처:** [Anima 카메라 태그 도우미](https://arca.live/b/aiart/179423561) / `ComfyUI-KR-Camera-Control` (원본 표기: `ComfyUI_bsk_UI` / 灰暗x). [참고 범위·출처 안내](THIRD_PARTY_NOTICES.md#camera-control-references).
+
+**1.0.7 시험 기능:** [3D 인체 편집기](docs/pose3d.md)에서 관절·손·카메라를 조절해 번호별 마스크와 포즈 이미지를 만듭니다. 마스크만 쓸 때는 추가 가중치가 필요 없고, 자세 유도는 별도 Anima 2B LLLite 어댑터를 연결합니다. 정확한 관절·접촉은 보장하지 않습니다. [워크플로 PNG](examples/pose3d/anima-native-pose.png). [참조 v2](docs/anima-reference-v2.md)는 MODEL 어댑터에서 `Auto: Anima v2 (2B)`로 직접 선택합니다. 측정상 빨라졌지만 머리·의상 오염과 메모리 증가가 있어 기본 참조를 대체하지 않습니다. v2의 2.9B·캐릭터별 LoRA는 미지원입니다.
 
 ## 주요 기능
 

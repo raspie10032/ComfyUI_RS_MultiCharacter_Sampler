@@ -1,4 +1,4 @@
-# Asymmetric Anima reference v2 — development experiment
+# Asymmetric Anima reference v2 — experimental option (1.0.7)
 
 This experiment tests **regional reference attention**, not a single global
 image prompt. Each numbered reference is encoded independently and its guided
@@ -16,7 +16,7 @@ Character Reference inputs through the building pipe; each number must match
 its Prompt/Position slot.
 
 The common Image Reference node's automatic `reference_frame` choice continues
-to select the existing pilot adapter. This development experiment requires the
+to select the existing pilot adapter. This experimental option requires the
 explicit MODEL adapter selection above. No existing workflow is silently moved
 to v2.
 

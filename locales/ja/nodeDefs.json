@@ -1203,7 +1203,7 @@
   },
   "RSMultiCharacterPose3D": {
     "display_name": "RS 3Dポーズマスク（試験版）",
-    "description": "3Dマネキンの関節・身長・カメラから番号別の2D領域マスクを作ります。正確なポーズを保証しません。追加モデルやControlNetは不要です。",
+    "description": "3D人体の関節・手・カメラから番号別マスクとポーズ画像を作ります。マスクには追加モデル不要。姿勢誘導には別途Anima 2B LLLiteアダプターが必要で、正確な関節・接触は保証しません。",
     "inputs": {
       "scene_json": {
         "name": "3Dシーン"
@@ -1227,6 +1227,9 @@
       },
       "scene_info": {
         "name": "シーン情報"
+      },
+      "pose_image": {
+        "name": "ポーズ画像"
       }
     }
   }

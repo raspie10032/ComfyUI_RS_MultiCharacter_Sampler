@@ -11,6 +11,8 @@ Arrange native skinned MHR bodies in a local 3D editor, then use their camera-pr
 
 The node outputs its mask preview and two MASK batches (full/visible), sorted by character number. The chosen mode only selects which masks enter the building pipe. `scene_info` lists the batch's character IDs. Scene JSON is stored in the node's workflow widget. Save/load scene buttons also allow an independent JSON backup.
 
+[Drop-in workflow PNG](../examples/pose3d/anima-native-pose.png) · [Example requirements](../examples/pose3d/README.md)
+
 ## Experimental pose-adapter path
 
 The last output, `pose_image`, renders shaded colored bodies on black using the same scene, camera, depth ordering and aspect ratio as the masks. It excludes editor handles and grids. Existing output indices are unchanged. This image is separate from the character building pipe: connecting the pipe alone still supplies masks only.
@@ -19,7 +21,7 @@ For an experimental Anima 2B test, load compatible weights with ComfyUI's **Load
 
 New scenes use the bundled native MHR mesh, bind transforms, skin weights and procedural twist supports. Body, hand and finger controls deform the mesh. Scene format v2 is shared by the browser and CPU renderer; existing v1 ellipsoid scenes retain their original geometry and output. The renderer deliberately omits learned pose correctives and facial/body-shape inference.
 
-A successful output connection is not evidence of reliable pose following. The initial ellipsoid tests failed. Native anatomical renders subsequently induced seated and raised-arm poses in controlled Anima 2B tests; the integrated editor tests also show raised-arm transfer, but frontal two-person seating remains unreliable. Hand contact, exact joints, appearance and subject counts remain model-dependent. See the development validation report for paired seeds and failures.
+A successful output connection is not evidence of reliable pose following. The initial ellipsoid tests failed. Native anatomical renders subsequently induced seated and raised-arm poses in controlled Anima 2B tests; the integrated editor tests also show raised-arm transfer, but frontal two-person seating remains unreliable. Hand contact, exact joints, appearance and subject counts remain model-dependent. See the [component comparison](pose3d-validation.md) for paired seeds and failures.
 
 Tested with [toyxyz/Anima_ControlNet-LLLite](https://huggingface.co/toyxyz/Anima_ControlNet-LLLite), `anima_3dpose_outline_7000.safetensors`, strength 1, full denoising interval. This adapter expects anatomical shaded renders with outlines rather than OpenPose sticks. A matching Anima 2B base and a recent native ComfyUI Anima LLLite implementation are required. Load its weights separately with Model Patch Loader. Outline affects only the pose image, never silhouette ownership. The experimental node does not auto-download adapter weights.
 

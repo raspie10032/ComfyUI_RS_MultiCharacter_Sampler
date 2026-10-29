@@ -2027,7 +2027,7 @@
   },
   "RSMultiCharacterPose3D": {
     "display_name": "RS 3D姿势遮罩（实验版）",
-    "description": "调整3D人体关节、身高和相机，生成编号对应的2D区域遮罩。不保证姿势完全一致，无需额外模型或ControlNet。",
+    "description": "通过3D人体关节、手部和相机生成编号遮罩与姿势图像。遮罩无需额外模型。姿势引导需要另接Anima 2B LLLite适配器，不保证精确关节或接触。",
     "inputs": {
       "scene_json": {
         "name": "3D场景"
@@ -2051,6 +2051,9 @@
       },
       "scene_info": {
         "name": "场景信息"
+      },
+      "pose_image": {
+        "name": "姿势图像"
       }
     }
   }

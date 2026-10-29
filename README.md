@@ -6,7 +6,7 @@ Regional generation and local detailing for ComfyUI. Give each character a promp
 
 [한국어](README.ko.md) · [日本語](README.ja.md) · [Documentation](docs/README.md) · [Changelog](CHANGELOG.md) · [Releases](https://github.com/raspie10032/ComfyUI_RS_MultiCharacter_Sampler/releases) · [简体中文](README.zh-CN.md) · [繁體中文](README.zh-TW.md)
 
-**Current release: [1.0.6 Hangeul](docs/release-1.0.6.md).** Runs with local models; no RS NovelAI extension or API key is required.
+**Current release: [1.0.7 Hangeul](docs/release-1.0.7.md).** Runs with local models; no RS NovelAI extension or API key is required.
 
 ![Two-character Anima example without LoRA](examples/two-characters-result.png)
 
@@ -14,7 +14,7 @@ Regional generation and local detailing for ComfyUI. Give each character a promp
 
 **Camera reference:** [Anima camera-tag helper](https://arca.live/b/aiart/179423561) / `ComfyUI-KR-Camera-Control` (credits `ComfyUI_bsk_UI` / 灰暗x). [Reference scope and notices](THIRD_PARTY_NOTICES.md#camera-control-references).
 
-**3D mannequin masks (development preview):** arrange people, joints and camera, then send full or visible silhouettes to numbered character slots. No extra model is required. This guides composition; it does not enforce exact poses. [Editor and limitations](docs/pose3d.md).
+**3D pose editor · experimental:** arrange a skinned human rig and camera, then send numbered silhouettes to the character pipe. Masks need no extra weights. The separate shaded `pose_image` can guide Anima 2B through a matching native LLLite adapter; exact joints and contacts remain unreliable. [Setup and limits](docs/pose3d.md) · [Workflow PNG](examples/pose3d/anima-native-pose.png).
 
 ## What you can do
 
@@ -30,6 +30,8 @@ Coordinates and masks guide prompt regions. Exact people counts, identity, poses
 **Anima Role K/V (experimental):** the Image Reference node can optionally prepare independent K/V banks for numbered character regions. Its dedicated 504 MiB adapter is downloaded automatically on first use. Default reference-frame behavior is retained. [Setup, routing limits and validation](docs/anima-role-kv.md).
 
 **Anima 2B / 2.9B reference frames:** select either checkpoint; the sampler automatically prepares its matching reference adapter. Model choice remains yours. The separate Role K/V adapter currently targets 2B only. [Setup and limits](docs/anima-reference-frame.md).
+
+**Anima reference v2 · experimental:** explicitly select `Auto: Anima v2 (2B)` on the MODEL adapter node to reuse reference K/V throughout denoising. It is faster in the measured cases but can lose hair/clothing identity and use more memory. It does not replace the default pilot path; v2 2.9B and character LoRAs are unsupported. [Setup and comparisons](docs/anima-reference-v2.md).
 
 ## Install or update
 

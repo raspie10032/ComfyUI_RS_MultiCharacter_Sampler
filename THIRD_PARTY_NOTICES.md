@@ -79,7 +79,7 @@ Original discussion: https://arca.live/b/aiart/187357665 .
 
 ## Anima asymmetric reference v2
 
-The development `anima_ref_v2.py` experiment additionally adapts asymmetric
+The experimental `anima_ref_v2.py` implementation additionally adapts asymmetric
 reference block/frame math from ElectronGirl/ComfyUI-Anima-Ref-Adapter at
 `bd1e094a` under Apache-2.0 (preserved in `ANIMA-REF-ADAPTER-LICENSE`). RS adds
 independent numbered regional predictions, rectangular target attention and

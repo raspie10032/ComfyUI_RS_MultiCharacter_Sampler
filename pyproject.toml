@@ -1,7 +1,7 @@
 [project]
 name = "comfyui-rs-multicharacter-sampler"
-version = "1.0.6"
-description = "Hangeul: modular regional generation and detailing for Anima, SDXL, Krea 2, MOSS and FLUX.1/2/3, with progressive resolution sampling, character LoRA modes, editable masks and OpenPose PNG/JSON mask guides. Body-part name guidance and image references are experimental; SD1.5 is unstable."
+version = "1.0.7"
+description = "Hangeul: regional generation and detailing for Anima, SDXL, Krea 2, MOSS and FLUX, with character LoRAs, editable masks, camera control and progressive sampling. Experimental 3D rig/mask editor, Anima 2B pose-adapter integration and regional image references; SD1.5 is unstable."
 readme = "README.md"
 license = {file = "LICENSE"}
 requires-python = ">=3.11"
