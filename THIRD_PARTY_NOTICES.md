@@ -62,3 +62,40 @@ ownership and repeated-prior sharing. The SD1.5/SDXL IP-Adapter and MOSS PoC
 paths are retained. The earlier Anima IP-Adapter and Redux source notices remain
 for retained historical helper modules; these are not the new default paths.
 The linked model repositories and pinned revisions are in `reference_assets.json`.
+
+
+## Anima Role Ref K/V (experimental)
+
+`anima_role_native.py` adapts `comfyui/native.py` from
+https://huggingface.co/AnticPan/Anima-Role-Ref-KV at
+`259a0dce876ed70fc8835b888139756e23fb8a9f` (Apache-2.0). The original license
+is preserved in `ANIMA-ROLE-KV-CODE-LICENSE` and `ANIMA-ROLE-KV-MODEL-LICENSE`; the pinned weight revision is also in
+`reference_assets.json`. The adapter weights are downloaded by the user, not
+redistributed. RS adds separate numbered reference banks, point/box/mask
+ownership, overlapping-reference selection, conditional-only reference access,
+invocation-scoped cleanup and progressive-grid cache rebuilding.
+Original discussion: https://arca.live/b/aiart/187357665 .
+
+
+## Anima asymmetric reference v2
+
+The experimental `anima_ref_v2.py` implementation additionally adapts asymmetric
+reference block/frame math from ElectronGirl/ComfyUI-Anima-Ref-Adapter at
+`bd1e094a` under Apache-2.0 (preserved in `ANIMA-REF-ADAPTER-LICENSE`). RS adds
+independent numbered regional predictions, rectangular target attention and
+sample-scoped K/V cache invalidation/cleanup. The separately downloaded v2
+weights retain their upstream terms. See `docs/anima-reference-v2.md`.
+
+## Anima 2.9B converted reference adapter
+
+The expanded-model reference path uses [Gazingstars123/Anima-2.9B](https://huggingface.co/Gazingstars123/Anima-2.9B) insertion positions and [pamparamm/anima-ref-adapter-2.9B-converted](https://huggingface.co/pamparamm/anima-ref-adapter-2.9B-converted). RS selects the matching adapter by architecture, validates its exact mapped modules and leaves the 12 inserted blocks without reference-adapter hooks. These blocks still execute normally. No weights are redistributed. Adapter revision and SHA256 are pinned in `reference_assets.json`; model and weight licenses remain separate from this code.
+
+## 3D pose editor
+
+- Three.js 0.170.0 (MIT), including OrbitControls and TransformControls, is included in the offline editor bundle. Copyright and permission text: [THREE-LICENSE.txt](web/pose3d/THREE-LICENSE.txt).
+- Design references: [ZhUyU1997/open-pose-editor](https://github.com/ZhUyU1997/open-pose-editor), revision 8e659f1f1995715621ac3f50d9c34d55faf5296d; [hinablue/ComfyUI_3dPoseEditor](https://github.com/hinablue/ComfyUI_3dPoseEditor), revision 582c5b1410d5bd5a91465f05796f4e99a690cc52. Both MIT. Their source, mannequin assets and capture pipeline are not bundled; our scene/geometry/projection and RS integration are implemented separately.
+
+
+## Native 3D human rig
+
+New v2 scenes use the adult LOD1 MHR body baked and distributed by [toyxyz/ComfyUI_toyxyz_test_nodes](https://github.com/toyxyz/ComfyUI_toyxyz_test_nodes), revision `8291d9b65d56d65be55ee0f31df073d42b7d0eb6`. The underlying [Meta MHR](https://github.com/facebookresearch/MHR) asset is Apache-2.0. RS retains the native bind transforms and skinning, omits the SAM facial landmark mapping and learned pose correctives, and supplies independent browser/CPU skinning, numbered masks and pose shading. Attribution and terms accompany the gzip asset in `web/pose3d/MHR-NOTICE.txt` and `MHR-LICENSE.txt`. Legacy v1 scenes retain RS procedural ellipsoids. No inference weights are bundled.

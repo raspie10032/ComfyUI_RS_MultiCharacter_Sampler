@@ -94,3 +94,8 @@ Omitting `RS_MC_TEST_COMFYUI` deliberately skips native integration tests. A
 passing offline-only suite therefore does not prove native model compatibility.
 Full local logs and generated smoke images are retained in
 `RS_MC_compatibility/validation` beside the source checkout.
+
+The 1.0.7 [legacy xFormers checks](xformers-validation.md) additionally ran real
+GPU kernels on PyTorch 2.5.1 / xFormers 0.0.28.post3 / ComfyUI v0.3.76.
+This validates attention API/numerical behavior, not full image generation on
+every backend. New Anima features require a newer core that includes Anima.

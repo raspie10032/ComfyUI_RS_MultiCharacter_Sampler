@@ -1002,6 +1002,14 @@
       },
       "building_pipe": {
         "name": "조립 파이프"
+      },
+      "anima_method": {
+        "name": "Anima 참조 방식",
+        "tooltip": "Anima 2B·2.9B: reference_frame은 모델에 맞는 어댑터를 자동으로 받습니다. role_kv는 2B 전용이며 최초 504 MiB 다운로드. BF16/FP32·캐릭터 LoRA 일반 적용 전용.",
+        "options": {
+          "reference_frame": "기존 참조 프레임",
+          "role_kv": "영역별 Role K/V"
+        }
       }
     },
     "outputs": {
@@ -1182,6 +1190,46 @@
       },
       "building_pipe": {
         "name": "빌딩 파이프"
+      },
+      "anima_method": {
+        "name": "Anima 참조 방식",
+        "tooltip": "Anima 2B·2.9B: reference_frame은 모델에 맞는 어댑터를 자동으로 받습니다. role_kv는 2B 전용이며 최초 504 MiB 다운로드. BF16/FP32·캐릭터 LoRA 일반 적용 전용.",
+        "options": {
+          "reference_frame": "기존 참조 프레임",
+          "role_kv": "영역별 Role K/V"
+        }
+      }
+    }
+  },
+  "RSMultiCharacterPose3D": {
+    "display_name": "RS 3D 포즈 마스크 (시험판)",
+    "description": "3D 인체의 관절·손·카메라로 번호별 마스크와 포즈 이미지를 만듭니다. 마스크에는 추가 모델이 필요 없습니다. 자세 유도는 별도 Anima 2B LLLite 어댑터가 필요하며 정확한 관절·접촉은 보장하지 않습니다.",
+    "inputs": {
+      "scene_json": {
+        "name": "3D 장면"
+      },
+      "building_pipe": {
+        "name": "조립 파이프"
+      }
+    },
+    "outputs": {
+      "building_pipe": {
+        "name": "조립 파이프"
+      },
+      "mask_preview": {
+        "name": "마스크 미리보기"
+      },
+      "full_masks": {
+        "name": "전체 마스크"
+      },
+      "visible_masks": {
+        "name": "보이는 마스크"
+      },
+      "scene_info": {
+        "name": "장면 정보"
+      },
+      "pose_image": {
+        "name": "포즈 이미지"
       }
     }
   }

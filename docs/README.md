@@ -19,6 +19,8 @@ at a particular version; current usage belongs in the feature guides below.
 | Apply character LoRAs | [LoRA setup and cost](regional-lora.md) · [Normal/Precision modes](shared-lora-experiment.md) · [Adapter formats and limits](adapter-formats.md) | [Character LoRA](../examples/character-lora/README.md) |
 | Place points, boxes, words or objects | [Regional layouts](regional-layout.md) · [Model-specific mixed settings](mixed-layout-tuning.md) | [Mixed layouts](../examples/epsilon/README.md) · [Objects](../examples/epsilon/objects/README.md) |
 | Draw or import masks | [Character masks and placement](character-masks.md) | [Mask examples](../examples/character-masks/README.md) |
+| Edit a 3D human rig | [3D editor, masks and Anima pose-adapter setup](pose3d.md) | [Workflow PNG](../examples/pose3d/anima-native-pose.png) · [Component comparison](pose3d-validation.md) |
+| Try Anima reference alternatives | [2B/2.9B frames](anima-reference-frame.md) · [Role K/V](anima-role-kv.md) · [v2 cached references](anima-reference-v2.md) | Experimental; separate model/LoRA restrictions apply |
 | Use pose-derived masks | [OpenPose inputs, previews and overlap controls](openpose-mask-guides.md) | [Pose examples](../examples/openpose/README.md) |
 | Use MOSS acceleration | [MOSS 8-step LoRA setup](moss-8step.md) | [Two characters, CFG 3](../examples/moss-8step/two-cfg3.json) |
 | Detail detected characters | [Behavior, execution and limits](detailer-validation.md) | [Generation + detailer](../examples/two-characters-detailer-anima.json) |

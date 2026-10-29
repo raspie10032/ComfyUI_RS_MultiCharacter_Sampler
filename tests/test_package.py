@@ -29,7 +29,8 @@ class PackageTests(unittest.TestCase):
     def test_independent_nodes_and_legacy_schema(self):
         self.assertIn("RSMultiCharacterMask", pkg.NODE_CLASS_MAPPINGS)
         self.assertIn("RSMultiCharacterReference", pkg.NODE_CLASS_MAPPINGS)
-        self.assertEqual(len(pkg.NODE_CLASS_MAPPINGS), 19)
+        self.assertEqual(len(pkg.NODE_CLASS_MAPPINGS), 20)
+        self.assertIn('RSMultiCharacterPose3D', pkg.NODE_CLASS_MAPPINGS)
         self.assertIn('RSAnimaCharacterReference', pkg.NODE_CLASS_MAPPINGS)
         self.assertIn("RSCameraControl", pkg.NODE_CLASS_MAPPINGS)
         self.assertIn("RSMultiCharacterPoseMasks", pkg.NODE_CLASS_MAPPINGS)

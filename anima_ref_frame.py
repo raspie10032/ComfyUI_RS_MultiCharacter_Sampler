@@ -10,7 +10,7 @@ from contextlib import contextmanager
 from dataclasses import dataclass
 import inspect
 import math
-from .image_reference import ImageReference
+from .image_reference import ImageReference, RoleKVImageReference, anima_method_input
 
 import numpy as np
 from PIL import Image
@@ -31,6 +31,7 @@ class ReferencePlan:
     cache: bool
     character_mode: str = 'precision'
     reference_scale: float = 1.
+    backend: str = 'pilot'
 
 
 @dataclass(frozen=True)
@@ -48,7 +49,7 @@ class RSAnimaCharacterReference:
             'strength': ('FLOAT', {'default': 1., 'min': 0., 'max': 2., 'step': .05,
                 'tooltip': 'Reference prediction strength in this character region. Zero removes the reference.'}),
             'enabled': ('BOOLEAN', {'default': True}),
-        }, 'optional': {'building_pipe': ('RS_MC_BUILD_PIPE',)}}
+        }, 'optional': {'building_pipe': ('RS_MC_BUILD_PIPE',), 'anima_method': anima_method_input()}}
 
     RETURN_TYPES = ('RS_MC_BUILD_PIPE',)
     RETURN_NAMES = ('building_pipe',)
@@ -60,8 +61,11 @@ class RSAnimaCharacterReference:
         'Independent source predictions are blended in their numbered target masks. '
         'Overlaps blend both sources. Quality is experimental; more references cost memory/time.')
 
-    def apply(self, image, character_id=1, strength=1., enabled=True, building_pipe=None):
+    def apply(self, image, character_id=1, strength=1., enabled=True, building_pipe=None,
+              anima_method='reference_frame'):
         from .character_builder import update_slot
+        if anima_method not in ('reference_frame', 'role_kv'):
+            raise ValueError('Choose reference_frame or role_kv for the Anima reference method.')
         if (type(enabled) is not bool or isinstance(strength, bool)
                 or not isinstance(strength, (int, float)) or not math.isfinite(strength) or not 0 <= strength <= 2):
             raise ValueError('Character reference strength must be 0–2 and enabled must be on/off.')
@@ -70,7 +74,13 @@ class RSAnimaCharacterReference:
             validate_image(image)
             pixels = (image[0].detach().cpu().clamp(0, 1).numpy()*255).round().astype(np.uint8)
             src = Image.fromarray(pixels)
-            ref = FrameImageReference(src.tobytes(), src.size, max(src.size), float(strength), character_id)
+            if anima_method == 'role_kv':
+                # The dedicated node keeps full source pixels; bound preparation
+                # separately to the tested adapter's reference token budget.
+                from .reference_image import prepare_reference
+                src, _ = prepare_reference(src, 768)
+            factory = RoleKVImageReference if anima_method == 'role_kv' else FrameImageReference
+            ref = factory(src.tobytes(), src.size, max(src.size), float(strength), character_id)
         return (update_slot(building_pipe, character_id, reference=ref),)
 
 
@@ -86,8 +96,8 @@ class RSAnimaReferenceAdapter:
         import folder_paths
         return {'required': {
             'model': ('MODEL',),
-            'adapter_name': (folder_paths.get_filename_list('loras'),
-                {'tooltip': 'Anima reference-frame adapter weights, not an ordinary style LoRA. Download separately; see weight license.'}),
+            'adapter_name': (folder_paths.get_filename_list('loras') + ['Auto: Anima v2 (2B)'],
+                {'tooltip': 'Anima reference weights. Auto v2 downloads verified 2B weights on use; other variants can be installed in loras. See weight license.'}),
             'strength': ('FLOAT', {'default': 1., 'min': 0., 'max': 2., 'step': .05,
                 'tooltip': 'Learned adapter strength. Zero bypasses reference processing.'}),
             'reference_guidance': ('FLOAT', {'default': 4.5, 'min': 0., 'max': 20., 'step': .1,
@@ -97,7 +107,8 @@ class RSAnimaReferenceAdapter:
                 'tooltip': 'Reuse unchanged text K/V during this sample, up to 256 MiB. Automatically disabled with per-character LoRAs.'}),
             'reference_scale': ('FLOAT', {'default': 1., 'min': .5, 'max': 1., 'step': .05,
                 'tooltip': 'Reference width/height relative to target. 0.8 uses about 64% reference tokens; quality can change.'}),
-        }, 'optional': {'image': ('IMAGE', {'tooltip': 'Global reference. Leave unconnected to use numbered Character Reference nodes instead.'})}}
+        }, 'optional': {'image': ('IMAGE', {'tooltip': 'Global reference. Leave unconnected to use numbered Character Reference nodes instead.'})},
+            'hidden': {'unique_id': 'UNIQUE_ID'}}
 
     RETURN_TYPES = ('MODEL',)
     FUNCTION = 'apply'
@@ -108,7 +119,7 @@ class RSAnimaReferenceAdapter:
         'RS progressive sampling is supported. The detailer ignores image references.')
 
     def apply(self, model, image=None, adapter_name=None, strength=1., reference_guidance=4.5,
-              correction='apg', cache_text_kv=False, reference_scale=1.):
+              correction='apg', cache_text_kv=False, reference_scale=1., unique_id=None):
         from comfy.model_base import Anima
         import folder_paths
         if not isinstance(model.model, Anima):
@@ -128,12 +139,25 @@ class RSAnimaReferenceAdapter:
             return (result,)
         if image is not None:
             validate_image(image)
-        path = folder_paths.get_full_path_or_raise('loras', adapter_name)
+        if adapter_name == 'Auto: Anima v2 (2B)':
+            if len(model.get_model_object('diffusion_model').blocks) != 28:
+                raise ValueError('Anima reference v2 currently requires Anima 2B (28 blocks). / v2는 현재 Anima 2B용입니다.')
+            from .reference_assets import _verified_adapter
+            path = str(_verified_adapter('anima_frame_v2', unique_id))
+        else:
+            path = folder_paths.get_full_path_or_raise('loras', adapter_name)
+        from safetensors import safe_open
+        import json
+        with safe_open(path, framework='pt') as handle:
+            metadata = json.loads((handle.metadata() or {}).get('anima_ref_adapter', '{}'))
+        backend = 'asymmetric_v2' if metadata.get('arch') == 'asym' else 'pilot'
+        if backend == 'asymmetric_v2' and len(model.get_model_object('diffusion_model').blocks) != 28:
+            raise ValueError('Anima reference v2 currently requires Anima 2B (28 blocks).')
         result = model.clone()
         result.remove_wrappers_with_key(WrappersMP.DIFFUSION_MODEL, 'rs_ref_require')
         result.add_wrapper_with_key(WrappersMP.DIFFUSION_MODEL, 'rs_ref_require', require_sampler)
         result.model_options[PLAN] = ReferencePlan(image.detach().cpu().clone() if image is not None else None, path,
-            float(strength), float(reference_guidance), correction, cache_text_kv, reference_scale=float(reference_scale))
+            float(strength), float(reference_guidance), correction, cache_text_kv, reference_scale=float(reference_scale), backend=backend)
         return (result,)
 
 
@@ -353,6 +377,9 @@ class FrameRuntime:
     def load_weights(self, dm):
         if self.weights is not None:
             return
+        count = len(dm.blocks)
+        if count not in (28, 40):
+            raise ValueError('Anima reference adapter supports 2B (28 blocks) or 2.9B (40 blocks).')
         import comfy.utils
         state = comfy.utils.load_torch_file(self.plan.adapter_path, safe_load=True)
         weights = {}
@@ -361,23 +388,38 @@ class FrameRuntime:
                 continue
             name = key[len('diffusion_model.'):-len('.lora_down.weight')]
             up = state.get(key.replace('lora_down', 'lora_up'))
-            module = dm.get_submodule(name)
+            try:
+                module = dm.get_submodule(name)
+            except AttributeError as error:
+                raise ValueError(f'Anima reference adapter does not match this model: {name}') from error
             if (up is None or down.ndim != 2 or up.ndim != 2 or up.shape[1] != down.shape[0]
+                    or down.shape[0] < 1 or not down.is_floating_point() or not up.is_floating_point()
                     or tuple(module.weight.shape) != (up.shape[0], down.shape[1])
                     or not torch.isfinite(down).all() or not torch.isfinite(up).all()):
                 raise ValueError(f'Invalid Anima reference adapter layer: {name}')
-            alpha = float(state.get(key.replace('lora_down.weight', 'alpha'), down.shape[0]))
+            alpha_value = state.get(key.replace('lora_down.weight', 'alpha'), down.shape[0])
+            if isinstance(alpha_value, torch.Tensor) and alpha_value.numel() != 1:
+                raise ValueError(f'Invalid adapter alpha: {name}')
+            alpha = float(alpha_value)
             if not math.isfinite(alpha):
                 raise ValueError(f'Invalid adapter alpha: {name}')
             weights[name] = [down, up, self.plan.strength*alpha/down.shape[0]]
-        expected = {f'blocks.{i}.{part}' for i in range(len(dm.blocks)) for part in (
+        # The published 2.9B conversion maps the 28 trained blocks around
+        # twelve inserted blocks (Gazingstars123/Anima-2.9B expand_manifest.json).
+        # Those blocks run normally without adapter hooks.
+        inserted = {2, 5, 8, 11, 14, 17, 21, 24, 27, 30, 33, 36}
+        mapped = set(range(count)) - (inserted if count == 40 else set())
+        expected = {f'blocks.{i}.{part}' for i in mapped for part in (
             'self_attn.q_proj', 'self_attn.k_proj', 'self_attn.v_proj', 'self_attn.output_proj',
             'cross_attn.q_proj', 'cross_attn.k_proj', 'cross_attn.v_proj', 'cross_attn.output_proj',
             'mlp.layer1', 'mlp.layer2')}
         if set(weights) != expected:
-            raise ValueError('Select anima_ref_adapter_pilot_r32 weights, not an ordinary LoRA. / 참조 어댑터 전용 가중치를 선택해 주세요.')
+            variant = 'pilot_r32_29B' if count == 40 else 'pilot_r32'
+            raise ValueError(f'Anima reference adapter does not match this model. Select {variant} weights. / '
+                             '모델에 맞는 참조 어댑터를 선택해 주세요. 2.9B는 변환된 29B 가중치가 필요합니다.')
         self.weights = weights
-        self.audit['adapter_layers'] = len(weights)
+        self.audit.update(adapter_layers=len(weights), model_blocks=count, adapter_blocks=len(mapped),
+                          unchanged_new_blocks=sorted(set(range(count)) - mapped))
 
     @contextmanager
     def installed(self, dm, context, active):

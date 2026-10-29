@@ -6,13 +6,15 @@ ComfyUIでキャラクター別のプロンプト・LoRA・領域を設定して
 
 [English](README.md) · [한국어](README.ko.md) · [ドキュメント](docs/README.md) · [変更履歴](CHANGELOG.md) · [リリース](https://github.com/raspie10032/ComfyUI_RS_MultiCharacter_Sampler/releases) · [简体中文](README.zh-CN.md) · [繁體中文](README.zh-TW.md)
 
-**現在のバージョン：[1.0.6 Hangeul](docs/release-1.0.6.md)。** ローカルモデルで動作し、RS NovelAI拡張やAPIキーは不要です。
+**現在のバージョン：[1.0.7 Hangeul](docs/release-1.0.7.md)。** ローカルモデルで動作し、RS NovelAI拡張やAPIキーは不要です。
 
 ![LoRAなしのAnima 2人生成例](examples/two-characters-result.png)
 
 **カメラ視点:** [RS Camera Control](docs/camera-control.md) はRS・NAI共通コンテキストに視点タグを追加します。方向・高さ・距離・ランダム視点をノード内で調整し、領域の拡縮・回転・平面透視変換を選べます。生成される3D姿勢はモデルに依存します。
 
 **カメラ機能の参考元:** [Animaカメラタグ補助](https://arca.live/b/aiart/179423561) / `ComfyUI-KR-Camera-Control`（原典表記：`ComfyUI_bsk_UI` / 灰暗x）。[参考範囲とクレジット](THIRD_PARTY_NOTICES.md#camera-control-references)。
+
+**1.0.7 実験機能:** [3D人体エディター](docs/pose3d.md)で関節・手・カメラを編集し、番号別マスクとポーズ画像を出力します。マスクだけなら追加重みは不要です。姿勢誘導には別途Anima 2B LLLiteアダプターが必要で、正確な関節や接触は保証しません。[ワークフローPNG](examples/pose3d/anima-native-pose.png)。[参照v2](docs/anima-reference-v2.md)はMODELアダプターノードで `Auto: Anima v2 (2B)` を明示的に選択します。測定では高速ですが髪・服の変化とメモリ増加があり、既定の参照方式を置き換えません。v2の2.9B・人物別LoRAは未対応です。
 
 ## 主な機能
 
@@ -23,6 +25,11 @@ ComfyUIでキャラクター別のプロンプト・LoRA・領域を設定して
 - PNG/WebPに生成情報を保存し、画像ローダーから復元します。
 
 座標やマスクはプロンプトの適用領域を誘導します。正確な人数・同一性・姿勢・綴りはモデルに依存します。[画像参照](docs/image-reference.md)も**実験的に対応していますが非推奨**です。対応するキャラクターLoRAがあれば優先してください。
+
+
+**Anima Role K/V・実験的:** 画像参照ノードから番号別領域用の独立したK/Vを選択できます。専用アダプター約504 MiBは初回生成時に自動取得します。既定値は従来の参照フレームです。[使い方・制限・検証](docs/anima-role-kv.md)。
+
+**Anima 2B・2.9B参照フレーム：** チェックポイントはユーザーが選択し、対応する参照アダプターを自動取得します。品質と速度はモデルによって異なります。別方式のRole K/Vは現在2B専用です。[使い方・制限](docs/anima-reference-frame.md)。
 
 ## インストールと更新
 

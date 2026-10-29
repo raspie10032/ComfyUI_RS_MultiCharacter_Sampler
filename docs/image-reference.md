@@ -31,6 +31,12 @@ No external IP-Adapter/model-patch node is needed for this input.
 - **Metadata:** saves reference number, fingerprint, resolution and strength,
   not image pixels. Reconnect source images after loading generation metadata.
 
+## Optional Anima Role K/V
+
+Choose `anima_method = role_kv` on each numbered Image Reference node to use the
+new dedicated adapter. It downloads automatically on first sampling.
+`reference_frame` remains the default and supports 2B / 2.9B; `role_kv` uses 2B-only weights. [Connection, routing differences and limits](anima-role-kv.md).
+
 ## Model-specific paths
 
 Install `requirements-reference.txt` using ComfyUI's Python and restart. Weight
@@ -39,7 +45,7 @@ Model licenses are separate. Sources and revisions are in `reference_assets.json
 
 | Family | Reference processing | Requirements and limits |
 |---|---|---|
-| **Anima** | ElectronGirl clean reference frames with the optimized RS regional attention | Automatically loads the pinned reference adapter. The common Image Reference node works; no extra MODEL adapter is required. Reference text K/V cache defaults OFF. Progressive resolution is supported. |
+| **Anima** | ElectronGirl clean reference frames with optimized RS regional attention, Anima 2B / 2.9B | Automatically loads the matching pinned 28-block / 40-block reference adapter. User selects the checkpoint. The common Image Reference node works; no extra MODEL adapter is required. Reference text K/V cache defaults OFF. Progressive resolution is supported. |
 | **Krea 2** | Identity Edit **v2 r64**, image-grounded per-character text and clean VAE source tokens | Preserves source aspect ratio and uses the upstream `[text, references, target]` order. References sit beside the target in position space. Models without the matching vision text encoder are unsupported. |
 | **FLUX.1** | Native Kontext reference latents with per-character routing | **Select a Kontext checkpoint** with its matching CLIP/T5 and VAE. Ordinary Dev/Schnell are not trained as Kontext; this node does not switch checkpoints automatically. Redux is no longer used for this input. |
 | **FLUX.2 / FLUX 3** | Native reference latents with per-character routing | Keep source aspect ratio, align to VAE grid and share repeated attention-prior rows. Variant-specific encoders and VAE remain required. |

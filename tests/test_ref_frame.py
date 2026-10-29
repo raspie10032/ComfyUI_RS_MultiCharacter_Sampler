@@ -136,9 +136,12 @@ class RefFrameTests(unittest.TestCase):
 
     def test_adapter_file_failure_has_no_live_hooks(self):
         rt=self.runtime();rt.weights=None
-        with patch('comfy.utils.load_torch_file',return_value={}):
+        # Valid architecture reaches file validation; the tiny math model has
+        # only two blocks and would otherwise fail before reading any weights.
+        with patch('comfy.utils.load_torch_file',return_value={}) as loader:
             with self.assertRaisesRegex(ValueError,'참조 어댑터'):
-                rt.load_weights(self.dm)
+                rt.load_weights(SimpleNamespace(blocks=[None]*28))
+        loader.assert_called_once_with('unused',safe_load=True)
         self.assertTrue(all('compute_qkv' not in b.cross_attn.__dict__ for b in self.dm.blocks))
 
     def test_numbered_reference_key_isolation_and_overlap(self):

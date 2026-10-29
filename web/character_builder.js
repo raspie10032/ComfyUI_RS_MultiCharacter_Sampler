@@ -2,11 +2,12 @@ import { chineseLocale, chineseText } from "./i18n.js";
 import { app } from "../../scripts/app.js";
 import { maskPreview, rememberMaskPreview, placedSupport } from "./mask_preview.js";
 import { poseSupports } from "./pose_masks.js";
+import { pose3dSupports } from "./pose3d.js";
 import { drawingSupports } from "./mask_drawing.js";
 import { addPositionEditor } from "./position_editor.js";
 import { cameraSlots } from "./camera_regions.js";
 
-const roles = new Set(["RSMultiCharacterPrompt", "RSMultiCharacterLoRA", "RSMultiCharacterPosition", "RSMultiCharacterMask", "RSMultiCharacterMaskDraw", "RSMultiCharacterPoseMasks", "RSMultiCharacterInteraction", "RSMultiCharacterReference"]);
+const roles = new Set(["RSMultiCharacterPrompt", "RSMultiCharacterLoRA", "RSMultiCharacterPosition", "RSMultiCharacterMask", "RSMultiCharacterMaskDraw", "RSMultiCharacterPoseMasks", "RSMultiCharacterPose3D", "RSMultiCharacterInteraction", "RSMultiCharacterReference"]);
 const finalType = "RSMultiCharacterFinalize";
 const colors = ["#ff8d91", "#81bcff", "#94dd9d", "#ffd27f", "#c3a0ff", "#7fe5df", "#f5a6d8", "#cedd78", "#c7b6a2", "#e0e5ed"];
 const typeOf = node => node?.comfyClass ?? node?.type;
@@ -99,18 +100,19 @@ function collectState(node, seen = new Set()) {
             continue;
         }
         if (type === "RSMultiCharacterInteraction" || type === "RSMultiCharacterReference") continue;
-        if (type === "RSMultiCharacterPoseMasks") {
-            const pose = poseSupports(item);
-            for (const slot of slots.values()) if (slot.poseOwned && slot.id > pose.masks.length) {
+        if (type === "RSMultiCharacterPoseMasks" || type === "RSMultiCharacterPose3D") {
+            const pose = type === "RSMultiCharacterPose3D" ? pose3dSupports(item) : poseSupports(item);
+            const present=new Set(pose.masks.map((m,i)=>m.number??i+1));
+            for (const slot of slots.values()) if (slot.poseOwned && !present.has(slot.id)) {
                 slot.masked = false; slot.maskSupport = null; slot.poseOwned = false;
             }
             pose.masks.forEach((support,index) => {
-                const id=index+1;
+                const id=support.number??index+1;
                 const slot=slots.get(id)??{id,enabled:true,kind:"character",geometry:"point",x:.5,y:.5,width:.4,height:.8};
                 slot.masked=true;slot.maskSupport=support;slot.poseOwned=true;slots.set(id,slot);
             });
             unknown ||= pose.unknown;
-            lastCount=Math.max(lastCount,pose.masks.length);
+            lastCount=Math.max(lastCount,...pose.masks.map((m,i)=>m.number??i+1));
             continue;
         }
         if (type === "RSMultiCharacterMask") {

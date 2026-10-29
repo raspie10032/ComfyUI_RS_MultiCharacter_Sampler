@@ -6,13 +6,15 @@
 
 [English](README.md) · [한국어](README.ko.md) · [日本語](README.ja.md) · [简体中文](README.zh-CN.md) · **繁體中文** · [詳細文件](docs/README.md) · [更新記錄](CHANGELOG.md) · [釋出版本](https://github.com/raspie10032/ComfyUI_RS_MultiCharacter_Sampler/releases)
 
-**當前版本：[1.0.6 Hangeul](docs/release-1.0.6.md)。** 使用本地模型，無需安裝 RS NovelAI 擴充套件或提供 API 金鑰。
+**當前版本：[1.0.7 Hangeul](docs/release-1.0.7.md)。** 使用本地模型，無需安裝 RS NovelAI 擴充套件或提供 API 金鑰。
 
 ![未使用 LoRA 的 Anima 雙角色示例](examples/two-characters-result.png)
 
 **相機視角：** [RS Camera Control](docs/camera-control.md) 向RS與NAI共用上下文加入視角標籤，可在節點內調整方向、高度、距離、隨機視角，還可選擇區域縮放、旋轉和平面透視變換。生成的三維姿態取決於模型。
 
 **相機功能參考：** [Anima 相機標籤輔助](https://arca.live/b/aiart/179423561) / `ComfyUI-KR-Camera-Control`（原始署名：`ComfyUI_bsk_UI` / 灰暗x）。[參考範圍與來源說明](THIRD_PARTY_NOTICES.md#camera-control-references)。
+
+**1.0.7 實驗功能：**[3D人體編輯器](docs/pose3d.md)可調整關節、手部和相機，輸出編號遮罩與姿勢影像。僅使用遮罩無需額外權重；姿勢引導需要另接Anima 2B LLLite轉接器，不保證精確關節或接觸。[工作流程PNG](examples/pose3d/anima-native-pose.png)。[參考v2](docs/anima-reference-v2.md)需在MODEL轉接器節點中選擇 `Auto: Anima v2 (2B)`。實測較快，但可能改變頭髮、服裝並增加記憶體，不取代預設參考路徑。v2不支援2.9B或角色獨立LoRA。
 
 ## 主要功能
 
@@ -23,6 +25,11 @@
 - 儲存 PNG/WebP 生成設定，並透過影像載入器恢復。
 
 座標與遮罩只引導提示詞影響區域，不保證準確人數、身份、姿勢或文字拼寫。[角色影像參考](docs/image-reference.md) 為**實驗性支援，不推薦使用**；有合適的角色 LoRA 時優先使用 LoRA。
+
+
+**Anima Role K/V · 實驗性：** 影像參考節點可選擇編號區域各自獨立的參考K/V。首次生成時自動下載約504 MiB專用轉接器，預設仍使用原有參考影格。[使用方法、限制與驗證](docs/anima-role-kv.md)。
+
+**Anima 2B/2.9B參考影格：** 使用者自行選擇檢查點，採樣器自動準備符合模型的參考轉接器。品質與速度可能不同。獨立的Role K/V轉接器目前僅支援2B。[用法與限制](docs/anima-reference-frame.md)。
 
 ## 安裝與更新
 

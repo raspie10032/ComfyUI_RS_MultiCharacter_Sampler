@@ -1,4 +1,12 @@
 {
+  "anima_role_kv": {
+    "repo": "AnticPan/Anima-Role-Ref-KV",
+    "revision": "259a0dce876ed70fc8835b888139756e23fb8a9f",
+    "file": "comfy/anima-role-ref-kv-v1.0.safetensors",
+    "folder": "ipadapter",
+    "subdir": "anima_role_kv",
+    "sha256": "102dcc38b48f984844305fff5c04730a857603f8796f47e92b67c61baef124bb"
+  },
   "anima_adapter": {
     "repo": "LuciferTC/Anima-IP-Adapter",
     "revision": "99e9c351c9f00bdd188b5added0066a80d3b1de6",
@@ -87,6 +95,14 @@
     "subdir": "redux_encoder",
     "sha256": null
   },
+  "anima_frame_v2": {
+    "repo": "ElectronGirl/anima-ref-adapter",
+    "revision": "e05a8d21ad3f3aeb68875c5ed0e85787cfba79b0",
+    "file": "anima_ref_adapter_v2_r64.safetensors",
+    "folder": "ipadapter",
+    "subdir": "anima_frame_v2",
+    "sha256": "71dda6079e18d354e16e3347bc49a9b710afd9495c378efbb833d30cac9cb81b"
+  },
   "anima_frame": {
     "repo": "ElectronGirl/anima-ref-adapter",
     "revision": "fed1e98a11a9b81d4ad274fd23cacc531fd4617e",
@@ -94,5 +110,13 @@
     "folder": "ipadapter",
     "subdir": "anima_frame",
     "sha256": "d42a07284a82ababd783a893db48048d0cfa0c3fdc0cda51fa82369755ed13ab"
+  },
+  "anima29_frame": {
+    "repo": "pamparamm/anima-ref-adapter-2.9B-converted",
+    "revision": "9ad676167584f291d08b4972db5de986ee03d6b4",
+    "file": "anima_ref_adapter_pilot_r32_29B.safetensors",
+    "folder": "ipadapter",
+    "subdir": "anima29B_frame",
+    "sha256": "fcf7c3b134a3fa522264cb8c3117bed9a32a634448cbf2a3d36213925ec52ebe"
   }
 }

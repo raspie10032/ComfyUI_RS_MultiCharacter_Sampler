@@ -1,6 +1,7 @@
 # SPDX-License-Identifier: GPL-3.0-only
 from .characters import RSMultiCharacterPrompts
 from .pose_nodes import RSMultiCharacterPoseMasks
+from .pose3d_node import RSMultiCharacterPose3D
 from .interaction import RSMultiCharacterInteraction
 from .character_builder import (RSMultiCharacterPrompt, RSMultiCharacterLoRA,
                                 RSMultiCharacterPosition, RSMultiCharacterFinalize, RSMultiCharacterMask)
@@ -15,6 +16,7 @@ from .progressive import RSMultiCharacterProgressiveSampler
 from .anima_ref_frame import RSAnimaReferenceAdapter, RSAnimaCharacterReference
 
 NODE_CLASS_MAPPINGS = {
+    "RSMultiCharacterPose3D": RSMultiCharacterPose3D,
     "RSAnimaCharacterReference": RSAnimaCharacterReference,
     "RSAnimaReferenceAdapter": RSAnimaReferenceAdapter,
     "RSMultiCharacterProgressiveSampler": RSMultiCharacterProgressiveSampler,
@@ -36,6 +38,7 @@ NODE_CLASS_MAPPINGS = {
     "RSMultiCharacterTaggerLoader": RSMultiCharacterTaggerLoader,
 }
 NODE_DISPLAY_NAME_MAPPINGS = {
+    "RSMultiCharacterPose3D": "RS 3D Pose Masks (Experimental)",
     "RSAnimaCharacterReference": "RS Anima Character Reference (Experimental)",
     "RSAnimaReferenceAdapter": "RS Anima Reference Frame (Experimental)",
     "RSMultiCharacterProgressiveSampler": "RS Progressive Resolution Sampler",
@@ -63,6 +66,6 @@ for node_class in NODE_CLASS_MAPPINGS.values():
     shared_pipe_inputs(node_class)
 
 WEB_DIRECTORY = "./web"
-__version__ = "1.0.6"
+__version__ = "1.0.7"
 
 __all__ = ["NODE_CLASS_MAPPINGS", "NODE_DISPLAY_NAME_MAPPINGS", "WEB_DIRECTORY"]

@@ -42,6 +42,7 @@ class BuildPipe:
     interaction_json: str | None = None
     source_pipe: CharacterPipe | None = field(default=None, repr=False)
     camera_settings: tuple = ()
+    pose3d_masks: tuple = ()
 
     def rs_defer_camera(self, options):
         """A global view applies after slot assembly, independent of role order."""

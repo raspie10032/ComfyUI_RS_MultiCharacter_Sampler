@@ -36,7 +36,10 @@ export function nodeHelp(node) {
             break;
         case "RSAnimaCharacterReference":
             add("Match the Prompt/Position number. Regions read their own references; overlaps read both.", "프롬프트·위치와 번호를 맞추세요. 각 영역은 자기 참조를 읽고 겹친 영역은 양쪽을 읽습니다.", "Prompt/Positionと番号を合わせます。各領域は自分の参照、重なりは両方を読みます。");
-            add("Connect the reference adapter to MODEL. More references increase memory and time; identity separation is experimental.", "모델에 참조 어댑터를 연결하세요. 참조 수에 따라 메모리·시간이 늘며 외형 분리는 실험 단계입니다.", "MODELへ参照アダプターを接続。参照が増えるとメモリと時間が増加。人物分離は実験段階。");
+            if (v('anima_method', 'reference_frame') === 'role_kv')
+                add('Role K/V: Anima 2B only; no MODEL adapter node. Downloads 504 MiB once; balanced routing, Normal character LoRAs only.', 'Role K/V는 Anima 2B 전용. 모델 어댑터 노드를 분리하세요. 최초 504MiB 자동 다운로드. 균형 영역 제어·캐릭터 LoRA 일반 적용 전용입니다.', 'Role K/V：Anima 2B専用。MODELアダプターノードは外します。初回504MiB自動取得。均衡領域制御・人物LoRAは通常モード専用。');
+            else
+                add("Anima 2B / 2.9B: matching adapter downloads automatically. More references cost time/memory; identity separation is experimental.", "Anima 2B·2.9B에 맞는 어댑터를 자동으로 받습니다. 참조 수에 따라 메모리·시간이 늘며 외형 분리는 실험 단계입니다.", "Anima 2B・2.9B用アダプターを自動取得。参照が増えるとメモリと時間が増加。人物分離は実験段階。");
             break;
         case "RSMultiCharacterInteraction":
             if (v("preset", "baseline") === "baseline")
@@ -52,6 +55,10 @@ export function nodeHelp(node) {
             add(`Character ${v("character_id", 1)} · ${v("resolution", 384)}px · strength ${v("strength", .6)}`, `캐릭터 ${v("character_id", 1)} · ${v("resolution", 384)}px · 강도 ${v("strength", .6)}`, `キャラクター${v("character_id", 1)} · ${v("resolution", 384)}px · 強度${v("strength", .6)}`);
             add("Reuses its point/box/mask. Prefer a character LoRA; reference fidelity varies. OFF or strength 0 skips reference models.", "해당 번호의 포인트·박스·마스크를 사용합니다. 품질 편차가 있어 캐릭터 LoRA를 우선 권장합니다. OFF·강도 0은 참조 모델을 사용하지 않습니다.", "同じ番号のPoint・Box・Maskを使用。再現品質に差があるためLoRAを推奨。OFF・強度0で参照用モデルを使いません。");
             add("Sampler only. Saved metadata records settings, not reference images.", "샘플러 전용입니다. 저장 메타데이터에는 설정만 기록하며 참조 이미지는 포함하지 않습니다.", "Sampler専用。保存メタデータには設定のみ記録し、参照画像は含みません。");
+            if (v('anima_method', 'reference_frame') === 'role_kv')
+                add('Anima Role K/V: 2B only; downloads a 504 MiB adapter once. Balanced routing; character LoRAs need Normal mode. Reference methods cannot be mixed.', 'Anima Role K/V: 2B 전용·최초 504MiB 어댑터 자동 다운로드. 균형 영역 제어를 쓰며 캐릭터 LoRA는 일반 적용으로 선택하세요. 참조 방식을 혼용할 수 없습니다.', 'Anima Role K/V：2B専用・初回504MiB自動取得。均衡領域制御・人物LoRAは通常モード。参照方式は混在できません。');
+            else
+                add('Anima 2B / 2.9B: matching reference-frame adapter downloads automatically.', 'Anima 2B·2.9B: 모델에 맞는 참조 프레임 어댑터를 자동으로 받습니다.', 'Anima 2B・2.9B：対応する参照フレームアダプターを自動取得。');
             break;
         case "RSMultiCharacterMaskDraw":
             add("Mask drawing · choose a number, then paint", "마스크 그리기 · 번호 선택 후 칠하기", "マスク描画 · 番号を選んで塗る");

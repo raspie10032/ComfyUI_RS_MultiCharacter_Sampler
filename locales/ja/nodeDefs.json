@@ -1002,6 +1002,14 @@
       },
       "building_pipe": {
         "name": "組み立てパイプ"
+      },
+      "anima_method": {
+        "name": "Anima参照方式",
+        "tooltip": "Anima 2B・2.9B：reference_frameはモデルに合うアダプターを自動取得。role_kvは2B専用、初回504 MiB取得。BF16/FP32・人物LoRAは通常モード専用。",
+        "options": {
+          "reference_frame": "従来の参照フレーム",
+          "role_kv": "領域別Role K/V"
+        }
       }
     },
     "outputs": {
@@ -1182,6 +1190,46 @@
       },
       "building_pipe": {
         "name": "ビルドパイプ"
+      },
+      "anima_method": {
+        "name": "Anima参照方式",
+        "tooltip": "Anima 2B・2.9B：reference_frameはモデルに合うアダプターを自動取得。role_kvは2B専用、初回504 MiB取得。BF16/FP32・人物LoRAは通常モード専用。",
+        "options": {
+          "reference_frame": "従来の参照フレーム",
+          "role_kv": "領域別Role K/V"
+        }
+      }
+    }
+  },
+  "RSMultiCharacterPose3D": {
+    "display_name": "RS 3Dポーズマスク（試験版）",
+    "description": "3D人体の関節・手・カメラから番号別マスクとポーズ画像を作ります。マスクには追加モデル不要。姿勢誘導には別途Anima 2B LLLiteアダプターが必要で、正確な関節・接触は保証しません。",
+    "inputs": {
+      "scene_json": {
+        "name": "3Dシーン"
+      },
+      "building_pipe": {
+        "name": "組み立てパイプ"
+      }
+    },
+    "outputs": {
+      "building_pipe": {
+        "name": "組み立てパイプ"
+      },
+      "mask_preview": {
+        "name": "マスクプレビュー"
+      },
+      "full_masks": {
+        "name": "全体マスク"
+      },
+      "visible_masks": {
+        "name": "可視マスク"
+      },
+      "scene_info": {
+        "name": "シーン情報"
+      },
+      "pose_image": {
+        "name": "ポーズ画像"
       }
     }
   }

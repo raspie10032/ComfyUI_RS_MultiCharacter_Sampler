@@ -45,6 +45,7 @@ class AnimaRouting:
         self.sigmas = None
         self.spatial_bias = None
         self.spatial_bias_separation = None
+        self.role_kv_runtime = None
 
     def sample(self, executor, *args, **kwargs):
         guider, sigmas, extra, _, noise, latent, denoise_mask, *_ = args
@@ -77,6 +78,9 @@ class AnimaRouting:
 
         self.process = process
         try:
+            if self.role_kv_runtime is not None:
+                with self.role_kv_runtime.sampling():
+                    return executor(*args, **kwargs)
             return executor(*args, **kwargs)
         finally:
             self.contexts = self.groups = self.process = self.part_cells = None
@@ -96,6 +100,8 @@ class AnimaRouting:
             if self.process is None:
                 raise RuntimeError("Spatial adapter was not initialized by the sampler")
             self.contexts = self.process()
+        if self.role_kv_runtime is not None:
+            self.role_kv_runtime.prepare_grid(model, x)
         actual_grid = [s // model.patch_spatial for s in x.shape[-2:]]
         if self.groups is None or self.audit.get("token_grid") != actual_grid:
             self.groups = self.part_cells = self.spatial_bias = None
@@ -207,6 +213,17 @@ class AnimaRouting:
 
         def spatial(q, k, v, transformer_options=None, preferred_attention=None):
             q, k, v = (t if isinstance(t, torch.Tensor) else t.take() for t in (q, k, v))
+            if options.get('rs_reference_asymmetric'):
+                from .reference_spatial import compact_bias, rectangular_attention
+                size = actual_grid[0]*actual_grid[1]
+                key = ('asymmetric', separation, exclusive_separation, q.shape[1], k.shape[1])
+                if self.spatial_bias is None or self.spatial_bias_separation != key:
+                    self.spatial_bias = compact_bias(self.groups, size, k.shape[1], q,
+                        separation if weak_spatial else 0., exclusive_separation if weak_spatial else None)
+                    self.spatial_bias_separation = key
+                self.audit['self_calls'] += 1
+                record['self_blocks'].append(transformer_options['block_index'])
+                return rectangular_attention(q, k, v, self.spatial_bias)
             if (weak_spatial and options.get('rs_reference_compact_spatial')
                     and options.get('rs_reference_frame') and not options.get('rs_reference_slots')):
                 from .reference_spatial import compact_bias, compact_attention

@@ -1,12 +1,15 @@
 // SPDX-License-Identifier: GPL-3.0-only
 // Simplified Chinese / Traditional Chinese (Taiwan) display text.
 export const zhMessages = {
+  "Anima 2B / 2.9B: matching reference-frame adapter downloads automatically.": ["Anima 2B/2.9B：自动下载匹配的参考帧适配器。", "Anima 2B/2.9B：自動下載符合模型的參考影格轉接器。"],
+  "Role K/V: Anima 2B only; no MODEL adapter node. Downloads 504 MiB once; balanced routing, Normal character LoRAs only.": ["Role K/V：仅限Anima 2B，无需MODEL适配器节点。首次下载504MiB，采用均衡分区控制，角色LoRA仅支持普通模式。", "Role K/V：僅限Anima 2B，無需MODEL轉接器節點。首次下載504MiB，採用均衡分區控制，角色LoRA僅支援一般模式。"],
+  "Anima Role K/V: 2B only; downloads a 504 MiB adapter once. Balanced routing; character LoRAs need Normal mode. Reference methods cannot be mixed.": ["Anima Role K/V：仅限2B，首次下载504MiB适配器。均衡分区控制，角色LoRA需普通模式，不可混用参考方式。", "Anima Role K/V：僅限2B，首次下載504MiB轉接器。均衡分區控制，角色LoRA需一般模式，不可混用參考方式。"],
   "Global image: guidance 1 skips an extra prediction; the image changes.": ["全局图像：引导值1跳过额外预测，图像会改变。", "全域影像：引導值1略過額外預測，影像會改變。"],
   "Smaller references change quality; target resolution stays unchanged.": ["缩小参考图可能改变质量；生成分辨率不变。", "縮小參考圖可能改變品質；生成解析度不變。"],
   "Global image OR numbered character images; Anima + RS sampler only.": ["全局图像或按角色编号的图像；仅限Anima和RS采样器。", "全域影像或按角色編號的影像；僅限Anima和RS採樣器。"],
   "Use dedicated adapter weights. Disconnect image for numbered references. Progressive sampling is supported.": ["请选择专用适配器。逐角色参考时断开全局图像。支持渐进采样。", "請選擇專用轉接器。逐角色參考時中斷全域影像。支援漸進採樣。"],
   "Match the Prompt/Position number. Regions read their own references; overlaps read both.": ["与提示词及位置的编号一致。各区域使用自己的参考，重叠区混合两者。", "與提示詞及位置的編號一致。各區域使用自己的參考，重疊區混合兩者。"],
-  "Connect the reference adapter to MODEL. More references increase memory and time; identity separation is experimental.": ["将参考适配器连接至MODEL。参考越多，耗时和内存越大；角色分离仍属实验。", "將參考轉接器連接至MODEL。參考越多，耗時和記憶體越大；角色分離仍屬實驗。"],
+  "Anima 2B / 2.9B: matching adapter downloads automatically. More references cost time/memory; identity separation is experimental.": ["Anima 2B/2.9B自动下载匹配的适配器。参考越多，耗时和内存越大；角色分离仍属实验。", "Anima 2B/2.9B自動下載符合模型的轉接器。參考越多，耗時和記憶體越大；角色分離仍屬實驗。"],
   "One global reference; Anima + RS sampler only.": ["一张全局参考图；仅适用于 Anima + RS 采样器。", "一張全域參考圖；僅適用於 Anima + RS 採樣器。"],
   "Guidance 1 skips an extra prediction; the image changes.": ["引导值为1时跳过额外预测，图像会改变。", "引導值為1時跳過額外預測，圖像會改變。"],
   "Use dedicated adapter weights. Per-character references and progressive sampling cannot be combined.": ["请选择专用适配器权重。不可与逐角色参考或渐进采样同时使用。", "請選擇專用適配器權重。不可與逐角色參考或漸進採樣同時使用。"],
@@ -884,5 +887,11 @@ export const zhMessages = {
     "执行时下载缺失的目录 SEGM/BBOX 模型，并复用缓存。SAM 需提前安装，OFF 不加载。\n按面部、眼睛、手、衣物或人物选择检测模型。折叠可选项后，设置仍然生效。",
     "執行時下載缺失的目錄 SEGM/BBOX 模型，並複用快取。SAM 需提前安裝，OFF 不載入。\n按面部、眼睛、手、衣物或人物選擇檢測模型。摺疊可選項後，設定仍然生效。"
   ],
-  "Region shape": ["区域形状", "區域形狀"]
+  "Region shape": ["区域形状", "區域形狀"],
+  "Edit the connected scene at its source.": ["请在来源节点编辑已连接的场景。", "請在來源節點編輯已連接的場景。"],
+  "Open 3D editor": ["打开3D编辑器", "開啟3D編輯器"],
+  "Close editor": ["关闭编辑器", "關閉編輯器"],
+  "Character slots: ": ["角色编号：", "角色編號："],
+  "Run once to preview the connected scene.": ["运行一次以预览已连接的场景。", "執行一次以預覽已連接的場景。"],
+
 };

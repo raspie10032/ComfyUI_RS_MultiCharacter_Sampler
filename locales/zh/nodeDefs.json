@@ -1685,6 +1685,14 @@
       },
       "building_pipe": {
         "name": "构建管线"
+      },
+      "anima_method": {
+        "name": "Anima 参考方式",
+        "tooltip": "Anima 2B/2.9B：reference_frame自动下载匹配模型的适配器。role_kv仅支持2B，首次下载504 MiB。仅BF16/FP32；角色LoRA使用普通模式。",
+        "options": {
+          "reference_frame": "原有参考帧",
+          "role_kv": "分区Role K/V"
+        }
       }
     },
     "outputs": {
@@ -2006,6 +2014,46 @@
       },
       "building_pipe": {
         "name": "构建管线"
+      },
+      "anima_method": {
+        "name": "Anima 参考方式",
+        "tooltip": "Anima 2B/2.9B：reference_frame自动下载匹配模型的适配器。role_kv仅支持2B，首次下载504 MiB。仅BF16/FP32；角色LoRA使用普通模式。",
+        "options": {
+          "reference_frame": "原有参考帧",
+          "role_kv": "分区Role K/V"
+        }
+      }
+    }
+  },
+  "RSMultiCharacterPose3D": {
+    "display_name": "RS 3D姿势遮罩（实验版）",
+    "description": "通过3D人体关节、手部和相机生成编号遮罩与姿势图像。遮罩无需额外模型。姿势引导需要另接Anima 2B LLLite适配器，不保证精确关节或接触。",
+    "inputs": {
+      "scene_json": {
+        "name": "3D场景"
+      },
+      "building_pipe": {
+        "name": "构建管道"
+      }
+    },
+    "outputs": {
+      "building_pipe": {
+        "name": "构建管道"
+      },
+      "mask_preview": {
+        "name": "遮罩预览"
+      },
+      "full_masks": {
+        "name": "完整遮罩"
+      },
+      "visible_masks": {
+        "name": "可见遮罩"
+      },
+      "scene_info": {
+        "name": "场景信息"
+      },
+      "pose_image": {
+        "name": "姿势图像"
       }
     }
   }
