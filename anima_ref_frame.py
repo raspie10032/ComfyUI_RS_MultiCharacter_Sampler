@@ -31,6 +31,7 @@ class ReferencePlan:
     cache: bool
     character_mode: str = 'precision'
     reference_scale: float = 1.
+    backend: str = 'pilot'
 
 
 @dataclass(frozen=True)
@@ -95,8 +96,8 @@ class RSAnimaReferenceAdapter:
         import folder_paths
         return {'required': {
             'model': ('MODEL',),
-            'adapter_name': (folder_paths.get_filename_list('loras'),
-                {'tooltip': 'Anima reference-frame adapter weights, not an ordinary style LoRA. Download separately; see weight license.'}),
+            'adapter_name': (folder_paths.get_filename_list('loras') + ['Auto: Anima v2 (2B)'],
+                {'tooltip': 'Anima reference weights. Auto v2 downloads verified 2B weights on use; other variants can be installed in loras. See weight license.'}),
             'strength': ('FLOAT', {'default': 1., 'min': 0., 'max': 2., 'step': .05,
                 'tooltip': 'Learned adapter strength. Zero bypasses reference processing.'}),
             'reference_guidance': ('FLOAT', {'default': 4.5, 'min': 0., 'max': 20., 'step': .1,
@@ -106,7 +107,8 @@ class RSAnimaReferenceAdapter:
                 'tooltip': 'Reuse unchanged text K/V during this sample, up to 256 MiB. Automatically disabled with per-character LoRAs.'}),
             'reference_scale': ('FLOAT', {'default': 1., 'min': .5, 'max': 1., 'step': .05,
                 'tooltip': 'Reference width/height relative to target. 0.8 uses about 64% reference tokens; quality can change.'}),
-        }, 'optional': {'image': ('IMAGE', {'tooltip': 'Global reference. Leave unconnected to use numbered Character Reference nodes instead.'})}}
+        }, 'optional': {'image': ('IMAGE', {'tooltip': 'Global reference. Leave unconnected to use numbered Character Reference nodes instead.'})},
+            'hidden': {'unique_id': 'UNIQUE_ID'}}
 
     RETURN_TYPES = ('MODEL',)
     FUNCTION = 'apply'
@@ -117,7 +119,7 @@ class RSAnimaReferenceAdapter:
         'RS progressive sampling is supported. The detailer ignores image references.')
 
     def apply(self, model, image=None, adapter_name=None, strength=1., reference_guidance=4.5,
-              correction='apg', cache_text_kv=False, reference_scale=1.):
+              correction='apg', cache_text_kv=False, reference_scale=1., unique_id=None):
         from comfy.model_base import Anima
         import folder_paths
         if not isinstance(model.model, Anima):
@@ -137,12 +139,25 @@ class RSAnimaReferenceAdapter:
             return (result,)
         if image is not None:
             validate_image(image)
-        path = folder_paths.get_full_path_or_raise('loras', adapter_name)
+        if adapter_name == 'Auto: Anima v2 (2B)':
+            if len(model.get_model_object('diffusion_model').blocks) != 28:
+                raise ValueError('Anima reference v2 currently requires Anima 2B (28 blocks). / v2는 현재 Anima 2B용입니다.')
+            from .reference_assets import _verified_adapter
+            path = str(_verified_adapter('anima_frame_v2', unique_id))
+        else:
+            path = folder_paths.get_full_path_or_raise('loras', adapter_name)
+        from safetensors import safe_open
+        import json
+        with safe_open(path, framework='pt') as handle:
+            metadata = json.loads((handle.metadata() or {}).get('anima_ref_adapter', '{}'))
+        backend = 'asymmetric_v2' if metadata.get('arch') == 'asym' else 'pilot'
+        if backend == 'asymmetric_v2' and len(model.get_model_object('diffusion_model').blocks) != 28:
+            raise ValueError('Anima reference v2 currently requires Anima 2B (28 blocks).')
         result = model.clone()
         result.remove_wrappers_with_key(WrappersMP.DIFFUSION_MODEL, 'rs_ref_require')
         result.add_wrapper_with_key(WrappersMP.DIFFUSION_MODEL, 'rs_ref_require', require_sampler)
         result.model_options[PLAN] = ReferencePlan(image.detach().cpu().clone() if image is not None else None, path,
-            float(strength), float(reference_guidance), correction, cache_text_kv, reference_scale=float(reference_scale))
+            float(strength), float(reference_guidance), correction, cache_text_kv, reference_scale=float(reference_scale), backend=backend)
         return (result,)
 
 

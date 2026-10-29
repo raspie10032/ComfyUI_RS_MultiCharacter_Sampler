@@ -38,7 +38,8 @@ def _check_adapter(path, progress, name):
 
 def _adapter_label(name):
     return {'anima_role_kv': 'Anima Role K/V', 'anima_frame': 'Anima 2B reference-frame',
-            'anima29_frame': 'Anima 2.9B reference-frame'}[name]
+            'anima29_frame': 'Anima 2.9B reference-frame',
+            'anima_frame_v2': 'Anima 2B asymmetric v2'}[name]
 
 
 def frame_adapter(model, node_id=None):
@@ -88,7 +89,7 @@ def _verified_adapter(name, node_id=None):
         raise RuntimeError(f'{label} automatic download needs huggingface-hub. '
                            'Install requirements-reference.txt. / 이미지 참조 의존성을 설치해 주세요: requirements-reference.txt') from error
     filename = Path(spec['file']).name
-    size = '504 MiB' if name == 'anima_role_kv' else '88 MiB'
+    size = {'anima_role_kv': '504 MiB', 'anima_frame_v2': '175 MiB'}.get(name, '88 MiB')
     progress.report(f'Downloading {label} adapter ({size}) / 어댑터 다운로드 중', force=True)
     try:
         downloaded = hf_hub_download(spec['repo'], spec['file'], revision=spec['revision'],

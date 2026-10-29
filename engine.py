@@ -213,6 +213,17 @@ class AnimaRouting:
 
         def spatial(q, k, v, transformer_options=None, preferred_attention=None):
             q, k, v = (t if isinstance(t, torch.Tensor) else t.take() for t in (q, k, v))
+            if options.get('rs_reference_asymmetric'):
+                from .reference_spatial import compact_bias, rectangular_attention
+                size = actual_grid[0]*actual_grid[1]
+                key = ('asymmetric', separation, exclusive_separation, q.shape[1], k.shape[1])
+                if self.spatial_bias is None or self.spatial_bias_separation != key:
+                    self.spatial_bias = compact_bias(self.groups, size, k.shape[1], q,
+                        separation if weak_spatial else 0., exclusive_separation if weak_spatial else None)
+                    self.spatial_bias_separation = key
+                self.audit['self_calls'] += 1
+                record['self_blocks'].append(transformer_options['block_index'])
+                return rectangular_attention(q, k, v, self.spatial_bias)
             if (weak_spatial and options.get('rs_reference_compact_spatial')
                     and options.get('rs_reference_frame') and not options.get('rs_reference_slots')):
                 from .reference_spatial import compact_bias, compact_attention

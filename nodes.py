@@ -333,7 +333,13 @@ class RSMultiCharacterSampler:
                 start_scale=model.model_options.get('rs_progressive_scale', 1.),
                 follow=model.model_options.get('rs_reference_follow_resolution', False),
                 end_step=model.model_options.get('rs_reference_end_step'))
-            frame_runtime = FrameRuntime(frame_plan,
+            runtime_class = FrameRuntime
+            if frame_plan.backend == 'asymmetric_v2':
+                from .anima_ref_v2 import AsymmetricRuntime
+                if loras is not None:
+                    raise ValueError('Experimental Anima v2: per-character LoRAs are not validated yet. Use a global style LoRA for this experiment.')
+                runtime_class = AsymmetricRuntime
+            frame_runtime = runtime_class(frame_plan,
                 reference_latent, audit, cache_allowed=loras is None,
                 slots=[i for i, _ in frame_refs], strengths=[r.strength for _, r in frame_refs], masks=masks)
             frame_runtime.audit.update(preparation)
@@ -410,6 +416,8 @@ class RSMultiCharacterSampler:
         else:
             audit["lora_application"] = {"requested": lora_application_mode, "effective": "none", "fallback_reason": None}
         if frame_plan is not None:
+            if frame_plan.backend == 'asymmetric_v2':
+                frame_runtime.model_patcher = work
             work.add_wrapper_with_key(WrappersMP.DIFFUSION_MODEL, 'rs_ref_frame', frame_runtime.forward)
         if role_refs:
             work.add_wrapper_with_key(WrappersMP.DIFFUSION_MODEL, 'rs_anima_role_kv', role_runtime.forward)

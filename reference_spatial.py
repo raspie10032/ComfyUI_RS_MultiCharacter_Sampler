@@ -62,3 +62,14 @@ def compact_attention(q, k, v, bias):
     if bias.total > bias.size:
         out[:, bias.size:] = sdpa(q[:, bias.size:], k, v)
     return out
+
+
+def rectangular_attention(q, k, v, bias):
+    """Target-only queries with extra cached reference keys, cell-wise priors."""
+    if q.shape[1] != bias.size or k.shape != v.shape or k.shape[1] != bias.total:
+        raise ValueError('Asymmetric reference attention token layout mismatch.')
+    out = q.new_empty((*q.shape[:2], q.shape[2]*q.shape[3]))
+    for row, (_, indices) in zip(bias.rows, bias.cells):
+        if len(indices):
+            out[:, indices] = sdpa(q[:, indices], k, v, row[None, :])
+    return out

@@ -77,6 +77,15 @@ invocation-scoped cleanup and progressive-grid cache rebuilding.
 Original discussion: https://arca.live/b/aiart/187357665 .
 
 
+## Anima asymmetric reference v2
+
+The development `anima_ref_v2.py` experiment additionally adapts asymmetric
+reference block/frame math from ElectronGirl/ComfyUI-Anima-Ref-Adapter at
+`bd1e094a` under Apache-2.0 (preserved in `ANIMA-REF-ADAPTER-LICENSE`). RS adds
+independent numbered regional predictions, rectangular target attention and
+sample-scoped K/V cache invalidation/cleanup. The separately downloaded v2
+weights retain their upstream terms. See `docs/anima-reference-v2.md`.
+
 ## Anima 2.9B converted reference adapter
 
 The expanded-model reference path uses [Gazingstars123/Anima-2.9B](https://huggingface.co/Gazingstars123/Anima-2.9B) insertion positions and [pamparamm/anima-ref-adapter-2.9B-converted](https://huggingface.co/pamparamm/anima-ref-adapter-2.9B-converted). RS selects the matching adapter by architecture, validates its exact mapped modules and leaves the 12 inserted blocks without reference-adapter hooks. These blocks still execute normally. No weights are redistributed. Adapter revision and SHA256 are pinned in `reference_assets.json`; model and weight licenses remain separate from this code.

@@ -132,5 +132,9 @@ class ReferenceFrame29BAssets(RoleKVAssets):
     asset_name = 'anima29_frame'
 
 
+class ReferenceFrameV2Assets(RoleKVAssets):
+    asset_name = 'anima_frame_v2'
+
+
 if __name__ == '__main__':
     unittest.main()

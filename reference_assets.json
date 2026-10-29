@@ -95,6 +95,14 @@
     "subdir": "redux_encoder",
     "sha256": null
   },
+  "anima_frame_v2": {
+    "repo": "ElectronGirl/anima-ref-adapter",
+    "revision": "e05a8d21ad3f3aeb68875c5ed0e85787cfba79b0",
+    "file": "anima_ref_adapter_v2_r64.safetensors",
+    "folder": "ipadapter",
+    "subdir": "anima_frame_v2",
+    "sha256": "71dda6079e18d354e16e3347bc49a9b710afd9495c378efbb833d30cac9cb81b"
+  },
   "anima_frame": {
     "repo": "ElectronGirl/anima-ref-adapter",
     "revision": "fed1e98a11a9b81d4ad274fd23cacc531fd4617e",

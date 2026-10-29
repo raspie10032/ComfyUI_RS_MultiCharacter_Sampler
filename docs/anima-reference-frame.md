@@ -60,3 +60,10 @@ Generation metadata records adapter settings and numbered reference fingerprints
 The initial native CPU tests cover RoPE offsets, cached/uncached equality, target/reference token routing, restoration and bounded cache. GPU results, timings and limitations are recorded in the external experiment directory. Test success does not establish reference fidelity across arbitrary images, quantized checkpoints or LoRAs.
 
 The expanded model mapping and public-node GPU regression results are documented in [Anima 2.9B reference validation](anima29-reference-validation.md).
+
+## Asymmetric v2 development experiment
+
+The advanced adapter node also offers an explicit `Auto: Anima v2 (2B)` choice.
+This prepares different weights and a generation-local image K/V backend.
+See [scope, limitations and regional routing](anima-reference-v2.md).
+The ordinary reference-frame choice and 2.9B conversion are unchanged.
