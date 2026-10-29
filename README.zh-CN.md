@@ -6,7 +6,9 @@
 
 [English](README.md) · [한국어](README.ko.md) · [日本語](README.ja.md) · **简体中文** · [繁體中文](README.zh-TW.md) · [详细文档](docs/README.md) · [更新记录](CHANGELOG.md) · [发布版本](https://github.com/raspie10032/ComfyUI_RS_MultiCharacter_Sampler/releases)
 
-**当前版本：[1.0.7 Hangeul](docs/release-1.0.7.md)。** 使用本地模型，无需安装 RS NovelAI 扩展或提供 API 密钥。
+**当前版本：[1.0.8 Hangeul](docs/release-1.0.8.md)。** 使用本地模型，无需安装 RS NovelAI 扩展或提供 API 密钥。
+
+**1.0.8：** Anima分区域及全局参考在参考引导与CFG相等时跳过代数抵消的预测，保留独立角色参考和设定的应用区间。v2实测条件下约快37%；低精度计算顺序可能导致输出差异。[测试条件与限制](docs/anima-reference-prediction-optimization.md)。
 
 ![未使用 LoRA 的 Anima 双角色示例](examples/two-characters-result.png)
 

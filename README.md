@@ -6,7 +6,9 @@ Regional generation and local detailing for ComfyUI. Give each character a promp
 
 [한국어](README.ko.md) · [日本語](README.ja.md) · [Documentation](docs/README.md) · [Changelog](CHANGELOG.md) · [Releases](https://github.com/raspie10032/ComfyUI_RS_MultiCharacter_Sampler/releases) · [简体中文](README.zh-CN.md) · [繁體中文](README.zh-TW.md)
 
-**Current release: [1.0.7 Hangeul](docs/release-1.0.7.md).** Runs with local models; no RS NovelAI extension or API key is required.
+**Current release: [1.0.8 Hangeul](docs/release-1.0.8.md).** Runs with local models; no RS NovelAI extension or API key is required.
+
+**1.0.8:** Anima regional and global references skip algebraically cancelled predictions when reference guidance equals CFG. Independent character references remain active for their configured duration. The measured v2 cases were about 37% faster; reduced-precision outputs can differ. [Conditions and limitations](docs/anima-reference-prediction-optimization.md).
 
 ![Two-character Anima example without LoRA](examples/two-characters-result.png)
 

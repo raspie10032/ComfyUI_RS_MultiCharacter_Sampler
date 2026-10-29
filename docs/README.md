@@ -8,6 +8,8 @@ Start with your language's README for installation and a first workflow. This
 index groups detailed guides and evidence by task. Release notes describe changes
 at a particular version; current usage belongs in the feature guides below.
 
+[1.0.8 release notes](release-1.0.8.md) · [Anima reference prediction optimization](anima-reference-prediction-optimization.md)
+
 ## Usage guides
 
 | Task | Guide | Examples |

@@ -243,4 +243,108 @@ class RefFrameTests(unittest.TestCase):
                 rt.ref_forward(self.dm,x,t,context,rt.reference[:,:,:,:6,:6],{})
         self.assertEqual(sum(len(m._forward_hooks) for m in self.dm.modules()),before)
 
+    def test_cancelled_reference_negative_matches_independent_predictions(self):
+        import comfy.samplers
+        from dataclasses import replace
+        torch.manual_seed(197)
+        x=torch.zeros(1,16,8,8)
+        names=('positive_base','negative_base','positive','negative',
+               'positive_0','negative_0','positive_1','negative_1')
+        predictions={name:torch.randn_like(x) for name in names}
+        for slots in ((),(0,1)):
+            for correction in ('none','apg','rescale'):
+                for guidance in (1.,4.5,4.5000001):
+                    with self.subTest(slots=slots,correction=correction,guidance=guidance):
+                        rt=self.runtime(False)
+                        rt.plan=replace(rt.plan,correction=correction,guidance=guidance)
+                        rt.slots=slots;rt.strengths=(.8,1.2) if slots else ()
+                        rt.reference=torch.zeros(1,16,2 if slots else 1,8,8)
+                        # Include overlap, partial weights, and uncovered background.
+                        rt.masks=torch.zeros(2,8,8)
+                        rt.masks[0,:,:5]=.8;rt.masks[1,:,3:7]=1.
+                        cond=[[torch.zeros(1,2,32),{}]]
+                        model=SimpleNamespace(model_options={},is_dynamic=lambda:False)
+                        guider=self.ref.reference_guider(model,cond,cond,rt,4.5)
+                        guider.conds={name:name for name in names};guider.inner_model=None
+                        calls=[]
+                        def predict(model,conds,x,t,options):
+                            calls.extend(conds)
+                            return [predictions[name] for name in conds]
+                        options={'transformer_options':{'sample_sigmas':torch.tensor([1.,.5,0.])}}
+                        with patch.object(comfy.samplers,'calc_cond_batch',predict):
+                            guider.fold_reference_guidance=False
+                            expected=guider.predict_noise(x,torch.tensor([1.]),options)
+                            full_calls=len(calls);calls.clear()
+                            guider.fold_reference_guidance=True
+                            actual=guider.predict_noise(x,torch.tensor([1.]),options)
+                        torch.testing.assert_close(actual,expected,rtol=2e-5,atol=2e-5)
+                        cancelled=(len(slots) if slots else 1) if guidance==4.5 else 0
+                        self.assertEqual(len(calls),full_calls-cancelled)
+                        self.assertEqual(rt.audit['cancelled_reference_negative_predictions'],cancelled)
+
+    def test_full_reference_coverage_cancels_only_unit_strength_base(self):
+        import comfy.samplers
+        torch.manual_seed(991)
+        x=torch.zeros(1,16,8,8)
+        names=('positive_base','negative_base','positive_0','negative_0','positive_1','negative_1')
+        predictions={name:torch.randn_like(x) for name in names}
+        for strengths in ((1.,1.),(.8,1.)):
+            for overlap in (False,True):
+                for partial in (False,True):
+                    with self.subTest(strengths=strengths,overlap=overlap,partial=partial):
+                        rt=self.runtime(False);rt.slots=(0,1);rt.strengths=strengths
+                        rt.masks=torch.zeros(2,8,8)
+                        rt.masks[0,:,:5 if overlap else 4]=1.;rt.masks[1,:,3 if overlap else 4:]=1.
+                        if partial:rt.masks[:,0]=0.
+                        cond=[[torch.zeros(1,2,32),{}]]
+                        model=SimpleNamespace(model_options={},is_dynamic=lambda:False)
+                        guider=self.ref.reference_guider(model,cond,cond,rt,4.5)
+                        guider.conds={name:name for name in names};guider.inner_model=None
+                        calls=[]
+                        def predict(model,conds,x,t,options):
+                            calls.extend(conds);return [predictions[name] for name in conds]
+                        options={'transformer_options':{'sample_sigmas':torch.tensor([1.,.5,0.])}}
+                        with patch.object(comfy.samplers,'calc_cond_batch',predict):
+                            guider.fold_reference_guidance=False
+                            expected=guider.predict_noise(x,torch.tensor([1.]),options)
+                            calls.clear();guider.fold_reference_guidance=True
+                            actual=guider.predict_noise(x,torch.tensor([1.]),options)
+                        torch.testing.assert_close(actual,expected,rtol=2e-5,atol=2e-5)
+                        skipped=int(strengths==(1.,1.) and not partial)
+                        self.assertEqual(rt.audit['cancelled_base_positive_predictions'],skipped)
+                        self.assertEqual('positive_base' not in calls,bool(skipped))
+                        # Re-check coverage if this guider receives edited masks.
+                        rt.masks[:,0]=0.;calls.clear()
+                        with patch.object(comfy.samplers,'calc_cond_batch',predict):
+                            guider.predict_noise(x,torch.tensor([1.]),options)
+                        self.assertIn('positive_base',calls)
+
+    def test_cancelled_prediction_respects_hooks_disable_and_reference_end(self):
+        import comfy.samplers
+        rt=self.runtime(False)
+        cond=[[torch.zeros(1,2,32),{}]]
+        model=SimpleNamespace(model_options={},is_dynamic=lambda:False)
+        guider=self.ref.reference_guider(model,cond,cond,rt,4.5)
+        names=('positive','negative','positive_base','negative_base')
+        guider.conds={name:name for name in names};guider.inner_model=None
+        x=torch.ones(1,16,8,8);calls=[]
+        def predict(model,conds,x,t,options):
+            calls.extend(conds);return [x*(i+1) for i in range(len(conds))]
+        schedule={'sample_sigmas':torch.tensor([1.,.5,0.])}
+        for extra in ({'disable_cfg1_optimization':True},
+                      {'sampler_pre_cfg_function':[lambda a:a['conds_out']]},
+                      {'sampler_cfg_function':lambda a:a['cond']},
+                      {'sampler_post_cfg_function':[lambda a:a['denoised']]},
+                      {'sampler_calc_cond_batch_function':object()}):
+            calls.clear()
+            with patch.object(comfy.samplers,'calc_cond_batch',predict):
+                guider.predict_noise(x,torch.tensor([1.]),{'transformer_options':schedule,**extra})
+            self.assertIn('negative',calls)
+        self.assertEqual(rt.audit['cancelled_reference_negative_predictions'],0)
+        rt.end_step=0;calls.clear()
+        with patch.object(comfy.samplers,'calc_cond_batch',predict):
+            guider.predict_noise(x,torch.tensor([1.]),{'transformer_options':schedule})
+        self.assertEqual(calls,['positive_base','negative_base'])
+        self.assertEqual(rt.audit['cancelled_reference_negative_predictions'],0)
+
 if __name__=='__main__':unittest.main()
