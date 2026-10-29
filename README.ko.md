@@ -6,7 +6,9 @@ ComfyUI에서 캐릭터별 프롬프트·LoRA·영역을 지정해 생성하고,
 
 [English](README.md) · [日本語](README.ja.md) · [문서 모음](docs/README.md) · [변경 기록](CHANGELOG.md) · [릴리스](https://github.com/raspie10032/ComfyUI_RS_MultiCharacter_Sampler/releases) · [简体中文](README.zh-CN.md) · [繁體中文](README.zh-TW.md)
 
-**현재 버전: [1.0.7 한글](docs/release-1.0.7.md).** 로컬 모델로 실행하며 RS NovelAI 확장이나 API 키가 필요하지 않습니다.
+**현재 버전: [1.0.8 한글](docs/release-1.0.8.md).** 로컬 모델로 실행하며 RS NovelAI 확장이나 API 키가 필요하지 않습니다.
+
+**1.0.8:** Anima 영역별·전역 참조에서 참조 가이던스와 CFG가 같을 때 상쇄되는 예측을 생략합니다. 캐릭터별 참조와 설정한 적용 구간은 유지됩니다. v2 실측 조건에서 약 37% 빨라졌으며 저정밀도 계산 순서로 결과 픽셀이 달라질 수 있습니다. [시험 조건과 한계](docs/anima-reference-prediction-optimization.md).
 
 ![LoRA 없이 생성한 Anima 2인 예제](examples/two-characters-result.png)
 
