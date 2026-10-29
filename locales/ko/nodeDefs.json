@@ -1200,5 +1200,34 @@
         }
       }
     }
+  },
+  "RSMultiCharacterPose3D": {
+    "display_name": "RS 3D 포즈 마스크 (시험판)",
+    "description": "3D 마네킹의 관절·키·카메라를 조절해 번호별 2D 영역 마스크를 만듭니다. 정확한 포즈를 보장하지 않습니다. 추가 모델이나 ControlNet은 필요하지 않습니다.",
+    "inputs": {
+      "scene_json": {
+        "name": "3D 장면"
+      },
+      "building_pipe": {
+        "name": "조립 파이프"
+      }
+    },
+    "outputs": {
+      "building_pipe": {
+        "name": "조립 파이프"
+      },
+      "mask_preview": {
+        "name": "마스크 미리보기"
+      },
+      "full_masks": {
+        "name": "전체 마스크"
+      },
+      "visible_masks": {
+        "name": "보이는 마스크"
+      },
+      "scene_info": {
+        "name": "장면 정보"
+      }
+    }
   }
 }

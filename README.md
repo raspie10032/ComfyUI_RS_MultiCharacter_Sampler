@@ -14,6 +14,8 @@ Regional generation and local detailing for ComfyUI. Give each character a promp
 
 **Camera reference:** [Anima camera-tag helper](https://arca.live/b/aiart/179423561) / `ComfyUI-KR-Camera-Control` (credits `ComfyUI_bsk_UI` / 灰暗x). [Reference scope and notices](THIRD_PARTY_NOTICES.md#camera-control-references).
 
+**3D mannequin masks (development preview):** arrange people, joints and camera, then send full or visible silhouettes to numbered character slots. No extra model is required. This guides composition; it does not enforce exact poses. [Editor and limitations](docs/pose3d.md).
+
 ## What you can do
 
 - Write a shared scene and separate character prompts, with up to **10 character/text regions**.

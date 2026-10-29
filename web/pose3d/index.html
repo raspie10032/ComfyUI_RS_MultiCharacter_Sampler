@@ -1,0 +1,36 @@
+<!doctype html>
+<html lang="en"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>RS 3D Pose Masks</title>
+<link rel="stylesheet" href="editor.css">
+<main>
+  <aside>
+    <h2>RS 3D Pose Masks</h2>
+    <p data-i18n="intro">Arrange mannequins to create character masks. A composition guide, not exact pose enforcement.</p>
+    <label><span data-i18n="character">Character</span><select id="person"></select></label>
+    <div class="row"><button id="add" data-i18n="add">Add</button><button id="copy" data-i18n="copy">Copy</button><button id="remove" data-i18n="remove">Remove</button></div>
+    <label><span data-i18n="number">Prompt slot number</span><input id="number" type="number" min="1" max="10"></label>
+    <label><span data-i18n="joint">Joint</span><select id="joint"></select></label>
+    <div class="row"><button id="rotate" data-i18n="rotate">Rotate joint</button><button id="move" data-i18n="move">Move person</button></div>
+    <div id="angles"></div>
+    <label><span data-i18n="height">Height</span><input id="scale" type="range" min="0.4" max="1.8" step="0.02"><output id="scale-value"></output></label>
+    <label><span data-i18n="width">Body width</span><input id="bulk" type="range" min="0.5" max="1.8" step="0.02"><output id="bulk-value"></output></label>
+    <label><span data-i18n="preset">Pose</span><select id="preset"><option value="standing">Standing</option><option value="wave">Wave</option><option value="seated">Seated</option><option value="reach">Reach forward</option></select><button id="pose" data-i18n="setPose">Set pose</button></label>
+    <button id="reset-person" data-i18n="resetPerson">Reset selected person</button>
+    <hr>
+    <strong data-i18n="camera">Camera / canvas</strong>
+    <div class="row"><button id="front" data-i18n="front">Front</button><button id="side" data-i18n="side">Side</button><button id="back" data-i18n="back">Back</button></div>
+    <label>FOV<input id="fov" type="range" min="15" max="90" step="1"><output id="fov-value"></output></label>
+    <div class="row"><label>W<input id="width" type="number" min="64" max="2048" step="64"></label><label>H<input id="height" type="number" min="64" max="2048" step="64"></label></div>
+    <label><span data-i18n="masks">Pipe masks</span><select id="mask-mode"><option value="full">Full silhouettes (overlap)</option><option value="visible">Visible silhouettes (occlusion)</option></select></label>
+    <canvas id="mask-preview" width="180" height="240" title="Projected character masks"></canvas>
+    <p data-i18n="clipping">Only masks outside the canvas are clipped. Hidden people can have an empty visible mask. Character numbers stay fixed when people cross.</p>
+    <div class="row"><button id="undo" data-i18n="undo">Undo</button><button id="redo" data-i18n="redo">Redo</button></div>
+    <div class="row"><button id="save" data-i18n="save">Save scene</button><button id="load" data-i18n="load">Load scene</button></div>
+    <button id="apply" class="primary" data-i18n="apply">Apply to node</button>
+    <p id="status" role="status"></p>
+  </aside>
+  <section id="workspace"><div id="viewport"></div><div id="help" data-i18n="help">Drag empty space: orbit camera · Right drag: pan · Wheel: zoom · Click a joint, then drag its rings. Output uses this camera.</div></section>
+</main>
+<input id="file" type="file" accept=".json,application/json" hidden>
+<script type="module" src="editor.bundle.mjs"></script>
+</html>

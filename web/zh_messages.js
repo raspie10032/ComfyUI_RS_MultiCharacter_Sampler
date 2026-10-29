@@ -887,5 +887,11 @@ export const zhMessages = {
     "执行时下载缺失的目录 SEGM/BBOX 模型，并复用缓存。SAM 需提前安装，OFF 不加载。\n按面部、眼睛、手、衣物或人物选择检测模型。折叠可选项后，设置仍然生效。",
     "執行時下載缺失的目錄 SEGM/BBOX 模型，並複用快取。SAM 需提前安裝，OFF 不載入。\n按面部、眼睛、手、衣物或人物選擇檢測模型。摺疊可選項後，設定仍然生效。"
   ],
-  "Region shape": ["区域形状", "區域形狀"]
+  "Region shape": ["区域形状", "區域形狀"],
+  "Edit the connected scene at its source.": ["请在来源节点编辑已连接的场景。", "請在來源節點編輯已連接的場景。"],
+  "Open 3D editor": ["打开3D编辑器", "開啟3D編輯器"],
+  "Close editor": ["关闭编辑器", "關閉編輯器"],
+  "Character slots: ": ["角色编号：", "角色編號："],
+  "Run once to preview the connected scene.": ["运行一次以预览已连接的场景。", "執行一次以預覽已連接的場景。"],
+
 };

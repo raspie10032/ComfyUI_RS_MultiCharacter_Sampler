@@ -2024,5 +2024,34 @@
         }
       }
     }
+  },
+  "RSMultiCharacterPose3D": {
+    "display_name": "RS 3D姿勢遮罩（實驗版）",
+    "description": "調整3D人體關節、身高和相機，產生編號對應的2D區域遮罩。不保證姿勢完全一致，無需額外模型或ControlNet。",
+    "inputs": {
+      "scene_json": {
+        "name": "3D場景"
+      },
+      "building_pipe": {
+        "name": "建構管線"
+      }
+    },
+    "outputs": {
+      "building_pipe": {
+        "name": "建構管線"
+      },
+      "mask_preview": {
+        "name": "遮罩預覽"
+      },
+      "full_masks": {
+        "name": "完整遮罩"
+      },
+      "visible_masks": {
+        "name": "可見遮罩"
+      },
+      "scene_info": {
+        "name": "場景資訊"
+      }
+    }
   }
 }

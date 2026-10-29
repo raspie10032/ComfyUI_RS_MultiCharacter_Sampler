@@ -1200,5 +1200,34 @@
         }
       }
     }
+  },
+  "RSMultiCharacterPose3D": {
+    "display_name": "RS 3Dポーズマスク（試験版）",
+    "description": "3Dマネキンの関節・身長・カメラから番号別の2D領域マスクを作ります。正確なポーズを保証しません。追加モデルやControlNetは不要です。",
+    "inputs": {
+      "scene_json": {
+        "name": "3Dシーン"
+      },
+      "building_pipe": {
+        "name": "組み立てパイプ"
+      }
+    },
+    "outputs": {
+      "building_pipe": {
+        "name": "組み立てパイプ"
+      },
+      "mask_preview": {
+        "name": "マスクプレビュー"
+      },
+      "full_masks": {
+        "name": "全体マスク"
+      },
+      "visible_masks": {
+        "name": "可視マスク"
+      },
+      "scene_info": {
+        "name": "シーン情報"
+      }
+    }
   }
 }

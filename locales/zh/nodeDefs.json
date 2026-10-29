@@ -2024,5 +2024,34 @@
         }
       }
     }
+  },
+  "RSMultiCharacterPose3D": {
+    "display_name": "RS 3D姿势遮罩（实验版）",
+    "description": "调整3D人体关节、身高和相机，生成编号对应的2D区域遮罩。不保证姿势完全一致，无需额外模型或ControlNet。",
+    "inputs": {
+      "scene_json": {
+        "name": "3D场景"
+      },
+      "building_pipe": {
+        "name": "构建管道"
+      }
+    },
+    "outputs": {
+      "building_pipe": {
+        "name": "构建管道"
+      },
+      "mask_preview": {
+        "name": "遮罩预览"
+      },
+      "full_masks": {
+        "name": "完整遮罩"
+      },
+      "visible_masks": {
+        "name": "可见遮罩"
+      },
+      "scene_info": {
+        "name": "场景信息"
+      }
+    }
   }
 }
