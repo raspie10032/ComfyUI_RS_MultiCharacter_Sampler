@@ -51,10 +51,13 @@ matched OFF/ON design and known failures.
 
 ## Workflow PNGs and local artifacts
 
-Each new PNG contains **9 nodes / 10 links**, a 3D scene, frontend `workflow`
+Each new PNG contains **11 nodes / 12 links**, a 3D scene, frontend `workflow`
 metadata and backend `prompt` metadata. Both metadata objects were reread and
 checked after saving; the image pixels match their source generated examples.
-The 1.0.9 checks do not claim a new frontend import-and-export round trip.
+Both new PNGs were imported in the resident frontend, where both character
+STRING fields were visibly restored. MOSS was exported through the frontend
+API export; scene, character strings, pose settings and explicit sampler inputs
+matched the packaged request. Extra sampler defaults are populated by the UI.
 
 Local evidence, intentionally outside the package:
 
@@ -68,3 +71,21 @@ Local evidence, intentionally outside the package:
 No pose-adapter model weights or base checkpoints are bundled. Automatic
 first-use downloads are separately tested by the adapter's source tests and
 existing live setup evidence; this release smoke used already downloaded weights.
+
+## Editable character-caption correction
+
+The final example audit found literal character captions only in backend metadata,
+without STRING sources in the frontend graph. All five Krea/MOSS pose PNGs now
+include two connected `PrimitiveStringMultiline` nodes. The added regression
+checks every source value, link endpoint and matching backend input, including
+Jean/Eula identity in the new examples. This correction does not alter generated
+image pixels or the effective character text. The 402-test baseline above
+precedes this additional example regression.
+
+## Older core CI correction
+
+The first CI run passed Windows and two newer Linux cores but found an absent
+scheduled-conditioning helper on ComfyUI v0.3.76. MOSS itself is unsupported
+on that old core. The adapter now gives an explicit update-ComfyUI error for
+that request, while disabled pose and Krea conditioning passthrough keep working.
+A missing-helper regression exercises this behavior without hiding the failure.

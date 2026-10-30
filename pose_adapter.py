@@ -139,6 +139,11 @@ def pose_conditioning(positive, negative, runtime):
     if runtime is None or runtime['family'] != 'MOSS':
         return positive, negative
     import node_helpers
+    apply_range = getattr(node_helpers, 'conditioning_set_values_with_timestep_range', None)
+    if not callable(apply_range):
+        raise ValueError('MOSS pose control requires a newer ComfyUI core with scheduled conditioning. '
+                         'Update ComfyUI; disabling the pose adapter keeps ordinary generation available. / '
+                         'MOSS 포즈 제어를 쓰려면 ComfyUI 코어를 업데이트해 주세요.')
     values = {'concat_latent_image': runtime['control']}
-    return tuple(node_helpers.conditioning_set_values_with_timestep_range(c, values, runtime['start'], runtime['end'])
+    return tuple(apply_range(c, values, runtime['start'], runtime['end'])
                  for c in (positive, negative))

@@ -85,6 +85,11 @@ class PoseRoutingTests(unittest.TestCase):
         sys.path.insert(0,os.environ['RS_MC_TEST_COMFYUI'])
         positive=[[torch.zeros(1,2,3),{}]];negative=[[torch.ones(1,2,3),{}]]
         latent=torch.ones(1,8,4,4)
+        import node_helpers
+        if not hasattr(node_helpers, 'conditioning_set_values_with_timestep_range'):
+            with self.assertRaisesRegex(ValueError, 'Update ComfyUI'):
+                a.pose_conditioning(positive, negative, dict(family='MOSS', control=latent, start=.1, end=.5))
+            return
         pos,neg=a.pose_conditioning(positive,negative,dict(family='MOSS',control=latent,start=.1,end=.5))
         self.assertEqual(positive[0][1],{})
         for cond in (pos,neg):
@@ -92,6 +97,19 @@ class PoseRoutingTests(unittest.TestCase):
             self.assertEqual(len(active),1)
             self.assertEqual(active[0]['start_percent'],.1)
             self.assertEqual(active[0]['end_percent'],.5)
+
+    def test_old_core_moss_pose_reports_update_without_affecting_other_models(self):
+        from types import SimpleNamespace
+        from unittest.mock import patch
+        positive=[[torch.zeros(1,2,3),{}]];negative=[[torch.ones(1,2,3),{}]]
+        with patch.dict(sys.modules, {'node_helpers': SimpleNamespace()}):
+            with self.assertRaisesRegex(ValueError, 'Update ComfyUI'):
+                a.pose_conditioning(positive, negative, dict(family='MOSS', control=None, start=0., end=.5))
+            self.assertEqual(a.pose_conditioning(positive,negative,None),(positive,negative))
+            self.assertEqual(a.pose_conditioning(positive,negative,{'family':'Krea2'}),(positive,negative))
+        self.assertEqual(positive[0][1],{})
+        self.assertEqual(negative[0][1],{})
+
 
 class NativePosePatchTests(unittest.TestCase):
     def test_moss_split_qkv_weights_are_all_installed_and_unknown_weights_fail(self):
