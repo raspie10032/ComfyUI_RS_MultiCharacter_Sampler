@@ -36,7 +36,7 @@ a chair, and style-LoRA-related extra-person failures are still unresolved.
 
 ## Genshin Impact workflow PNGs
 
-For 1.0.9, use **[Krea 2: Jean and Eula](genshin-krea2-pose.png)** or
+For 1.0.10, use **[Krea 2: Jean and Eula](genshin-krea2-pose.png)** or
 **[MOSS native: Jean and Eula](genshin-moss-native-pose.png)**. Save the original
 PNG and drop it onto ComfyUI; each embeds the exact tested API prompt, full
 9-node / 10-link workflow and 3D scene. These are the raised-arm, first-seed ON

@@ -6,9 +6,9 @@ ComfyUIでキャラクター別のプロンプト・LoRA・領域を設定して
 
 [English](README.md) · [한국어](README.ko.md) · [ドキュメント](docs/README.md) · [変更履歴](CHANGELOG.md) · [リリース](https://github.com/raspie10032/ComfyUI_RS_MultiCharacter_Sampler/releases) · [简体中文](README.zh-CN.md) · [繁體中文](README.zh-TW.md)
 
-**現在のバージョン：[1.0.9 Hangeul](docs/release-1.0.9.md)。** ローカルモデルで動作し、RS NovelAI拡張やAPIキーは不要です。
+**現在のバージョン：[1.0.10 Hangeul](docs/release-1.0.10.md)。** ローカルモデルで動作し、RS NovelAI拡張やAPIキーは不要です。
 
-**1.0.9:** Krea 2 Turbo・MOSS用の学習済み3Dポーズアダプターを人物別領域と併用できます。`auto`は有効なMOSSポーズでネイティブJSON、Kreaではregionalを選択します。専用重みは初回使用時に自動取得します。[接続と制限](docs/pose3d.md#krea2-turbo-and-moss-pose-adapters-experimental) · [36枚の比較](docs/pose3d-genshin-diverse-validation.md)。
+**1.0.10:** Krea 2 Turbo・MOSS用の学習済み3Dポーズアダプターを人物別領域と併用できます。`auto`は有効なMOSSポーズでネイティブJSON、Kreaではregionalを選択します。専用重みは初回使用時に自動取得します。[接続と制限](docs/pose3d.md#krea2-turbo-and-moss-pose-adapters-experimental) · [36枚の比較](docs/pose3d-genshin-diverse-validation.md)。
 
 ![LoRAなしのAnima 2人生成例](examples/two-characters-result.png)
 

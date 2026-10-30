@@ -6,9 +6,9 @@ ComfyUI에서 캐릭터별 프롬프트·LoRA·영역을 지정해 생성하고,
 
 [English](README.md) · [日本語](README.ja.md) · [문서 모음](docs/README.md) · [변경 기록](CHANGELOG.md) · [릴리스](https://github.com/raspie10032/ComfyUI_RS_MultiCharacter_Sampler/releases) · [简体中文](README.zh-CN.md) · [繁體中文](README.zh-TW.md)
 
-**현재 버전: [1.0.9 한글](docs/release-1.0.9.md).** 로컬 모델로 실행하며 RS NovelAI 확장이나 API 키가 필요하지 않습니다.
+**현재 버전: [1.0.10 한글](docs/release-1.0.10.md).** 로컬 모델로 실행하며 RS NovelAI 확장이나 API 키가 필요하지 않습니다.
 
-**1.0.9:** Krea 2 Turbo·MOSS 전용 3D 포즈 어댑터를 캐릭터별 영역과 함께 사용합니다. `auto`는 활성 MOSS 포즈에서 네이티브 JSON, Krea에서 리저널을 선택합니다. 최초 사용 시 전용 가중치를 자동으로 받습니다. [연결·사용 가이드](docs/pose3d-krea-moss-guide.ko.md) · [36장 비교와 한계](docs/pose3d-genshin-diverse-validation.md).
+**1.0.10:** Krea 2 Turbo·MOSS 전용 3D 포즈 어댑터를 캐릭터별 영역과 함께 사용합니다. `auto`는 활성 MOSS 포즈에서 네이티브 JSON, Krea에서 리저널을 선택합니다. 최초 사용 시 전용 가중치를 자동으로 받습니다. [연결·사용 가이드](docs/pose3d-krea-moss-guide.ko.md) · [36장 비교와 한계](docs/pose3d-genshin-diverse-validation.md).
 
 ![LoRA 없이 생성한 Anima 2인 예제](examples/two-characters-result.png)
 

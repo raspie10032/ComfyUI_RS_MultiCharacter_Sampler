@@ -6,9 +6,9 @@
 
 [English](README.md) · [한국어](README.ko.md) · [日本語](README.ja.md) · **简体中文** · [繁體中文](README.zh-TW.md) · [详细文档](docs/README.md) · [更新记录](CHANGELOG.md) · [发布版本](https://github.com/raspie10032/ComfyUI_RS_MultiCharacter_Sampler/releases)
 
-**当前版本：[1.0.9 Hangeul](docs/release-1.0.9.md)。** 使用本地模型，无需安装 RS NovelAI 扩展或提供 API 密钥。
+**当前版本：[1.0.10 Hangeul](docs/release-1.0.10.md)。** 使用本地模型，无需安装 RS NovelAI 扩展或提供 API 密钥。
 
-**1.0.9：** Krea 2 Turbo、MOSS专用的已训练3D姿势适配器可与分角色区域配合使用。`auto`在启用MOSS姿势控制时选择原生JSON，在Krea中选择regional。首次使用自动下载专用权重。[连接与限制](docs/pose3d.md#krea2-turbo-and-moss-pose-adapters-experimental) · [36张对比](docs/pose3d-genshin-diverse-validation.md)。
+**1.0.10：** Krea 2 Turbo、MOSS专用的已训练3D姿势适配器可与分角色区域配合使用。`auto`在启用MOSS姿势控制时选择原生JSON，在Krea中选择regional。首次使用自动下载专用权重。[连接与限制](docs/pose3d.md#krea2-turbo-and-moss-pose-adapters-experimental) · [36张对比](docs/pose3d-genshin-diverse-validation.md)。
 
 ![未使用 LoRA 的 Anima 双角色示例](examples/two-characters-result.png)
 

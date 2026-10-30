@@ -4,6 +4,7 @@ import json
 from pathlib import Path
 import sys
 import tempfile
+import tomllib
 from types import SimpleNamespace
 import unittest
 from unittest.mock import patch
@@ -21,6 +22,16 @@ layout = importlib.import_module(pkg.__name__ + ".layout")
 
 
 class PackageTests(unittest.TestCase):
+    def test_release_version_matches_manifest_and_readmes(self):
+        root = Path(__file__).resolve().parents[1]
+        manifest = tomllib.loads((root / "pyproject.toml").read_text(encoding="utf-8"))
+        version = manifest["project"]["version"]
+        self.assertEqual(pkg.__version__, version)
+        self.assertTrue((root / "docs" / f"release-{version}.md").is_file())
+        for readme in root.glob("README*.md"):
+            with self.subTest(readme=readme.name):
+                self.assertIn(f"docs/release-{version}.md", readme.read_text(encoding="utf-8"))
+
     def setUp(self):
         self.pipe = c.CharacterPipe((c.Character("1girl, 금발", "", .8, .2), c.Character("1girl, 黒髪", "", .2, .8)), "カフェ, 두 명", "bad anatomy")
         self.settings = {**n.DEFAULTS, "seed": 2**60 + 12345}
