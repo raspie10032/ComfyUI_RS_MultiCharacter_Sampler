@@ -189,7 +189,7 @@
     "inputs": {
       "layout_method": {
         "name": "布局方式",
-        "tooltip": "regional：按区域控制注意力。moss_native：MOSS 原生 JSON。遮罩转换为外接矩形，不保留轮廓细节；区域强度与边界设置不生效。"
+        "tooltip": "auto：启用 MOSS 3D 姿态适配器时使用原生 JSON，其他情况使用 regional。regional：按区域控制注意力。moss_native：MOSS 原生 JSON。遮罩转换为外接矩形，不保留轮廓细节；区域强度与边界设置不生效。"
       },
       "flux_guidance": {
         "name": "FLUX 引导强度",

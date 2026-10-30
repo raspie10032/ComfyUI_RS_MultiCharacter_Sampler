@@ -31,6 +31,17 @@ DEFAULTS = dict(width=1536, height=768, steps=30, cfg=4., sampler_name="euler_an
                 initial_spatial_separation=.9, boundary_hold_steps=3, boundary_decrement=.2)
 
 
+def resolve_layout_method(requested, family, model_options):
+    """Prefer native MOSS layout for trained pose control; preserve explicit choices."""
+    if requested == "auto":
+        return "moss_native" if family == "MOSS" and model_options.get("rs_3d_pose") else "regional"
+    if requested not in ("regional", "moss_native"):
+        raise ValueError("Choose auto, regional or moss_native for the layout method.")
+    if requested == "moss_native" and family != "MOSS":
+        raise ValueError("MOSS native layout requires MOSS-Image. Choose auto or regional for this model. / 이 모델은 auto 또는 regional을 사용해 주세요.")
+    return requested
+
+
 def validate_settings(settings):
     from comfy.samplers import KSampler
     for name in ("width", "height"):
@@ -88,8 +99,8 @@ class RSMultiCharacterSampler:
             "initial_spatial_separation": ("FLOAT", {"default": .9, "min": 0., "max": .99, "step": .05}),
             "boundary_hold_steps": ("INT", {"default": 3, "min": 1, "max": 30}),
             "boundary_decrement": ("FLOAT", {"default": .2, "min": .01, "max": 1., "step": .01}),
-            "layout_method": (["regional", "moss_native"], {"default": "regional",
-                "tooltip": "Regional routes attention for all supported models. MOSS native sends one official layout JSON prompt, requires MOSS and box or mask regions (masks become enclosing rectangles), and ignores regional strength/boundary/feather settings. Experimental: exact object bounds are not guaranteed."}),
+            "layout_method": (["regional", "moss_native", "auto"], {"default": "auto",
+                "tooltip": "Auto chooses MOSS native with an active 3D pose adapter, otherwise regional. Explicit saved choices are preserved. Regional routes attention for all supported models. MOSS native sends one official layout JSON prompt, requires MOSS and box or mask regions (masks become enclosing rectangles), and ignores regional strength/boundary/feather settings. Experimental: exact object bounds are not guaranteed."}),
             "flux_guidance": ("FLOAT", {"default": 3.5, "min": 0., "max": 20., "step": .1,
                 "tooltip": "Embedded guidance for FLUX.1 Dev / FLUX.2 Dev; separate from CFG. Schnell, Klein and FLUX 3 ignore this value. FLUX 3 Base uses ordinary CFG."}),
         }, "hidden": {"workflow_prompt": "PROMPT", "unique_id": "UNIQUE_ID"}}
@@ -107,7 +118,7 @@ class RSMultiCharacterSampler:
                  use_image_settings=False, region_feather=.04, initial_common_prior=.05,
                  common_after_step3_boost=.1, initial_character_gain=1.7, initial_spatial_separation=.9,
                  boundary_hold_steps=3, boundary_decrement=.2, workflow_prompt=None, unique_id=None,
-                 layout_method="regional", flux_guidance=3.5):
+                 layout_method="auto", flux_guidance=3.5):
         import comfy.model_management
         import comfy.sample
         import comfy.utils
@@ -156,10 +167,8 @@ class RSMultiCharacterSampler:
             flux_guidance = stored.get("flux_guidance", 3.5)
         lora_application_mode = character_pipe.lora_application_mode
         settings["lora_application_mode"] = lora_application_mode
-        if layout_method not in ("regional", "moss_native"):
-            raise ValueError("Choose regional or moss_native for the layout method.")
-        if layout_method == "moss_native" and family != "MOSS":
-            raise ValueError("MOSS native layout requires MOSS-Image. Choose regional for this model. / 이 모델은 regional 모드를 사용해 주세요.")
+        requested_layout = layout_method
+        layout_method = resolve_layout_method(layout_method, family, model.model_options)
         settings["layout_method"] = layout_method
         if family.startswith("FLUX"):
             if isinstance(flux_guidance, bool) or not isinstance(flux_guidance, (int, float)) or not math.isfinite(flux_guidance) or not 0 <= flux_guidance <= 20:
@@ -457,6 +466,10 @@ class RSMultiCharacterSampler:
         summary = {**record, "auto_layout_groups": moved, "cross_attention_calls": audit["cross_calls"],
                    "self_attention_calls": audit["self_calls"], "restored_forwards": audit["restored_forwards"], "routing_audit": audit}
         ui = {"text": [f"{len(pipe.characters)} characters + {len(pipe.text_regions)} text regions · seed {settings['seed']} · {family}"]}
+        ui["text"].append(f"Layout: {requested_layout} → {layout_method}")
+        if native_prompt is not None:
+            ui["text"].append("MOSS native: masks become enclosing boxes; color/depth pose control remains active when connected. / "
+                              "MOSS 네이티브: 마스크는 외곽 사각형으로 바뀌며, 연결된 색상·깊이 포즈 제어는 유지됩니다.")
         if any(c.uc.strip() for c in pipe.regions):
             ui["text"].append("Character negatives use their own regional masks. / 캐릭터 네거티브는 각자의 영역 마스크에 적용합니다.")
         execution = audit["lora_application"]

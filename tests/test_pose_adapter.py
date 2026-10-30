@@ -47,6 +47,20 @@ class ControlMapTests(unittest.TestCase):
 
 
 class PoseRoutingTests(unittest.TestCase):
+    def test_layout_auto_prefers_native_only_for_active_moss_pose(self):
+        nodes=importlib.import_module(ROOT.name+'.nodes')
+        plan={'rs_3d_pose':{'family':'MOSS'}}
+        self.assertEqual(nodes.resolve_layout_method('auto','MOSS',plan),'moss_native')
+        for family in ('MOSS','Krea2','Anima','SDXL','SD1.5','FLUX.2'):
+            self.assertEqual(nodes.resolve_layout_method('auto',family,{}),'regional')
+        self.assertEqual(nodes.resolve_layout_method('auto','Krea2',{'rs_3d_pose':{'family':'Krea2'}}),'regional')
+        for choice in ('regional','moss_native'):
+            self.assertEqual(nodes.resolve_layout_method(choice,'MOSS',plan),choice)
+        with self.assertRaisesRegex(ValueError,'requires MOSS'):
+            nodes.resolve_layout_method('moss_native','Krea2',{})
+        with self.assertRaisesRegex(ValueError,'Choose auto'):
+            nodes.resolve_layout_method('invalid','MOSS',plan)
+
     def test_cached_pose_keys_are_visible_to_each_region_without_other_character_text(self):
         from test_joint_engine import JointTests,attention
         route=JointTests().make('Krea2');route.pose_runtime={'family':'Krea2'}

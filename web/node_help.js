@@ -129,7 +129,11 @@ export function nodeHelp(node) {
             add("Sampling · current selections", "샘플링 · 현재 선택 안내", "サンプリング · 現在の選択");
             if (v("use_image_settings", false)) add("Image settings ON: the image pipe supplies dimensions, seed and sampling/routing settings as well as prompts. Select MODEL/CLIP/VAE and global LoRAs manually.", "이미지 설정 복원 ON: 이미지 파이프의 프롬프트뿐 아니라 해상도·시드·샘플링·영역 설정도 사용합니다. MODEL/CLIP/VAE와 전역 LoRA는 직접 연결하세요.", "画像設定復元ON：画像パイプのプロンプトに加え、解像度・シード・サンプリング・領域設定も使います。MODEL/CLIP/VAEと全体LoRAは手動接続してください。");
             else add("Image settings OFF: use this node's sampling controls. An image-loaded pipe still supplies its prompts and characters.", "이미지 설정 복원 OFF: 이 노드의 생성 설정을 사용합니다. 이미지에서 온 파이프는 프롬프트·캐릭터를 계속 전달합니다.", "画像設定復元OFF：このノードの生成設定を使います。画像由来のパイプのプロンプト・キャラクターは引き続き使用します。");
-            if (v("layout_method", "regional") === "moss_native") {
+            if (v("layout_method", "auto") === "auto") {
+                add("Auto layout: active MOSS 3D pose adapter uses native JSON; all other paths use regional. Explicit saved choices stay unchanged.", "자동 레이아웃: MOSS 3D 포즈 어댑터가 활성화되면 네이티브 JSON, 나머지는 영역 제어를 사용합니다. 저장된 명시적 선택은 유지됩니다.", "自動レイアウト：MOSSの3Dポーズアダプターが有効ならネイティブJSON、それ以外は領域制御です。保存済みの明示的な選択は維持します。");
+                add("MOSS native turns masks into enclosing boxes; color/depth pose guidance stays active. Regional boundary controls do not apply.", "MOSS 네이티브는 마스크를 외곽 사각형으로 바꾸며 색상·깊이 포즈 신호는 유지합니다. 영역 경계 설정은 적용하지 않습니다.", "MOSSネイティブはマスクを外接矩形に変換し、色・深度のポーズ誘導を保持します。領域境界設定は適用されません。");
+            }
+            else if (v("layout_method", "regional") === "moss_native") {
                 add("MOSS native: requires MOSS and box or mask regions. Regional strengths, boundary and feather controls are ignored.", "MOSS 네이티브: MOSS 모델과 박스 또는 마스크 영역이 필요합니다. 영역 강도·경계·페더 설정은 적용되지 않습니다.", "MOSSネイティブ：MOSSとボックスまたはマスク領域が必要です。領域強度・境界・フェザー設定は適用されません。");
                 add("Masks become enclosing rectangles after placement; their detailed shapes are not preserved.", "마스크는 최종 배치의 외곽 사각형으로 변환되며, 세부 모양은 반영되지 않습니다.", "マスクは最終配置の外接矩形に変換され、細かい輪郭は反映されません。");
             }

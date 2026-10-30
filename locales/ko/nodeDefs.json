@@ -165,7 +165,7 @@
     "inputs": {
       "layout_method": {
         "name": "레이아웃 처리",
-        "tooltip": "regional: 영역별 attention 제어. moss_native: MOSS 전용 JSON. 마스크는 외곽 사각형으로 변환되며 세부 모양은 반영되지 않습니다. 영역 강도 설정은 적용하지 않습니다."
+        "tooltip": "auto: MOSS 3D 포즈 어댑터가 활성화되면 네이티브 JSON, 나머지는 regional. regional: 영역별 attention 제어. moss_native: MOSS 전용 JSON. 마스크는 외곽 사각형으로 변환되며 세부 모양은 반영되지 않습니다. 영역 강도 설정은 적용하지 않습니다."
       },
       "flux_guidance": {
         "name": "FLUX 가이던스",

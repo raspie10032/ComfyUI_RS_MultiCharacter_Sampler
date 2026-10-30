@@ -81,3 +81,35 @@ Requests, complete history receipts and the machine-readable results are in
 `/var/home/raspie/AI/rs-pose-integration-20261030/native-audit/`.
 
 ![MOSS native JSON and trained pose control, with caption swap](../examples/pose3d/moss-native-audit.jpg)
+
+
+## Recommended route and automatic selection
+
+MOSS pose control now prefers native layout JSON alongside the trained
+color/depth adapter. `layout_method=auto` is the default for newly created RS
+samplers: it resolves to `moss_native` only when an active MOSS 3D pose plan is
+attached to MODEL, otherwise to `regional`. Explicit saved modes and restored
+image settings retain their selected mode. The UI reports the effective layout;
+generation metadata stores that effective layout. Missing box/mask inputs are
+still reported by native-layout validation; auto does not silently discard them.
+Krea2 continues using regional routing plus its trained pose path.
+
+The installed user ComfyUI was updated after verifying its queue was empty,
+with previous files backed up, then restarted. An additional resident generation
+using the same MOSS raised-arm scene, seed and settings as the explicit native
+baseline completed successfully: prompt
+`75920a60-1e37-415d-918f-b9b0b9184e9c`, execution 63.94 seconds including
+cold loads. Its sampler UI reported `Layout: auto → moss_native`. Its 768×1024
+RGB pixels are **identical** to the earlier explicit-native output (mean absolute
+difference 0). This validates dispatch equivalence, not a new quality improvement
+or speed benchmark. Local request/history/receipt artifacts are under
+`/var/home/raspie/AI/rs-pose-integration-20261030/auto-layout-audit/`.
+
+Post-change Python regression: 402 tests run, 14 conditional skips, no failures.
+All 15 JavaScript UI suites passed: 14 passed together and the camera-region
+suite passed after rerunning with the documented ComfyUI Python on PATH (the
+initial system-Python invocation lacked numpy). Route tests cover active/inactive
+MOSS pose, Krea2 and other model families, explicit overrides and invalid modes.
+UI tests cover the auto-mode notice, Chinese/Japanese/Korean text and existing
+presets. These checks do not resolve the previously documented style-LoRA,
+extra-person or exact-contact limitations.

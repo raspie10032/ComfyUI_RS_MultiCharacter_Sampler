@@ -72,6 +72,7 @@ const help=node=>sandbox.nodeHelp(node).join('\n');
     choose(sampler,'layout_method','moss_native');
   }
   lang='en';
+  choose(sampler,'layout_method','auto');assert.match(help(sampler),/active MOSS 3D pose adapter uses native JSON/);assert.match(help(sampler),/color\/depth pose guidance stays active/);
   choose(sampler,'save_format','WebP lossy');assert.match(help(sampler),/Lossy WebP/);
   choose(sampler,'autosave',false);assert.match(help(sampler),/Autosave OFF/);assert.doesNotMatch(help(sampler),/Lossy WebP/);
   const tagger=nodes.RSMultiCharacterTaggerLoader;

@@ -1,6 +1,8 @@
 // SPDX-License-Identifier: GPL-3.0-only
 // Simplified Chinese / Traditional Chinese (Taiwan) display text.
 export const zhMessages = {
+  "Auto layout: active MOSS 3D pose adapter uses native JSON; all other paths use regional. Explicit saved choices stay unchanged.": ["自动布局：启用 MOSS 3D 姿态适配器时使用原生 JSON，其他情况使用区域控制。保留已保存的明确选择。", "自動配置：啟用 MOSS 3D 姿態適配器時使用原生 JSON，其他情況使用區域控制。保留已儲存的明確選擇。"],
+  "MOSS native turns masks into enclosing boxes; color/depth pose guidance stays active. Regional boundary controls do not apply.": ["MOSS 原生将遮罩转为外接矩形，保留颜色/深度姿态引导。不应用区域边界设置。", "MOSS 原生將遮罩轉為外接矩形，保留色彩/深度姿態引導。不套用區域邊界設定。"],
   "Krea2 Turbo / MOSS pose adapter · first use downloads matching weights.": ["Krea2 Turbo / MOSS 姿态适配器：首次使用时下载匹配权重。", "Krea2 Turbo / MOSS 姿態適配器：首次使用時下載對應權重。"],
   "3D scene_json → here; MODEL → RS sampler. Keep the 3D building pipe connected to Finalize.": ["将 3D scene_json 接到此处，MODEL 接到 RS 采样器。3D 构建管道也要连接 Finalize。", "將 3D scene_json 接到此處，MODEL 接到 RS 取樣器。3D 組裝管道也要連接 Finalize。"],
   "Krea2: start 0, end 1. MOSS: try end 0.5; native layout keeps the color/depth pose signal but converts character masks to boxes.": ["Krea2：开始 0，结束 1。MOSS 可先试结束 0.5；原生布局保留颜色/深度姿态信号，但将角色遮罩转为矩形。", "Krea2：開始 0，結束 1。MOSS 可先試結束 0.5；原生配置保留色彩/深度姿態訊號，但將角色遮罩轉為矩形。"],
@@ -760,10 +762,7 @@ export const zhMessages = {
     "每个衰减阶段减少的分离强度，越大释放越快。",
     "每個衰減階段減少的分離強度，越大釋放越快。"
   ],
-  "Regional routes prompts by region. moss_native needs MOSS; masks become enclosing boxes. Regional strength/boundary controls are ignored.": [
-    "regional 按区域控制提示词。moss_native 需 MOSS，遮罩转为外接矩形；忽略区域强度和边界设置。",
-    "regional 按區域控制提示詞。moss_native 需 MOSS，遮罩轉為外接矩形；忽略區域強度和邊界設定。"
-  ],
+  "Auto: MOSS pose → native JSON; otherwise regional. Regional routes prompts by region. moss_native needs MOSS; masks become enclosing boxes. Regional strength/boundary controls are ignored.": ["自动：MOSS 姿态使用原生 JSON，其他情况使用 regional。regional 按区域控制提示词。moss_native 需 MOSS，遮罩转为外接矩形；忽略区域强度和边界设置。", "自動：MOSS 姿態使用原生 JSON，其他情況使用 regional。regional 按區域控制提示詞。moss_native 需 MOSS，遮罩轉為外接矩形；忽略區域強度和邊界設定。"],
   "Embedded guidance, separate from CFG, for FLUX.1/2 Dev. Schnell, Klein and FLUX 3 ignore this control.": [
     "FLUX.1/2 Dev 内置引导，独立于 CFG。Schnell、Klein、FLUX 3 忽略此项。",
     "FLUX.1/2 Dev 內建引導，獨立於 CFG。Schnell、Klein、FLUX 3 忽略此項。"
