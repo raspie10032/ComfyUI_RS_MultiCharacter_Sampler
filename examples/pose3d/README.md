@@ -22,3 +22,12 @@ The 3D node now exposes an additional final `scene_json` output. Connect it to *
 These examples use two adult women with different hair and clothing, no style/character LoRA and no pose words. The left person raises an arm. Krea2 uses 10 steps / CFG 1 / full pose interval; MOSS uses 50 steps / CFG 4 / pose interval 0–0.5. Both use 768×1024, seed 421030, Euler ancestral and SGM uniform. MOSS native retains learned color/depth pose control while converting numbered character masks to boxes. The regional example retains silhouette routing.
 
 [Setup and limitations](../../docs/pose3d.md#krea2-turbo--moss-trained-pose-adapters) · [Real generation comparison and validation](../../docs/pose3d-krea-moss-validation.md).
+
+For MOSS, start with the native example: it combines native caption/box layout
+with trained color/depth pose guidance. The resident follow-up compares adapter
+OFF/ON, a seated left person and swapped character captions at the same seed.
+See the [four-image comparison](moss-native-audit.jpg) and
+[conditions and limitations](../../docs/pose3d-krea-moss-validation.md#moss-native-json-follow-up-on-the-installed-resident).
+Native mode converts silhouette masks to boxes; it does not use RS regional
+boundary-strength routing. The seated sample follows the pose without creating
+a chair, and style-LoRA-related extra-person failures are still unresolved.

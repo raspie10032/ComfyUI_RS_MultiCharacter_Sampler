@@ -44,3 +44,40 @@ Reproduce through the [workflow-bearing PNG examples](../examples/pose3d/README.
 ## Installed resident verification
 
 After backing up and updating the user installation, `comfyui.service` was restarted with its existing configuration. Port 8188 registered `RS3DPoseAdapter`, and the installed Krea2 regional pose graph completed successfully in 33.09 seconds (prompt `9813e9bb-5b3a-48f0-8176-de7b37a93642`). This is one additional resident execution beyond the seven controlled comparison images. Its request and history are stored alongside the other local evidence. The temporary port-8193 instance was stopped after its queue became empty.
+
+## MOSS native JSON follow-up on the installed resident
+
+At the user's request, the MOSS follow-up uses `layout_method=moss_native`.
+Character captions and the bounding boxes enclosing the numbered masks enter
+MOSS's native layout JSON. The trained adapter independently receives the 3D
+color/depth maps. RS regional boundary-strength routing is not applied in this
+mode, and silhouette details are lost when masks become boxes.
+
+Four additional generations ran successfully on the installed port-8188 instance.
+Settings match the MOSS controlled generation above: seed 421030, 768×1024,
+50 steps, CFG 4, Euler ancestral / SGM uniform, strength 1 when enabled and
+pose interval 0–0.5. There is no style/character LoRA or explicit pose instruction
+in the text. The adapter itself contains the trained control LoRA.
+
+| Case | Prompt ID | Execution seconds | Visual inspection |
+|---|---|---:|---|
+| Pose OFF | `6055f542-e9ba-43ed-94c3-65cc13714034` | 53.463 | Black-haired/red-jacket person stands left; blonde/blue-coat person sits right despite a standing input skeleton |
+| Pose ON, left arm raised | `9429339c-2cf7-4c26-846a-b3a34408e9fa` | 55.523 | Left red-jacket person raises an arm; blonde person stands right; hair and outfit assignments remain distinct |
+| Pose ON, left seated | `2fdbed79-efb5-4db5-a78c-172736567ef5` | 61.923 | Red-jacket person sits left, blonde stands right; two people, but no chair/support is generated |
+| Pose ON, character captions swapped | `2f568d36-135e-4d8e-8dee-2c9d18317187` | 61.934 | Blonde/blue-coat person moves left and raises an arm; black-haired/red-jacket person moves right and stands |
+
+The swapped case changes only the two character captions relative to Pose ON;
+the seed, scene, masks and adapter settings remain the same. Thus this sample
+supports native caption/region assignment working alongside pose guidance.
+Clothing details still vary, including the originally requested coat length.
+This is one seed and two poses, not a reliability or interaction benchmark.
+The seated result needs scene/support prompting; pose following alone does not
+establish physically natural seating. Style-LoRA extra-person failures and
+precise hands/contact remain unresolved as described above.
+
+Times come from ComfyUI execution start/end records and include all executed
+nodes and cache effects; they are not controlled adapter-overhead benchmarks.
+Requests, complete history receipts and the machine-readable results are in
+`/var/home/raspie/AI/rs-pose-integration-20261030/native-audit/`.
+
+![MOSS native JSON and trained pose control, with caption swap](../examples/pose3d/moss-native-audit.jpg)
