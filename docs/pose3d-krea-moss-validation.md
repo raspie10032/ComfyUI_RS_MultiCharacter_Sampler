@@ -113,3 +113,12 @@ MOSS pose, Krea2 and other model families, explicit overrides and invalid modes.
 UI tests cover the auto-mode notice, Chinese/Japanese/Korean text and existing
 presets. These checks do not resolve the previously documented style-LoRA,
 extra-person or exact-contact limitations.
+
+## Diverse Genshin-character follow-up
+
+The subsequent [36-image Jean/Eula audit](pose3d-genshin-diverse-validation.md)
+tests six 3D scenes with Krea regional and MOSS native pose guidance, one matched
+OFF/ON seed and a second ON seed. All 36 executions and receipts passed. Visual
+review confirms coarse pose response but also records a MOSS character/pose
+role swap, inaccurate contact and Krea back-facing failures. See that report
+for complete settings, comparison sheets and the local raw-evidence location.
