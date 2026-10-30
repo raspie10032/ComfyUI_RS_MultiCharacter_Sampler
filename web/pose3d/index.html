@@ -6,6 +6,12 @@
   <aside>
     <h2>RS 3D Pose Masks</h2>
     <p data-i18n="intro">Arrange mannequins to create character masks. A composition guide, not exact pose enforcement.</p>
+    <div id="image-drop">
+      <button id="image-pose" data-i18n="imageDrop">Choose image or drop here</button>
+      <input id="pose-image-file" type="file" accept="image/png,image/jpeg,image/webp" hidden>
+      <p data-i18n="imageDropHelp">One person's image → automatic estimate → 3D. In group scenes, replaces the selected person only.</p>
+      <p data-i18n="imagePoseHelp">Only the source image frame is output; off-frame body parts are excluded. First use downloads SAM 3D Body (2.83 GB).</p>
+    </div>
     <label><span data-i18n="character">Character</span><select id="person"></select></label>
     <div class="row"><button id="add" data-i18n="add">Add</button><button id="copy" data-i18n="copy">Copy</button><button id="remove" data-i18n="remove">Remove</button></div>
     <label><span data-i18n="number">Prompt slot number</span><input id="number" type="number" min="1" max="10"></label>
@@ -16,6 +22,12 @@
     <label><span data-i18n="width">Body width</span><input id="bulk" type="range" min="0.5" max="1.8" step="0.02"><output id="bulk-value"></output></label>
     <label><span data-i18n="preset">Pose</span><select id="preset"><option value="standing">Standing</option><option value="wave">Wave</option><option value="seated">Seated</option><option value="reach">Reach forward</option></select><button id="pose" data-i18n="setPose">Set pose</button></label>
     <button id="reset-person" data-i18n="resetPerson">Reset selected person</button>
+    <hr>
+    <strong data-i18n="library">Local pose library</strong>
+    <label><select id="library-pose" aria-label="Local pose sample"></select><button id="library-apply" data-i18n="setPose" disabled>Set pose</button></label>
+    <div class="row"><button id="random-person" data-i18n="randomPerson" disabled>Random selected</button><button id="random-all" data-i18n="randomAll" disabled>Random each person</button></div>
+    <button id="library-refresh" data-i18n="refreshLibrary">Refresh library</button>
+    <p id="library-status" role="status"></p>
     <hr>
     <strong data-i18n="camera">Camera / canvas</strong>
     <div class="row"><button id="front" data-i18n="front">Front</button><button id="side" data-i18n="side">Side</button><button id="back" data-i18n="back">Back</button></div>

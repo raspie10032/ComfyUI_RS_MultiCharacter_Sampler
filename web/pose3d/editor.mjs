@@ -4,6 +4,8 @@ import {OrbitControls} from 'three/examples/jsm/controls/OrbitControls.js';
 import {TransformControls} from 'three/examples/jsm/controls/TransformControls.js';
 import {JOINTS,defaultScene,mannequin as legacyMannequin,skeleton as legacySkeleton,rotation,mv,sub,mm} from './model.mjs';
 import {initRig,rigControls,defaultRigScene,defaultPerson,preset,rigMannequin,rigSkeleton} from './mhr.mjs';
+import {applyImagePose} from './image_scene.mjs';
+async function startEditor(){
 try {
     const response=await fetch(new URL('./mhr-body.json.gz',import.meta.url));
     if(!response.ok)throw Error(`MHR asset HTTP ${response.status}`);
@@ -14,7 +16,7 @@ try {
 }
 const skeleton=p=>state.version===2?rigSkeleton(p):legacySkeleton(p);
 const mannequin=p=>state.version===2?rigMannequin(p):legacyMannequin(p);
-const jointNames=()=>state.version===2?rigControls():Object.keys(JOINTS);
+const jointNames=()=>state.version===2?(rigSkeleton(person()).visible.length?rigSkeleton(person()).visible:['head']):Object.keys(JOINTS);
 
 const $=id=>document.getElementById(id),colors=[0xff8d91,0x81bcff,0x94dd9d,0xffd27f,0xc3a0ff];
 const messages={
@@ -29,6 +31,44 @@ const person=()=>state.people.find(p=>p.id===selected),token=location.hash.slice
 const tell=(type,extra={})=>{if(parent!==window)parent.postMessage({type,token,...extra},location.origin);};
 const status=s=>{$('status').textContent=s;};
 const text=(key,fallback)=>messages[locale]?.[key]??fallback;
+const libraryText={
+    ko:{library:'로컬 포즈 라이브러리',randomPerson:'선택 인물 랜덤',randomAll:'각 인물 랜덤',refreshLibrary:'라이브러리 새로고침',imagePose:'이미지 → 3D 포즈',imagePoseHelp:'한 명이 나온 이미지나 크롭을 사용하세요. 원본 화면 안의 몸만 출력하며, 화면 밖 신체는 제외합니다. 깊이와 가려진 관절은 추정값입니다. 최초 사용 시 SAM 3D Body(2.83GB)를 받습니다.'},
+    ja:{library:'ローカルポーズ集',randomPerson:'選択人物をランダム',randomAll:'各人物をランダム',refreshLibrary:'一覧を更新',imagePose:'画像 → 3Dポーズ',imagePoseHelp:'1人の画像または切り抜きを使用。元画像の画面内だけを出力し、画面外の身体は除外します。奥行きと隠れた関節は推定値です。初回にSAM 3D Body（2.83GB）を取得します。'},
+    zh:{library:'本地姿势库',randomPerson:'随机选中人物',randomAll:'每个人物随机',refreshLibrary:'刷新姿势库',imagePose:'图像 → 3D姿势',imagePoseHelp:'使用单人图像或裁剪图。仅输出原图画面内的身体，排除画面外部分。深度与遮挡关节仍为估计。首次使用下载SAM 3D Body（2.83GB）。'},
+    'zh-TW':{library:'本機姿勢庫',randomPerson:'隨機選取人物',randomAll:'每個人物隨機',refreshLibrary:'重新整理姿勢庫',imagePose:'影像 → 3D姿勢',imagePoseHelp:'使用單人影像或裁切圖。僅輸出原圖畫面內的身體，排除畫面外部分。深度與遮擋關節仍為估計。首次使用下載SAM 3D Body（2.83GB）。'},
+};
+for(const [lang,entries] of Object.entries(libraryText))Object.assign(messages[lang],entries);
+Object.assign(messages.ko,{imageRunning:'이미지 → 3D: ComfyUI 대기열에서 처리합니다.',imageDone:'3D 추정 완료. 노드에도 자동 적용했습니다. 관절을 바로 조절하세요.',imageStale:'추정 중 장면이 바뀌었습니다. 이미지를 다시 넣어 주세요.',imageDrop:'이미지 선택 또는 여기에 드롭',imageDropHelp:'한 명이 나온 이미지 → 자동 추정 → 바로 3D. 그룹 장면에서는 선택한 인물만 바꿉니다.'});
+Object.assign(messages.ja,{imageRunning:'画像 → 3D：ComfyUIのキューで処理します。',imageDone:'3D推定完了。ノードにも適用しました。関節を調整できます。',imageStale:'推定中にシーンが変更されました。もう一度画像を入れてください。',imageDrop:'画像を選択、またはここにドロップ',imageDropHelp:'1人の画像 → 自動推定 → 3D。グループでは選択人物だけを変更します。'});
+Object.assign(messages.zh,{imageRunning:'图像 → 3D：正在ComfyUI队列中处理。',imageDone:'3D估计完成，已自动应用到节点。可直接调整关节。',imageStale:'估计期间场景已更改，请重新导入。',imageDrop:'选择图像或拖放到此处',imageDropHelp:'单人图像 → 自动估计 → 3D。多人场景仅替换所选人物。'});
+Object.assign(messages['zh-TW'],{imageRunning:'影像 → 3D：正在ComfyUI佇列中處理。',imageDone:'3D估計完成，已自動套用到節點。可直接調整關節。',imageStale:'估計期間場景已變更，請重新匯入。',imageDrop:'選擇影像或拖曳到此處',imageDropHelp:'單人影像 → 自動估計 → 3D。多人場景僅替換所選人物。'});
+let library=[],lastPose=new Map(),imageRequest=null;
+
+function randomIndex(length,previous=-1){
+    if(length<2)return 0;
+    const count=previous>=0?length-1:length,limit=2**32-(2**32%count),array=new Uint32Array(1);
+    do{crypto.getRandomValues(array);}while(array[0]>=limit);
+    const value=array[0]%count;return previous>=0&&value>=previous?value+1:value;
+}
+function usePose(p,index){
+    const entry=library[index];p.joints=structuredClone(entry.joints);
+    delete p.source_frame;
+    // Ground a new bent/seated pose without moving its horizontal placement.
+    p.position[1]-=Math.min(...rigMannequin(p).vertices.map(v=>v[1]));lastPose.set(p.id,index);
+}
+function libraryControls(){
+    const disabled=state.version!==2||!library.length;
+    for(const id of ['library-apply','random-person','random-all'])$(id).disabled=disabled;
+}
+async function loadLibrary(){
+    try{
+        const response=await fetch(new URL('../../../rs_mc/pose3d/library',location.href).pathname);
+        const data=await response.json();if(!response.ok)throw Error(data.error??'Cannot read local pose library.');
+        library=data.poses;lastPose.clear();$('library-pose').replaceChildren(...library.map((p,i)=>new Option(p.name,String(i))));
+        $('library-status').textContent=(library.length?`${library.length} ${text('library','local poses')}`:text('emptyLibrary','No local poses. Add library.json under ComfyUI/models/rs_pose3d.'))+(data.warnings?.length?'\n'+data.warnings.join('\n'):'');
+    }catch(error){library=[];$('library-status').textContent=error.message;}
+    libraryControls();
+}
 const scene=new T.Scene();scene.background=new T.Color(0x111923);
 const camera=new T.PerspectiveCamera(38,1,.05,100);
 const renderer=new T.WebGLRenderer({antialias:true});renderer.setPixelRatio(Math.min(devicePixelRatio,1.5));
@@ -74,7 +114,7 @@ function undo(redo=false){
 function placeGizmo(){
     if(dragging)return;
     const p=person(),{points,frames}=skeleton(p),r=frames[joint];
-    proxy.position.fromArray(mode==='translate'?points.pelvis:points[joint]);
+    proxy.position.fromArray(points[joint]);
     const matrix=new T.Matrix4().set(r[0][0],r[0][1],r[0][2],0,r[1][0],r[1][1],r[1][2],0,r[2][0],r[2][1],r[2][2],0,0,0,0,1);
     proxy.quaternion.setFromRotationMatrix(matrix);proxy.updateMatrixWorld(true);gizmo.attach(proxy);gizmo.setMode(mode);
     gizmo.setSpace(mode==='translate'?'world':'local');
@@ -94,8 +134,9 @@ function build(){
     rebuilding=false;placeGizmo();render();
 }
 function controls(){
+    libraryControls();$('image-pose').disabled=state.version!==2||!!imageRequest;
     const p=person();
-    if(!jointNames().includes(joint))joint='pelvis';
+    if(!jointNames().includes(joint))joint=jointNames()[0];
     $('joint').replaceChildren(...jointNames().map(n=>new Option(n.replaceAll('_',' '),n)));
     $('outline').checked=state.outline??false;$('outline').disabled=state.version!==2;
     $('person').replaceChildren(...state.people.map(p=>new Option(String(p.id),String(p.id))));$('person').value=String(selected);
@@ -117,7 +158,7 @@ gizmo.addEventListener('dragging-changed',event=>{dragging=event.value;orbit.ena
 gizmo.addEventListener('objectChange',()=>{
     if(rebuilding)return;
     const p=person();
-    if(mode==='translate')p.position=sub(proxy.position.toArray(),sub(skeleton(p).points.pelvis,p.position)).map(v=>Math.max(-10,Math.min(10,v)));
+    if(mode==='translate')p.position=sub(proxy.position.toArray(),sub(skeleton(p).points[joint],p.position)).map(v=>Math.max(-10,Math.min(10,v)));
     else{
         const sk=skeleton(p);
         const parentJoint=state.version===2?null:JOINTS[joint][0];
@@ -164,8 +205,9 @@ $('pose').onclick=()=>mutate(()=>{
         seated:{right_hip:[-90,0,0],left_hip:[-90,0,0],right_knee:[90,0,0],left_knee:[90,0,0]},
         reach:{right_shoulder:[-80,0,-15],left_shoulder:[-80,0,15],right_elbow:[-15,0,0],left_elbow:[-15,0,0]}};
     person().joints=state.version===2?preset($('preset').value):structuredClone(presets[$('preset').value]);
+    delete person().source_frame;
 });
-$('reset-person').onclick=()=>mutate(()=>{person().joints=state.version===2?preset('standing'):{};person().rotation=[0,0,0];person().scale=1;person().bulk=1;});
+$('reset-person').onclick=()=>mutate(()=>{delete person().source_frame;person().joints=state.version===2?preset('standing'):{};person().rotation=[0,0,0];person().scale=1;person().bulk=1;});
 for(const [id,offset] of [['front',[0,.25,4.1]],['side',[4.1,.25,0]],['back',[0,.25,-4.1]]])$(id).onclick=()=>mutate(()=>{
     state.camera.position=state.camera.target.map((v,i)=>v+offset[i]);setCamera();
 });
@@ -176,6 +218,26 @@ for(const key of ['width','height'])$(key).onchange=()=>{
 $('outline').onchange=()=>mutate(()=>{state.outline=$('outline').checked;});
 $('mask-mode').onchange=()=>mutate(()=>{state.mask_mode=$('mask-mode').value;});
 $('undo').onclick=()=>undo();$('redo').onclick=()=>undo(true);
+$('library-refresh').onclick=loadLibrary;
+$('library-apply').onclick=()=>{if(state.version===2&&library.length)mutate(()=>usePose(person(),Number($('library-pose').value)));};
+$('random-person').onclick=()=>{if(state.version===2&&library.length)mutate(()=>{const i=randomIndex(library.length,lastPose.get(selected));usePose(person(),i);$('library-pose').value=String(i);});};
+$('random-all').onclick=()=>{if(state.version===2&&library.length)mutate(()=>{for(const p of state.people)usePose(p,randomIndex(library.length,lastPose.get(p.id)));});};
+$('image-pose').onclick=()=>$('pose-image-file').click();
+function requestImage(file){
+    if(!file||imageRequest)return;
+    if(!['image/png','image/jpeg','image/webp'].includes(file.type)||file.size>20*1024*1024){status('Choose a PNG/JPEG/WebP under 20 MB.');return;}
+    if(state.version!==2){status('Image → 3D needs a new MHR scene.');return;}
+    imageRequest={id:crypto.randomUUID(),person:selected,before:JSON.stringify(state)};controls();
+    status(text('imageRunning','Image → 3D: queued in ComfyUI. First use may download 2.83 GB.'));
+    tell('rs-pose3d-image-request',{requestId:imageRequest.id,file});
+}
+$('pose-image-file').onchange=()=>{
+    const file=$('pose-image-file').files[0];$('pose-image-file').value='';requestImage(file);
+};
+for(const target of [$('image-drop'),$('viewport')]){
+    target.ondragover=event=>{event.preventDefault();event.stopPropagation();event.dataTransfer.dropEffect='copy';};
+    target.ondrop=event=>{event.preventDefault();event.stopPropagation();requestImage(event.dataTransfer.files[0]);};
+}
 $('save').onclick=()=>{
     readCamera();const url=URL.createObjectURL(new Blob([JSON.stringify(state,null,2)],{type:'application/json'}));
     const a=document.createElement('a');a.href=url;a.download='RS-3D-Pose-Scene.json';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);
@@ -209,7 +271,7 @@ $('apply').onclick=async()=>{
     try{readCamera();const data=await validate(state);tell('rs-pose3d-apply',{scene:state,preview:data});status(text('applied','Scene applied to node.'));}
     catch(e){status(e.message);}finally{$('apply').disabled=false;}
 };
-window.addEventListener('message',event=>{
+window.addEventListener('message',async event=>{
     if(event.source!==parent||event.origin!==location.origin||event.data?.token!==token)return;
     if(event.data.type==='rs-pose3d-init'&&!initialized){
         initialized=true;history=[];future=[];state=structuredClone(event.data.scene);selected=state.people[0].id;locale=/^zh[-_](TW|HK|Hant)/i.test(event.data.locale??'')?'zh-TW':(event.data.locale??'en').split(/[-_]/)[0];
@@ -218,6 +280,22 @@ window.addEventListener('message',event=>{
         for(const [value,key] of [['full','full'],['visible','visible']])$('mask-mode').querySelector(`[value="${value}"]`).textContent=text(key,$('mask-mode').querySelector(`[value="${value}"]`).textContent);
         setCamera();refresh();saveHistory();status(text('ready','Edit the scene, then Apply.'));
     }else if(event.data.type==='rs-pose3d-error')status(event.data.error);
+    else if(event.data.requestId===imageRequest?.id&&event.data.type==='rs-pose3d-image-progress')status(event.data.message);
+    else if(event.data.requestId===imageRequest?.id&&event.data.type==='rs-pose3d-image-result'){
+        const pending=imageRequest;imageRequest=null;
+        if(JSON.stringify(state)!==pending.before){controls();status(text('imageStale','Scene changed while estimating. Import again.'));return;}
+        try{
+            const next=applyImagePose(state,pending.person,event.data),data=await validate(next);
+            if(JSON.stringify(state)!==pending.before){controls();status(text('imageStale','Scene changed while estimating. Import again.'));return;}
+            mutate(()=>{state=next;setCamera();});
+            tell('rs-pose3d-apply',{scene:state,preview:data});
+            status(text('imageDone','3D ready and applied to node. Adjust joints to refine.'));
+        }catch(error){controls();status(error.message);}
+    }else if(event.data.requestId===imageRequest?.id&&event.data.type==='rs-pose3d-image-error'){imageRequest=null;controls();status(event.data.error);}
 });
 window.addEventListener('pagehide',()=>{gizmo.dispose();orbit.dispose();disposeMeshes(bodies);disposeMeshes(handles);sphereGeometry.dispose();renderer.dispose();});
-setCamera();refresh();saveHistory();tell('rs-pose3d-ready');
+setCamera();refresh();saveHistory();tell('rs-pose3d-ready');loadLibrary();
+}
+startEditor().catch(error=>{
+    document.getElementById('status').textContent='Cannot start 3D editor / 3D 편집기 시작 실패: '+error.message;
+});

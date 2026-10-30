@@ -1,12 +1,13 @@
 # RS MultiCharacter Sampler
 
+**画像 → 3D（実験）:** 3Dポーズノードに1人の画像をドロップすると、自動推定後にエディターが開きます。半身画像の比率と範囲を維持。グループ編集中は選択人物だけを置換します。初回にSAM 3D Body（2.83GB、別途SAM License）を取得。[使い方](docs/pose3d.md#import-another-image-while-editing)。
 **段階的な解像度:** [RS 段階的解像度サンプラー](docs/progressive-resolution.md)は最終サイズの各辺の0.5〜1.0倍から開始し、Lanczosで拡大して、大きな画像をより速くサンプリングします。細部と速度のトレードオフであり、開始倍率が低いほど細部の損失や構図変化が増える場合があります。品質は保証されず、実際の速度はモデルと設定で異なります。既存のマルチキャラクター生成機能は引き続き利用できます。
 
 ComfyUIでキャラクター別のプロンプト・LoRA・領域を設定して生成し、検出した人物を部分補正する拡張です。座標・枠・マスクで、それぞれの外見を適用する場所を誘導します。
 
 [English](README.md) · [한국어](README.ko.md) · [ドキュメント](docs/README.md) · [変更履歴](CHANGELOG.md) · [リリース](https://github.com/raspie10032/ComfyUI_RS_MultiCharacter_Sampler/releases) · [简体中文](README.zh-CN.md) · [繁體中文](README.zh-TW.md)
 
-**現在のバージョン：[1.0.10 Hangeul](docs/release-1.0.10.md)。** ローカルモデルで動作し、RS NovelAI拡張やAPIキーは不要です。
+**現在のバージョン：[1.0.11 Hangeul](docs/release-1.0.11.md)。** ローカルモデルで動作し、RS NovelAI拡張やAPIキーは不要です。
 
 **1.0.10:** Krea 2 Turbo・MOSS用の学習済み3Dポーズアダプターを人物別領域と併用できます。`auto`は有効なMOSSポーズでネイティブJSON、Kreaではregionalを選択します。専用重みは初回使用時に自動取得します。[接続と制限](docs/pose3d.md#krea2-turbo-and-moss-pose-adapters-experimental) · [36枚の比較](docs/pose3d-genshin-diverse-validation.md)。
 

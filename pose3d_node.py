@@ -119,6 +119,12 @@ def register_routes():
     if server is None:
         return
 
+    @server.routes.get('/rs_mc/pose3d/library')
+    async def pose3d_library(request):
+        import asyncio
+        from .pose_library import read_library
+        return web.json_response(await asyncio.to_thread(read_library))
+
     @server.routes.post('/rs_mc/pose3d/preview')
     async def pose3d_preview(request):
         try:

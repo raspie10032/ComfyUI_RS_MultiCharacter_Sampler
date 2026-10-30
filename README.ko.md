@@ -1,12 +1,13 @@
 # RS MultiCharacter Sampler
 
+**이미지 → 3D(실험):** 3D 포즈 노드 패널에 한 명이 나온 이미지를 드롭하면 자동 추정 후 편집기를 엽니다. 반신은 원본 화면 비율과 잘린 범위를 유지합니다. 그룹 편집기에서는 선택 인물만 교체합니다. 최초 사용 시 SAM 3D Body(2.83GB, 별도 SAM License)를 받습니다. [사용법](docs/pose3d.md#import-another-image-while-editing).
 **점진적 해상도:** [RS 점진적 해상도 샘플러](docs/progressive-resolution.md)는 최종 가로·세로의 0.5~1.0 배율에서 시작해 Lanczos로 확대하며, **디테일을 일부 희생하는 대신 큰 해상도 이미지를 더 빠르게 샘플링하는 기능**입니다. 시작 배율이 낮을수록 디테일 손실·구도 변화가 커질 수 있어 품질을 보장하지 못합니다. 실제 속도는 모델·설정에 따라 달라집니다. **기존 멀티캐릭터 샘플링 기능은 그대로 사용할 수 있습니다.**
 
 ComfyUI에서 캐릭터별 프롬프트·LoRA·영역을 지정해 생성하고, 인물을 감지해 부분 보정하는 확장입니다. 좌표·박스·마스크로 각 캐릭터의 외형을 적용할 위치를 유도합니다.
 
 [English](README.md) · [日本語](README.ja.md) · [문서 모음](docs/README.md) · [변경 기록](CHANGELOG.md) · [릴리스](https://github.com/raspie10032/ComfyUI_RS_MultiCharacter_Sampler/releases) · [简体中文](README.zh-CN.md) · [繁體中文](README.zh-TW.md)
 
-**현재 버전: [1.0.10 한글](docs/release-1.0.10.md).** 로컬 모델로 실행하며 RS NovelAI 확장이나 API 키가 필요하지 않습니다.
+**현재 버전: [1.0.11 한글](docs/release-1.0.11.md).** 로컬 모델로 실행하며 RS NovelAI 확장이나 API 키가 필요하지 않습니다.
 
 **1.0.10:** Krea 2 Turbo·MOSS 전용 3D 포즈 어댑터를 캐릭터별 영역과 함께 사용합니다. `auto`는 활성 MOSS 포즈에서 네이티브 JSON, Krea에서 리저널을 선택합니다. 최초 사용 시 전용 가중치를 자동으로 받습니다. [연결·사용 가이드](docs/pose3d-krea-moss-guide.ko.md) · [36장 비교와 한계](docs/pose3d-genshin-diverse-validation.md).
 

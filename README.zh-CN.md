@@ -1,12 +1,13 @@
 # RS MultiCharacter Sampler
 
+**图像 → 3D（实验）:** 将单人图像拖入3D姿态节点，自动估计并打开编辑器。保留半身图像的比例和裁剪范围。群组编辑时只替换选中人物。首次下载SAM 3D Body（2.83GB，单独SAM License）。[用法](docs/pose3d.md#import-another-image-while-editing)。
 **渐进分辨率：**[RS 渐进分辨率采样器](docs/progressive-resolution.md)以最终宽高的0.5–1.0倍开始，使用Lanczos逐步放大，以部分细节换取大尺寸图像的采样速度。起始比例越低，细节损失和构图变化可能越大，无法保证质量。实际速度取决于模型和设置。原有多角色采样功能仍可使用。
 
 用于 ComfyUI 的区域生成与本地细节修复。为每个角色提供独立提示词、可选 LoRA，以及点、矩形或遮罩，引导角色特征在画面中的分布。
 
 [English](README.md) · [한국어](README.ko.md) · [日本語](README.ja.md) · **简体中文** · [繁體中文](README.zh-TW.md) · [详细文档](docs/README.md) · [更新记录](CHANGELOG.md) · [发布版本](https://github.com/raspie10032/ComfyUI_RS_MultiCharacter_Sampler/releases)
 
-**当前版本：[1.0.10 Hangeul](docs/release-1.0.10.md)。** 使用本地模型，无需安装 RS NovelAI 扩展或提供 API 密钥。
+**当前版本：[1.0.11 Hangeul](docs/release-1.0.11.md)。** 使用本地模型，无需安装 RS NovelAI 扩展或提供 API 密钥。
 
 **1.0.10：** Krea 2 Turbo、MOSS专用的已训练3D姿势适配器可与分角色区域配合使用。`auto`在启用MOSS姿势控制时选择原生JSON，在Krea中选择regional。首次使用自动下载专用权重。[连接与限制](docs/pose3d.md#krea2-turbo-and-moss-pose-adapters-experimental) · [36张对比](docs/pose3d-genshin-diverse-validation.md)。
 

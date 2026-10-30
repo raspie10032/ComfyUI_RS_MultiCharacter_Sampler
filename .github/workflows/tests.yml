@@ -81,6 +81,10 @@ jobs:
         run: node tests/test_position_editor_ui.cjs
       - name: OpenPose masks and connected input previews
         run: node tests/test_pose_masks_ui.cjs
+      - name: Image to 3D import and scene framing
+        run: |
+          node tests/test_pose3d_ui.cjs
+          node tests/test_pose_image_scene.mjs
       - name: Chinese locale catalogs and fallback coverage
         run: node tests/test_localization_ui.cjs
 

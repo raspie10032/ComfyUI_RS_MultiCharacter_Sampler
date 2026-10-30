@@ -94,6 +94,18 @@ def read_scene(raw):
                           scale=number(p.get('scale'), .4, 1.8, 'Body height'),
                           bulk=number(p.get('bulk'), .5, 1.8, 'Body width'),
                           joints={k: vector(v, -180, 180, k) for k, v in rotations.items()}))
+        if 'source_frame' in p:
+            planes = p['source_frame']
+            if raw['version'] != 2 or not isinstance(planes, list) or len(planes) != 5:
+                raise ValueError('Source image frame needs five clipping planes in an MHR scene.')
+            clean[-1]['source_frame'] = []
+            for plane in planes:
+                if not isinstance(plane, list) or len(plane) != 4:
+                    raise ValueError('Invalid source image clipping plane.')
+                value = [number(v, -1000, 1000, 'Source frame') for v in plane]
+                if not .99 <= np.linalg.norm(value[:3]) <= 1.01:
+                    raise ValueError('Source image clipping planes must have unit normals.')
+                clean[-1]['source_frame'].append(value)
     result = dict(version=raw['version'], width=raw['width'], height=raw['height'], mask_mode=raw['mask_mode'],
                   camera=camera, people=sorted(clean, key=lambda p: p['id']))
     if raw['version'] == 2:

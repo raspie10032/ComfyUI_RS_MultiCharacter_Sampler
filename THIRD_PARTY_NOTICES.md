@@ -113,3 +113,20 @@ and [MOSS color/depth adapter](https://huggingface.co/darask0/MOSS-Image-color-d
 are downloaded separately; pinned revisions and checksums are in `reference_assets.json`.
 Their model licenses apply separately. MOSS integration converts separate Q/K/V LoRA
 names to the current ComfyUI projection mapping and validates complete installation.
+
+## Optional SAM 3D Body image-to-pose estimation
+
+`pose_estimator.py` invokes the separately installed ComfyUI core
+`SAM3DBody_Loader` and `SAM3DBody_Predict`. The separately downloaded model is
+`Comfy-Org/sam-3d-body`, revision `3d7eeedcb3fe5ab03235438b9e67c9b889eb97c1`,
+`detection/sam_3d_body_dinov3_bf16.safetensors`; SHA256 is pinned in the module.
+The model is SAM 3D Body by Meta, under the separate
+[SAM License](SAM-3D-BODY-LICENSE), copied from the
+[official project](https://github.com/facebookresearch/sam-3d-body/blob/main/LICENSE).
+The model weights are not bundled or relicensed under this extension's GPL.
+The editor's existing MHR mesh retains its separate Apache-2.0 notice above.
+
+The library conversion helper reads positional samples from
+[open-pose-editor](https://github.com/ZhUyU1997/open-pose-editor), revision
+`8e659f1f1995715621ac3f50d9c34d55faf5296d`. Converted samples and original data
+remain in a user-selected local directory, outside this repository and package.

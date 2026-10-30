@@ -65,6 +65,47 @@ def default_scene():
     return scene
 
 
+def clip_source_frame(vertices, faces, points, planes):
+    """Keep the part inside the source photo, in unscaled MHR coordinates.
+
+    Clip crossing triangles too: deleting only out-of-frame joints or whole
+    triangles leaves either invented legs or holes at the photo boundary.
+    """
+    if not planes:
+        return vertices, faces, points
+    planes = np.asarray(planes)
+    distance = vertices @ planes[:, :3].T + planes[:, 3]
+    per_face = distance[faces]
+    inside = (per_face >= -1e-10).all(axis=(1, 2))
+    outside = (per_face < -1e-10).all(axis=1).any(axis=1)
+    kept = faces[inside].tolist()
+    extra = []
+    for face in faces[~(inside | outside)]:
+        polygon = vertices[face]
+        for plane in planes:
+            clipped = []
+            for a, b in zip(polygon, np.roll(polygon, -1, axis=0)):
+                da, db = a @ plane[:3]+plane[3], b @ plane[:3]+plane[3]
+                if da >= -1e-10:
+                    clipped.append(a)
+                if (da >= -1e-10) != (db >= -1e-10):
+                    clipped.append(a+(b-a)*da/(da-db))
+            polygon = np.asarray(clipped)
+            if len(polygon) < 3:
+                break
+        if len(polygon) < 3:
+            continue
+        start = len(vertices)+len(extra)
+        extra.extend(polygon)
+        kept.extend([start, start+i, start+i+1] for i in range(1, len(polygon)-1))
+    points = {k: v for k, v in points.items() if (v @ planes[:, :3].T+planes[:, 3] >= -1e-10).all()}
+    if not kept:
+        return np.empty((0, 3)), np.empty((0, 3), dtype=int), points
+    vertices = np.concatenate((vertices, np.asarray(extra).reshape(-1, 3)))
+    indices, inverse = np.unique(np.asarray(kept).ravel(), return_inverse=True)
+    return vertices[indices], inverse.reshape(-1, 3), points
+
+
 def mannequin(person):
     d = asset()
     angles = {d['controls'][k]: v for k, v in person['joints'].items()}
@@ -81,6 +122,8 @@ def mannequin(person):
     from .pose3d import rotation as body_rotation
     r = body_rotation(person['rotation'])
     size = person['scale']*np.array([person['bulk'], 1., person['bulk']])
-    points = {key: (posed[d['names'].index(name), :3, 3]*size) @ r.T+person['position']
+    points = {key: posed[d['names'].index(name), :3, 3]
               for key, name in d['controls'].items()}
+    skinned, faces, points = clip_source_frame(skinned, faces, points, person.get('source_frame'))
+    points = {key: (point*size) @ r.T+person['position'] for key, point in points.items()}
     return (skinned*size) @ r.T+person['position'], faces, points

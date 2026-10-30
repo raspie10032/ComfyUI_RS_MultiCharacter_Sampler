@@ -2,7 +2,7 @@
 
 Arrange native skinned MHR bodies in a local 3D editor, then use their camera-projected silhouettes as numbered character regions. Editing and masks need no inference weights, external service or runtime CDN. Pose conditioning uses a separately trained compatible adapter. Three.js is bundled with the extension.
 
-1. Add **RS 3D Pose Masks (Experimental)** and click **Open 3D editor**.
+1. Add **RS 3D Pose Masks (Experimental)**. Drop a one-person PNG/JPEG/WebP (under 20 MB) onto the **Image → 3D** panel, or click to select it. Estimation runs automatically in the ordinary ComfyUI queue, saves the source camera/crop and opens the 3D editor; no separate Load Image/estimator connection or extra Queue/Apply is needed. This replaces the node's current scene with one estimated person. For manual posing, use **Open 3D editor** instead.
 2. Choose a character number matching the Prompt/LoRA slot. Add or copy up to ten people. Numbers stay fixed when people cross; renumber explicitly to change the assignment.
 3. Click a joint and drag its colored rings, or select a joint and use the XYZ sliders. Choose **Move person** to drag the whole person. Height and body-width controls change that person's silhouette.
 4. Drag empty space to orbit the output camera; right-drag pans, the wheel zooms. Use Front/Side/Back to reset the view and set canvas dimensions (64–2048 pixels per side).
@@ -28,7 +28,7 @@ Tested with [toyxyz/Anima_ControlNet-LLLite](https://huggingface.co/toyxyz/Anima
 ## Boundaries
 
 - The pipe alone guides composition and prompt ownership through 2D masks. Pose guidance is separate: connect pose_image through a compatible adapter to the sampler MODEL. The generation model never receives the 3D rig itself.
-- New bodies use a native skinned adult MHR mesh and hand/finger controls. Legacy scenes keep ellipsoid bodies. Clothing simulation, facial controls, body tracking and photo-to-pose estimation are not included.
+- New bodies use a native skinned adult MHR mesh and hand/finger controls. Legacy scenes keep ellipsoid bodies. Single-image pose estimation uses the optional SAM 3D Body path below. Clothing simulation, facial controls and video body tracking are not included.
 - Masks outside the canvas are clipped. If a selected silhouette is entirely outside/behind the camera or fully hidden in visible mode, Apply/execution explains which character needs correction. Full mode can retain hidden characters.
 - Moving a person does not change its prompt number. Prompt enable/count settings determine which numbered regions are used by generation.
 - New 3D masks preserve incoming prompts, LoRAs, placement transforms and camera settings. Position before/after this node gives the same result. Later mask producers overwrite earlier masks for their slot.
@@ -64,3 +64,31 @@ Use the **standard RS sampler at full resolution**. Progressive sampling, simult
 [Workflow PNGs](../examples/pose3d/README.md) · [Krea2/MOSS generation evidence](pose3d-krea-moss-validation.md).
 
 If required reference/download dependencies are absent, install the existing `requirements-reference.txt` in the ComfyUI Python environment. Adapter weights total about 229 MB for Krea2 and 313 MB for MOSS, downloaded separately.
+
+## Import another image while editing
+
+Drop an image onto the 3D viewport or its image panel. In a one-person scene the image also updates the camera and canvas ratio; in a group scene only the selected person is replaced and the existing composition stays fixed. The result is applied to the node automatically. Subsequent manual edits still use **Apply to node**. If the scene changes during inference, the result is rejected to preserve those edits.
+
+The panel displays queue/download/estimation state. The first estimate downloads SAM 3D Body (2.83 GB) into the local detection-model directory; a compatible ComfyUI core with `SAM3DBody_Loader` and `SAM3DBody_Predict` is required. Its weights use the separate [SAM License](https://github.com/facebookresearch/sam-3d-body/blob/main/LICENSE). Images are processed on the local ComfyUI server. Use one person or a crop: hidden depth and joints are estimated, and body parts outside the original image frame are clipped from output.
+
+## Local pose library and random selection
+
+The editor reads `library.json` from `ComfyUI/models/rs_pose3d` and any configured
+`rs_pose3d` model directories. Use **Refresh library** after adding a catalogue.
+Choose a pose and **Set pose**, **Random selected** to change only the selected
+person, or **Random each person** to choose independently for everyone. Horizontal
+placement and prompt numbers stay fixed; the new pose is grounded automatically.
+Random selection is an editor action, not a change on every sampling run. Save
+the scene or workflow to keep the chosen result. Click **Apply to node** after editing.
+
+Downloaded pose samples are local data and are not shipped in this package.
+An empty library leaves manual posing and image import available. The local
+conversion helper `tools/pose3d/import-library.py` accepts a downloaded positional
+sample JSON and a destination directory. Keep the source revision and its license
+beside your local catalogue. No sample download runs automatically.
+
+**한국어 — 빠른 사용법:** 3D 포즈 노드의 **이미지 → 3D**에 한 명이 나온 이미지를
+넣으면 추정 후 편집기가 자동으로 열립니다. 관절을 클릭한 뒤 회전 고리를 드래그해
+수정하고 **노드에 적용**을 누르세요. 반신은 화면 안에 나온 부분만 출력합니다.
+포즈 라이브러리가 설치돼 있으면 **선택 인물 랜덤** 또는 **각 인물 랜덤**으로
+새 자세를 고를 수 있습니다. 랜덤 결과는 현재 장면에 저장되며 생성 때마다 바뀌지 않습니다.

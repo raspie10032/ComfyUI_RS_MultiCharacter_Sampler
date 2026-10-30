@@ -6,6 +6,7 @@ versions and downloadable assets, see [GitHub Releases](https://github.com/raspi
 
 | Version | Main change | Details |
 | --- | --- | --- |
+| **1.0.11 Hangeul** | Drop an image to estimate an editable 3D pose, preserve source crops, and select/randomize poses from a local library. | [Release notes](docs/release-1.0.11.md) · [Usage](docs/pose3d.md) |
 | **1.0.10 Hangeul** | Reissue corrected pose PNGs and older-core MOSS error guidance to Registry; align runtime and package versions. | [Release notes](docs/release-1.0.10.md) |
 | **1.0.9 Hangeul** | Experimental Krea 2 Turbo/MOSS trained 3D pose adapters, automatic MOSS native layout and Genshin workflow PNGs. | [Release notes](docs/release-1.0.9.md) · [한국어 가이드](docs/pose3d-krea-moss-guide.ko.md) |
 | **1.0.8 Hangeul** | Avoid algebraically cancelled Anima reference predictions while preserving independent character regions; guarded by exact guidance and CFG compatibility checks. | [Release notes](docs/release-1.0.8.md) · [Validation and limitations](docs/anima-reference-prediction-optimization.md) |

@@ -6,7 +6,7 @@ Regional generation and local detailing for ComfyUI. Give each character a promp
 
 [한국어](README.ko.md) · [日本語](README.ja.md) · [Documentation](docs/README.md) · [Changelog](CHANGELOG.md) · [Releases](https://github.com/raspie10032/ComfyUI_RS_MultiCharacter_Sampler/releases) · [简体中文](README.zh-CN.md) · [繁體中文](README.zh-TW.md)
 
-**Current release: [1.0.10 Hangeul](docs/release-1.0.10.md).** Runs with local models; no RS NovelAI extension or API key is required.
+**Current release: [1.0.11 Hangeul](docs/release-1.0.11.md).** Runs with local models; no RS NovelAI extension or API key is required.
 
 **1.0.10:** Trained Krea 2 Turbo and MOSS 3D pose adapters work alongside numbered character regions. `auto` prefers native JSON for active MOSS pose control, and regional routing for Krea. First-use weights download automatically. [Setup and limits](docs/pose3d.md#krea2-turbo-and-moss-pose-adapters-experimental) · [36-image audit](docs/pose3d-genshin-diverse-validation.md).
 
@@ -127,6 +127,7 @@ The extension registers **15 nodes**. UI labels and contextual help follow Comfy
 | --- | --- |
 | RS Character Prompt / LoRA / Position / Finalize Character Pipe | Build numbered character settings and the final sampler/detailer pipe. |
 | RS Character Mask / Mask Drawing | Connect external masks or paint numbered regions. |
+| RS 3D Pose Masks (Experimental) | Drop a single-person PNG/JPEG/WebP onto its **Image → 3D** panel: estimate, save the scene and open the 3D editor automatically. This replaces the node's scene. Import inside a group editor to replace only its selected person. A one-person scene uses the image's camera and crop; off-frame body parts are excluded. First use downloads SAM 3D Body (2.83 GB, separate [SAM License](https://github.com/facebookresearch/sam-3d-body/blob/main/LICENSE)); requires ComfyUI core SAM3DBody support. |
 | RS OpenPose Masks (Experimental) / Character Interaction | Build pose-derived masks and adjust overlap separation. |
 | RS Image Reference (Experimental · Not Recommended) | Associate an image reference with a character number. |
 | RS MultiCharacter Sampler / Load Image | Generate and restore saved settings. |

@@ -8,7 +8,7 @@ Start with your language's README for installation and a first workflow. This
 index groups detailed guides and evidence by task. Release notes describe changes
 at a particular version; current usage belongs in the feature guides below.
 
-[1.0.9 release notes](release-1.0.9.md) · [Krea/MOSS 포즈 가이드](pose3d-krea-moss-guide.ko.md) · [Anima reference prediction optimization](anima-reference-prediction-optimization.md)
+[1.0.11 release notes](release-1.0.11.md) · [Krea/MOSS 포즈 가이드](pose3d-krea-moss-guide.ko.md) · [Anima reference prediction optimization](anima-reference-prediction-optimization.md)
 
 ## Usage guides
 

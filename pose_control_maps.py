@@ -34,10 +34,13 @@ def openpose(joints, w, h):
     draw = ImageDraw.Draw(image)
     radius = max(3, round(min(w, h)/160))
     for person in joints:
-        points = [tuple(person[k][:2]) for k in names]
+        points = [tuple(person[k][:2]) if k in person and person[k][2] >= .05 else None for k in names]
         for i, (a, b) in enumerate(links):
-            draw.line([points[a], points[b]], fill=tuple(int(c*.6) for c in colors[i]), width=radius*2)
+            if points[a] is not None and points[b] is not None:
+                draw.line([points[a], points[b]], fill=tuple(int(c*.6) for c in colors[i]), width=radius*2)
         for point, color in zip(points, colors):
+            if point is None:
+                continue
             x, y = point
             draw.ellipse((x-radius,y-radius,x+radius,y+radius), fill=color)
     return image
