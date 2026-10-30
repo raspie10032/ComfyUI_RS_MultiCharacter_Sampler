@@ -1232,5 +1232,9 @@
         "name": "ポーズ画像"
       }
     }
+  },
+  "RS3DPoseAdapter": {
+    "display_name": "RS 3D ポーズアダプター (Krea2 / MOSS・実験)",
+    "description": "3DシーンをKrea2 TurboのOpenPose、またはMOSSの色・深度ポーズアダプターに渡します。対応VAEを接続し、MODELをRSサンプラーに接続してください。初回は重みを取得します。正確な関節・接触・人数は保証しません。"
   }
 }

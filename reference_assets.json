@@ -118,5 +118,21 @@
     "folder": "ipadapter",
     "subdir": "anima29B_frame",
     "sha256": "fcf7c3b134a3fa522264cb8c3117bed9a32a634448cbf2a3d36213925ec52ebe"
+  },
+  "krea_pose": {
+    "repo": "thedeoxen/Krea-2-pose-controlnet",
+    "revision": "1da9762ca46e6c9e4014b309bf0147889f10982a",
+    "file": "krea2_turbo_openpose_controlnet.safetensors",
+    "folder": "loras",
+    "subdir": "krea_pose",
+    "sha256": "0ddc3aafce4abdf7af3309b2f00c1bacdf15df1f2b4fb7adc9ff71795da90ecf"
+  },
+  "moss_pose": {
+    "repo": "darask0/MOSS-Image-color-depth-control",
+    "revision": "357d7cc1eefd746de28ed74741c79464e3d82daa",
+    "file": "moss-control.safetensors",
+    "folder": "loras",
+    "subdir": "moss_pose",
+    "sha256": "e5c0c3efd05e4269207a39de6005798f14c90c6687c89c54eaffe4b76c43a763"
   }
 }

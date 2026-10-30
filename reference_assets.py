@@ -43,7 +43,7 @@ def _check_adapter(path, progress, name):
 def _adapter_label(name):
     return {'anima_role_kv': 'Anima Role K/V', 'anima_frame': 'Anima 2B reference-frame',
             'anima29_frame': 'Anima 2.9B reference-frame',
-            'anima_frame_v2': 'Anima 2B asymmetric v2'}[name]
+            'anima_frame_v2': 'Anima 2B asymmetric v2', 'krea_pose': 'Krea2 Turbo pose', 'moss_pose': 'MOSS color/depth pose'}[name]
 
 
 def frame_adapter(model, node_id=None):

@@ -2056,5 +2056,9 @@
         "name": "姿势图像"
       }
     }
+  },
+  "RS3DPoseAdapter": {
+    "display_name": "RS 3D 姿态适配器（Krea2 / MOSS · 实验）",
+    "description": "将3D场景传递给Krea2 Turbo的OpenPose或MOSS的颜色和深度姿态适配器。连接匹配的VAE，将MODEL连接到RS采样器。首次使用下载权重。不保证精确关节、接触和人数。"
   }
 }

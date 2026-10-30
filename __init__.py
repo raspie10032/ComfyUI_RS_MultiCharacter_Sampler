@@ -2,6 +2,7 @@
 from .characters import RSMultiCharacterPrompts
 from .pose_nodes import RSMultiCharacterPoseMasks
 from .pose3d_node import RSMultiCharacterPose3D
+from .pose_adapter import RS3DPoseAdapter
 from .interaction import RSMultiCharacterInteraction
 from .character_builder import (RSMultiCharacterPrompt, RSMultiCharacterLoRA,
                                 RSMultiCharacterPosition, RSMultiCharacterFinalize, RSMultiCharacterMask)
@@ -16,6 +17,7 @@ from .progressive import RSMultiCharacterProgressiveSampler
 from .anima_ref_frame import RSAnimaReferenceAdapter, RSAnimaCharacterReference
 
 NODE_CLASS_MAPPINGS = {
+    "RS3DPoseAdapter": RS3DPoseAdapter,
     "RSMultiCharacterPose3D": RSMultiCharacterPose3D,
     "RSAnimaCharacterReference": RSAnimaCharacterReference,
     "RSAnimaReferenceAdapter": RSAnimaReferenceAdapter,
@@ -38,6 +40,7 @@ NODE_CLASS_MAPPINGS = {
     "RSMultiCharacterTaggerLoader": RSMultiCharacterTaggerLoader,
 }
 NODE_DISPLAY_NAME_MAPPINGS = {
+    "RS3DPoseAdapter": "RS 3D Pose Adapter (Krea2 / MOSS · Experimental)",
     "RSMultiCharacterPose3D": "RS 3D Pose Masks (Experimental)",
     "RSAnimaCharacterReference": "RS Anima Character Reference (Experimental)",
     "RSAnimaReferenceAdapter": "RS Anima Reference Frame (Experimental)",

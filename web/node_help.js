@@ -5,7 +5,7 @@ import { app } from "../../scripts/app.js";
 const targets = new Set([
     "RSMultiCharacterPrompt", "RSMultiCharacterPosition", "RSMultiCharacterFinalize", "RSMultiCharacterMask", "RSMultiCharacterMaskDraw",
     "RSMultiCharacterProgressiveSampler", "RSMultiCharacterSampler", "RSMultiCharacterLoadImage", "RSMultiCharacterDetailer",
-    "RSMultiCharacterTaggerLoader", "RSMultiCharacterPrompts", "RSMultiCharacterReference", "RSMultiCharacterInteraction", "RSAnimaReferenceAdapter", "RSAnimaCharacterReference",
+    "RSMultiCharacterTaggerLoader", "RSMultiCharacterPrompts", "RSMultiCharacterReference", "RSMultiCharacterInteraction", "RSAnimaReferenceAdapter", "RSAnimaCharacterReference", "RS3DPoseAdapter",
 ]);
 const locale = () => String(app.extensionManager?.setting?.get?.("Comfy.Locale")
     ?? app.ui?.settings?.getSettingValue?.("Comfy.Locale") ?? globalThis.navigator?.language ?? "en");
@@ -26,6 +26,12 @@ export function nodeHelp(node) {
         if (format === "WebP lossy") add("Lossy WebP changes pixels; quality controls compression, not generation.", "손실 WebP는 픽셀이 달라집니다. 품질 값은 생성 품질이 아닌 저장 압축률입니다.", "非可逆WebPは画素が変わります。品質値は生成品質ではなく保存時の圧縮設定です。");
     };
     switch (typeOf(node)) {
+        case "RS3DPoseAdapter":
+            add("Krea2 Turbo / MOSS pose adapter · first use downloads matching weights.", "Krea2 Turbo / MOSS 포즈 어댑터 · 처음 사용할 때 해당 가중치를 받습니다.", "Krea2 Turbo / MOSS ポーズアダプター・初回は対応重みを取得します。");
+            add("3D scene_json → here; MODEL → RS sampler. Keep the 3D building pipe connected to Finalize.", "3D의 scene_json → 이 노드, MODEL → RS 샘플러. 3D의 조립 파이프도 최종 파이프에 연결하세요.", "3Dのscene_json→このノード、MODEL→RSサンプラー。3Dの組み立てパイプもFinalizeへ接続してください。");
+            add("Krea2: start 0, end 1. MOSS: try end 0.5; native layout keeps the color/depth pose signal but converts character masks to boxes.", "Krea2: 시작 0, 끝 1. MOSS: 끝 0.5부터 시도. native에서도 색상·깊이 포즈 신호는 유지되며 캐릭터 마스크만 박스로 바뀝니다.", "Krea2：開始0、終了1。MOSSは終了0.5から。nativeでも色・深度のポーズ信号を保持し、キャラクターマスクのみボックスに変換します。");
+            add("Hands, contact and exact character count can fail. Image references and progressive sampling are not supported in this experimental path.", "손·접촉·정확한 인원수는 실패할 수 있습니다. 시험 경로에서는 이미지 참조와 점진 해상도를 함께 사용하지 않습니다.", "手・接触・正確な人数は失敗する場合があります。実験経路では画像参照・段階的解像度を併用できません。");
+            break;
         case "RSAnimaReferenceAdapter":
             add("Global image OR numbered character images; Anima + RS sampler only.", "전역 이미지 또는 번호별 캐릭터 이미지. Anima + RS 샘플러 전용입니다.", "全体画像または番号別人物画像。Anima + RSサンプラー専用。");
             if (v("reference_scale", 1) < 1)

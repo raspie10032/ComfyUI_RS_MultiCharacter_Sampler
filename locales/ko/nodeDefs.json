@@ -1232,5 +1232,9 @@
         "name": "포즈 이미지"
       }
     }
+  },
+  "RS3DPoseAdapter": {
+    "display_name": "RS 3D 포즈 어댑터 (Krea2 / MOSS · 시험)",
+    "description": "3D 장면을 Krea2 Turbo의 OpenPose 또는 MOSS의 색상·깊이 포즈 어댑터로 전달합니다. 맞는 VAE를 연결하고 MODEL을 RS 샘플러에 연결하세요. 첫 사용 시 가중치를 다운로드합니다. 정확한 관절·접촉·인원수는 보장하지 않습니다."
   }
 }

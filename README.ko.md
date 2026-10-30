@@ -152,3 +152,6 @@ node tests/test_ui.cjs
 네이티브 통합 검사는 `RS_MC_TEST_COMFYUI`에 ComfyUI 경로를 지정합니다. 전체 JavaScript UI 검사 11종과 코어·OS 조합은 [CI 설정](.github/workflows/tests.yml)에 있습니다.
 
 GPL-3.0-only. [COPYING](COPYING) · [서드파티 고지](THIRD_PARTY_NOTICES.md) · [소스 계보](docs/source-lineage.json)
+
+
+**Krea2 Turbo·MOSS 3D 포즈 어댑터(실험):** 3D 노드의 `scene_json`을 **RS 3D Pose Adapter**에 연결하고 MODEL을 일반 RS 샘플러에 연결합니다. Krea2는 학습된 OpenPose LoRA, MOSS는 색상·깊이 어댑터를 자동 준비합니다. 캐릭터별 영역 파이프는 계속 연결해야 합니다. 정확한 관절·인원수는 보장하지 않습니다. [Setup](docs/pose3d.md#krea2-turbo-and-moss-pose-adapters-experimental).

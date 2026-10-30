@@ -1,6 +1,11 @@
 // SPDX-License-Identifier: GPL-3.0-only
 // Simplified Chinese / Traditional Chinese (Taiwan) display text.
 export const zhMessages = {
+  "Krea2 Turbo / MOSS pose adapter · first use downloads matching weights.": ["Krea2 Turbo / MOSS 姿态适配器：首次使用时下载匹配权重。", "Krea2 Turbo / MOSS 姿態適配器：首次使用時下載對應權重。"],
+  "3D scene_json → here; MODEL → RS sampler. Keep the 3D building pipe connected to Finalize.": ["将 3D scene_json 接到此处，MODEL 接到 RS 采样器。3D 构建管道也要连接 Finalize。", "將 3D scene_json 接到此處，MODEL 接到 RS 取樣器。3D 組裝管道也要連接 Finalize。"],
+  "Krea2: start 0, end 1. MOSS: try end 0.5; native layout keeps the color/depth pose signal but converts character masks to boxes.": ["Krea2：开始 0，结束 1。MOSS 可先试结束 0.5；原生布局保留颜色/深度姿态信号，但将角色遮罩转为矩形。", "Krea2：開始 0，結束 1。MOSS 可先試結束 0.5；原生配置保留色彩/深度姿態訊號，但將角色遮罩轉為矩形。"],
+  "Hands, contact and exact character count can fail. Image references and progressive sampling are not supported in this experimental path.": ["手部、接触及人数可能不准确。此实验路径不支持同时使用图像参考和渐进采样。", "手部、接觸及人數可能不準確。此實驗路徑不支援同時使用影像參考與漸進取樣。"],
+
   "Anima 2B / 2.9B: matching reference-frame adapter downloads automatically.": ["Anima 2B/2.9B：自动下载匹配的参考帧适配器。", "Anima 2B/2.9B：自動下載符合模型的參考影格轉接器。"],
   "Role K/V: Anima 2B only; no MODEL adapter node. Downloads 504 MiB once; balanced routing, Normal character LoRAs only.": ["Role K/V：仅限Anima 2B，无需MODEL适配器节点。首次下载504MiB，采用均衡分区控制，角色LoRA仅支持普通模式。", "Role K/V：僅限Anima 2B，無需MODEL轉接器節點。首次下載504MiB，採用均衡分區控制，角色LoRA僅支援一般模式。"],
   "Anima Role K/V: 2B only; downloads a 504 MiB adapter once. Balanced routing; character LoRAs need Normal mode. Reference methods cannot be mixed.": ["Anima Role K/V：仅限2B，首次下载504MiB适配器。均衡分区控制，角色LoRA需普通模式，不可混用参考方式。", "Anima Role K/V：僅限2B，首次下載504MiB轉接器。均衡分區控制，角色LoRA需一般模式，不可混用參考方式。"],

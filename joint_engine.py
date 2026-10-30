@@ -53,13 +53,20 @@ class JointRouting:
         self.reference_audit = {}
         self.boxes = boxes
         self.settings, self.audit = settings, audit
+        self.pose_kv = {}
+        self.pose_runtime = None
         self.sigmas = self.state = None
 
     def install(self, work):
         from comfy.patcher_extension import WrappersMP
         from .native_reference import attach_native_references
         attach_native_references(self, work)
+        self.pose_runtime = work.model_options.get('rs_pose_runtime')
         self.reference_dm = work.get_model_object('diffusion_model')
+        if self.pose_runtime is not None:
+            sampling = work.get_model_object('model_sampling')
+            self.pose_start_sigma = sampling.percent_to_sigma(self.pose_runtime['start'])
+            self.pose_end_sigma = sampling.percent_to_sigma(self.pose_runtime['end'])
         options = work.model_options['transformer_options']
         if options.get('optimized_attention_override'):
             raise ValueError('Disconnect other attention overrides before regional sampling.')
@@ -78,6 +85,7 @@ class JointRouting:
             return executor(*args, **kwargs)
         finally:
             self.state = self.sigmas = None
+            self.pose_kv.clear()
 
     def krea_forward(self, executor, x, timesteps, context, attention_mask=None,
                      ref_latents=None, transformer_options=None, **kwargs):
@@ -85,6 +93,17 @@ class JointRouting:
             raise ValueError('Krea2 regional sampling currently accepts text-to-image only, without reference latents or attention masks.')
         patch = executor.class_obj.patch
         def invoke(xb, tb, cb, options):
+            if self.pose_runtime is not None:
+                from .krea_pose_backend import _precompute_ref_kv, _forward_with_cached_refs
+                plan = self.pose_runtime
+                # Use native percent-to-sigma conversion, matching ComfyUI conditioning ranges.
+                sigma = float(options['sigmas'][0])
+                if self.pose_end_sigma <= sigma <= self.pose_start_sigma:
+                    batch = xb.shape[0]*(xb.shape[2] if xb.ndim == 5 else 1)
+                    key = (batch, str(xb.device), xb.dtype)
+                    if key not in self.pose_kv:
+                        self.pose_kv[key] = _precompute_ref_kv(self.reference_dm, xb, tb, [plan['latent']], {k:v for k,v in options.items() if k != 'optimized_attention_override'})
+                    return _forward_with_cached_refs(self.reference_dm, xb, tb, cb, self.pose_kv[key], options)
             refs = [r.to(xb) for r in self.reference_latents] if options['cond_or_uncond'] == [0] else []
             self.reference_lengths = [((r.shape[-2]+patch-1)//patch)*((r.shape[-1]+patch-1)//patch) for r in refs]
             self.reference_audit['reference_lengths'] = self.reference_lengths
@@ -186,6 +205,15 @@ class JointRouting:
         if joint and self.reference_lengths:
             from .native_reference import reference_joint
             return reference_joint(self, original, q, k, v, heads, mask=mask, **kwargs)
+        if joint and self.pose_runtime is not None and k.shape[seq_dim] > n:
+            # Ostris cached pose K/V are global structural keys, not appearance references.
+            rk, rv = k.narrow(seq_dim, n, k.shape[seq_dim]-n), v.narrow(seq_dim, n, v.shape[seq_dim]-n)
+            k, v = k.narrow(seq_dim, 0, n), v.narrow(seq_dim, 0, n)
+            backend = original
+            def original(qi, ki, vi, heads, mask=None, **kw):
+                if mask is not None:
+                    mask = torch.nn.functional.pad(mask, (0, rk.shape[seq_dim]))
+                return backend(qi, torch.cat((ki,rk),seq_dim), torch.cat((vi,rv),seq_dim), heads, mask=mask, **kw)
         expected = total_text + total_image if joint else total_text
         if q.shape[0] != 1 or n != expected or k.shape[seq_dim] != n or v.shape[seq_dim] != n:
             raise ValueError(f'{self.family} attention layout changed; update the extension before using this ComfyUI version.')

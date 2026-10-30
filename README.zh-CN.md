@@ -154,3 +154,6 @@ node tests/test_ui.cjs
 原生集成测试可将 `RS_MC_TEST_COMFYUI` 设为 ComfyUI 源码目录。[CI 配置](.github/workflows/tests.yml) 列出全部 JavaScript 界面测试及核心/系统矩阵。
 
 GPL-3.0-only。参阅 [COPYING](COPYING)、[第三方声明](THIRD_PARTY_NOTICES.md)及[源码来源](docs/source-lineage.json)。
+
+
+**Krea2 Turbo / MOSS 3D 姿态适配器（实验）：** 将 3D 节点的 `scene_json` 连接到 **RS 3D Pose Adapter**，再将 MODEL 连接到普通 RS 采样器。自动准备已训练的姿态适配器。角色区域管道仍须连接；不保证精确关节或人数。 [Setup](docs/pose3d.md#krea2-turbo-and-moss-pose-adapters-experimental).

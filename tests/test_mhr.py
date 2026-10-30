@@ -69,7 +69,7 @@ const person={json.dumps(person)};console.log(JSON.stringify({{...rigMannequin(p
     def test_native_node_outputs_mask_exactly_and_finite_pose_image(self):
         s=self.scene();s['people'][0]['joints']=copy.deepcopy(m.asset()['presets']['seated'])
         out=n.RSMultiCharacterPose3D().apply(json.dumps(s))['result']
-        pipe,_,full,visible,info,pose=out
+        pipe,_,full,visible,info,pose,scene_json=out
         for slot,mask in zip(pipe.slots,full):np.testing.assert_array_equal(slot.region_mask.tensor(),mask)
         self.assertEqual(tuple(pose.shape),(1,256,192,3));self.assertTrue(pose.isfinite().all())
         self.assertEqual(json.loads(info)['body_model'],'MHR')

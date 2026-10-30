@@ -15,7 +15,7 @@ The node outputs its mask preview and two MASK batches (full/visible), sorted by
 
 ## Experimental pose-adapter path
 
-The last output, `pose_image`, renders shaded colored bodies on black using the same scene, camera, depth ordering and aspect ratio as the masks. It excludes editor handles and grids. Existing output indices are unchanged. This image is separate from the character building pipe: connecting the pipe alone still supplies masks only.
+The `pose_image` output renders shaded colored bodies on black using the same scene, camera, depth ordering and aspect ratio as the masks. It excludes editor handles and grids. Existing output indices are unchanged. A final `scene_json` STRING output additionally carries the same editable scene to the Krea2/MOSS adapter. Earlier output indices remain unchanged. The pose signal is separate from the character building pipe: connecting the pipe alone still supplies masks only.
 
 For an experimental Anima 2B test, load compatible weights with ComfyUI's **Load Model Patch**, connect `pose_image` to **Apply Anima LLLite**, and feed its MODEL output to the RS sampler. The scene's building pipe still supplies numbered character masks. The sampler accepts complete native Anima LLLite patch groups while preserving RS routing, and rejects other attention replacements, mismatched adapter dimensions and simultaneous image references. Other model families' ControlNets, Anima 2.9B pose weights, progressive sampling and character-LoRA combinations have not been validated by this test.
 
@@ -44,3 +44,23 @@ The native human asset is derived from the adult LOD1 MHR data bundled by [toyxy
 [Three.js](https://github.com/mrdoob/three.js) 0.170.0 supplies the WebGL renderer, OrbitControls and TransformControls under MIT. Its license is distributed in `web/pose3d/THREE-LICENSE.txt`. Rebuild the checked-in offline bundle with `cd tools/pose3d && npm ci && npm run build`. Python has no new dependencies.
 
 Tests: `RS_MC_TEST_COMFYUI=/path/to/ComfyUI PYTHONPATH=/path/to/ComfyUI python -m unittest discover -s tests -q`, then `node --test tests/*_ui.cjs` with the same Python environment on PATH. An optional real-browser regression is in `tools/pose3d/test-editor.mjs`; it needs Playwright and a separate running ComfyUI at port 8189 (or `RS_COMFY_URL`), with only this candidate enabled. Set `RS_CHROMIUM` when using an existing Chromium executable. It exercises joint controls, actual translation/rotation-gizmo dragging, camera orbit, IDs, undo/redo, scene files, workflow restore and editor network isolation.
+
+
+## Krea2 Turbo and MOSS pose adapters (experimental)
+
+1. Connect the model loader's MODEL and its matching VAE to **RS 3D Pose Adapter (Experimental)**.
+2. Connect **RS 3D Pose Masks → scene_json** to the adapter's `scene_json` input.
+3. Connect the adapter MODEL to the ordinary **RS MultiCharacter Sampler**. Continue sending the 3D node's `building_pipe` through Prompt/LoRA/Position and Finalize for numbered character regions. Building-node order is unchanged.
+4. Keep the sampler and scene at the same dimensions/aspect ratio. Start with strength 1 and the full application interval. MOSS can retain mannequin surfaces; compare an end of 0.5 if needed. These are experimental controls, not reliability presets.
+
+Krea2 Turbo renders a COCO-body OpenPose guide from the joints, encodes it through the matching Krea2 VL text encoder/VAE and applies the trained pose LoRA. Its reference K/V are computed once per generation and released when sampling ends, including errors. The guide is a trained adapter input, not just body-name prompting. Hands and face landmarks are not synthesized.
+
+MOSS renders flat per-person colors and depth using the same camera and depth buffer as the masks, then applies the trained color/depth LoRA and its expanded input embedder. It accepts both `moss_native` JSON captions and `regional` RS routing. Native mode converts character masks into enclosing boxes; regional mode retains silhouette masks. Disabling the pose node's strength returns the base MODEL path. Start/end ranges control the map conditioning; MOSS's trained input embedder/LoRA remain installed over the full sampling interval.
+
+First actual use downloads a revision-pinned, SHA256-verified adapter into `models/loras/rs_reference/krea_pose/` or `models/loras/rs_reference/moss_pose/`, with node progress. Importing the extension and strength 0 do not download weights. Model weights and usage terms remain upstream's. Sources: [Krea2 pose weights](https://huggingface.co/thedeoxen/Krea-2-pose-controlnet), [Ostris Edit](https://github.com/ostris/ComfyUI-Krea2-Ostris-Edit), [MOSS color/depth weights](https://huggingface.co/darask0/MOSS-Image-color-depth-control).
+
+Use the **standard RS sampler at full resolution**. Progressive sampling, simultaneous image references, other attention replacements and nonmatching model families are rejected. Tested checkpoints are Krea2 Turbo FP8 and MOSS SFT BF16; other variants and adapter combinations require their own tests. These adapters are global pose guides; numbered character prompts/masks still provide regional ownership. Exact identity, joints, hand contact and subject count can fail, particularly with style LoRAs.
+
+[Workflow PNGs](../examples/pose3d/README.md) · [Krea2/MOSS generation evidence](pose3d-krea-moss-validation.md).
+
+If required reference/download dependencies are absent, install the existing `requirements-reference.txt` in the ComfyUI Python environment. Adapter weights total about 229 MB for Krea2 and 313 MB for MOSS, downloaded separately.

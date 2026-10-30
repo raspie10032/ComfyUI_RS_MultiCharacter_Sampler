@@ -2056,5 +2056,9 @@
         "name": "姿勢影像"
       }
     }
+  },
+  "RS3DPoseAdapter": {
+    "display_name": "RS 3D 姿態適配器（Krea2 / MOSS · 實驗）",
+    "description": "將3D場景傳遞給Krea2 Turbo的OpenPose或MOSS的色彩與深度姿態適配器。連接匹配的VAE，將MODEL連接到RS取樣器。首次使用下載權重。不保證精確關節、接觸和人數。"
   }
 }

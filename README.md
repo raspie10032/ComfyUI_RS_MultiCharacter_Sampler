@@ -16,7 +16,7 @@ Regional generation and local detailing for ComfyUI. Give each character a promp
 
 **Camera reference:** [Anima camera-tag helper](https://arca.live/b/aiart/179423561) / `ComfyUI-KR-Camera-Control` (credits `ComfyUI_bsk_UI` / 灰暗x). [Reference scope and notices](THIRD_PARTY_NOTICES.md#camera-control-references).
 
-**3D pose editor · experimental:** arrange a skinned human rig and camera, then send numbered silhouettes to the character pipe. Masks need no extra weights. The separate shaded `pose_image` can guide Anima 2B through a matching native LLLite adapter; exact joints and contacts remain unreliable. [Setup and limits](docs/pose3d.md) · [Workflow PNG](examples/pose3d/anima-native-pose.png).
+**3D pose editor · experimental:** arrange a skinned human rig and camera, then send numbered silhouettes to the character pipe. Masks need no extra weights. The separate shaded `pose_image` can guide Anima 2B through a matching native LLLite adapter; exact joints and contacts remain unreliable. [Setup and limits](docs/pose3d.md) · [Workflow PNG](examples/pose3d/anima-native-pose.png). Krea2 Turbo and MOSS additionally accept the scene through **RS 3D Pose Adapter (Experimental)**, which automatically prepares their trained pose adapters. [Connections and limitations](docs/pose3d.md#krea2-turbo-and-moss-pose-adapters-experimental).
 
 ## What you can do
 

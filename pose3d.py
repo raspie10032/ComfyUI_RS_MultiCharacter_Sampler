@@ -187,7 +187,7 @@ def clip_near(triangle, near=.05):
     return [np.array([output[0], output[i], output[i+1]]) for i in range(1, len(output)-1)]
 
 
-def _rasterize(scene, max_side=None, shaded=False):
+def _rasterize(scene, max_side=None, shaded=False, control_maps=False):
     """Masks and pose shading use one mesh and camera; outlines never own masks."""
     w, h = scene['width'], scene['height']
     if max_side is not None:
@@ -268,6 +268,17 @@ def _rasterize(scene, max_side=None, shaded=False):
                             value = np.clip(brightness[..., None]*color, 0, 255).astype(np.uint8)
                         rgb[y0:y1+1, x0:x1+1][nearer] = value[nearer]
     visible = np.stack([owner == i for i in range(len(scene['people']))])
+    if control_maps:
+        foreground = owner >= 0
+        values = depth[foreground]
+        normalized = np.zeros_like(depth)
+        if values.size:
+            normalized[foreground] = .25 + .75*(values-values.min())/max(np.ptp(values), 1e-9)
+        palette = np.array([(255,0,0), (0,0,255), (0,255,0), (255,255,0), (255,0,255),
+                            (0,255,255), (255,128,0), (128,0,255), (0,128,255), (128,255,0)], dtype=np.uint8)
+        color = np.zeros((h,w,3), dtype=np.uint8)
+        color[foreground] = palette[owner[foreground]]
+        return full, visible, color, np.repeat(np.uint8(normalized[...,None]*255), 3, axis=2)
     return full, visible, rgb
 
 

@@ -99,3 +99,17 @@ The expanded-model reference path uses [Gazingstars123/Anima-2.9B](https://huggi
 ## Native 3D human rig
 
 New v2 scenes use the adult LOD1 MHR body baked and distributed by [toyxyz/ComfyUI_toyxyz_test_nodes](https://github.com/toyxyz/ComfyUI_toyxyz_test_nodes), revision `8291d9b65d56d65be55ee0f31df073d42b7d0eb6`. The underlying [Meta MHR](https://github.com/facebookresearch/MHR) asset is Apache-2.0. RS retains the native bind transforms and skinning, omits the SAM facial landmark mapping and learned pose correctives, and supplies independent browser/CPU skinning, numbered masks and pose shading. Attribution and terms accompany the gzip asset in `web/pose3d/MHR-NOTICE.txt` and `MHR-LICENSE.txt`. Legacy v1 scenes retain RS procedural ellipsoids. No inference weights are bundled.
+
+
+## Krea2 and MOSS 3D pose adapter integration
+
+`krea_pose_backend.py` adapts the isolated reference K/V math from
+[ostris/ComfyUI-Krea2-Ostris-Edit](https://github.com/ostris/ComfyUI-Krea2-Ostris-Edit)
+at `7756566160c4a1b24bb1bd9f0ff3ced1a83d7547` (MIT;
+[KREA2-POSE-LICENSE](KREA2-POSE-LICENSE)). RS adds numbered character attention routing,
+per-generation cleanup, scene projection, range controls and compatibility errors.
+The [Krea2 pose LoRA](https://huggingface.co/thedeoxen/Krea-2-pose-controlnet)
+and [MOSS color/depth adapter](https://huggingface.co/darask0/MOSS-Image-color-depth-control)
+are downloaded separately; pinned revisions and checksums are in `reference_assets.json`.
+Their model licenses apply separately. MOSS integration converts separate Q/K/V LoRA
+names to the current ComfyUI projection mapping and validates complete installation.

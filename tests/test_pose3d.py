@@ -72,7 +72,7 @@ class Pose3DTests(unittest.TestCase):
     def test_node_outputs_full_and_visible_and_exact_pipe_mask(self):
         s=self.scene();s['people'][0]['position'][0]=-.1;s['people'][1]['position'][0]=.1
         s['mask_mode']='visible';out=n.RSMultiCharacterPose3D().apply(json.dumps(s))
-        pipe,preview,full,visible,info,pose_image=out['result']
+        pipe,preview,full,visible,info,pose_image,scene_json=out['result']
         self.assertEqual(tuple(preview.shape),(1,256,192,3));self.assertEqual(tuple(full.shape),(2,256,192))
         self.assertEqual(tuple(pose_image.shape),(1,256,192,3))
         self.assertFalse((visible[0]*visible[1]).any())

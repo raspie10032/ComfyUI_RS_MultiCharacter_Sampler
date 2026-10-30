@@ -59,15 +59,15 @@ class RSMultiCharacterPose3D:
                 'tooltip': 'Open 3D editor, arrange mannequins, then Apply. Character numbers map to prompt slots. The scene is saved in the workflow.'})},
                 'optional': {'building_pipe': (BUILD_PIPE_TYPE,)}, 'hidden': {'unique_id': 'UNIQUE_ID'}}
 
-    RETURN_TYPES = (BUILD_PIPE_TYPE, 'IMAGE', 'MASK', 'MASK', 'STRING', 'IMAGE')
-    RETURN_NAMES = ('building_pipe', 'mask_preview', 'full_masks', 'visible_masks', 'scene_info', 'pose_image')
+    RETURN_TYPES = (BUILD_PIPE_TYPE, 'IMAGE', 'MASK', 'MASK', 'STRING', 'IMAGE', 'STRING')
+    RETURN_NAMES = ('building_pipe', 'mask_preview', 'full_masks', 'visible_masks', 'scene_info', 'pose_image', 'scene_json')
     FUNCTION = 'apply'
     CATEGORY = 'RS MultiCharacter/Characters'
     HAS_INTERMEDIATE_OUTPUT = True
     DESCRIPTION = ('Experimental 3D mannequin composition editor. Rotate joints and move people/camera; '
                    'each character number creates a 2D region mask. Full silhouettes overlap; visible silhouettes remove occluded areas. '
                    'Canvas overflow is clipped. Editing and masks need no extra weights. A composition guide, not exact pose enforcement. '
-                   'pose_image outputs shaded bodies on black for a compatible pose adapter; connect it to Apply Anima LLLite separately. '
+                   'pose_image connects to Apply Anima LLLite; scene_json connects to RS 3D Pose Adapter for Krea2/MOSS. '
                    'New scenes use a native MHR skinned body. Anima 2B pose following has been observed with a separately trained adapter; exact joints and contacts are not guaranteed. Legacy ellipsoid scenes are preserved. Masks alone do not enforce joint angles. '
                    'Scene data is stored in the workflow. Connect anywhere before Finalize.')
 
@@ -106,7 +106,7 @@ class RSMultiCharacterPose3D:
         return {'ui': {'images': images, 'text': [info], 'pose3d': [preview_payload(scene)]},
                 'result': (pipe, torch.from_numpy(np.asarray(image).copy().astype(np.float32)/255)[None],
                            torch.from_numpy(full.astype(np.float32)), torch.from_numpy(visible.astype(np.float32)),
-                           info, pose_image)}
+                           info, pose_image, json.dumps(scene))}
 
 
 def register_routes():

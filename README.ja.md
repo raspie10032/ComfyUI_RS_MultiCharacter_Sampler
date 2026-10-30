@@ -152,3 +152,6 @@ node tests/test_ui.cjs
 ネイティブ統合試験には `RS_MC_TEST_COMFYUI` にComfyUIのパスを指定します。全11種のJavaScript UI試験と本体・OSの組み合わせは[CI設定](.github/workflows/tests.yml)を参照してください。
 
 GPL-3.0-only。[COPYING](COPYING) · [第三者に関する通知](THIRD_PARTY_NOTICES.md) · [ソースの系譜](docs/source-lineage.json)
+
+
+**Krea2 Turbo・MOSS 3Dポーズアダプター（実験）：** 3Dノードの `scene_json` を **RS 3D Pose Adapter** に接続し、そのMODELを通常のRSサンプラーへ接続します。学習済みポーズアダプターを自動準備します。キャラクター領域パイプも接続してください。関節や人数の一致は保証されません。 [Setup](docs/pose3d.md#krea2-turbo-and-moss-pose-adapters-experimental).

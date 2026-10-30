@@ -230,6 +230,12 @@ class RSMultiCharacterSampler:
         masks = character_masks(pipe.regions, centers, settings["width"], settings["height"], settings["region_feather"])
         convert = lambda text: text
 
+        from .pose_adapter import prepare_pose, pose_conditioning
+        if model.model_options.get('rs_3d_pose') and any(c.reference is not None and c.reference.strength > 0 for c in pipe.characters):
+            raise ValueError('Disconnect character image references before using the 3D pose adapter.')
+        model, pose_runtime = prepare_pose(model, family, settings['width'], settings['height'])
+
+
         from .regional_lora import RegionalLoras, active_lora
         if role_refs and lora_application_mode != 'normal' and any(active_lora(c) for c in pipe.characters):
             raise ValueError('Role K/V with character LoRAs currently requires Normal application mode. / '
@@ -238,12 +244,17 @@ class RSMultiCharacterSampler:
         if native_prompt is not None and loras is not None and any(c is not clip for c in loras.clips):
             raise ValueError("MOSS native layout uses one text encoding. Use regional layout for per-character CLIP LoRA, or set each CLIP strength to zero.")
 
+
         def encode(text, converted=False, encoder=None, reference_slot=None):
             comfy.model_management.throw_exception_if_processing_interrupted()
             encoder = clip if encoder is None else encoder
             caption=text if converted else convert(text)
             ref=next((r for r in model.model_options.get('rs_native_reference',[]) if r['slot']==reference_slot),None) if family=='Krea2' else None
-            if ref is not None:
+            if pose_runtime is not None and family == 'Krea2' and reference_slot is None:
+                from comfy.text_encoders.krea2 import KREA2_TEMPLATE
+                tokens=encoder.tokenize('Picture 1: <|vision_start|><|image_pad|><|vision_end|>'+caption,
+                    images=[pose_runtime['pixels']], llama_template=KREA2_TEMPLATE)
+            elif ref is not None:
                 px=ref['pixels']
                 template="<|im_start|>system\nDescribe the image by detailing the color, shape, size, texture, quantity, text, spatial relationships of the objects and background:<|im_end|>\n<|im_start|>user\n<|vision_start|><|image_pad|><|vision_end|>{}<|im_end|>\n<|im_start|>assistant\n"
                 tokens=encoder.tokenize(caption,images=[px],llama_template=template)
@@ -284,6 +295,7 @@ class RSMultiCharacterSampler:
 
         positive = encode(native_prompt if native_prompt is not None else prompt)
         negative = regional_negatives(encode, negative_prompt, pipe.regions, masks, loras.clips if loras else None)
+        positive, negative = pose_conditioning(positive, negative, pose_runtime)
         conditions = [encode(text_region_caption(c, convert, family not in ("Krea2", "MOSS", "FLUX1", "FLUX2", "FLUX3")), converted=True)[0]
                       if isinstance(c, TextRegion) else encode(c.prompt, encoder=loras.clips[i] if loras else clip, reference_slot=i)[0]
                       for i, c in enumerate(pipe.regions)] if native_prompt is None else []
@@ -294,6 +306,8 @@ class RSMultiCharacterSampler:
                                     "boxes" if all(geometry) else "mixed" if any(geometry) else "points",
                  "box_slots": [i+1 for i, c in enumerate(pipe.regions) if c.bbox is not None and c.region_mask is None],
                  "mask_slots": [i+1 for i, c in enumerate(pipe.regions) if c.region_mask is not None]}
+        if pose_runtime is not None:
+            audit['pose_adapter'] = {k: pose_runtime[k] for k in ('family', 'start', 'end', 'strength')}
         if pose_control:
             from .anima_pose_control import patch_metadata
             audit["anima_lllite"] = patch_metadata(model)
