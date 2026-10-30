@@ -25,7 +25,7 @@ These examples use two adult women with different hair and clothing, no style/ch
 
 For MOSS, start with the native example (`layout_method=moss_native`). New samplers can keep `auto`, which selects native JSON when the MOSS 3D pose adapter is active. Existing explicit choices are preserved.
 
-This recommended path it combines native caption/box layout
+This recommended path combines native caption/box layout
 with trained color/depth pose guidance. The resident follow-up compares adapter
 OFF/ON, a seated left person and swapped character captions at the same seed.
 See the [four-image comparison](moss-native-audit.jpg) and
@@ -33,3 +33,15 @@ See the [four-image comparison](moss-native-audit.jpg) and
 Native mode converts silhouette masks to boxes; it does not use RS regional
 boundary-strength routing. The seated sample follows the pose without creating
 a chair, and style-LoRA-related extra-person failures are still unresolved.
+
+## Genshin Impact workflow PNGs
+
+For 1.0.9, use **[Krea 2: Jean and Eula](genshin-krea2-pose.png)** or
+**[MOSS native: Jean and Eula](genshin-moss-native-pose.png)**. Save the original
+PNG and drop it onto ComfyUI; each embeds the exact tested API prompt, full
+9-node / 10-link workflow and 3D scene. These are the raised-arm, first-seed ON
+results from the [36-image audit](../../docs/pose3d-genshin-diverse-validation.md).
+Select your matching installed models; there is no style/character LoRA.
+
+[한국어 연결·사용 가이드](../../docs/pose3d-krea-moss-guide.ko.md) ·
+[English setup](../../docs/pose3d.md#krea2-turbo-and-moss-pose-adapters-experimental).
