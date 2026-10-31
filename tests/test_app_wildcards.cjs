@@ -1,7 +1,11 @@
 const fs=require('fs'), vm=require('vm'), assert=require('node:assert/strict');
 const graph=fs.readFileSync('web/app_graph.js','utf8').replaceAll('export ','');
-const wc=fs.readFileSync('web/app_wildcards.js','utf8').replace(/^import.*\n/gm,'').replaceAll('export ','');
-const context={structuredClone};vm.createContext(context);vm.runInContext(graph+'\n'+wc+'\nthis.subject={promptFields,restoreTemplates,resolvePrompts,expandedPrompt};',context);
+const wildcardSource=fs.readFileSync('web/app_wildcards.js','utf8');
+let context;
+for(const newline of ['\n','\r\n']) {
+ const wc=wildcardSource.replace(/\r?\n/g,newline).replace(/^import[^\r\n]*(?:\r?\n|$)/gm,'').replaceAll('export ','');
+ context={structuredClone};vm.createContext(context);vm.runInContext(graph+'\n'+wc+'\nthis.subject={promptFields,restoreTemplates,resolvePrompts,expandedPrompt};',context);
+}
 const {promptFields,restoreTemplates,resolvePrompts,expandedPrompt}=context.subject;
 const node=values=>({widgets:Object.entries(values).map(([name,value])=>({name,value}))});
 const nodes={sampler:node({prompt:'__scenes__',negative_prompt:'{bad|ugly}',seed:123}),prompt:node({character1_enable:true,character2_enable:true,character2_kind:'text',character3_enable:false}),text1:node({value:'__fabe__'}),text2:node({value:'MENU {A|B}'}),text3:node({value:'__missing__'})};
