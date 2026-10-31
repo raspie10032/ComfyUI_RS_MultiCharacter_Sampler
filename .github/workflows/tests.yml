@@ -59,6 +59,8 @@ jobs:
         run: python -m unittest discover -s tests -v
       - name: Character UI serialization and controls
         run: node tests/test_ui.cjs
+      - name: App workspace routing and model settings
+        run: node tests/test_app_graph.cjs
       - name: Box layout controls and preview
         run: node tests/test_boxes_ui.cjs
       - name: Detailer UI serialization and controls

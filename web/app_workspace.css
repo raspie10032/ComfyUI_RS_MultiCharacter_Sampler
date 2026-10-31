@@ -1,0 +1,15 @@
+.rs-app-launch{position:fixed;bottom:14px;right:18px;z-index:1000;background:#345b7d;color:white;border:1px solid #86a9c7;border-radius:8px;padding:9px 14px;cursor:pointer}
+.rs-app-workspace{position:fixed;inset:0;z-index:9000;background:#111820;color:#e6edf4;display:flex;flex-direction:column;font:14px/1.5 system-ui,sans-serif;color-scheme:dark}
+.rs-app-workspace header{display:flex;align-items:center;gap:12px;padding:14px 22px;border-bottom:1px solid #354354;background:#182330}
+.rs-app-workspace header strong{margin-right:auto;font-size:18px}
+.rs-app-workspace button,.rs-app-workspace select,.rs-app-workspace textarea,.rs-app-workspace input{font:inherit;color:inherit;background:#17222e;border:1px solid #42546a;border-radius:6px;padding:7px;box-sizing:border-box}
+.rs-app-workspace button{cursor:pointer;background:#29445e}.rs-app-workspace button:hover,.rs-app-workspace button.selected{background:#38658a}.rs-app-workspace button:disabled{opacity:.5;cursor:default}
+.rs-app-content{display:grid;grid-template-columns:310px minmax(0,1fr);overflow:auto;flex:1;min-height:0}
+.rs-app-content>aside{padding:18px;border-right:1px solid #354354;overflow:auto}.rs-app-content>main{min-width:0;overflow:auto;padding:18px 28px}
+.rs-app-tabs{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:20px}.rs-app-card{padding:18px;border:1px solid #34475a;background:#18212b;border-radius:10px;margin-bottom:18px}
+.rs-app-card h3{margin:0 0 16px}.rs-app-card select{max-width:100%;width:100%}.rs-app-field{display:grid;grid-template-columns:minmax(150px,1fr) minmax(160px,2fr);gap:14px;align-items:center;margin:10px 0}
+.rs-app-field textarea{resize:vertical;width:100%}.rs-app-toggle{display:flex;align-items:center;gap:10px;margin:13px 0}.rs-app-toggle input{width:18px;height:18px}
+.rs-app-hint{color:#abbdd0;font-size:13px}.rs-app-error{color:#ffbc9c}.rs-app-status{padding:10px 24px;margin:0;border-top:1px solid #354354;white-space:pre-wrap}
+.rs-app-editor{position:relative;max-width:900px;min-height:100px;margin:12px 0;background:#101820}.rs-app-workspace details{margin:15px 0}.rs-app-workspace summary{cursor:pointer;color:#9ec9ef}
+.rs-app-workspace .rs-pose3d-preview{height:280px!important;min-height:280px}.rs-pose3d-modal{z-index:10050!important}
+@media(max-width:850px){.rs-app-content{grid-template-columns:1fr}.rs-app-content>aside{border-right:0}.rs-app-field{grid-template-columns:1fr}.rs-app-workspace header{flex-wrap:wrap}}
