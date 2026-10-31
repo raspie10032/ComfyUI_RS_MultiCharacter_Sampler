@@ -11,23 +11,28 @@ Arrange native skinned MHR bodies in a local 3D editor, then use their camera-pr
 
 The node outputs its mask preview and two MASK batches (full/visible), sorted by character number. The chosen mode only selects which masks enter the building pipe. `scene_info` lists the batch's character IDs. Scene JSON is stored in the node's workflow widget. Save/load scene buttons also allow an independent JSON backup.
 
-[Drop-in workflow PNG](../examples/pose3d/anima-native-pose.png) · [Example requirements](../examples/pose3d/README.md)
+[Drop-in workflow PNG](../examples/pose3d/anima-building-pipe.png) · [Example requirements](../examples/pose3d/README.md)
 
 ## Experimental pose-adapter path
 
-The `pose_image` output renders shaded colored bodies on black using the same scene, camera, depth ordering and aspect ratio as the masks. It excludes editor handles and grids. Existing output indices are unchanged. A final `scene_json` STRING output additionally carries the same editable scene to the Krea2/MOSS adapter. Earlier output indices remain unchanged. The pose signal is separate from the character building pipe: connecting the pipe alone still supplies masks only.
+**Use one 3D node and its building pipe.** Set `pose_control=auto`, then connect **3D Pose Masks → Prompt/LoRA/Position (any order) → Finalize → RS Sampler**. The sampler uses its loaded model and VAE internally. Do not add a MODEL adapter, patch loader, or VAE connection to the pose node.
 
-For an experimental Anima 2B test, load compatible weights with ComfyUI's **Load Model Patch**, connect `pose_image` to **Apply Anima LLLite**, and feed its MODEL output to the RS sampler. The scene's building pipe still supplies numbered character masks. The sampler accepts complete native Anima LLLite patch groups while preserving RS routing, and rejects other attention replacements, mismatched adapter dimensions and simultaneous image references. Other model families' ControlNets, Anima 2.9B pose weights, progressive sampling and character-LoRA combinations have not been validated by this test.
+- **Anima 2B:** automatically verifies/reuses or downloads `anima_3dpose_outline_7000.safetensors` (49 MiB), renders the scene at sampler dimensions and applies native Anima LLLite.
+- **Krea2 / MOSS:** uses the existing trained scene adapters and automatic verified weights. MOSS native layout can keep color/depth guidance while character masks become boxes.
+- **Other families / Anima 2.9B:** numbered masks only; the sampler reports the missing matching adapter.
+- `masks_only` or strength 0 disables learned guidance and downloads nothing. Strength and start/end belong to the 3D node. Image references cannot currently run with learned pose guidance; choose masks only for that combination. Krea2/MOSS learned guidance requires full resolution.
+
+The old **RS 3D Pose Adapter** MODEL node stays registered and deprecated for existing workflows. Existing socket numbers, pose image and scene JSON outputs are preserved. Older saved 3D nodes without the new controls retain mask-only behavior until auto is selected. The app migrates its own former adapter chain into the editor settings.
 
 New scenes use the bundled native MHR mesh, bind transforms, skin weights and procedural twist supports. Body, hand and finger controls deform the mesh. Scene format v2 is shared by the browser and CPU renderer; existing v1 ellipsoid scenes retain their original geometry and output. The renderer deliberately omits learned pose correctives and facial/body-shape inference.
 
 A successful output connection is not evidence of reliable pose following. The initial ellipsoid tests failed. Native anatomical renders subsequently induced seated and raised-arm poses in controlled Anima 2B tests; the integrated editor tests also show raised-arm transfer, but frontal two-person seating remains unreliable. Hand contact, exact joints, appearance and subject counts remain model-dependent. See the [component comparison](pose3d-validation.md) for paired seeds and failures.
 
-Tested with [toyxyz/Anima_ControlNet-LLLite](https://huggingface.co/toyxyz/Anima_ControlNet-LLLite), `anima_3dpose_outline_7000.safetensors`, strength 1, full denoising interval. This adapter expects anatomical shaded renders with outlines rather than OpenPose sticks. A matching Anima 2B base and a recent native ComfyUI Anima LLLite implementation are required. Load its weights separately with Model Patch Loader. Outline affects only the pose image, never silhouette ownership. The experimental node does not auto-download adapter weights.
+Tested with [toyxyz/Anima_ControlNet-LLLite](https://huggingface.co/toyxyz/Anima_ControlNet-LLLite), `anima_3dpose_outline_7000.safetensors`, strength 1, full denoising interval. This adapter expects anatomical shaded renders with outlines rather than OpenPose sticks. A matching Anima 2B base and a recent native ComfyUI Anima LLLite implementation are required. With `pose_control=auto`, the sampler automatically verifies/downloads and loads these weights. Outline affects only the pose image, never silhouette ownership. No additional model loader is needed.
 
 ## Boundaries
 
-- The pipe alone guides composition and prompt ownership through 2D masks. Pose guidance is separate: connect pose_image through a compatible adapter to the sampler MODEL. The generation model never receives the 3D rig itself.
+- The building pipe carries both numbered masks and the optional learned pose-guidance settings. The sampler renders and applies the matching adapter internally; the generation model never receives the 3D rig itself.
 - New bodies use a native skinned adult MHR mesh and hand/finger controls. Legacy scenes keep ellipsoid bodies. Single-image pose estimation uses the optional SAM 3D Body path below. Clothing simulation, facial controls and video body tracking are not included.
 - Masks outside the canvas are clipped. If a selected silhouette is entirely outside/behind the camera or fully hidden in visible mode, Apply/execution explains which character needs correction. Full mode can retain hidden characters.
 - Moving a person does not change its prompt number. Prompt enable/count settings determine which numbered regions are used by generation.
@@ -48,10 +53,7 @@ Tests: `RS_MC_TEST_COMFYUI=/path/to/ComfyUI PYTHONPATH=/path/to/ComfyUI python -
 
 ## Krea2 Turbo and MOSS pose adapters (experimental)
 
-1. Connect the model loader's MODEL and its matching VAE to **RS 3D Pose Adapter (Experimental)**.
-2. Connect **RS 3D Pose Masks → scene_json** to the adapter's `scene_json` input.
-3. Connect the adapter MODEL to the ordinary **RS MultiCharacter Sampler**. Continue sending the 3D node's `building_pipe` through Prompt/LoRA/Position and Finalize for numbered character regions. Building-node order is unchanged.
-4. Keep the sampler and scene at the same dimensions/aspect ratio. Start with strength 1 and the full application interval. MOSS can retain mannequin surfaces; compare an end of 0.5 if needed. These are experimental controls, not reliability presets.
+Use the same **3D building pipe** above. The sampler selects Krea2 or MOSS automatically; no separate scene-JSON adapter is needed. Keep editor and sampler aspect ratios equal. Start with strength 1 and the full interval. These are experimental controls, not reliability presets.
 
 Krea2 Turbo renders a COCO-body OpenPose guide from the joints, encodes it through the matching Krea2 VL text encoder/VAE and applies the trained pose LoRA. Its reference K/V are computed once per generation and released when sampling ends, including errors. The guide is a trained adapter input, not just body-name prompting. Hands and face landmarks are not synthesized.
 

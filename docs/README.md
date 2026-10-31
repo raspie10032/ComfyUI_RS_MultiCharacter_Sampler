@@ -8,7 +8,7 @@ Start with your language's README for installation and a first workflow. This
 index groups detailed guides and evidence by task. Release notes describe changes
 at a particular version; current usage belongs in the feature guides below.
 
-[1.1.0 release notes](release-1.1.0.md) · [Krea/MOSS 포즈 가이드](pose3d-krea-moss-guide.ko.md) · [Anima reference prediction optimization](anima-reference-prediction-optimization.md)
+[1.1.1 release notes](release-1.1.1.md) · [Krea/MOSS 포즈 가이드](pose3d-krea-moss-guide.ko.md) · [Anima reference prediction optimization](anima-reference-prediction-optimization.md)
 
 ## Usage guides
 
@@ -22,7 +22,7 @@ at a particular version; current usage belongs in the feature guides below.
 | Apply character LoRAs | [LoRA setup and cost](regional-lora.md) · [Normal/Precision modes](shared-lora-experiment.md) · [Adapter formats and limits](adapter-formats.md) | [Character LoRA](../examples/character-lora/README.md) |
 | Place points, boxes, words or objects | [Regional layouts](regional-layout.md) · [Model-specific mixed settings](mixed-layout-tuning.md) | [Mixed layouts](../examples/epsilon/README.md) · [Objects](../examples/epsilon/objects/README.md) |
 | Draw or import masks | [Character masks and placement](character-masks.md) | [Mask examples](../examples/character-masks/README.md) |
-| Edit a 3D human rig | [3D editor and Anima/Krea/MOSS pose-adapter setup](pose3d.md) | [Workflow PNG](../examples/pose3d/anima-native-pose.png) · [Component comparison](pose3d-validation.md) |
+| Edit a 3D human rig | [3D editor and Anima/Krea/MOSS pose-adapter setup](pose3d.md) | [Workflow PNG](../examples/pose3d/anima-building-pipe.png) · [Component comparison](pose3d-validation.md) |
 | Try Anima reference alternatives | [2B/2.9B frames](anima-reference-frame.md) · [Role K/V](anima-role-kv.md) · [v2 cached references](anima-reference-v2.md) | Experimental; separate model/LoRA restrictions apply |
 | Use pose-derived masks | [OpenPose inputs, previews and overlap controls](openpose-mask-guides.md) | [Pose examples](../examples/openpose/README.md) |
 | Use MOSS acceleration | [MOSS 8-step LoRA setup](moss-8step.md) | [Two characters, CFG 3](../examples/moss-8step/two-cfg3.json) |
@@ -49,6 +49,7 @@ and limits before generalizing its result.
 | Normal/Precision comparison | [Shared LoRA experiment](shared-lora-experiment.md) |
 | Mixed layouts and presets | [Epsilon trial](epsilon-validation.md) · [Mixed-layout tuning](mixed-layout-tuning.md) · [Objects](object-layout-validation.md) · [Preset UI checks](model-presets-validation.md) |
 | Masks and pose controls | [Mask drawing/placement checks](release-0.2.4.md) · [Pose and metadata checks](release-1.0.0.md) · [OpenPose PNG correction](openpose-png-validation.md) |
+| 3D pose through building pipes | [Anima GPU trial, UI import and regression checks](pose3d-building-pipe-validation.md) |
 | Krea/MOSS trained 3D poses | [Integration checks](pose3d-krea-moss-validation.md) · [36-image diverse-pose audit](pose3d-genshin-diverse-validation.md) · [1.0.9 release checks](pose3d-1.0.9-release-validation.md) |
 | Local detailing | [Execution, matching and pixel boundaries](detailer-validation.md) |
 

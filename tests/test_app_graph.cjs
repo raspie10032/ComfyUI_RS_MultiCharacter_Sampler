@@ -14,7 +14,7 @@ class Graph {
 function createNode(type) {
   const values = Object.assign({}, ...presets.map(p=>p.settings), {
     character_count:2,scene_json:'{"width":1024,"height":1024,"people":[]}',drawing:'{"version":1,"width":768,"height":1024,"layers":{}}',
-    width:1024,height:1024,cfg:4,filename_prefix:'ComfyUI',prompt:'keep common prompt',value:'',lora_name:'None',name:'anima_3dpose_6200.safetensors'
+    pose_control:'auto',pose_strength:1,pose_start:0,pose_end:1,width:1024,height:1024,cfg:4,filename_prefix:'ComfyUI',prompt:'keep common prompt',value:'',lora_name:'None',name:'anima_3dpose_6200.safetensors'
   });
   for(let i=1;i<=10;i++) Object.assign(values,{['character'+i+'_kind']:'character',['character'+i+'_enable']:true,['character'+i+'_lora']:'None'});
   const inputs=['building_pipe','base_prompt','model','clip','vae','images','image','scene_json','model_patch','character_pipe','detectors','tagger',...Array.from({length:10},(_,i)=>'character'+(i+1))];
@@ -40,6 +40,12 @@ assert.equal(executionNodes(graph,w.node('save').id).length,Object.keys(closure(
 w.state.refs={1:true};w.state.pose=true;w.select(moss);assert(w.issues().length,'unsupported pose/reference combination must block generation');
 assert(w.state.refs[1] && w.state.pose,'conflicting user work must remain available');
 w.state.refs={};w.state.progressive=true;w.route();assert(w.issues().length);
+setValue(w.node('pose'),'pose_control','masks_only');assert(!w.issues().length,'masks-only permits progressive sampling');
+w.state.progressive=false;w.state.refs={};w.select(anima);w.state.pose=true;w.route();
+const poseClosure=Object.values(closure()).map(n=>n.class_type);
+assert(poseClosure.includes('RSMultiCharacterPose3D'));
+for(const type of ['AnimaLLLiteApply','ModelPatchLoader','RS3DPoseAdapter'])assert(!poseClosure.includes(type),'no external pose MODEL nodes: '+type);
+assert.equal(poseClosure.filter(n=>n==='RSMultiCharacterPose3D').length,1);
 w.state.pose=false;w.state.progressive=false;w.state.masks=true;setValue(w.node('masks'),'drawing','{"layers":{}}');assert(w.issues().some(message=>message.includes('영역을 그리')));
 setValue(w.node('save'),'filename_prefix','My_Custom_Output');
 w.initialize();assert.equal(widget(w.node('save'),'filename_prefix').value,'My_Custom_Output','reopening must retain the custom output prefix');

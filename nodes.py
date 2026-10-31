@@ -168,8 +168,6 @@ class RSMultiCharacterSampler:
         lora_application_mode = character_pipe.lora_application_mode
         settings["lora_application_mode"] = lora_application_mode
         requested_layout = layout_method
-        layout_method = resolve_layout_method(layout_method, family, model.model_options)
-        settings["layout_method"] = layout_method
         if family.startswith("FLUX"):
             if isinstance(flux_guidance, bool) or not isinstance(flux_guidance, (int, float)) or not math.isfinite(flux_guidance) or not 0 <= flux_guidance <= 20:
                 raise ValueError("FLUX guidance must be a finite number from 0 to 20.")
@@ -179,6 +177,11 @@ class RSMultiCharacterSampler:
         if not isinstance(prompt, str) or not isinstance(negative_prompt, str) or prompt_syntax not in ("ComfyUI", "NovelAI"):
             raise ValueError("Choose valid prompt text and syntax.")
         pipe = resolved_pipe
+        from .pose_pipe import apply_pipe_pose
+        model, pipe_pose_status = apply_pipe_pose(model, vae, pipe, family, settings['width'], settings['height'], unique_id)
+        pose_control = validate_model_patches(model, family)
+        layout_method = resolve_layout_method(layout_method, family, model.model_options)
+        settings['layout_method'] = layout_method
         from .anima_ref_frame import PLAN, FrameRuntime, FrameImageReference, patch_extra_conds, ReferencePlan
         from .image_reference import RoleKVImageReference
         role_refs = [(i, c.reference) for i, c in enumerate(pipe.characters)
@@ -315,6 +318,8 @@ class RSMultiCharacterSampler:
                                     "boxes" if all(geometry) else "mixed" if any(geometry) else "points",
                  "box_slots": [i+1 for i, c in enumerate(pipe.regions) if c.bbox is not None and c.region_mask is None],
                  "mask_slots": [i+1 for i, c in enumerate(pipe.regions) if c.region_mask is not None]}
+        if pipe_pose_status is not None:
+            audit['pose3d_pipe'] = pipe_pose_status
         if pose_runtime is not None:
             audit['pose_adapter'] = {k: pose_runtime[k] for k in ('family', 'start', 'end', 'strength')}
         if pose_control:
@@ -466,6 +471,9 @@ class RSMultiCharacterSampler:
         summary = {**record, "auto_layout_groups": moved, "cross_attention_calls": audit["cross_calls"],
                    "self_attention_calls": audit["self_calls"], "restored_forwards": audit["restored_forwards"], "routing_audit": audit}
         ui = {"text": [f"{len(pipe.characters)} characters + {len(pipe.text_regions)} text regions · seed {settings['seed']} · {family}"]}
+        if pipe_pose_status is not None:
+            ui['text'].append('3D pose: ' + (f"{family} adapter / 자세 어댑터 적용" if pipe_pose_status['applied']
+                else 'masks only / 영역 마스크만 사용: ' + pipe_pose_status['reason']))
         ui["text"].append(f"Layout: {requested_layout} → {layout_method}")
         if native_prompt is not None:
             ui["text"].append("MOSS native: masks become enclosing boxes; color/depth pose control remains active when connected. / "

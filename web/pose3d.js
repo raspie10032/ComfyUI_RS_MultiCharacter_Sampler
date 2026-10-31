@@ -150,6 +150,17 @@ app.registerExtension({name:'RS.MultiCharacter.Pose3D',
             const preview=this.addDOMWidget('pose3d_preview','RS_POSE3D_PREVIEW',canvas,{serialize:false,hideOnZoom:false});preview.serialize=false;preview.computeSize=()=>[240,330];
             const notice=this.addDOMWidget('pose3d_status','RS_POSE3D_STATUS',status,{serialize:false,hideOnZoom:false});notice.serialize=false;notice.computeSize=()=>[240,65];schedule(this);return result;
         };
+        const configure=nodeType.prototype.onConfigure;
+        nodeType.prototype.onConfigure=function(data){
+            const result=configure?.apply(this,arguments);
+            // Old scenes were mask-only; never silently add a trained adapter
+            // to a workflow that may already have native MODEL patches.
+            const values=data?.widgets_values_named;
+            if (!(values && 'pose_control' in values) && (!Array.isArray(data?.widgets_values) || data.widgets_values.length < 5)) {
+                const mode=this.widgets?.find(w=>w.name==='pose_control');if(mode)mode.value='masks_only';
+            }
+            return result;
+        };
         const configured=nodeType.prototype.onGraphConfigured;
         nodeType.prototype.onGraphConfigured=function(){const r=configured?.apply(this,arguments);schedule(this);return r;};
         const executed=nodeType.prototype.onExecuted;

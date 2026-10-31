@@ -6,7 +6,7 @@ Regional generation and local detailing for ComfyUI. Give each character a promp
 
 [한국어](README.ko.md) · [日本語](README.ja.md) · [Documentation](docs/README.md) · [Changelog](CHANGELOG.md) · [Releases](https://github.com/raspie10032/ComfyUI_RS_MultiCharacter_Sampler/releases) · [简体中文](README.zh-CN.md) · [繁體中文](README.zh-TW.md)
 
-**Current release: [1.1.0 Hangeul](docs/release-1.1.0.md).** Runs with local models; no RS NovelAI extension or API key is required.
+**Current release: [1.1.1 Hangeul](docs/release-1.1.1.md).** Runs with local models; no RS NovelAI extension or API key is required.
 
 ## Open the app screen — RS Workspace (experimental)
 
@@ -30,7 +30,7 @@ The app currently uses Korean labels; the [English guide](docs/app-workspace.md)
 
 **Camera reference:** [Anima camera-tag helper](https://arca.live/b/aiart/179423561) / `ComfyUI-KR-Camera-Control` (credits `ComfyUI_bsk_UI` / 灰暗x). [Reference scope and notices](THIRD_PARTY_NOTICES.md#camera-control-references).
 
-**3D pose editor · experimental:** arrange a skinned human rig and camera, then send numbered silhouettes to the character pipe. Masks need no extra weights. The separate shaded `pose_image` can guide Anima 2B through a matching native LLLite adapter; exact joints and contacts remain unreliable. [Setup and limits](docs/pose3d.md) · [Workflow PNG](examples/pose3d/anima-native-pose.png). Krea2 Turbo and MOSS additionally accept the scene through **RS 3D Pose Adapter (Experimental)**, which automatically prepares their trained pose adapters. [Connections and limitations](docs/pose3d.md#krea2-turbo-and-moss-pose-adapters-experimental).
+**Unified 3D pose control (experimental):** connect **3D Pose Masks → building pipe → Finalize → Sampler**. Anima 2B, Krea2 and MOSS load their matching adapter internally. No separate MODEL/VAE/patch node is needed. Select `masks_only` to disable learned guidance; unsupported architectures use masks only. Exact joints/contact are not guaranteed. [Setup and limits](docs/pose3d.md).
 
 ## What you can do
 

@@ -73,7 +73,7 @@ def capabilities(profile):
                 reference=family != 'FLUX1',
                 reference_method='frame' if family == 'Anima' else 'native',
                 layout='moss_native' if family == 'MOSS' else 'regional',
-                pose_reference=family not in ('Krea2', 'MOSS'),
+                pose_reference=not (profile == 'anima' or family in ('Krea2', 'MOSS')),
                 pose_progressive=family not in ('Krea2', 'MOSS'),
                 note='SD1.5: compatibility only; quality is not established.' if family == 'SD1.5' else '')
 

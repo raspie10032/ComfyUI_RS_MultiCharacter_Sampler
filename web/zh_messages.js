@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: GPL-3.0-only
 // Simplified Chinese / Traditional Chinese (Taiwan) display text.
 export const zhMessages = {
+  "Legacy MODEL adapter. New workflows use 3D Pose Masks \u2192 building pipe \u2192 Finalize \u2192 Sampler; no extra MODEL/VAE connections.": ["旧MODEL适配器仅用于兼容。新工作流使用3D姿态→构建管道→Finalize→Sampler，无需额外MODEL/VAE连接。", "舊MODEL適配器僅用於相容。新工作流程使用3D姿態→構建管道→Finalize→Sampler，無需額外MODEL/VAE連接。"],
   "Auto layout: active MOSS 3D pose adapter uses native JSON; all other paths use regional. Explicit saved choices stay unchanged.": ["自动布局：启用 MOSS 3D 姿态适配器时使用原生 JSON，其他情况使用区域控制。保留已保存的明确选择。", "自動配置：啟用 MOSS 3D 姿態適配器時使用原生 JSON，其他情況使用區域控制。保留已儲存的明確選擇。"],
   "MOSS native turns masks into enclosing boxes; color/depth pose guidance stays active. Regional boundary controls do not apply.": ["MOSS 原生将遮罩转为外接矩形，保留颜色/深度姿态引导。不应用区域边界设置。", "MOSS 原生將遮罩轉為外接矩形，保留色彩/深度姿態引導。不套用區域邊界設定。"],
   "Krea2 Turbo / MOSS pose adapter · first use downloads matching weights.": ["Krea2 Turbo / MOSS 姿态适配器：首次使用时下载匹配权重。", "Krea2 Turbo / MOSS 姿態適配器：首次使用時下載對應權重。"],

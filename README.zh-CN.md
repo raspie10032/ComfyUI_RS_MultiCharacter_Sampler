@@ -7,7 +7,7 @@
 
 [English](README.md) · [한국어](README.ko.md) · [日本語](README.ja.md) · **简体中文** · [繁體中文](README.zh-TW.md) · [详细文档](docs/README.md) · [更新记录](CHANGELOG.md) · [发布版本](https://github.com/raspie10032/ComfyUI_RS_MultiCharacter_Sampler/releases)
 
-**当前版本：[1.1.0 Hangeul](docs/release-1.1.0.md)。** 使用本地模型，无需安装 RS NovelAI 扩展或提供 API 密钥。
+**当前版本：[1.1.1 Hangeul](docs/release-1.1.1.md)。** 使用本地模型，无需安装 RS NovelAI 扩展或提供 API 密钥。
 
 ## 打开应用界面 — RS Workspace（实验）
 
@@ -169,4 +169,4 @@ node tests/test_ui.cjs
 GPL-3.0-only。参阅 [COPYING](COPYING)、[第三方声明](THIRD_PARTY_NOTICES.md)及[源码来源](docs/source-lineage.json)。
 
 
-**Krea2 Turbo / MOSS 3D 姿态适配器（实验）：** 将 3D 节点的 `scene_json` 连接到 **RS 3D Pose Adapter**，再将 MODEL 连接到普通 RS 采样器。自动准备已训练的姿态适配器。角色区域管道仍须连接；不保证精确关节或人数。 [Setup](docs/pose3d.md#krea2-turbo-and-moss-pose-adapters-experimental).
+**统一3D姿态控制（实验）：** 只连接 **3D姿态 → 构建管道 → Finalize → Sampler**。内部准备Anima 2B、Krea2和MOSS适配器，无需额外MODEL、VAE或补丁节点。`masks_only`或强度0仅使用遮罩。未支持架构也仅使用遮罩并显示原因。[用法与限制](docs/pose3d.md)。

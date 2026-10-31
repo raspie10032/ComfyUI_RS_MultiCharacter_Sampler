@@ -2027,13 +2027,25 @@
   },
   "RSMultiCharacterPose3D": {
     "display_name": "RS 3D姿勢遮罩（實驗版）",
-    "description": "透過3D人體關節、手部和相機產生編號遮罩與姿勢影像。遮罩無需額外模型。姿勢引導需要另接Anima 2B LLLite轉接器，不保證精確關節或接觸。",
+    "description": "只需連接3D節點的構建管道。取樣器自動套用Anima 2B、Krea2或MOSS適配器。其他模型僅使用遮罩，不保證關節和接觸精度。",
     "inputs": {
       "scene_json": {
         "name": "3D場景"
       },
       "building_pipe": {
         "name": "建構管線"
+      },
+      "pose_control": {
+        "name": "姿態控制"
+      },
+      "pose_strength": {
+        "name": "姿態強度"
+      },
+      "pose_start": {
+        "name": "開始"
+      },
+      "pose_end": {
+        "name": "結束"
       }
     },
     "outputs": {

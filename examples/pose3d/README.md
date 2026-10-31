@@ -1,3 +1,5 @@
+**Current pipe-only setup:** [Anima 2B workflow PNG](anima-building-pipe.png). This verified 768×1024 / 30-step Euler ancestral + SGM uniform run uses no separate pose MODEL/patch node. Set auto in the 3D node and connect its building pipe through Finalize. Older PNGs below preserve historical MODEL-adapter experiments.
+
 # Experimental Anima 2B 3D pose example
 
 Drag **[anima-native-pose.png](anima-native-pose.png)** onto ComfyUI. This is an actual generated PNG with the complete 14-node / 14-link workflow, native skinned scene and prompt metadata embedded. It is not a screenshot or an image containing only generation settings.

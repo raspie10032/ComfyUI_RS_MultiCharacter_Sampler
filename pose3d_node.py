@@ -57,7 +57,11 @@ class RSMultiCharacterPose3D:
     def INPUT_TYPES(cls):
         return {'required': {'scene_json': ('STRING', {'default': json.dumps(default_scene()), 'multiline': True,
                 'tooltip': 'Open 3D editor, arrange mannequins, then Apply. Character numbers map to prompt slots. The scene is saved in the workflow.'})},
-                'optional': {'building_pipe': (BUILD_PIPE_TYPE,)}, 'hidden': {'unique_id': 'UNIQUE_ID'}}
+                'optional': {'building_pipe': (BUILD_PIPE_TYPE,),
+                    'pose_control': (['auto', 'masks_only'], {'default': 'auto', 'tooltip': 'Auto applies a matching pose adapter inside the sampler. Other model families use masks only. / 자동: 샘플러에서 모델에 맞는 포즈 어댑터 적용. 미지원 모델은 마스크만 사용.'}),
+                    'pose_strength': ('FLOAT', {'default': 1., 'min': 0., 'max': 2., 'step': .05, 'tooltip': 'Pose guidance strength. 0 uses masks only and downloads nothing. / 자세 유도 강도. 0은 마스크만 사용.'}),
+                    'pose_start': ('FLOAT', {'default': 0., 'min': 0., 'max': 1., 'step': .01, 'tooltip': 'Start fraction of denoising. / 자세 유도 시작 구간.'}),
+                    'pose_end': ('FLOAT', {'default': 1., 'min': 0., 'max': 1., 'step': .01, 'tooltip': 'End fraction; must follow start. / 자세 유도 종료 구간.'})}, 'hidden': {'unique_id': 'UNIQUE_ID'}}
 
     RETURN_TYPES = (BUILD_PIPE_TYPE, 'IMAGE', 'MASK', 'MASK', 'STRING', 'IMAGE', 'STRING')
     RETURN_NAMES = ('building_pipe', 'mask_preview', 'full_masks', 'visible_masks', 'scene_info', 'pose_image', 'scene_json')
@@ -67,13 +71,17 @@ class RSMultiCharacterPose3D:
     DESCRIPTION = ('Experimental 3D mannequin composition editor. Rotate joints and move people/camera; '
                    'each character number creates a 2D region mask. Full silhouettes overlap; visible silhouettes remove occluded areas. '
                    'Canvas overflow is clipped. Editing and masks need no extra weights. A composition guide, not exact pose enforcement. '
-                   'pose_image connects to Apply Anima LLLite; scene_json connects to RS 3D Pose Adapter for Krea2/MOSS. '
+                   'Connect only building_pipe before Finalize. The sampler automatically loads and applies matching Anima 2B/Krea2/MOSS pose adapters; no MODEL, VAE or patch-loader connection is needed here. Auto on other architectures uses masks only and reports the reason. '
                    'New scenes use a native MHR skinned body. Anima 2B pose following has been observed with a separately trained adapter; exact joints and contacts are not guaranteed. Legacy ellipsoid scenes are preserved. Masks alone do not enforce joint angles. '
                    'Scene data is stored in the workflow. Connect anywhere before Finalize.')
 
-    def apply(self, scene_json, building_pipe=None, unique_id=None):
+    def apply(self, scene_json, building_pipe=None, unique_id=None, pose_control='auto',
+              pose_strength=1., pose_start=0., pose_end=1.):
         if building_pipe is not None and not isinstance(building_pipe, BuildPipe):
             raise ValueError('Connect an RS building pipe. / RS 조립 파이프를 연결해 주세요.')
+        from .pose_pipe import pipe_pose_settings
+        plan = pipe_pose_settings(dict(scene=scene_json, mode=pose_control, strength=pose_strength,
+                                       start=pose_start, end=pose_end))
         scene, full, visible, pose_rgb = render_scene(scene_json, shaded=True)
         selected = full if scene['mask_mode'] == 'full' else visible
         pipe = building_pipe or BuildPipe()
@@ -88,7 +96,7 @@ class RSMultiCharacterPose3D:
             region = RegionMask(scene['width'], scene['height'], np.packbits(mask.reshape(-1)).tobytes())
             pipe = update_slot(pipe, p['id'], region_mask=region, body_parts=(), body_part_strength=0.)
             owned.append((p['id'], region))
-        pipe = replace(pipe, pose3d_masks=tuple(owned))
+        pipe = replace(pipe, pose3d_masks=tuple(owned), pose3d_json=json.dumps(plan))
         image = preview(scene, full, visible)
         pose_image = torch.from_numpy(pose_rgb.astype(np.float32)/255)[None]
         images = []

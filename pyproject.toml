@@ -1,6 +1,6 @@
 [project]
 name = "comfyui-rs-multicharacter-sampler"
-version = "1.1.0"
+version = "1.1.1"
 description = "Hangeul: regional generation and detailing for Anima, SDXL, Krea 2, MOSS and FLUX. Experimental RS Workspace app with automatic model routing, wildcards, character LoRAs, editable masks, 3D posing, camera control, image references and progressive sampling; SD1.5 is unstable."
 readme = "README.md"
 license = {file = "LICENSE"}

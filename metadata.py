@@ -64,6 +64,7 @@ def build_record(pipe, settings, assets, centers, audit, engine="anima-spatial-a
                 "body_part_strengths": [c.body_part_strength for c in pipe.characters]}
                if any(c.body_parts for c in pipe.characters) else {}),
             **({"interaction": json.loads(pipe.interaction_json)} if pipe.interaction_json else {}),
+            **({'pose3d': json.loads(pipe.pose3d_json)} if pipe.pose3d_json else {}),
             "character_loras": lora_records(pipe),
             "image_references": [{"character_id": c.reference.character_id, "resolution": c.reference.resolution,
                                   "strength": c.reference.strength, "source": c.reference.source,
@@ -81,6 +82,13 @@ def build_record(pipe, settings, assets, centers, audit, engine="anima-spatial-a
     }
 
 
+def _pose_record(local):
+    if not local or 'pose3d' not in local:
+        return None
+    from .pose_pipe import pipe_pose_settings
+    return json.dumps(pipe_pose_settings(local['pose3d']))
+
+
 def pipe_record(pipe):
     """Current scene plus separate local/NAI settings, without graph or tensors."""
     local = object_json(pipe.generation_json) if pipe.generation_json else {
@@ -94,6 +102,10 @@ def pipe_record(pipe):
                     for c in pipe.characters],
         body_part_strengths=[c.body_part_strength for c in pipe.characters],
         text_regions=text_region_records(pipe))
+    if pipe.pose3d_json is None:
+        local.pop('pose3d', None)
+    else:
+        local['pose3d'] = json.loads(pipe.pose3d_json)
     if pipe.interaction_json is None:
         local.pop("interaction", None)
     else:
@@ -305,6 +317,7 @@ def pipe_from_record(record):
             json.dumps(local, ensure_ascii=True, allow_nan=False) if local else None, tuple(text_regions),
             lora_application_mode=local.get("lora_application_mode", "precision") if local else "precision",
             interaction_json=interaction_json,
+            pose3d_json=_pose_record(local),
             character_syntax=local.get("character_syntax") if local else "ComfyUI",
             nai_settings_json=json.dumps(local["nai_context"] if local and "nai_context" in local else record["rs_nai_context"], allow_nan=False)
                 if (local and "nai_context" in local) or "rs_nai_context" in record else None)

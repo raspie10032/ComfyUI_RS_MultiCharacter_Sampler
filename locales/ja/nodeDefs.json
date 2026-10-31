@@ -1203,13 +1203,25 @@
   },
   "RSMultiCharacterPose3D": {
     "display_name": "RS 3Dポーズマスク（試験版）",
-    "description": "3D人体の関節・手・カメラから番号別マスクとポーズ画像を作ります。マスクには追加モデル不要。姿勢誘導には別途Anima 2B LLLiteアダプターが必要で、正確な関節・接触は保証しません。",
+    "description": "3Dノードの組み立てパイプだけを接続します。SamplerがAnima 2B・Krea2・MOSSのアダプターを自動適用。未対応モデルはマスクのみ。関節・接触の一致は保証しません。",
     "inputs": {
       "scene_json": {
         "name": "3Dシーン"
       },
       "building_pipe": {
         "name": "組み立てパイプ"
+      },
+      "pose_control": {
+        "name": "ポーズ制御"
+      },
+      "pose_strength": {
+        "name": "ポーズ強度"
+      },
+      "pose_start": {
+        "name": "開始"
+      },
+      "pose_end": {
+        "name": "終了"
       }
     },
     "outputs": {

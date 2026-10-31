@@ -2027,13 +2027,25 @@
   },
   "RSMultiCharacterPose3D": {
     "display_name": "RS 3D姿势遮罩（实验版）",
-    "description": "通过3D人体关节、手部和相机生成编号遮罩与姿势图像。遮罩无需额外模型。姿势引导需要另接Anima 2B LLLite适配器，不保证精确关节或接触。",
+    "description": "只需连接3D节点的构建管道。采样器自动应用Anima 2B、Krea2或MOSS适配器。其他模型仅使用遮罩，不保证关节和接触精度。",
     "inputs": {
       "scene_json": {
         "name": "3D场景"
       },
       "building_pipe": {
         "name": "构建管道"
+      },
+      "pose_control": {
+        "name": "姿态控制"
+      },
+      "pose_strength": {
+        "name": "姿态强度"
+      },
+      "pose_start": {
+        "name": "开始"
+      },
+      "pose_end": {
+        "name": "结束"
       }
     },
     "outputs": {

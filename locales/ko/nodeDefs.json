@@ -1203,13 +1203,25 @@
   },
   "RSMultiCharacterPose3D": {
     "display_name": "RS 3D 포즈 마스크 (시험판)",
-    "description": "3D 인체의 관절·손·카메라로 번호별 마스크와 포즈 이미지를 만듭니다. 마스크에는 추가 모델이 필요 없습니다. 자세 유도는 별도 Anima 2B LLLite 어댑터가 필요하며 정확한 관절·접촉은 보장하지 않습니다.",
+    "description": "3D 포즈 하나에서 조립 파이프만 연결합니다. 샘플러가 Anima 2B·Krea2·MOSS 어댑터를 자동 적용합니다. 미지원 모델은 마스크만 쓰며 정확한 관절·접촉은 보장하지 않습니다.",
     "inputs": {
       "scene_json": {
         "name": "3D 장면"
       },
       "building_pipe": {
         "name": "조립 파이프"
+      },
+      "pose_control": {
+        "name": "자세 유도"
+      },
+      "pose_strength": {
+        "name": "자세 강도"
+      },
+      "pose_start": {
+        "name": "자세 시작"
+      },
+      "pose_end": {
+        "name": "자세 종료"
       }
     },
     "outputs": {

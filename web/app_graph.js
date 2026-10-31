@@ -71,6 +71,20 @@ export class Workspace {
         this.node('position', 'RSMultiCharacterPosition'); this.node('finalize', 'RSMultiCharacterFinalize');
         this.node('sampler', 'RSMultiCharacterSampler'); this.node('progressive', 'RSMultiCharacterProgressiveSampler');
         this.node('masks', 'RSMultiCharacterMaskDraw'); this.node('pose', 'RSMultiCharacterPose3D');
+        // Migrate only nodes owned by this workspace. Ordinary user graphs keep
+        // their released MODEL adapters and stable output socket numbers.
+        const oldPose = this.node('anima_pose') ?? this.node('pose_adapter');
+        if (oldPose) {
+            for (const [oldName, name] of [['strength','pose_strength'],['start_percent','pose_start'],['end_percent','pose_end']]) {
+                const value = widget(oldPose, oldName)?.value;
+                if (value !== undefined) setValue(this.node('pose'), name, value);
+            }
+            setValue(this.node('pose'), 'pose_control', 'auto');
+        }
+        for (const role of ['anima_pose', 'pose_patch', 'pose_adapter']) {
+            const node = this.node(role);
+            if (node?.properties?.rs_workspace_role === role) { this.graph.remove?.(node); delete this.state.ids[role]; }
+        }
         this.node('camera', 'RSCameraControl'); this.node('interaction', 'RSMultiCharacterInteraction');
         this.node('global_lora', 'LoraLoader'); this.node('save', 'SaveImage');
         if (first) setValue(this.node('save'), 'filename_prefix', 'RS_Workspace');
@@ -96,8 +110,8 @@ export class Workspace {
     sample() { return this.node(this.state.progressive ? 'progressive' : 'sampler'); }
     remember() {
         if (!this.state.modelId) return;
-        const saved = Object.fromEntries(['sampler', 'progressive', 'loras', 'global_lora', 'camera', 'pose_adapter', 'anima_pose', 'pose_patch', 'detail', 'detectors', 'tagger'].map(role => [role,
-            Object.fromEntries((this.node(role)?.widgets ?? []).filter(w => w.serialize !== false && !['button', 'rs_mc_display'].includes(w.type)).map(w => [w.name, structuredClone(w.value)]))]));
+        const saved = Object.fromEntries(['sampler', 'progressive', 'loras', 'global_lora', 'camera', 'pose', 'detail', 'detectors', 'tagger'].map(role => [role,
+            Object.fromEntries((this.node(role)?.widgets ?? []).filter(w => w.serialize !== false && !['button', 'rs_mc_display'].includes(w.type) && !(role === 'pose' && w.name === 'scene_json')).map(w => [w.name, structuredClone(w.value)]))]));
         saved.globalEnabled = !!this.state.globalLora;
         this.state.perModel[this.state.modelId] = saved;
     }
@@ -136,12 +150,9 @@ export class Workspace {
         const refs = Object.keys(this.state.refs).some(i => Number(i) <= this.count() && this.state.refs[i]);
         if (refs && !cap.reference) errors.push('This checkpoint has no supported image-reference route. FLUX.1 requires Kontext.');
         if (this.model.profile === 'anima29' && Object.keys(this.state.refs).some(i => this.state.refs[i] && Number(i) <= this.count() && widget(this.node(`ref${i}`), 'anima_method')?.value === 'role_kv')) errors.push('Anima 2.9B supports reference_frame; Role K/V weights are for 2B.');
-        if (this.state.pose && cap.pose && refs && !cap.pose_reference) errors.push(`${cap.family}: 3D pose adapter + image reference is not supported together. Turn one off; images and scene are preserved.`);
-        if (this.state.pose && cap.pose && this.state.progressive && !cap.pose_progressive) errors.push(`${cap.family}: 3D pose adapter + progressive resolution is not supported together.`);
-        if (this.state.pose && cap.pose === 'lllite') {
-            const loader = this.node('pose_patch');
-            if (!loader || !widget(loader, 'name')?.value) errors.push('Install an Anima 3D pose model patch for the 3D adapter.');
-        }
+        const learnedPose = this.state.pose && widget(this.node('pose'), 'pose_control')?.value !== 'masks_only' && Number(widget(this.node('pose'), 'pose_strength')?.value ?? 1) > 0;
+        if (learnedPose && cap.pose && refs && !cap.pose_reference) errors.push(`${cap.family}: 3D pose adapter + image reference is not supported together. Turn one off; images and scene are preserved.`);
+        if (learnedPose && cap.pose && this.state.progressive && !cap.pose_progressive) errors.push(`${cap.family}: 3D pose adapter + progressive resolution is not supported together.`);
         return errors;
     }
     route() {
@@ -168,15 +179,8 @@ export class Workspace {
             connect(...m, global, 'model'); connect(...c, global, 'clip'); m = [global, 0]; c = [global, 1];
         }
         const detailModel = m;
-        if (this.state.pose && cap.pose === 'lllite') {
-            const patch = this.node('pose_patch', 'ModelPatchLoader'), pose = this.node('anima_pose', 'AnimaLLLiteApply');
-            const choices = widget(patch, 'name')?.options?.values ?? [];
-            if (!choices.includes(widget(patch, 'name')?.value)) setValue(patch, 'name', choices.find(x => x.includes('outline')) ?? choices[0]);
-            connect(...m, pose, 'model'); connect(patch, 0, pose, 'model_patch'); connect(this.node('pose'), 'pose_image', pose, 'image'); m = [pose, 0];
-        } else if (this.state.pose && cap.pose === 'scene_adapter') {
-            const pose = this.node('pose_adapter', 'RS3DPoseAdapter');
-            connect(...m, pose, 'model'); connect(...vae, pose, 'vae'); connect(this.node('pose'), 'scene_json', pose, 'scene_json'); m = [pose, 0];
-        }
+        // All pose configuration travels in the editor's building pipe. The
+        // sampler owns matching weights, VAE use and native model patching.
         let pipe = null;
         const chain = node => { disconnect(node, 'building_pipe'); if (pipe) connect(pipe, 0, node, 'building_pipe'); pipe = node; };
         if (this.state.pose) chain(this.node('pose'));

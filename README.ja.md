@@ -7,7 +7,7 @@ ComfyUIでキャラクター別のプロンプト・LoRA・領域を設定して
 
 [English](README.md) · [한국어](README.ko.md) · [ドキュメント](docs/README.md) · [変更履歴](CHANGELOG.md) · [リリース](https://github.com/raspie10032/ComfyUI_RS_MultiCharacter_Sampler/releases) · [简体中文](README.zh-CN.md) · [繁體中文](README.zh-TW.md)
 
-**現在のバージョン：[1.1.0 Hangeul](docs/release-1.1.0.md)。** ローカルモデルで動作し、RS NovelAI拡張やAPIキーは不要です。
+**現在のバージョン：[1.1.1 Hangeul](docs/release-1.1.1.md)。** ローカルモデルで動作し、RS NovelAI拡張やAPIキーは不要です。
 
 ## アプリ画面を開く — RS Workspace（実験）
 
@@ -167,4 +167,4 @@ node tests/test_ui.cjs
 GPL-3.0-only。[COPYING](COPYING) · [第三者に関する通知](THIRD_PARTY_NOTICES.md) · [ソースの系譜](docs/source-lineage.json)
 
 
-**Krea2 Turbo・MOSS 3Dポーズアダプター（実験）：** 3Dノードの `scene_json` を **RS 3D Pose Adapter** に接続し、そのMODELを通常のRSサンプラーへ接続します。学習済みポーズアダプターを自動準備します。キャラクター領域パイプも接続してください。関節や人数の一致は保証されません。 [Setup](docs/pose3d.md#krea2-turbo-and-moss-pose-adapters-experimental).
+**3Dポーズ統合（実験）：** **3Dポーズ → 組み立てパイプ → Finalize → Sampler**のみ接続。Anima 2B・Krea2・MOSSのアダプターを内部で準備し、MODEL・VAE・パッチの追加ノードは不要です。`masks_only`または強度0はマスクのみ。未対応モデルもマスクのみとなり理由を表示します。[使い方・制限](docs/pose3d.md)。

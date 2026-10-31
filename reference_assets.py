@@ -43,7 +43,7 @@ def _check_adapter(path, progress, name):
 def _adapter_label(name):
     return {'anima_role_kv': 'Anima Role K/V', 'anima_frame': 'Anima 2B reference-frame',
             'anima29_frame': 'Anima 2.9B reference-frame',
-            'anima_frame_v2': 'Anima 2B asymmetric v2', 'krea_pose': 'Krea2 Turbo pose', 'moss_pose': 'MOSS color/depth pose'}[name]
+            'anima_frame_v2': 'Anima 2B asymmetric v2', 'krea_pose': 'Krea2 Turbo pose', 'moss_pose': 'MOSS color/depth pose', 'anima_pose': 'Anima 2B outline pose'}[name]
 
 
 def frame_adapter(model, node_id=None):
@@ -79,7 +79,7 @@ def _verified_adapter(name, node_id=None):
     # Include ordinary LoRA folders: the author may have installed the adapter
     # there already. Keep our own managed adapter outside the style-LoRA list.
     roots = []
-    for folder in ('ipadapter', 'loras'):
+    for folder in dict.fromkeys((spec['folder'], 'ipadapter', 'loras')):
         roots.append(Path(folder_paths.models_dir) / folder)
         if folder in folder_paths.folder_names_and_paths:
             roots.extend(Path(p) for p in folder_paths.get_folder_paths(folder))
@@ -93,7 +93,7 @@ def _verified_adapter(name, node_id=None):
         raise RuntimeError(f'{label} automatic download needs huggingface-hub. '
                            'Install requirements-reference.txt. / 이미지 참조 의존성을 설치해 주세요: requirements-reference.txt') from error
     filename = Path(spec['file']).name
-    size = {'anima_role_kv': '504 MiB', 'anima_frame_v2': '175 MiB'}.get(name, '88 MiB')
+    size = {'anima_role_kv': '504 MiB', 'anima_frame_v2': '175 MiB', 'anima_pose': '49 MiB'}.get(name, '88 MiB')
     progress.report(f'Downloading {label} adapter ({size}) / 어댑터 다운로드 중', force=True)
     try:
         downloaded = hf_hub_download(spec['repo'], spec['file'], revision=spec['revision'],

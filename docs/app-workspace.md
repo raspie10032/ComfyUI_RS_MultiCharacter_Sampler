@@ -61,6 +61,10 @@ For the full Korean walkthrough, see [앱 사용 가이드](app-workspace.ko.md)
   Krea2 and MOSS use the scene adapters. Other supported families, including
   Anima 2.9B, use the rendered region masks without a pose adapter. The status
   panel explicitly distinguishes these routes. The editor requires WebGL2.
+  The editor's building pipe carries all pose settings; no extra MODEL/VAE/patch
+  nodes are needed. Select auto or masks_only and strength/start/end in this tab.
+  Mask-only uses no adapter downloads. Learned pose + image references is blocked;
+  Krea2/MOSS learned pose also requires full resolution.
 - **카메라:** the existing shared camera editor and interaction controls.
 - **생성 / 보정:** common prompts, sampling settings, progressive resolution,
   global LoRA, detection and face detail settings. Multiple characters

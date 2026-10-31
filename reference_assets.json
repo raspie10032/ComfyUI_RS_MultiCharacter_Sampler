@@ -134,5 +134,13 @@
     "folder": "loras",
     "subdir": "moss_pose",
     "sha256": "e5c0c3efd05e4269207a39de6005798f14c90c6687c89c54eaffe4b76c43a763"
+  },
+  "anima_pose": {
+    "repo": "toyxyz/Anima_ControlNet-LLLite",
+    "revision": "37f3a4b6574f1dce3dfe3b5440285a39b11b3d8d",
+    "file": "anima_3dpose_outline_7000.safetensors",
+    "folder": "model_patches",
+    "subdir": "anima_pose",
+    "sha256": "8e2c90505c4363f74ea2deef427dd3b3f8e91ec41c40ab1955f18040fc15b708"
   }
 }

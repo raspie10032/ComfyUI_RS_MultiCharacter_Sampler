@@ -7,7 +7,7 @@ ComfyUI에서 캐릭터별 프롬프트·LoRA·영역을 지정해 생성하고,
 
 [English](README.md) · [日本語](README.ja.md) · [문서 모음](docs/README.md) · [변경 기록](CHANGELOG.md) · [릴리스](https://github.com/raspie10032/ComfyUI_RS_MultiCharacter_Sampler/releases) · [简体中文](README.zh-CN.md) · [繁體中文](README.zh-TW.md)
 
-**현재 버전: [1.1.0 한글](docs/release-1.1.0.md).** 로컬 모델로 실행하며 RS NovelAI 확장이나 API 키가 필요하지 않습니다.
+**현재 버전: [1.1.1 한글](docs/release-1.1.1.md).** 로컬 모델로 실행하며 RS NovelAI 확장이나 API 키가 필요하지 않습니다.
 
 ## 앱 화면 열기 — RS Workspace (시험판)
 
@@ -169,4 +169,4 @@ node tests/test_ui.cjs
 GPL-3.0-only. [COPYING](COPYING) · [서드파티 고지](THIRD_PARTY_NOTICES.md) · [소스 계보](docs/source-lineage.json)
 
 
-**Krea2 Turbo·MOSS 3D 포즈 어댑터(실험):** 3D 노드의 `scene_json`을 **RS 3D Pose Adapter**에 연결하고 MODEL을 일반 RS 샘플러에 연결합니다. Krea2는 학습된 OpenPose LoRA, MOSS는 색상·깊이 어댑터를 자동 준비합니다. 캐릭터별 영역 파이프는 계속 연결해야 합니다. 정확한 관절·인원수는 보장하지 않습니다. [Setup](docs/pose3d.md#krea2-turbo-and-moss-pose-adapters-experimental).
+**3D 자세 유도 통합(실험):** **3D 포즈 → 조립 파이프 → 최종 파이프 → 샘플러**만 연결합니다. 아니마 2B·Krea2·MOSS에 맞는 어댑터를 내부에서 준비하며, MODEL·VAE·패치 노드를 따로 연결할 필요가 없습니다. `masks_only` 또는 강도 0은 마스크만 사용합니다. 대응 어댑터가 없는 모델도 마스크만 사용하며 이유를 표시합니다. 정확한 관절·접촉은 보장하지 않습니다. [사용법·제한](docs/pose3d.md).

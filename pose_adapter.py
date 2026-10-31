@@ -13,11 +13,14 @@ def model_family(model):
         return 'Krea2'
     if isinstance(model.model, getattr(model_base, 'MOSSImage', ())):
         return 'MOSS'
-    raise ValueError('RS 3D Pose Adapter supports Krea2 Turbo and MOSS. For Anima use Apply Anima LLLite. / '
-                     'Krea2 Turbo·MOSS용입니다. Anima는 Apply Anima LLLite를 사용해 주세요.')
+    raise ValueError('RS 3D Pose Adapter supports Krea2 Turbo and MOSS. Use RS 3D Pose Masks with pose_control=auto for automatic family routing. / '
+                     'Krea2 Turbo·MOSS용입니다. RS 3D Pose Masks의 auto와 빌딩 파이프를 사용해 주세요.')
 
 
 class RS3DPoseAdapter:
+    # Preserve MODEL socket indices of released workflows. New graphs use the
+    # single 3D editor/building pipe instead of exposing backend loaders.
+    DEPRECATED = True
     @classmethod
     def INPUT_TYPES(cls):
         return {'required': {'model': ('MODEL',), 'vae': ('VAE',),
@@ -31,8 +34,8 @@ class RS3DPoseAdapter:
 
     RETURN_TYPES = ('MODEL',)
     FUNCTION = 'apply'
-    CATEGORY = 'RS MultiCharacter/Characters'
-    DESCRIPTION = ('Connect scene_json from RS 3D Pose Masks and the matching VAE. Krea2 Turbo uses a trained OpenPose LoRA; '
+    CATEGORY = 'RS MultiCharacter/Legacy'
+    DESCRIPTION = ('Legacy workflow compatibility only. New workflows: use RS 3D Pose Masks with pose_control=auto and its building pipe. Connect scene_json from RS 3D Pose Masks and the matching VAE. Krea2 Turbo uses a trained OpenPose LoRA; '
                    'MOSS uses a trained color/depth adapter; sampler layout auto selects native JSON for MOSS pose control. '
                    'Matching weights download on first use. Connect this MODEL to RS MultiCharacter Sampler. Keep the 3D building pipe connected to Finalize for character regions. '
                    'This is pose adapter conditioning, beyond silhouette masks; exact hands/contact and character count can still fail. '

@@ -99,6 +99,7 @@ class CharacterPipe:
     character_syntax: str | None = field(default=None, kw_only=True)
 
     nai_settings_json: str | None = field(default=None, kw_only=True)
+    pose3d_json: str | None = field(default=None, kw_only=True)
 
     def __len__(self):
         return len(self.characters)

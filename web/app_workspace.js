@@ -133,8 +133,7 @@ function render() {
         mountEditor(node, 'pose3d_import', box); mountEditor(node, 'pose3d_preview', box); mountEditor(node, 'pose3d_status', box);
         if (workspace.state.pose) {
             const cap = workspace.model?.capabilities;
-            if (cap?.pose === 'lllite') { fields(workspace.node('pose_patch'), box); fields(workspace.node('anima_pose'), box); }
-            if (cap?.pose === 'scene_adapter') fields(workspace.node('pose_adapter'), box);
+            for (const name of ['pose_control', 'pose_strength', 'pose_start', 'pose_end']) field(node, name, box);
         }
         advanced(node, box);
     }
