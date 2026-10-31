@@ -6,7 +6,21 @@ Regional generation and local detailing for ComfyUI. Give each character a promp
 
 [한국어](README.ko.md) · [日本語](README.ja.md) · [Documentation](docs/README.md) · [Changelog](CHANGELOG.md) · [Releases](https://github.com/raspie10032/ComfyUI_RS_MultiCharacter_Sampler/releases) · [简体中文](README.zh-CN.md) · [繁體中文](README.zh-TW.md)
 
-**Current release: [1.0.11 Hangeul](docs/release-1.0.11.md).** Runs with local models; no RS NovelAI extension or API key is required.
+**Current release: [1.1.0 Hangeul](docs/release-1.1.0.md).** Runs with local models; no RS NovelAI extension or API key is required.
+
+## Open the app screen — RS Workspace (experimental)
+
+**Included with 1.1.0 and later. No separate app installation is needed.**
+
+1. Install or update **RS MultiCharacter Sampler** in ComfyUI-Manager. Check that the installed package is **1.1.0 or later**. Git users can run `git pull --ff-only` inside this extension's folder.
+2. **Restart the ComfyUI server**, then reopen its usual browser page and press **Ctrl+Shift+R** (macOS: **Cmd+Shift+R**).
+3. Click **RS Workspace** at the **bottom right** of ComfyUI. You can also use **Edit → RS Model Workspace (Experimental)** where the frontend exposes extension commands.
+4. Choose an installed model on the left. The app selects that model's loaders, starting settings and supported feature routes. Enter character prompts, adjust placement, then click **생성** (Generate).
+5. Click **노드 그래프** (Node graph) to return to the editable workflow. Opening the app from an ordinary workflow creates a separate tab and keeps your existing work.
+
+The app currently uses Korean labels; the [English guide](docs/app-workspace.md) explains them. See the [complete Korean walkthrough](docs/app-workspace.ko.md) for wildcards, masks, 3D poses, camera, references, LoRAs, face detailing and saving. Missing files or unsupported feature combinations are shown before generation. Base models are installed separately.
+
+**No button?** Check the installed version, restart the server as well as refreshing the browser, and confirm the extension is enabled in ComfyUI's extension settings. Keep a single installation. If a reverse proxy is used, load ComfyUI through its normal working URL. [Troubleshooting](docs/app-workspace.md#opening-and-troubleshooting).
 
 **1.0.10:** Trained Krea 2 Turbo and MOSS 3D pose adapters work alongside numbered character regions. `auto` prefers native JSON for active MOSS pose control, and regional routing for Krea. First-use weights download automatically. [Setup and limits](docs/pose3d.md#krea2-turbo-and-moss-pose-adapters-experimental) · [36-image audit](docs/pose3d-genshin-diverse-validation.md).
 

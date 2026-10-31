@@ -7,7 +7,21 @@ ComfyUI에서 캐릭터별 프롬프트·LoRA·영역을 지정해 생성하고,
 
 [English](README.md) · [日本語](README.ja.md) · [문서 모음](docs/README.md) · [변경 기록](CHANGELOG.md) · [릴리스](https://github.com/raspie10032/ComfyUI_RS_MultiCharacter_Sampler/releases) · [简体中文](README.zh-CN.md) · [繁體中文](README.zh-TW.md)
 
-**현재 버전: [1.0.11 한글](docs/release-1.0.11.md).** 로컬 모델로 실행하며 RS NovelAI 확장이나 API 키가 필요하지 않습니다.
+**현재 버전: [1.1.0 한글](docs/release-1.1.0.md).** 로컬 모델로 실행하며 RS NovelAI 확장이나 API 키가 필요하지 않습니다.
+
+## 앱 화면 열기 — RS Workspace (시험판)
+
+**1.1.0부터 기존 패키지에 포함됩니다. 별도 앱 설치는 필요 없습니다.**
+
+1. ComfyUI-Manager에서 **RS MultiCharacter Sampler**를 설치·업데이트하고 **1.1.0 이상**인지 확인합니다. Git 설치는 확장 폴더 안에서 `git pull --ff-only`로 업데이트합니다.
+2. **ComfyUI 서버를 재시작**합니다. 평소 쓰는 ComfyUI 주소에 접속한 뒤 **Ctrl+Shift+R**로 강력 새로고침합니다. macOS는 **Cmd+Shift+R**입니다.
+3. ComfyUI **오른쪽 아래 `RS Workspace`**를 누릅니다. 확장 명령 메뉴가 있는 환경에서는 **Edit → RS Model Workspace (Experimental)**로도 열 수 있습니다.
+4. 왼쪽에서 설치된 모델을 선택합니다. 모델에 맞는 로더·시작 설정·기능 경로가 연결됩니다. 캐릭터 프롬프트와 배치를 정하고 위쪽 **생성**을 누릅니다.
+5. **노드 그래프**를 누르면 실제 연결된 워크플로로 돌아갑니다. 일반 워크플로에서 앱을 열면 별도 탭을 만들므로 기존 작업도 남습니다.
+
+**[전체 앱 사용 가이드](docs/app-workspace.ko.md)** — 와일드카드, 마스크 그리기·이동·크기, 3D 포즈, 카메라, 참조, LoRA, 얼굴 보정, 저장·복원을 순서대로 설명합니다. 기본 모델은 별도로 준비해야 하며, 누락 파일·지원하지 않는 조합은 생성 전에 안내합니다.
+
+**버튼이 안 보이면:** 설치 버전 → 서버 재시작 → 브라우저 강력 새로고침 → ComfyUI 확장 설정의 활성화 여부를 확인하세요. 같은 확장은 한 곳에만 설치합니다. [자세한 해결 방법](docs/app-workspace.ko.md#11-막혔을-때).
 
 **1.0.10:** Krea 2 Turbo·MOSS 전용 3D 포즈 어댑터를 캐릭터별 영역과 함께 사용합니다. `auto`는 활성 MOSS 포즈에서 네이티브 JSON, Krea에서 리저널을 선택합니다. 최초 사용 시 전용 가중치를 자동으로 받습니다. [연결·사용 가이드](docs/pose3d-krea-moss-guide.ko.md) · [36장 비교와 한계](docs/pose3d-genshin-diverse-validation.md).
 

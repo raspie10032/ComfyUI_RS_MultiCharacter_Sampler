@@ -73,7 +73,7 @@ export class Workspace {
         this.node('masks', 'RSMultiCharacterMaskDraw'); this.node('pose', 'RSMultiCharacterPose3D');
         this.node('camera', 'RSCameraControl'); this.node('interaction', 'RSMultiCharacterInteraction');
         this.node('global_lora', 'LoraLoader'); this.node('save', 'SaveImage');
-        setValue(this.node('save'), 'filename_prefix', 'RS_Workspace');
+        if (first) setValue(this.node('save'), 'filename_prefix', 'RS_Workspace');
         for (const role of ['sampler', 'progressive']) {
             const node = this.node(role); setValue(node, 'autosave', false);
             if (first) { setValue(node, 'prompt', 'anime illustration, 2girls, two adult women, walking together in a flowering garden, detailed background'); setValue(node, 'width', 1024); setValue(node, 'height', 1024); }

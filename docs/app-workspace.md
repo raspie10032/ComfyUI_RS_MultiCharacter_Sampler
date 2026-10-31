@@ -1,6 +1,26 @@
-# RS Workspace — local experimental app screen
+# RS Workspace — app screen (experimental, included in 1.1.0)
 
-Open ComfyUI and click **RS Workspace** at the bottom right. The app creates its
+## Opening and troubleshooting
+
+1. Install or update **RS MultiCharacter Sampler** to **1.1.0 or later** using ComfyUI-Manager. Package ID: `comfyui-rs-multicharacter-sampler`. [Registry listing](https://registry.comfy.org/publishers/raspie10032/nodes/comfyui-rs-multicharacter-sampler).
+2. For an existing Git installation, run `git pull --ff-only` inside the extension folder. For a first Git install, run the following inside `ComfyUI/custom_nodes`:
+
+   ```sh
+   git clone https://github.com/raspie10032/ComfyUI_RS_MultiCharacter_Sampler.git
+   ```
+
+3. **Restart the ComfyUI server**. Reloading a browser alone does not reload Python routes.
+4. Open your usual ComfyUI URL (the local default is `http://127.0.0.1:8188/`) and hard-refresh with **Ctrl+Shift+R**, or **Cmd+Shift+R** on macOS.
+5. Click **RS Workspace** at the **bottom right**. Frontends exposing extension menu commands also offer **Edit → RS Model Workspace (Experimental)**.
+6. Select your installed model, enter character prompts, edit placement and click **생성** (Generate). Required loaders and supported feature paths follow the selected model.
+
+No separate app or server is required. Base models, encoders and VAEs are installed separately. The app currently uses Korean labels; the table below maps the main controls.
+
+If the button is missing, check the installed version, restart the server, hard-refresh, then check that `RS.MultiCharacter.Workspace` is enabled in ComfyUI extension settings. Keep only one installation of this extension. If opening reports an inventory HTTP error, use your working ComfyUI URL and check that any reverse proxy forwards the app API paths. On older frontends requesting an empty tab, first save your current work and open a blank workflow tab.
+
+![RS Workspace model selection and character controls](assets/app-workspace/workspace.png)
+
+The app creates its
 own workflow tab when opened from a normal user workflow. Existing workflows
 are preserved. Click **노드 그래프** to return to the editable graph.
 
@@ -12,6 +32,21 @@ generation with an explanation. The app does not download a base checkpoint.
 For the full Korean walkthrough, see [앱 사용 가이드](app-workspace.ko.md).
 
 ## Controls
+
+| App label | Meaning |
+| --- | --- |
+| 모델 | Installed model and automatic routing |
+| 캐릭터 | Character/text slots, LoRAs and references |
+| 와일드카드 | Wildcard file search, insertion and seeded preview |
+| 배치 / 마스크 | Point/box placement and mask drawing |
+| 3D 포즈 | 3D pose editor and image-to-3D import |
+| 카메라 | View, framing and interaction boundary controls |
+| 생성 / 보정 | Common prompts, sampling and face detail settings |
+| 결과 | Generated results |
+| 생성 | Generate one image request |
+| 워크플로 저장 | Download the editable workflow JSON |
+| 노드 그래프 | Return to the underlying node graph |
+
 
 - **캐릭터:** numbered STRING prompts, character/text choice, per-character
   LoRA and image references. Inactive slots remain saved but do not execute.
@@ -50,8 +85,8 @@ One press submits one image request; this screen has no batch-count control yet.
 
 ## Current boundaries
 
-This is a development prototype, not a released replacement for ComfyUI App
-Mode. The catalog currently recognizes installed safetensors models from the
+RS Workspace is an experimental screen distributed with this extension from
+1.1.0. It runs inside ComfyUI and uses the existing public RS nodes. The catalog currently recognizes installed safetensors models from the
 supported Anima, SDXL, SD1.5, FLUX1/2/3, Krea2 and MOSS families. It does not
 classify arbitrary renamed text encoders or expose a GGUF loader in this screen.
 
@@ -62,4 +97,8 @@ not accept the 2B Role K/V weights. These boundaries come from the existing
 generation paths and are displayed before execution.
 
 Graph routing checks do not prove image quality or every combination. See the
-local validation report for the tested files and actual execution evidence.
+[release validation](app-workspace-validation.md) for tested paths and actual execution evidence.
+
+## Downloadable example
+
+The [1.1.0 release](https://github.com/raspie10032/ComfyUI_RS_MultiCharacter_Sampler/releases/tag/v1.1.0) includes **RS-Workspace-Wildcard-Example.zip** with a workflow PNG, a small background TXT and instructions. Drop the original PNG onto ComfyUI, select locally installed model/detector/tagger files, then open RS Workspace. The node graph can replay the resolved prompts without TXT files; rerolling in the app needs the included TXT in the documented user wildcard folder. Models and personal wildcard collections are not bundled.

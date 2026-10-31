@@ -7,7 +7,19 @@ ComfyUIでキャラクター別のプロンプト・LoRA・領域を設定して
 
 [English](README.md) · [한국어](README.ko.md) · [ドキュメント](docs/README.md) · [変更履歴](CHANGELOG.md) · [リリース](https://github.com/raspie10032/ComfyUI_RS_MultiCharacter_Sampler/releases) · [简体中文](README.zh-CN.md) · [繁體中文](README.zh-TW.md)
 
-**現在のバージョン：[1.0.11 Hangeul](docs/release-1.0.11.md)。** ローカルモデルで動作し、RS NovelAI拡張やAPIキーは不要です。
+**現在のバージョン：[1.1.0 Hangeul](docs/release-1.1.0.md)。** ローカルモデルで動作し、RS NovelAI拡張やAPIキーは不要です。
+
+## アプリ画面を開く — RS Workspace（実験）
+
+**1.1.0以降の本パッケージに同梱。別アプリのインストールは不要です。**
+
+1. ComfyUI-Managerで **RS MultiCharacter Sampler** を **1.1.0以降**に更新します。Git版は拡張フォルダー内で `git pull --ff-only`。
+2. **ComfyUIサーバーを再起動**し、通常のComfyUIページで **Ctrl+Shift+R**（macOS: **Cmd+Shift+R**）を押します。
+3. **右下の RS Workspace** をクリックします。対応するメニューでは **Edit → RS Model Workspace (Experimental)** からも開けます。
+4. 左側でインストール済みモデルを選ぶと、ローダー・初期設定・機能経路が切り替わります。プロンプトと配置を編集し、**생성**（生成）を押します。
+5. **노드 그래프**（ノードグラフ）で実際のワークフローへ戻ります。通常のワークフローは別タブに保持されます。
+
+画面は現在韓国語です。[英語ガイド](docs/app-workspace.md) · [韓国語の全機能ガイド](docs/app-workspace.ko.md)。基本モデルは別途必要です。ボタンが見えない場合はバージョン、サーバー再起動、強制再読み込み、拡張の有効化を確認してください。重複インストールは避けてください。
 
 **1.0.10:** Krea 2 Turbo・MOSS用の学習済み3Dポーズアダプターを人物別領域と併用できます。`auto`は有効なMOSSポーズでネイティブJSON、Kreaではregionalを選択します。専用重みは初回使用時に自動取得します。[接続と制限](docs/pose3d.md#krea2-turbo-and-moss-pose-adapters-experimental) · [36枚の比較](docs/pose3d-genshin-diverse-validation.md)。
 

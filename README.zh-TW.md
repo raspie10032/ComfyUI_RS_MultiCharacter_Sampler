@@ -7,7 +7,19 @@
 
 [English](README.md) · [한국어](README.ko.md) · [日本語](README.ja.md) · [简体中文](README.zh-CN.md) · **繁體中文** · [詳細文件](docs/README.md) · [更新記錄](CHANGELOG.md) · [釋出版本](https://github.com/raspie10032/ComfyUI_RS_MultiCharacter_Sampler/releases)
 
-**當前版本：[1.0.11 Hangeul](docs/release-1.0.11.md)。** 使用本地模型，無需安裝 RS NovelAI 擴充套件或提供 API 金鑰。
+**當前版本：[1.1.0 Hangeul](docs/release-1.1.0.md)。** 使用本地模型，無需安裝 RS NovelAI 擴充套件或提供 API 金鑰。
+
+## 開啟應用介面 — RS Workspace（實驗）
+
+**從1.1.0起隨本擴充套件提供，無需另裝應用。**
+
+1. 在ComfyUI-Manager將 **RS MultiCharacter Sampler** 安裝或更新至 **1.1.0以上**。Git使用者在擴充目錄執行 `git pull --ff-only`。
+2. **重新啟動ComfyUI伺服器**，開啟平常使用的ComfyUI頁面，按 **Ctrl+Shift+R**（macOS：**Cmd+Shift+R**）強制重新整理。
+3. 點選ComfyUI **右下角的 RS Workspace**。支援擴充選單的前端也可透過 **Edit → RS Model Workspace (Experimental)** 開啟。
+4. 在左側選擇已安裝模型，應用會自動切換載入器、初始參數與功能路徑。輸入角色提示詞、調整區域後，點選 **생성**（生成）。
+5. 點選 **노드 그래프**（節點圖）回到實際工作流程。原有工作流程會保留在另一個分頁。
+
+介面目前以韓語為主。[英文指南](docs/app-workspace.md) · [韓文完整指南](docs/app-workspace.ko.md)。基礎模型需另行準備。若按鈕未出現，請檢查版本、伺服器重新啟動、瀏覽器強制重新整理與擴充啟用狀態，並避免重複安裝。
 
 **1.0.10：** Krea 2 Turbo、MOSS專用的已訓練3D姿勢適配器可與分角色區域配合使用。`auto`在啟用MOSS姿勢控制時選擇原生JSON，在Krea中選擇regional。首次使用自動下載專用權重。[連接與限制](docs/pose3d.md#krea2-turbo-and-moss-pose-adapters-experimental) · [36張比較](docs/pose3d-genshin-diverse-validation.md)。
 

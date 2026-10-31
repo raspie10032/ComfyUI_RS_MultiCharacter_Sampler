@@ -60,7 +60,9 @@ jobs:
       - name: Character UI serialization and controls
         run: node tests/test_ui.cjs
       - name: App workspace routing and model settings
-        run: node tests/test_app_graph.cjs
+        run: |
+          node tests/test_app_graph.cjs
+          node tests/test_app_wildcards.cjs
       - name: Box layout controls and preview
         run: node tests/test_boxes_ui.cjs
       - name: Detailer UI serialization and controls

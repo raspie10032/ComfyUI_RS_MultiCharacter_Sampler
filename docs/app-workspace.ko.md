@@ -2,9 +2,29 @@
 
 노드 연결을 직접 구성하는 대신, 모델·캐릭터·영역을 화면에서 편집하고 생성하는 앱 화면입니다. 기존 RS 노드를 연결해서 실행하므로 **노드 그래프에서 이어서 수정할 수 있습니다.**
 
-이 문서는 **2026-10-31 로컬 개발 시험판** 기준입니다. 공개 1.0.11을 설치하는 것만으로 이 화면이 추가되는 것은 아닙니다. 모델별 기능 조합 전체의 생성 품질을 보장하는 문서가 아니라, 현재 화면의 사용 방법과 지원 범위를 설명합니다.
+이 문서는 **1.1.0에 포함된 RS Workspace 시험판** 기준입니다. 기존 RS MultiCharacter Sampler 패키지를 업데이트하면 사용할 수 있습니다. 모델별 모든 기능 조합의 생성 품질을 보장하지는 않으며, 지원 경로와 제한은 아래에서 확인할 수 있습니다.
 
 ## 1. 열기와 첫 생성
+
+### 설치·업데이트 후 어디서 여나요?
+
+1. **ComfyUI-Manager → Custom Nodes**에서 **RS MultiCharacter Sampler**를 찾아 설치 또는 업데이트합니다. 패키지 ID는 `comfyui-rs-multicharacter-sampler`이고 **1.1.0 이상**이어야 합니다. [Registry 페이지](https://registry.comfy.org/publishers/raspie10032/nodes/comfyui-rs-multicharacter-sampler)에서도 확인할 수 있습니다.
+2. Git으로 설치했다면 이 확장 폴더에서 `git pull --ff-only`를 실행합니다. 처음 설치할 때는 `ComfyUI/custom_nodes`에서 아래 명령을 실행하세요. **동일한 확장을 중복 설치하지 마세요.**
+
+   ```sh
+   git clone https://github.com/raspie10032/ComfyUI_RS_MultiCharacter_Sampler.git
+   ```
+
+3. **ComfyUI 서버를 재시작**합니다. 브라우저 탭만 닫았다 여는 것으로는 Python 기능이 업데이트되지 않습니다.
+4. 평소 사용하는 ComfyUI 주소를 엽니다. 로컬 기본 설정은 `http://127.0.0.1:8188/`이며, 다른 포트·원격 주소를 사용한다면 해당 주소로 접속합니다.
+5. **Ctrl+Shift+R**로 강력 새로고침합니다. macOS에서는 **Cmd+Shift+R**입니다.
+6. **화면 오른쪽 아래 `RS Workspace`** 버튼을 누릅니다. 확장 명령 메뉴가 표시되는 프런트엔드에서는 **Edit → RS Model Workspace (Experimental)**로도 열 수 있습니다.
+
+**별도 앱 설치·별도 서버 실행은 필요 없습니다.** 앱 화면은 현재 ComfyUI 안에서 열리며 기존 RS 노드로 생성합니다. 기본 모델·인코더·VAE 파일은 따로 준비하세요. 앱 화면은 현재 한국어 중심이며 기존 노드 편집기는 설정된 로케일을 사용합니다.
+
+![RS Workspace의 모델 선택·캐릭터 입력·기능 탭](assets/app-workspace/workspace.png)
+
+### 처음 한 장 생성하기
 
 1. ComfyUI에서 오른쪽 아래 **RS Workspace**를 누릅니다. 보이지 않으면 설치와 서버 재시작을 확인하고 브라우저를 강력 새로고침합니다.
 2. 왼쪽 **모델**에서 설치된 모델을 고릅니다. 필요한 로더·텍스트 인코더·VAE와 모델별 처리 경로가 연결됩니다.
@@ -163,6 +183,9 @@ Anima는 `reference_frame`부터 사용하세요. 2.9B는 2B용 `role_kv` 가중
 
 | 표시·증상 | 확인할 것 |
 |---|---|
+| RS Workspace 버튼이 없음 | 1.1.0 이상인지 확인 → 서버 재시작 → Ctrl+Shift+R. ComfyUI 확장 설정에서 RS.MultiCharacter.Workspace 활성화 여부와 중복 설치 확인 |
+| 앱을 열 때 Model inventory HTTP 오류 | 현재 ComfyUI 주소를 쓰는지 확인하고 서버 재시작. 역방향 프록시를 쓴다면 앱 API 경로도 함께 전달되는지 확인 |
+| 기존 프런트엔드에서 빈 탭 안내 | 새 빈 워크플로 탭을 만든 다음 RS Workspace를 열기. 기존 작업은 먼저 저장 |
 | 생성 버튼이 비활성화 | 모델 아래의 누락 파일·금지 조합 안내 확인 |
 | 마스크가 비어 있음 | 번호를 선택해 그리거나 마스크 그리기 OFF |
 | 3D 편집기가 열리지 않음 | WebGL2·브라우저 GPU 가속 확인. 저장된 장면으로 생성은 별개 |
@@ -171,7 +194,11 @@ Anima는 `reference_frame`부터 사용하세요. 2.9B는 2B용 `role_kv` 가중
 | 같은 캐릭터만 나옴 | 시드 고정 여부와 후보 파일 내용 확인. 한 후보만 있는 파일은 시드를 바꿔도 같음 |
 | 일반 노드에서 되던 기능의 설정이 안 보임 | 노드 그래프로 돌아가 확인. 앱은 전체 그래프 기능을 모두 노출한 정식 대체품이 아닌 시험판 |
 
-## 12. 이번 와일드카드 검증 범위
+## 12. 예제 파일 받기
+
+[1.1.0 릴리스](https://github.com/raspie10032/ComfyUI_RS_MultiCharacter_Sampler/releases/tag/v1.1.0)의 **RS-Workspace-Wildcard-Example.zip**을 받으세요. PNG와 예제 배경 TXT·설명서가 들어 있습니다. PNG를 ComfyUI로 드래그하면 실제 노드 연결과 앱 설정을 불러옵니다. 예제 모델·태거·감지 파일은 포함하지 않으니 설치된 파일로 바꾸세요. TXT 없이 일반 그래프로 다시 실행할 수 있고, 앱에서 다시 추첨하려면 ZIP의 TXT를 안내된 사용자 폴더에 넣습니다.
+
+## 13. 이번 와일드카드 검증 범위
 
 2026-10-31 Firefox 앱 화면에서 로컬 파일 39개 목록, 검색·삽입·고정 시드 미리보기·없는 파일 오류를 확인했습니다. 앱 생성 버튼으로 **Anima 1024×1024 / 30스텝 / CFG 4 / Euler ancestral / SGM uniform**, 두 캐릭터의 선택지와 공통 배경 TXT를 펼쳐 생성했습니다. 카메라와 얼굴 디테일러를 켰고 **얼굴 2개 검출·2개 보정**을 확인했습니다.
 

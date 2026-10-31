@@ -8,12 +8,13 @@ Start with your language's README for installation and a first workflow. This
 index groups detailed guides and evidence by task. Release notes describe changes
 at a particular version; current usage belongs in the feature guides below.
 
-[1.0.11 release notes](release-1.0.11.md) · [Krea/MOSS 포즈 가이드](pose3d-krea-moss-guide.ko.md) · [Anima reference prediction optimization](anima-reference-prediction-optimization.md)
+[1.1.0 release notes](release-1.1.0.md) · [Krea/MOSS 포즈 가이드](pose3d-krea-moss-guide.ko.md) · [Anima reference prediction optimization](anima-reference-prediction-optimization.md)
 
 ## Usage guides
 
 | Task | Guide | Examples |
 | --- | --- | --- |
+| Open the app / 앱 화면 열기 | [RS Workspace: install, open and troubleshoot](app-workspace.md) · [한국어 전체 가이드](app-workspace.ko.md) | Model routing, wildcards, masks, 3D, camera, LoRA, references and detailing |
 | Build character settings | [Modular Prompt / LoRA / Position / Finalize](modular-characters.md) | [Two-character Anima](../examples/modular/two-characters-anima.json) |
 | Add camera captions | [Shared RS/NAI Camera Control](camera-control.md) | View/framing captions; optional region zoom, rotation and flat-plane perspective |
 | Choose starting settings | [Model presets](model-presets.md) · [Anima sampler/scheduler comparisons](sampler-combinations.md) | [Model preset catalog](../web/model_presets.json) |
