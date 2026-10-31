@@ -50,4 +50,16 @@ w.state.pose=false;w.state.progressive=false;w.state.masks=true;setValue(w.node(
 setValue(w.node('save'),'filename_prefix','My_Custom_Output');
 w.initialize();assert.equal(widget(w.node('save'),'filename_prefix').value,'My_Custom_Output','reopening must retain the custom output prefix');
 const persisted=graph.extra.rs_workspace;assert.equal(new Workspace(graph,createNode,presets).state,persisted);
+// Frontends/extensions can expose serializable widget values through Vue Proxy.
+// Native structuredClone rejects a Proxy even when its contents are plain JSON.
+const reactiveSettings=new Proxy({selected:['a', 'b'], nested:new Proxy({enabled:true},{})},{});
+assert.throws(()=>structuredClone(reactiveSettings),{name:'DataCloneError'});
+w.sample().widgets.push({name:'extension_settings',value:reactiveSettings});
+w.remember();
+const snapshot=w.state.perModel[w.state.modelId].sampler.extension_settings;
+assert.equal(JSON.stringify(snapshot),JSON.stringify(reactiveSettings));
+reactiveSettings.selected.push('c');
+assert.equal(snapshot.selected.length,2,'saved model settings must not alias reactive widgets');
+w.select(moss);w.select(anima);
+assert.equal(widget(w.sample(),'extension_settings').value.selected.length,3,'model switches retain JSON widget contents');
 console.log('App graph: model restoration, mandatory tagger, inactive-slot exclusion, combination gates and persistence passed.');

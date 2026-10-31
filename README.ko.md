@@ -7,7 +7,7 @@ ComfyUI에서 캐릭터별 프롬프트·LoRA·영역을 지정해 생성하고,
 
 [English](README.md) · [日本語](README.ja.md) · [문서 모음](docs/README.md) · [변경 기록](CHANGELOG.md) · [릴리스](https://github.com/raspie10032/ComfyUI_RS_MultiCharacter_Sampler/releases) · [简体中文](README.zh-CN.md) · [繁體中文](README.zh-TW.md)
 
-**현재 버전: [1.1.1 한글](docs/release-1.1.1.md).** 로컬 모델로 실행하며 RS NovelAI 확장이나 API 키가 필요하지 않습니다.
+**현재 버전: [1.1.2 한글](docs/release-1.1.2.md).** 로컬 모델로 실행하며 RS NovelAI 확장이나 API 키가 필요하지 않습니다.
 
 ## 앱 화면 열기 — RS Workspace (시험판)
 

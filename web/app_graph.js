@@ -1,6 +1,14 @@
 // SPDX-License-Identifier: GPL-3.0-only
 // The graph is the document. This module only connects existing public nodes.
 export const VERSION = 1;
+// These values cross the workflow JSON boundary. Frontends may wrap otherwise
+// serializable data in reactive Proxies, which native structuredClone rejects.
+// Round-trip through the same representation used by workflow files and /prompt
+// to detach nested values before temporary wildcard edits are restored.
+export function cloneWorkflowData(value) {
+    const json = JSON.stringify(value);
+    return json === undefined ? undefined : JSON.parse(json);
+}
 export function widget(node, name) { return node?.widgets?.find(w => w.name === name); }
 export function setValue(node, name, value) {
     const w = widget(node, name); if (!w) return false;
@@ -111,7 +119,7 @@ export class Workspace {
     remember() {
         if (!this.state.modelId) return;
         const saved = Object.fromEntries(['sampler', 'progressive', 'loras', 'global_lora', 'camera', 'pose', 'detail', 'detectors', 'tagger'].map(role => [role,
-            Object.fromEntries((this.node(role)?.widgets ?? []).filter(w => w.serialize !== false && !['button', 'rs_mc_display'].includes(w.type) && !(role === 'pose' && w.name === 'scene_json')).map(w => [w.name, structuredClone(w.value)]))]));
+            Object.fromEntries((this.node(role)?.widgets ?? []).filter(w => w.serialize !== false && !['button', 'rs_mc_display'].includes(w.type) && !(role === 'pose' && w.name === 'scene_json')).map(w => [w.name, cloneWorkflowData(w.value)]))]));
         saved.globalEnabled = !!this.state.globalLora;
         this.state.perModel[this.state.modelId] = saved;
     }

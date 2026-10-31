@@ -25,6 +25,27 @@ assert.equal(nodes.text1.widgets[0].value,'__fabe__');
 assert.equal(full.extra.wildcardLast.templates.character1,'__fabe__');
 assert.equal(nodes.text2.widgets[0].value,'MENU {A|B}');
 assert.equal(routed,2);
+// graphToPrompt may return reactive workflow.extra / widget / extension values.
+// Verify a detached snapshot is captured before templates are restored in finally.
+const reactiveExpansion=new Proxy({...expansion,texts:new Proxy(expansion.texts,{})},{});
+assert.throws(()=>structuredClone(reactiveExpansion),{name:'DataCloneError'});
+const metadata=new Proxy({name:'한글 日本語',coords:new Proxy([0.25,0.75],{}),seed:9007199254740991},{});
+let serialized;
+const reactiveFull=await expandedPrompt(w,reactiveExpansion,async()=>{
+ serialized=new Proxy({workflow:{extra:new Proxy({workspace:w.state,metadata},{})},output:{'1':{inputs:{text:nodes.text1.widgets[0].value}}}},{});
+ return serialized;
+});
+assert.equal(reactiveFull.output['1'].inputs.text,'Barbara');
+assert.equal(nodes.text1.widgets[0].value,'__fabe__');
+assert.equal(reactiveFull.workflow.extra.workspace.wildcardLast.templates.character1,'__fabe__');
+assert.equal(reactiveFull.workflow.extra.metadata.name,'한글 日本語');
+assert.equal(reactiveFull.workflow.extra.metadata.seed,9007199254740991);
+metadata.coords[0]=0.9;w.state.wildcardLast.texts.character1='changed after queue';
+assert.equal(reactiveFull.workflow.extra.metadata.coords[0],0.25);
+assert.equal(reactiveFull.workflow.extra.workspace.wildcardLast.texts.character1,'Barbara');
+const cyclic={};cyclic.self=cyclic;
+await assert.rejects(expandedPrompt(w,expansion,async()=>cyclic),/circular|cyclic/i);
+assert.equal(nodes.text1.widgets[0].value,'__fabe__','snapshot failure also restores source templates');
 await assert.rejects(expandedPrompt(w,expansion,async()=>{throw Error('serialize failed')}),/serialize failed/);
 assert.equal(nodes.text1.widgets[0].value,'__fabe__','failed generation restores templates');
 nodes.text1.widgets[0].value='Barbara';restoreTemplates(w);assert.equal(nodes.text1.widgets[0].value,'__fabe__','PNG restores source template');

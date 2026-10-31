@@ -6,6 +6,7 @@ versions and downloadable assets, see [GitHub Releases](https://github.com/raspi
 
 | Version | Main change | Details |
 | --- | --- | --- |
+| **1.1.2 Hangeul** | Fix RS Workspace snapshots of reactive workflow data: generation and model-setting persistence no longer rely on native structuredClone. | [Release notes](docs/release-1.1.2.md) |
 | **1.1.1 Hangeul** | 3D pose guidance inside the building pipe: automatic Anima 2B/Krea2/MOSS routing, no extra pose MODEL/VAE wiring, and app graph migration. | [Release notes](docs/release-1.1.1.md) · [Validation](docs/pose3d-building-pipe-validation.md) |
 | **1.1.0 Hangeul** | Experimental RS Workspace app with model-aware routing, existing editors, wildcard prompts and saved workflow recovery. | [Release notes](docs/release-1.1.0.md) · [App guide](docs/app-workspace.md) · [한국어](docs/app-workspace.ko.md) |
 | **1.0.11 Hangeul** | Drop an image to estimate an editable 3D pose, preserve source crops, and select/randomize poses from a local library. | [Release notes](docs/release-1.0.11.md) · [Usage](docs/pose3d.md) |

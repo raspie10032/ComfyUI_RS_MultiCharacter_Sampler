@@ -14,7 +14,7 @@ function button(text, parent, callback) {
     const b = el('button', text, parent); b.type = 'button';
     b.onclick = () => Promise.resolve().then(callback).catch(report); return b;
 }
-function report(error) { if (overlay) overlay.querySelector('.rs-app-status').textContent = error?.message ?? String(error); }
+function report(error) { if (error?.stack) console.error('RS Workspace:', error); if (overlay) overlay.querySelector('.rs-app-status').textContent = error?.message ?? String(error); }
 function change(node, name, value) {
     app.graph.beforeChange?.();
     try { setValue(node, name, value); app.graph.change?.(); }

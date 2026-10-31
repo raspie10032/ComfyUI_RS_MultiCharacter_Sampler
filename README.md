@@ -6,7 +6,7 @@ Regional generation and local detailing for ComfyUI. Give each character a promp
 
 [한국어](README.ko.md) · [日本語](README.ja.md) · [Documentation](docs/README.md) · [Changelog](CHANGELOG.md) · [Releases](https://github.com/raspie10032/ComfyUI_RS_MultiCharacter_Sampler/releases) · [简体中文](README.zh-CN.md) · [繁體中文](README.zh-TW.md)
 
-**Current release: [1.1.1 Hangeul](docs/release-1.1.1.md).** Runs with local models; no RS NovelAI extension or API key is required.
+**Current release: [1.1.2 Hangeul](docs/release-1.1.2.md).** Runs with local models; no RS NovelAI extension or API key is required.
 
 ## Open the app screen — RS Workspace (experimental)
 

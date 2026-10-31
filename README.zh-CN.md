@@ -7,7 +7,7 @@
 
 [English](README.md) · [한국어](README.ko.md) · [日本語](README.ja.md) · **简体中文** · [繁體中文](README.zh-TW.md) · [详细文档](docs/README.md) · [更新记录](CHANGELOG.md) · [发布版本](https://github.com/raspie10032/ComfyUI_RS_MultiCharacter_Sampler/releases)
 
-**当前版本：[1.1.1 Hangeul](docs/release-1.1.1.md)。** 使用本地模型，无需安装 RS NovelAI 扩展或提供 API 密钥。
+**当前版本：[1.1.2 Hangeul](docs/release-1.1.2.md)。** 使用本地模型，无需安装 RS NovelAI 扩展或提供 API 密钥。
 
 ## 打开应用界面 — RS Workspace（实验）
 

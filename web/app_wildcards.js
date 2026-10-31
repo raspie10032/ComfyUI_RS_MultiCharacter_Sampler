@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: GPL-3.0-only
-import {widget, setValue} from './app_graph.js';
+import {widget, setValue, cloneWorkflowData} from './app_graph.js';
 
 export function promptFields(workspace) {
     const fields = [
@@ -40,11 +40,11 @@ export async function expandedPrompt(workspace, expansion, serialize) {
     const fields = promptFields(workspace);
     try {
         for (const field of fields) setValue(field.node, field.name, expansion.texts[field.key]);
-        workspace.state.wildcardLast = structuredClone(expansion);
+        workspace.state.wildcardLast = cloneWorkflowData(expansion);
         workspace.route();
         // Store resolved node widgets as well as the original templates. A PNG
         // can replay its actual prompts in the graph without local wildcard files.
-        return structuredClone(await serialize());
+        return cloneWorkflowData(await serialize());
     } finally {
         for (const field of fields) setValue(field.node, field.name, field.text);
         workspace.route();
