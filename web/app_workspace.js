@@ -3,9 +3,10 @@ import {app} from '../../scripts/app.js';
 import {api} from '../../scripts/api.js';
 import {Workspace, widget, setValue, ancestorPrompt, executionNodes} from './app_graph.js';
 import {promptFields, restoreTemplates, resolvePrompts, expandedPrompt} from './app_wildcards.js';
+import {attachAutocomplete, setWildcardNames, isPromptWidget} from './prompt_autocomplete.js';
 
 let overlay, workspace, models = [], currentTab = 'characters', mounted = [], activePrompt, busy = false, runningWorkspace;
-let wildcardFiles = [], wildcardPreview;
+let wildcardFiles = [], wildcardPreview, fieldDisposers = [];
 const el = (tag, text, parent, cls) => {
     const node = document.createElement(tag); if (text != null) node.textContent = text;
     if (cls) node.className = cls; parent?.append(node); return node;
@@ -21,7 +22,10 @@ function change(node, name, value) {
     finally { app.graph.afterChange?.(); }
 }
 function restoreDOM() {
-    for (const {element, marker, style} of mounted) {
+    for (const dispose of fieldDisposers) dispose();
+    fieldDisposers = [];
+    for (const {element, marker, style, cleanup} of mounted) {
+        cleanup?.();
         if (marker.parentNode) marker.replaceWith(element);
         if (style == null) element.removeAttribute('style'); else element.setAttribute('style', style);
     }
@@ -51,10 +55,22 @@ function field(node, name, parent, label) {
         input.step = 'any'; if (Number.isFinite(w.options?.min)) input.min = w.options.min;
         if (Number.isFinite(w.options?.max)) input.max = Math.min(w.options.max, Number.MAX_SAFE_INTEGER);
     } else if (typeof w.value === 'string') {
-        input = el('textarea', null, row); input.value = w.value; input.rows = name === 'scene_json' || name === 'drawing' ? 5 : 3;
+        // Retain listeners installed by Custom Scripts / Autocomplete-Plus.
+        const original = w.inputEl ?? w.element;
+        if (original?.tagName === 'TEXTAREA' && original.parentNode) {
+            const marker = document.createComment('RS workspace prompt'); original.before(marker);
+            mounted.push({element:original, marker, style:original.getAttribute('style')});
+            input = original; row.append(input);
+            input.style.cssText = 'position:relative!important;transform:none!important;width:100%!important;height:110px!important;display:block!important;visibility:visible!important;opacity:1!important;';
+        } else input = el('textarea', null, row);
+        input.value = w.value; input.rows = name === 'scene_json' || name === 'drawing' ? 5 : 3;
+        if (name === 'prompt' || name === 'negative_prompt' || (name === 'value' && /^text\d+$/.test(node.properties?.rs_workspace_role ?? ''))) {
+            const dispose = attachAutocomplete(input, {native:input === original, eligible:() => isPromptWidget(node, name)});
+            if (input !== original && dispose) fieldDisposers.push(dispose);
+        }
     } else { row.remove(); return; }
     input.dataset.widget = name; input.title = w.options?.tooltip ?? name;
-    input.onchange = () => {
+    const onChange = () => {
         try {
             let value = input.type === 'checkbox' ? input.checked : input.type === 'number' ? Number(input.value) : input.value;
             if (input.type === 'number' && (!input.checkValidity() || !Number.isFinite(value))) throw Error(`${name}: 수치 범위를 확인해 주세요.`);
@@ -64,6 +80,9 @@ function field(node, name, parent, label) {
             else if (name.endsWith('_kind') || name === 'anima_method') render();
         } catch (error) { report(error); }
     };
+    input.addEventListener('change', onChange);
+    const mount = mounted.find(item => item.element === input);
+    if (mount) mount.cleanup = () => input.removeEventListener('change', onChange);
     return input;
 }
 function fields(node, parent, names) { for (const name of names ?? (node.widgets ?? []).map(w => w.name)) field(node, name, parent); }
@@ -195,7 +214,7 @@ function characters(parent) {
 async function loadWildcards() {
     const response = await api.fetchApi('/rs_mc/app/wildcards');
     if (!response.ok) throw Error(`Wildcard inventory: HTTP ${response.status}. ComfyUI를 재시작해 주세요.`);
-    wildcardFiles = (await response.json()).files;
+    wildcardFiles = (await response.json()).files; setWildcardNames(wildcardFiles);
 }
 function wildcards(parent) {
     const box = section('로컬 와일드카드 · 파일 선택 → 프롬프트에 넣기', parent);

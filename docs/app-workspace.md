@@ -106,3 +106,11 @@ Graph routing checks do not prove image quality or every combination. See the
 ## Downloadable example
 
 The [1.1.0 release](https://github.com/raspie10032/ComfyUI_RS_MultiCharacter_Sampler/releases/tag/v1.1.0) includes **RS-Workspace-Wildcard-Example.zip** with a workflow PNG, a small background TXT and instructions. Drop the original PNG onto ComfyUI, select locally installed model/detector/tagger files, then open RS Workspace. The node graph can replay the resolved prompts without TXT files; rerolling in the app needs the included TXT in the documented user wildcard folder. Models and personal wildcard collections are not bundled.
+
+## Prompt autocomplete
+
+Character, common and negative prompts offer suggestions after two characters. Use Up/Down to select, **Tab/Enter or click** to insert, **Esc** to dismiss, and **Ctrl+Space** to reopen. Weights and trailing text are preserved; IME composition is left alone. Built-in suggestions are excluded from literal text regions, JSON and filenames.
+
+The lightweight fallback uses a small bundled offline tag list, tags already used in the graph, and local wildcard filenames (`__fa` → `__fabe__`). It does not download a large tag dictionary. Disable it with **RS: Built-in prompt autocomplete** in ComfyUI settings.
+
+When registered and enabled, **Custom Scripts AutoCompleter, Autocomplete-Plus or Autocomplete++** takes priority: the workspace mounts the original node textarea so the provider keeps its listeners, settings and dictionary. The fallback popup is suppressed. Disable the provider to restore the fallback. rgthree Power Prompt is not treated as a global autocomplete provider. Built-in completion also covers RS sampler/detailer prompt widgets and STRING nodes directly connected to character slots in graph view. A STRING shared with a literal text slot stays literal.

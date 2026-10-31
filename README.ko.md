@@ -21,6 +21,8 @@ ComfyUI에서 캐릭터별 프롬프트·LoRA·영역을 지정해 생성하고,
 
 **[전체 앱 사용 가이드](docs/app-workspace.ko.md)** — 와일드카드, 마스크 그리기·이동·크기, 3D 포즈, 카메라, 참조, LoRA, 얼굴 보정, 저장·복원을 순서대로 설명합니다. 기본 모델은 별도로 준비해야 하며, 누락 파일·지원하지 않는 조합은 생성 전에 안내합니다.
 
+**프롬프트 자동완성:** 소규모 오프라인 기본 태그·로컬 와일드카드 후보를 제공합니다. Custom Scripts AutoCompleter·Autocomplete-Plus·Autocomplete++가 활성화돼 있으면 기존 노드 입력창을 앱에서도 재사용해 그쪽 기능을 우선합니다. [사용법](docs/app-workspace.ko.md#프롬프트-자동완성).
+
 **버튼이 안 보이면:** 설치 버전 → 서버 재시작 → 브라우저 강력 새로고침 → ComfyUI 확장 설정의 활성화 여부를 확인하세요. 같은 확장은 한 곳에만 설치합니다. [자세한 해결 방법](docs/app-workspace.ko.md#11-막혔을-때).
 
 **1.0.10:** Krea 2 Turbo·MOSS 전용 3D 포즈 어댑터를 캐릭터별 영역과 함께 사용합니다. `auto`는 활성 MOSS 포즈에서 네이티브 JSON, Krea에서 리저널을 선택합니다. 최초 사용 시 전용 가중치를 자동으로 받습니다. [연결·사용 가이드](docs/pose3d-krea-moss-guide.ko.md) · [36장 비교와 한계](docs/pose3d-genshin-diverse-validation.md).

@@ -1,0 +1,5 @@
+.rs-prompt-completions{position:fixed;z-index:11000;max-height:250px;overflow:auto;background:#17222e;color:#e6edf4;border:1px solid #6486a7;border-radius:6px;box-shadow:0 6px 22px #0008;font:14px/1.5 system-ui,sans-serif;padding:4px;box-sizing:border-box}
+.rs-prompt-completions [role=option]{padding:6px 10px;cursor:pointer;overflow-wrap:anywhere}
+.rs-prompt-completions [aria-selected=true],.rs-prompt-completions [role=option]:hover{background:#345b7d;border-radius:4px}
+/* Autocomplete-Plus otherwise renders below the full-screen workspace. */
+body:has(.rs-app-workspace) #autocomplete-plus-root{z-index:11000}

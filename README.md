@@ -20,6 +20,8 @@ Regional generation and local detailing for ComfyUI. Give each character a promp
 
 The app currently uses Korean labels; the [English guide](docs/app-workspace.md) explains them. See the [complete Korean walkthrough](docs/app-workspace.ko.md) for wildcards, masks, 3D poses, camera, references, LoRAs, face detailing and saving. Missing files or unsupported feature combinations are shown before generation. Base models are installed separately.
 
+**Prompt autocomplete:** a lightweight offline fallback is included. Enabled Custom Scripts AutoCompleter, Autocomplete-Plus and Autocomplete++ take priority in the original node textareas, including the app. See [autocomplete details](docs/app-workspace.md#prompt-autocomplete).
+
 **No button?** Check the installed version, restart the server as well as refreshing the browser, and confirm the extension is enabled in ComfyUI's extension settings. Keep a single installation. If a reverse proxy is used, load ComfyUI through its normal working URL. [Troubleshooting](docs/app-workspace.md#opening-and-troubleshooting).
 
 **1.0.10:** Trained Krea 2 Turbo and MOSS 3D pose adapters work alongside numbered character regions. `auto` prefers native JSON for active MOSS pose control, and regional routing for Krea. First-use weights download automatically. [Setup and limits](docs/pose3d.md#krea2-turbo-and-moss-pose-adapters-experimental) · [36-image audit](docs/pose3d-genshin-diverse-validation.md).

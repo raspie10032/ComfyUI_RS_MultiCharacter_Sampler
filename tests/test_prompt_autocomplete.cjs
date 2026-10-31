@@ -1,0 +1,43 @@
+// Parsing and provider dispatch are independent of platform line endings.
+const fs=require('fs'),vm=require('vm'),assert=require('node:assert/strict');
+let subject;
+for (const newline of ['\n','\r\n']) {
+ const source=fs.readFileSync('web/prompt_autocomplete.js','utf8').replace(/\r?\n/g,newline).replace(/^import[^\r\n]*(?:\r?\n|$)/gm,'').replaceAll('export ','').replaceAll('import.meta.url', '"http://localhost/extensions/rs/prompt_autocomplete.js"');
+ const ctx={app:{registerExtension(){}},api:{}};vm.createContext(ctx);
+ vm.runInContext(source+'\nthis.subject={currentToken,completion,suggestions,isPromptWidget,externalProvider};',ctx);subject=ctx.subject;
+}
+const {currentToken,completion,suggestions,isPromptWidget,externalProvider}=subject;
+const complete=(s,at,value)=>completion(s,currentToken(s,at),value).text;
+assert.equal(complete('1girl, blu',10,'blue eyes'),'1girl, blue eyes, ');
+assert.equal(complete('(blu:1.2), smile',4,'blue eyes'),'(blue eyes:1.2), smile');
+assert.equal(complete('pink hair, blo eyes, smile',13,'blue eyes'),'pink hair, blue eyes, smile');
+assert.equal(complete('__fa',4,'__user/fabe__'),'__user/fabe__');
+assert.equal(complete('__fa__, smile',4,'__user/fabe__'),'__user/fabe__, smile');
+assert.equal(complete('{sm|blu}',7,'blue eyes'),'{sm|blue eyes}');
+for(const s of ['b','(blue eyes:1.','__fabe__','<lora:foo','{"x":'])assert.equal(currentToken(s,s.length),null,s);
+assert.equal(currentToken('blue eyes',2,4),null,'do not replace a selection');
+assert.equal(suggestions(currentToken('BLU',3))[0],'blue dress');
+assert.equal(suggestions(currentToken('__fa',4),[],['user/fabe','ff'])[0],'__user/fabe__');
+assert.equal(suggestions(currentToken('blu',3),['blue_eyes','blue eyes']).length,1,'underscore duplicates');
+assert.equal(isPromptWidget({type:'RSMultiCharacterSampler'},'prompt'),true);
+assert.equal(isPromptWidget({type:'RSMultiCharacterPose3D'},'scene_json'),false);
+assert.equal(isPromptWidget({type:'UnrelatedNode'},'prompt'),false);
+const text={properties:{rs_workspace_role:'text1'}};
+assert.equal(isPromptWidget(text,'value'),true);
+text.graph={extra:{rs_workspace:{ids:{prompt:7}}},getNodeById:()=>({widgets:[{name:'character1_kind',value:'text'}]})};
+assert.equal(isPromptWidget(text,'value'),false,'typography is literal');
+const target={type:'RSMultiCharacterPrompt',inputs:[{name:'character1'},{name:'character2'}],widgets:[{name:'character1_kind',value:'character'},{name:'character2_kind',value:'text'}]};
+const linked={type:'PrimitiveStringMultiline',outputs:[{links:[1]}],graph:{links:{1:{target_id:2,target_slot:0},2:{target_id:2,target_slot:1}},getNodeById:()=>target}};
+assert.equal(isPromptWidget(linked,'value'),true,'ordinary STRING source connected to character');
+linked.outputs[0].links.push(2);
+assert.equal(isPromptWidget(linked,'value'),false,'shared typography source remains literal');
+linked.outputs[0].links=[];
+assert.equal(isPromptWidget(linked,'value'),false,'unrelated strings do not complete');
+assert.equal(externalProvider([{name:'rgthree.PowerPrompt'}]),'','rgthree is not a global provider');
+assert.equal(externalProvider([{name:'Autocomplete Plus',id:'AutocompletePlus'}]),'Autocomplete-Plus');
+assert.equal(externalProvider([{name:'Autocomplete Plus',id:'AutocompletePlus'}],id=>id==='AutocompletePlus.Autocompletion.Enable'?false:undefined),'');
+assert.equal(externalProvider([{name:'Autocomplete++'}]),'Autocomplete++');
+assert.equal(externalProvider([{name:'Autocomplete++'}],id=>id==='ComfyUI.AutocompletePlusPlus.Enabled'?false:undefined),'');
+assert.equal(externalProvider([{name:'pysssss.AutoCompleter'}]),'Custom Scripts');
+assert.equal(externalProvider([{name:'pysssss.AutoCompleter'}],()=>false),'');
+console.log('Prompt autocomplete: token spans, weights, selections, wildcards, typography and actual provider setting IDs passed.');

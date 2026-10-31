@@ -63,6 +63,7 @@ jobs:
         run: |
           node tests/test_app_graph.cjs
           node tests/test_app_wildcards.cjs
+          node tests/test_prompt_autocomplete.cjs
       - name: Box layout controls and preview
         run: node tests/test_boxes_ui.cjs
       - name: Detailer UI serialization and controls
