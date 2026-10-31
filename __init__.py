@@ -68,6 +68,7 @@ NODE_DISPLAY_NAME_MAPPINGS = {
 from .pipe_compat import shared_pipe_inputs
 from . import metadata_notice
 from . import app_catalog
+from . import app_wildcards
 
 for node_class in NODE_CLASS_MAPPINGS.values():
     shared_pipe_inputs(node_class)

@@ -12,4 +12,5 @@
 .rs-app-hint{color:#abbdd0;font-size:13px}.rs-app-error{color:#ffbc9c}.rs-app-status{padding:10px 24px;margin:0;border-top:1px solid #354354;white-space:pre-wrap}
 .rs-app-editor{position:relative;max-width:900px;min-height:100px;margin:12px 0;background:#101820}.rs-app-workspace details{margin:15px 0}.rs-app-workspace summary{cursor:pointer;color:#9ec9ef}
 .rs-app-workspace .rs-pose3d-preview{height:280px!important;min-height:280px}.rs-pose3d-modal{z-index:10050!important}
+.rs-app-card pre{white-space:pre-wrap;overflow-wrap:anywhere;background:#101820;padding:10px;border-radius:6px}
 @media(max-width:850px){.rs-app-content{grid-template-columns:1fr}.rs-app-content>aside{border-right:0}.rs-app-field{grid-template-columns:1fr}.rs-app-workspace header{flex-wrap:wrap}}

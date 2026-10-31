@@ -1,0 +1,32 @@
+const fs=require('fs'), vm=require('vm'), assert=require('node:assert/strict');
+const graph=fs.readFileSync('web/app_graph.js','utf8').replaceAll('export ','');
+const wc=fs.readFileSync('web/app_wildcards.js','utf8').replace(/^import.*\n/gm,'').replaceAll('export ','');
+const context={structuredClone};vm.createContext(context);vm.runInContext(graph+'\n'+wc+'\nthis.subject={promptFields,restoreTemplates,resolvePrompts,expandedPrompt};',context);
+const {promptFields,restoreTemplates,resolvePrompts,expandedPrompt}=context.subject;
+const node=values=>({widgets:Object.entries(values).map(([name,value])=>({name,value}))});
+const nodes={sampler:node({prompt:'__scenes__',negative_prompt:'{bad|ugly}',seed:123}),prompt:node({character1_enable:true,character2_enable:true,character2_kind:'text',character3_enable:false}),text1:node({value:'__fabe__'}),text2:node({value:'MENU {A|B}'}),text3:node({value:'__missing__'})};
+let routed=0;
+const w={state:{},sample:()=>nodes.sampler,node:key=>nodes[key],count:()=>3,route:()=>{routed++}};
+(async()=>{
+assert.deepEqual(Array.from(promptFields(w),f=>f.key),['prompt','negative','character1']);
+const fetch=async(_url,options)=>{
+ const data=JSON.parse(options.body);assert.equal(data.seed,123);assert.equal(data.texts.character1,'__fabe__');
+ assert(!Object.hasOwn(data.texts,'character2'));assert(!Object.hasOwn(data.texts,'character3'));
+ return {ok:true,json:async()=>({texts:{prompt:'cafe',negative:'bad',character1:'Barbara'}})};
+};
+const expansion=await resolvePrompts(w,fetch);
+const full=await expandedPrompt(w,expansion,async()=>({node:structuredClone(nodes),extra:w.state}));
+assert.equal(full.node.text1.widgets[0].value,'Barbara');
+assert.equal(nodes.text1.widgets[0].value,'__fabe__');
+assert.equal(full.extra.wildcardLast.templates.character1,'__fabe__');
+assert.equal(nodes.text2.widgets[0].value,'MENU {A|B}');
+assert.equal(routed,2);
+await assert.rejects(expandedPrompt(w,expansion,async()=>{throw Error('serialize failed')}),/serialize failed/);
+assert.equal(nodes.text1.widgets[0].value,'__fabe__','failed generation restores templates');
+nodes.text1.widgets[0].value='Barbara';restoreTemplates(w);assert.equal(nodes.text1.widgets[0].value,'__fabe__','PNG restores source template');
+nodes.text1.widgets[0].value='manual graph edit';restoreTemplates(w);assert.equal(nodes.text1.widgets[0].value,'manual graph edit');
+w.state.wildcards=false;await resolvePrompts(w,()=>{throw Error('disabled must skip IO')});
+w.state.wildcards=true;
+await assert.rejects(resolvePrompts(w,async()=>({ok:false,json:async()=>({error:'missing wildcard'})})),/missing wildcard/);
+console.log('App wildcards: active character scope, typography exclusion, seeded resolution, serialized provenance, template recovery and failure restoration passed.');
+})().catch(error=>{console.error(error);process.exitCode=1});

@@ -2,8 +2,10 @@
 import {app} from '../../scripts/app.js';
 import {api} from '../../scripts/api.js';
 import {Workspace, widget, setValue, ancestorPrompt, executionNodes} from './app_graph.js';
+import {promptFields, restoreTemplates, resolvePrompts, expandedPrompt} from './app_wildcards.js';
 
 let overlay, workspace, models = [], currentTab = 'characters', mounted = [], activePrompt, busy = false, runningWorkspace;
+let wildcardFiles = [], wildcardPreview;
 const el = (tag, text, parent, cls) => {
     const node = document.createElement(tag); if (text != null) node.textContent = text;
     if (cls) node.className = cls; parent?.append(node); return node;
@@ -56,7 +58,9 @@ function field(node, name, parent, label) {
         try {
             let value = input.type === 'checkbox' ? input.checked : input.type === 'number' ? Number(input.value) : input.value;
             if (input.type === 'number' && (!input.checkValidity() || !Number.isFinite(value))) throw Error(`${name}: 수치 범위를 확인해 주세요.`);
-            change(node, name, value); if (name === 'character_count') { workspace.characters(); render(); }
+            change(node, name, value); wildcardPreview=null;
+            if (currentTab === 'wildcards') overlay?.querySelector('.rs-app-wildcard-preview')?.remove();
+            if (name === 'character_count') { workspace.characters(); render(); }
             else if (name.endsWith('_kind') || name === 'anima_method') render();
         } catch (error) { report(error); }
     };
@@ -101,11 +105,12 @@ function render() {
     for (const [key, label] of [['pose', '3D 포즈'], ['masks', '마스크 그리기'], ['camera', '카메라'], ['interaction', '상호작용 경계'], ['progressive', '점진 해상도'], ['detail', '얼굴 디테일러'], ['globalLora', '전역 LoRA']]) toggle(key, label, controls);
     el('p', '모델을 바꿔도 프롬프트·마스크·3D 장면은 보존됩니다. 지원하지 않는 동시 조합은 생성 전에 표시됩니다.', side, 'rs-app-hint');
     const tabs = el('nav', null, main, 'rs-app-tabs');
-    for (const [id, label] of [['characters','캐릭터'], ['layout','배치 / 마스크'], ['pose','3D 포즈'], ['camera','카메라'], ['settings','생성 / 보정'], ['results','결과']]) {
+    for (const [id, label] of [['characters','캐릭터'], ['wildcards','와일드카드'], ['layout','배치 / 마스크'], ['pose','3D 포즈'], ['camera','카메라'], ['settings','생성 / 보정'], ['results','결과']]) {
         const b = button(label, tabs, () => { currentTab = id; render(); }); b.classList.toggle('selected', id === currentTab);
     }
     const panel = el('div', null, main, 'rs-app-panel');
     if (currentTab === 'characters') characters(panel);
+    if (currentTab === 'wildcards') wildcards(panel);
     if (currentTab === 'layout') {
         const position = section('번호 선택 → 드래그로 배치·크기 조절', panel);
         mountEditor(workspace.node('position'), 'rs_mc_position_editor', position);
@@ -160,6 +165,7 @@ function render() {
     for (const control of content.querySelectorAll('input,select,textarea,button')) control.disabled = busy;
 }
 function characters(parent) {
+    el('p', '__fabe__ · __ff__ · {선택지 A|선택지 B}를 프롬프트에 쓸 수 있습니다. 와일드카드 탭에서 파일 선택·미리보기를 할 수 있어요. 글자 영역은 입력 그대로 사용합니다.', parent, 'rs-app-hint');
     field(workspace.node('prompt'), 'character_count', parent, '캐릭터 / 글자 영역 수');
     const loras = workspace.node('loras'); field(loras, 'lora_application_mode', parent, '캐릭터 LoRA 적용 방식');
     for (let i = 1; i <= workspace.count(); i++) {
@@ -187,6 +193,50 @@ function characters(parent) {
         }
     }
 }
+async function loadWildcards() {
+    const response = await api.fetchApi('/rs_mc/app/wildcards');
+    if (!response.ok) throw Error(`Wildcard inventory: HTTP ${response.status}. ComfyUI를 재시작해 주세요.`);
+    wildcardFiles = (await response.json()).files;
+}
+function wildcards(parent) {
+    const box = section('로컬 와일드카드 · 파일 선택 → 프롬프트에 넣기', parent);
+    const enabled = el('label', null, box, 'rs-app-toggle'), check = el('input', null, enabled);
+    check.type='checkbox'; check.checked=workspace.state.wildcards !== false; el('span','와일드카드 펼치기',enabled);
+    check.onchange=()=>{workspace.state.wildcards=check.checked;wildcardPreview=null;workspace.graph.change?.();render();};
+    el('p','공통·네거티브·캐릭터 프롬프트에서 __파일명__ 또는 {A|B}를 사용하세요. 생성 시드가 같으면 선택도 같습니다. 랜덤 시드는 매 생성마다 다시 선택합니다. 글자 영역은 변환하지 않습니다.',box,'rs-app-hint');
+    const search=el('input',null,box);search.type='search';search.placeholder='파일 검색 · fabe / ff / background';search.setAttribute('aria-label','와일드카드 파일 검색');
+    const list=el('select',null,box);list.size=8;list.setAttribute('aria-label','와일드카드 파일');
+    function fill() {
+        list.replaceChildren();
+        for(const name of wildcardFiles.filter(name=>name.toLowerCase().includes(search.value.toLowerCase()))) {
+            const option=el('option',name,list);option.value=name;
+        }
+    }
+    search.oninput=fill;fill();
+    button('파일 목록 새로고침',box,async()=>{await loadWildcards();fill();report(`와일드카드 ${wildcardFiles.length}개`);});
+    const target=el('select',null,box);target.setAttribute('aria-label','삽입할 프롬프트');
+    const fields=promptFields(workspace);
+    for(const field of fields) el('option',field.label,target).value=field.key;
+    button('선택한 파일 넣기',box,()=>{
+        if(!list.value) throw Error('먼저 와일드카드 파일을 선택해 주세요.');
+        const field=fields.find(field=>field.key===target.value), old=String(widget(field.node,field.name).value);
+        change(field.node,field.name,old+(old.trim()?', ':'')+`__${list.value}__`);wildcardPreview=null;render();
+    });
+    el('p',`파일 ${wildcardFiles.length}개 · ComfyUI/user/wildcards, ComfyUI/wildcards와 설치된 확장의 wildcards·custom_wildcards 폴더에서 TXT를 읽습니다. 빈 줄·# 주석은 제외합니다. 추가한 뒤 목록을 새로고침하세요.`,box,'rs-app-hint');
+    for(const item of fields) field(item.node,item.name,box,item.label);
+    button('현재 시드로 미리보기',box,async()=>{
+        const owner=workspace, preview=await resolvePrompts(owner,api.fetchApi.bind(api));
+        if(owner!==workspace)return;
+        wildcardPreview=preview;render();
+    });
+    const preview=wildcardPreview??workspace.state.wildcardLast;
+    if(preview) {
+        const result=section(`${wildcardPreview ? '미리보기' : '최근 생성 요청'} · 펼친 프롬프트 · 시드 ${preview.seed}`,parent);
+        result.classList.add('rs-app-wildcard-preview');
+        el('p','미리보기는 해당 시드의 예상 선택입니다. 랜덤 시드 생성에서는 달라질 수 있습니다. 완료 결과의 PNG에는 실제 사용한 프롬프트와 원래 템플릿을 함께 저장합니다.',result,'rs-app-hint');
+        for(const [key,text] of Object.entries(preview.texts)) {el('strong',fields.find(f=>f.key===key)?.label??key,result);el('pre',text,result);}
+    }
+}
 function renderResults(parent) {
     const outputs = workspace.state.results ?? [];
     if (!outputs.length) el('p', '생성 완료 후 결과가 여기에 표시됩니다.', parent);
@@ -203,13 +253,14 @@ async function generate() {
         const nodes = executionNodes(workspace.graph, workspace.node('save').id);
         for (const node of nodes) for (const control of node.widgets ?? []) control.beforeQueued?.({isPartialExecution:true});
         workspace.route();
-        const full = await app.graphToPrompt();
+        const expansion = await resolvePrompts(workspace, api.fetchApi.bind(api));
+        const full = await expandedPrompt(workspace, expansion, () => app.graphToPrompt());
         const output = ancestorPrompt(full.output, workspace.node('save').id);
         const queued = await api.queuePrompt(0, {output, workflow:full.workflow});
         if (!queued.prompt_id) throw Error(queued.error?.message ?? 'Prompt rejected');
         activePrompt = queued.prompt_id; runningWorkspace = workspace; workspace.state.lastPrompt = activePrompt; report('생성 대기 · '+activePrompt);
         for (const node of nodes) for (const control of node.widgets ?? []) control.afterQueued?.({isPartialExecution:true});
-        workspace.changed();
+        workspace.graph.change?.();
     } catch (error) { busy = false; render(); throw error; }
 }
 async function openWorkspace() {
@@ -227,7 +278,9 @@ async function openWorkspace() {
     }
     workspace = new Workspace(app.graph, type => LiteGraph.createNode(type), presets).initialize();
     const saved = models.find(m => m.id === workspace.state.modelId);
-    if (saved) { workspace.model = saved; workspace.route(); }
+    if (saved) { workspace.model = saved; restoreTemplates(workspace); workspace.route(); }
+    wildcardPreview=null;
+    try { await loadWildcards(); } catch(error) { wildcardFiles=[]; console.warn('RS Workspace wildcards',error); }
     overlay = el('div', null, document.body, 'rs-app-workspace'); overlay.setAttribute('role','dialog'); overlay.setAttribute('aria-label','RS Model Workspace');
     const header = el('header', null, overlay); el('strong','RS Workspace · 모델 자동 연결 시험판',header);
     button('생성',header,generate).dataset.action = 'generate';

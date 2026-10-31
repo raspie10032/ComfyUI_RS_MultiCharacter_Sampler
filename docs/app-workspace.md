@@ -9,10 +9,17 @@ matching checkpoint or split-model loaders, and connects existing public RS
 nodes. Missing encoder/VAE files and unsupported feature combinations block
 generation with an explanation. The app does not download a base checkpoint.
 
+For the full Korean walkthrough, see [앱 사용 가이드](app-workspace.ko.md).
+
 ## Controls
 
 - **캐릭터:** numbered STRING prompts, character/text choice, per-character
   LoRA and image references. Inactive slots remain saved but do not execute.
+- **와일드카드:** search installed TXT files, insert `__name__` into common,
+  negative or active character prompts, and preview the expansion for the
+  current generation seed. `{A|B}`, nested files and wildcard filename matching
+  are supported. Text/typography slots stay literal. The app reads the user,
+  ComfyUI and installed extensions' wildcard folders without copying them.
 - **배치 / 마스크:** the existing point/box/mask editor and drawing canvas.
   Enable drawing and paint a numbered region before generating.
 - **3D 포즈:** the existing image-to-3D/scene editor. Anima 2B uses LLLite;
@@ -31,6 +38,15 @@ uses the selected output's dependency graph; stale loaders and hidden reference
 slots are excluded. Save with **워크플로 저장** and reopen through ComfyUI's
 usual workflow loader. App metadata is stored in `extra.rs_workspace`; public
 nodes and widgets remain the execution source of truth.
+
+With wildcards enabled, each submitted request and saved PNG uses the resolved
+prompts, including the camera and detailer. The app keeps the original templates
+in `extra.rs_workspace.wildcardLast` and restores them when reopened. Ordinary
+graph replay of the PNG uses the resolved widgets and does not need the original
+TXT files. Continuing to draw random choices in the app requires those files.
+Manual graph edits take precedence over automatic template restoration. Fixed
+seeds repeat choices; random/increment seed controls retain the node behavior.
+One press submits one image request; this screen has no batch-count control yet.
 
 ## Current boundaries
 
