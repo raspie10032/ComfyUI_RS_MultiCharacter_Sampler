@@ -13,3 +13,6 @@ validation-private/
 # Experiment images and full reports are uploaded as GitHub Release assets.
 experiment-reports/
 release-assets/
+
+# User-owned prompt dictionary (not redistributed).
+web/autocomplete.txt

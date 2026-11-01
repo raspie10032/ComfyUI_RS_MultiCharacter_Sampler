@@ -4,6 +4,8 @@ The workspace reuses the original ComfyUI widget textarea rather than creating a
 
 Without an enabled known provider, a small bundled offline tag vocabulary, tags already in the graph and local wildcard filenames provide suggestions. There are no model calls or dictionary downloads. This is a lightweight fallback, not a comprehensive character/artist database. Settings: `RS.MultiCharacter.Autocomplete`.
 
+For an existing local dictionary, copy it to `web/autocomplete.txt` inside this extension and refresh the browser. The optional file is loaded once, on first tag completion. Custom Scripts `tag,count` text and A1111 CSV `tag,category,count,aliases` are supported; usage counts prioritize matches, aliases insert the canonical tag, and literal parentheses are escaped for ComfyUI. The user dictionary is ignored by Git and is not bundled or downloaded. Installed, enabled external providers still own their native inputs.
+
 Known provider dispatch checks registered extension IDs and actual settings:
 
 | Provider | Enabled setting | Evidence |

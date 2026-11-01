@@ -4,12 +4,22 @@ let subject;
 for (const newline of ['\n','\r\n']) {
  const source=fs.readFileSync('web/prompt_autocomplete.js','utf8').replace(/\r?\n/g,newline).replace(/^import[^\r\n]*(?:\r?\n|$)/gm,'').replaceAll('export ','').replaceAll('import.meta.url', '"http://localhost/extensions/rs/prompt_autocomplete.js"');
  const ctx={app:{registerExtension(){}},api:{}};vm.createContext(ctx);
- vm.runInContext(source+'\nthis.subject={currentToken,completion,suggestions,isPromptWidget,externalProvider};',ctx);subject=ctx.subject;
+ vm.runInContext(source+'\nthis.subject={currentToken,completion,suggestions,isPromptWidget,externalProvider,parseDictionary};',ctx);subject=ctx.subject;
 }
 const {currentToken,completion,suggestions,isPromptWidget,externalProvider}=subject;
+const dictionary = subject.parseDictionary('\uFEFFtag,category,count,alias\r\nblue_eyes,0,1000,"azure eyes,sky eyes"\r\nblue_hair,0,20,\r\n"tag, with comma",0,5,\r\n');
+assert.equal(dictionary.length,3);
+assert.equal(dictionary[0].value,'blue_eyes');
+assert.equal(suggestions(currentToken('azure',5),dictionary)[0],'blue_eyes','aliases insert canonical tag');
+assert.equal(dictionary[2].value,'tag, with comma');
+const oldWords = subject.parseDictionary('blue_hair,20\r\nblue_eyes,1000\r\nblue eyes,1000\r\nsmile\r\n');
+assert.equal(oldWords.length,3,'deduplicate space and underscore variants');
+assert.equal(suggestions(currentToken('blue',4),oldWords)[0],'blue_eyes','use original usage counts');
 const complete=(s,at,value)=>completion(s,currentToken(s,at),value).text;
 assert.equal(complete('1girl, blu',10,'blue eyes'),'1girl, blue eyes, ');
 assert.equal(complete('(blu:1.2), smile',4,'blue eyes'),'(blue eyes:1.2), smile');
+assert.equal(complete('barb',4,'barbara_(genshin_impact)'),'barbara_\\(genshin_impact\\), ');
+assert.equal(complete('barb',4,'barbara_\\(genshin_impact\\)'),'barbara_\\(genshin_impact\\), ');
 assert.equal(complete('pink hair, blo eyes, smile',13,'blue eyes'),'pink hair, blue eyes, smile');
 assert.equal(complete('__fa',4,'__user/fabe__'),'__user/fabe__');
 assert.equal(complete('__fa__, smile',4,'__user/fabe__'),'__user/fabe__, smile');

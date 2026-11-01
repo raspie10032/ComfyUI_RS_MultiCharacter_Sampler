@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: GPL-3.0-only
 // Small, offline fallback. Third-party autocomplete keeps ownership of native
-// widgets when enabled; no private imports or copies of their dictionaries.
+// widgets when enabled. An optional local autocomplete.txt supplies custom tags.
 import {app} from '../../scripts/app.js';
 import {api} from '../../scripts/api.js';
 
@@ -22,11 +22,42 @@ spring|summer|autumn|winter|day|night|morning|sunset|sunrise|blue sky|clouds|sta
 sunlight|moonlight|soft lighting|warm lighting|rim lighting|backlighting|volumetric lighting|cinematic lighting|depth of field|bokeh|reflection|shadow|
 watercolor|oil painting|sketch|lineart|no lineart|flat color|cel shading|painterly|soft shading|vibrant colors|pastel colors|muted colors|
 bad quality|worst quality|low quality|lowres|blurry|jpeg artifacts|watermark|signature|text|logo|bad anatomy|bad hands|extra fingers|missing fingers|extra arms|extra legs|extra limbs|duplicate|cropped|out of frame
-`).split('|').map(s => s.trim()).filter(Boolean);
+`).split('|').map(s => s.trim()).filter(Boolean).sort();
 const attached = new WeakMap();
 let nextMenu = 0;
 let enabled = true, wildcardNames = [], wildcardPending, wildcardLoaded = false;
+let dictionary = [], dictionaryPending;
 const normalize = text => text.toLowerCase().replaceAll('_', ' ').trim();
+
+export function parseDictionary(text) {
+    const entries = new Map();
+    for (const line of text.replace(/^\uFEFF/, '').split(/\r?\n/)) {
+        if (!line.trim()) continue;
+        const fields = []; let field = '', quoted = false;
+        for (let i = 0; i < line.length; i++) {
+            const char = line[i];
+            if (char === '"') {
+                if (quoted && line[i + 1] === '"') {field += '"'; i++;}
+                else quoted = !quoted;
+            } else if (char === ',' && !quoted) {fields.push(field.trim()); field = '';}
+            else field += char;
+        }
+        fields.push(field.trim());
+        const value = fields[0];
+        if (!value || /^(?:tag|name)$/i.test(value) && /^(?:count|category|type)$/i.test(fields[1] ?? '')) continue;
+        const priority = Number(fields.length >= 3 ? fields[2] : fields[1]) || 0;
+        const aliases = fields.length >= 4 ? (fields[3] === 'null' ? [] : fields[3].split(',')) : fields.length === 2 && Number.isNaN(Number(fields[1])) ? [fields[1]] : [];
+        const key = normalize(value);
+        if (!entries.has(key)) entries.set(key, {value, key, priority, aliases:aliases.map(normalize).filter(Boolean)});
+    }
+    return [...entries.values()].sort((a, b) => b.priority - a.priority);
+}
+async function loadDictionary() {
+    if (!dictionaryPending) dictionaryPending = fetch(new URL('./autocomplete.txt', import.meta.url))
+        .then(async response => {if (response.ok) dictionary = parseDictionary(await response.text());})
+        .catch(() => {});
+    await dictionaryPending;
+}
 
 // Character/text drawing inputs remain literal. JSON, paths, seeds and names
 // must never receive prompt suggestions.
@@ -81,16 +112,24 @@ export function suggestions(token, words = BASIC_TAGS, wildcards = []) {
     if (!token) return [];
     const query = normalize(token.query);
     const values = token.wildcard ? wildcards.map(name => `__${name}__`) : words;
-    const unique = new Map();
-    for (const value of values) {
-        const key = normalize(token.wildcard ? value.slice(2, -2) : value);
-        if ((!query || key.includes(query)) && key !== query && !unique.has(key)) unique.set(key, {value, rank:key.startsWith(query) ? 0 : 1});
+    const unique = new Set(), prefix = [], partial = [];
+    for (const entry of values) {
+        const value = typeof entry === 'string' ? entry : entry.value;
+        const key = typeof entry === 'string' ? normalize(token.wildcard ? value.slice(2, -2) : value) : entry.key;
+        if (key === query || unique.has(key)) continue;
+        const keys = [key, ...(entry.aliases ?? [])];
+        if (!keys.some(key => key.includes(query))) continue;
+        unique.add(key);
+        const matches = keys.some(key => key.startsWith(query)) ? prefix : partial;
+        if (matches.length < 8) matches.push(value);
+        if (prefix.length === 8) break;
     }
-    return [...unique.values()].sort((a, b) => a.rank - b.rank || a.value.localeCompare(b.value)).slice(0, 8).map(x => x.value);
+    return [...prefix, ...partial].slice(0, 8);
 }
 export function completion(text, token, value) {
     const tail = text.slice(token.end);
     const separator = !token.wildcard && (!tail || /^\s*$/.test(tail)) ? ', ' : '';
+    if (!token.wildcard) value = value.replace(/(?<!\\)([()])/g, '\\$1');
     const insert = value + separator;
     return {text:text.slice(0, token.start) + insert + tail, caret:token.start + insert.length};
 }
@@ -146,8 +185,13 @@ export function attachAutocomplete(input, {native = false, eligible = () => true
         if (destroyed || !eligible() || !enabled || composing || event?.isComposing || doc.activeElement !== input || (native && provider())) return;
         token = currentToken(input.value, input.selectionStart, input.selectionEnd);
         if (token?.wildcard && !wildcardLoaded) { await loadWildcards(); if (destroyed || !eligible() || !enabled || doc.activeElement !== input || composing || (native && provider())) return; token = currentToken(input.value, input.selectionStart, input.selectionEnd); }
+        if (token && !token.wildcard) {
+            await loadDictionary();
+            if (destroyed || !eligible() || !enabled || doc.activeElement !== input || composing || (native && provider())) return;
+            token = currentToken(input.value, input.selectionStart, input.selectionEnd);
+        }
         // Reuse words already in this graph, without retaining prompt history.
-        const words = [...BASIC_TAGS];
+        const words = [...dictionary, ...BASIC_TAGS];
         if (!token?.wildcard) for (const node of app.graph?._nodes ?? []) for (const w of node.widgets ?? [])
             if (isPromptWidget(node, w.name) && typeof w.value === 'string') words.push(...w.value.split(/[,\n]/).map(s => s.trim()).filter(s => s.length >= 2 && s.length <= 100 && !/[{}<>]|__/.test(s)));
         items = suggestions(token, words, wildcardNames); selected = 0; if (items.length) draw();
