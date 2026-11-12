@@ -1,8 +1,9 @@
 // SPDX-License-Identifier: GPL-3.0-only
 const fs=require('fs'),vm=require('vm'),assert=require('node:assert/strict'),cp=require('child_process');
 const source=fs.readFileSync('web/camera_control.js','utf8').replace(/^import[^\n]*\n/gm,'').replaceAll('export function','function');
-let extension,locale='en';
-const app={extensionManager:{setting:{get:()=>locale}},registerExtension:e=>extension=e};
+let locale='en';
+const extensions={};
+const app={extensionManager:{setting:{get:()=>locale}},registerExtension:e=>extensions[e.name]=e};
 const drawnText=[];
 const context2d=new Proxy({fillText(s){drawnText.push(s);}}, {get:(obj,name)=>obj[name] ?? (()=>{}),set:(obj,name,value)=>(obj[name]=value,true)});
 const element=()=>({style:{},children:[],listeners:{},append(...items){this.children.push(...items);},setAttribute(){},addEventListener(name,fn){this.listeners[name]=fn;},getContext(){return context2d;},setPointerCapture(){},focus(){},getBoundingClientRect(){return {left:10,top:20,width:320,height:175};}});
@@ -71,6 +72,19 @@ class Node{
  onExecuted(){return 'executed';}
 }
 (async()=>{
+ const extension=extensions['RS.CameraControl'];
+ class AtelierNode extends Node {}
+ await extensions['RS.AtelierSphereCameraControl'].beforeRegisterNodeDef(AtelierNode,{name:'RSAtelierSphereCameraControl'});
+ const atelier=new AtelierNode();atelier.onNodeCreated();
+ const [atelierToolbar,,,atelierCaption]=atelier.rsCameraEditor.root.children;
+ atelierToolbar.children.find(w=>w.textContent==='Face left').onclick();
+ assert.equal(atelier.widgets.find(w=>w.name==='azimuth').value,-90);
+ atelierToolbar.children.find(w=>w.textContent==='Face right').onclick();
+ assert.equal(atelier.widgets.find(w=>w.name==='azimuth').value,90);
+ assert.match(atelierCaption.textContent,/nearest trained view/);
+ atelier.onExecuted({camera_caption:['facing right']});
+ assert.equal(atelierCaption.textContent,'facing right');
+
  await extension.beforeRegisterNodeDef(Node,{name:'RSCameraControl'});
  const defs={name:'RSCameraControl',input:{optional:{building_pipe:['RS_MC_CHARACTER_PIPE,NAI_CONTEXT'],context:['RS_MC_CHARACTER_PIPE,NAI_CONTEXT']}}};
  await extension.beforeRegisterNodeDef(class {},defs);

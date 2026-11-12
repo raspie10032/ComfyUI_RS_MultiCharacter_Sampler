@@ -182,7 +182,7 @@ function drawCameraDiagram(c, v) {
         "藍色=人物，箭頭=正面 · 黃色=朝向人物的相機"),320,343,"#b7c6d9",17);
 }
 
-export function addCameraEditor(node) {
+export function addCameraEditor(node, atelier = false) {
     if (node.rsCameraEditor) return;
     const root = document.createElement("div");
     root.className = "rs-camera-editor";
@@ -191,7 +191,10 @@ export function addCameraEditor(node) {
     toolbar.style.cssText = "display:flex;flex-wrap:wrap;gap:5px";
     const presets = [
         [["Front", "정면", "正面", "正面"], {azimuth:0,elevation:0}],
-        [["Side", "측면", "側面", "侧面", "側面"], {azimuth:90,elevation:0}],
+        ...(atelier ? [
+            [["Face left", "화면 왼쪽", "画面左向き", "面向左侧"], {azimuth:-90,elevation:0}],
+            [["Face right", "화면 오른쪽", "画面右向き", "面向右侧"], {azimuth:90,elevation:0}],
+        ] : [[["Side", "측면", "側面", "侧面", "側面"], {azimuth:90,elevation:0}]]),
         [["Back", "후면", "背面", "背面"], {azimuth:180,elevation:0}],
         [["Above", "위에서", "上から", "俯视", "俯視"], {azimuth:0,elevation:60}],
         [["Below", "아래서", "下から", "仰视", "仰視"], {azimuth:0,elevation:-45}],
@@ -254,7 +257,12 @@ export function addCameraEditor(node) {
             "隨機視角: fixed重複，randomize每次改變。拖曳或預設切回手動。");
         const syntax=linked(node,"building_pipe") && resolvedSyntax ? resolvedSyntax : widget(node,"prompt_syntax")?.value ?? "ComfyUI";
         output.textContent = !v.enabled || !v.strength ? text("Camera OFF", "카메라 꺼짐", "カメラOFF", "相机已关闭", "相機已關閉") :
-            executed ?? cameraCaption(cameraWeights(v), syntax, widget(node,"weighting")?.value ?? "weighted");
+            executed ?? (atelier ? text(
+                "Run to see the tags for the nearest trained view.",
+                "실행하면 가장 가까운 학습 시점의 태그가 표시됩니다.",
+                "実行すると最も近い学習視点のタグを表示します。",
+                "运行后显示最近训练视角的标签。") :
+                cameraCaption(cameraWeights(v), syntax, widget(node,"weighting")?.value ?? "weighted"));
         if(linked(node,"building_pipe") && !resolvedSyntax) notice.textContent += " " + text(
             "Context syntax resolves on execution; this preview uses the selected syntax.",
             "컨텍스트 문법은 실행 시 확정됩니다. 현재 미리보기는 선택한 문법을 사용합니다.",
@@ -364,6 +372,23 @@ export function addCameraEditor(node) {
     node.rsCameraEditor={root,render};render();
 }
 
+app.registerExtension({
+    name:"RS.AtelierSphereCameraControl",
+    async beforeRegisterNodeDef(nodeType,nodeData){
+        if(nodeData.name!=="RSAtelierSphereCameraControl")return;
+        registerCameraEditor(nodeType,nodeData,true);
+    },
+});
+
+function registerCameraEditor(nodeType,nodeData,atelier=false) {
+    if(nodeData.input?.optional) delete nodeData.input.optional.context;
+    const previous=nodeType.prototype.onNodeCreated;
+    nodeType.prototype.onNodeCreated=function(){
+        const result=previous?.apply(this,arguments);addCameraEditor(this,atelier);
+        this.setSize?.([Math.max(380,this.size[0]),this.computeSize()[1]]);return result;
+    };
+}
+
 // Both packages ship the same node and editor; only register the editor once.
 if(!globalThis[Symbol.for("raspie.camera.editor")]){
     globalThis[Symbol.for("raspie.camera.editor")]=true;
@@ -371,13 +396,7 @@ if(!globalThis[Symbol.for("raspie.camera.editor")]){
         name:"RS.CameraControl",
         async beforeRegisterNodeDef(nodeType,nodeData){
             if(nodeData.name!=="RSCameraControl")return;
-            // Keep the server API alias out of new nodes' visible sockets.
-            if(nodeData.input?.optional) delete nodeData.input.optional.context;
-            const previous=nodeType.prototype.onNodeCreated;
-            nodeType.prototype.onNodeCreated=function(){
-                const result=previous?.apply(this,arguments);addCameraEditor(this);
-                this.setSize?.([Math.max(380,this.size[0]),this.computeSize()[1]]);return result;
-            };
+            registerCameraEditor(nodeType,nodeData);
         },
     });
 }

@@ -1,0 +1,791 @@
+{
+  "last_node_id": 90,
+  "last_link_id": 10,
+  "nodes": [
+    {
+      "id": 1,
+      "type": "UNETLoader",
+      "pos": [
+        0,
+        0
+      ],
+      "size": [
+        330,
+        100
+      ],
+      "flags": {},
+      "order": 0,
+      "mode": 0,
+      "inputs": [],
+      "outputs": [
+        {
+          "name": "MODEL",
+          "type": "MODEL",
+          "links": [
+            1
+          ]
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "UNETLoader"
+      },
+      "widgets_values": [
+        "anima-aesthetic-v1.1.safetensors",
+        "default"
+      ]
+    },
+    {
+      "id": 4,
+      "type": "CLIPLoader",
+      "pos": [
+        0,
+        130
+      ],
+      "size": [
+        330,
+        100
+      ],
+      "flags": {},
+      "order": 1,
+      "mode": 0,
+      "inputs": [],
+      "outputs": [
+        {
+          "name": "CLIP",
+          "type": "CLIP",
+          "links": [
+            7
+          ]
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "CLIPLoader"
+      },
+      "widgets_values": [
+        "qwen_3_06b_base.safetensors",
+        "stable_diffusion",
+        "default"
+      ]
+    },
+    {
+      "id": 5,
+      "type": "VAELoader",
+      "pos": [
+        0,
+        260
+      ],
+      "size": [
+        330,
+        75
+      ],
+      "flags": {},
+      "order": 2,
+      "mode": 0,
+      "inputs": [],
+      "outputs": [
+        {
+          "name": "VAE",
+          "type": "VAE",
+          "links": [
+            8
+          ]
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "VAELoader"
+      },
+      "widgets_values": [
+        "qwen_image_vae.safetensors"
+      ]
+    },
+    {
+      "id": 32,
+      "type": "PrimitiveStringMultiline",
+      "pos": [
+        0,
+        370
+      ],
+      "size": [
+        330,
+        145
+      ],
+      "flags": {},
+      "order": 3,
+      "mode": 0,
+      "inputs": [],
+      "outputs": [
+        {
+          "name": "STRING",
+          "type": "STRING",
+          "links": [
+            2
+          ]
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "PrimitiveStringMultiline"
+      },
+      "widgets_values": [
+        "masterpiece, best quality, anime illustration, 1girl, solo, medium shot, greenhouse, leafy plants, soft daylight"
+      ],
+      "title": "Scene prompt"
+    },
+    {
+      "id": 30,
+      "type": "PrimitiveStringMultiline",
+      "pos": [
+        0,
+        540
+      ],
+      "size": [
+        330,
+        145
+      ],
+      "flags": {},
+      "order": 4,
+      "mode": 0,
+      "inputs": [],
+      "outputs": [
+        {
+          "name": "STRING",
+          "type": "STRING",
+          "links": [
+            3
+          ]
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "PrimitiveStringMultiline"
+      },
+      "widgets_values": [
+        "adult woman, short black bob hair, red jacket, black shirt, standing"
+      ],
+      "title": "Character prompt"
+    },
+    {
+      "id": 12,
+      "type": "RSMultiCharacterPrompt",
+      "pos": [
+        385,
+        540
+      ],
+      "size": [
+        345,
+        250
+      ],
+      "flags": {},
+      "order": 5,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "building_pipe",
+          "type": "RS_MC_BUILD_PIPE",
+          "link": null
+        },
+        {
+          "name": "character1",
+          "type": "STRING",
+          "link": 3
+        },
+        {
+          "name": "character1_text",
+          "type": "STRING",
+          "link": null
+        },
+        {
+          "name": "character2",
+          "type": "STRING",
+          "link": null
+        },
+        {
+          "name": "character2_text",
+          "type": "STRING",
+          "link": null
+        },
+        {
+          "name": "character3",
+          "type": "STRING",
+          "link": null
+        },
+        {
+          "name": "character3_text",
+          "type": "STRING",
+          "link": null
+        },
+        {
+          "name": "character4",
+          "type": "STRING",
+          "link": null
+        },
+        {
+          "name": "character4_text",
+          "type": "STRING",
+          "link": null
+        },
+        {
+          "name": "character5",
+          "type": "STRING",
+          "link": null
+        },
+        {
+          "name": "character5_text",
+          "type": "STRING",
+          "link": null
+        },
+        {
+          "name": "character6",
+          "type": "STRING",
+          "link": null
+        },
+        {
+          "name": "character6_text",
+          "type": "STRING",
+          "link": null
+        },
+        {
+          "name": "character7",
+          "type": "STRING",
+          "link": null
+        },
+        {
+          "name": "character7_text",
+          "type": "STRING",
+          "link": null
+        },
+        {
+          "name": "character8",
+          "type": "STRING",
+          "link": null
+        },
+        {
+          "name": "character8_text",
+          "type": "STRING",
+          "link": null
+        },
+        {
+          "name": "character9",
+          "type": "STRING",
+          "link": null
+        },
+        {
+          "name": "character9_text",
+          "type": "STRING",
+          "link": null
+        },
+        {
+          "name": "character10",
+          "type": "STRING",
+          "link": null
+        },
+        {
+          "name": "character10_text",
+          "type": "STRING",
+          "link": null
+        }
+      ],
+      "outputs": [
+        {
+          "name": "building_pipe",
+          "type": "RS_MC_BUILD_PIPE",
+          "links": [
+            4
+          ]
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "RSMultiCharacterPrompt"
+      },
+      "widgets_values": [
+        1,
+        true,
+        "character",
+        true,
+        "character",
+        true,
+        "character",
+        true,
+        "character",
+        true,
+        "character",
+        true,
+        "character",
+        true,
+        "character",
+        true,
+        "character",
+        true,
+        "character",
+        true,
+        "character"
+      ]
+    },
+    {
+      "id": 20,
+      "type": "RSAtelierSphereCameraControl",
+      "pos": [
+        775,
+        0
+      ],
+      "size": [
+        400,
+        920
+      ],
+      "flags": {},
+      "order": 6,
+      "mode": 0,
+      "inputs": [
+        {
+          "localized_name": "building_pipe",
+          "name": "building_pipe",
+          "shape": 7,
+          "type": "RS_MC_BUILD_PIPE,RS_MC_CHARACTER_PIPE,NAI_CONTEXT",
+          "link": 4
+        },
+        {
+          "localized_name": "base_prompt",
+          "name": "base_prompt",
+          "shape": 7,
+          "type": "STRING",
+          "link": 2
+        },
+        {
+          "localized_name": "azimuth",
+          "name": "azimuth",
+          "type": "FLOAT",
+          "widget": {
+            "name": "azimuth"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "elevation",
+          "name": "elevation",
+          "type": "FLOAT",
+          "widget": {
+            "name": "elevation"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "distance",
+          "name": "distance",
+          "type": "FLOAT",
+          "widget": {
+            "name": "distance"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "roll",
+          "name": "roll",
+          "type": "FLOAT",
+          "widget": {
+            "name": "roll"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "strength",
+          "name": "strength",
+          "type": "FLOAT",
+          "widget": {
+            "name": "strength"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "weighting",
+          "name": "weighting",
+          "type": "COMBO",
+          "widget": {
+            "name": "weighting"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "prompt_syntax",
+          "name": "prompt_syntax",
+          "type": "COMBO",
+          "widget": {
+            "name": "prompt_syntax"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "enabled",
+          "name": "enabled",
+          "type": "BOOLEAN",
+          "widget": {
+            "name": "enabled"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "scope",
+          "name": "scope",
+          "type": "COMBO",
+          "widget": {
+            "name": "scope"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "random_mode",
+          "name": "random_mode",
+          "shape": 7,
+          "type": "COMBO",
+          "widget": {
+            "name": "random_mode"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "random_seed",
+          "name": "random_seed",
+          "shape": 7,
+          "type": "INT",
+          "widget": {
+            "name": "random_seed"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "layout_sync",
+          "name": "layout_sync",
+          "shape": 7,
+          "type": "COMBO",
+          "widget": {
+            "name": "layout_sync"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "canvas_aspect",
+          "name": "canvas_aspect",
+          "shape": 7,
+          "type": "FLOAT",
+          "widget": {
+            "name": "canvas_aspect"
+          },
+          "link": null
+        },
+        {
+          "name": "model",
+          "type": "MODEL",
+          "link": 1
+        },
+        {
+          "name": "lora_strength",
+          "type": "FLOAT",
+          "shape": 7,
+          "widget": {
+            "name": "lora_strength"
+          },
+          "link": null
+        }
+      ],
+      "outputs": [
+        {
+          "localized_name": "building_pipe",
+          "name": "building_pipe",
+          "type": "RS_MC_BUILD_PIPE,RS_MC_CHARACTER_PIPE,NAI_CONTEXT",
+          "links": [
+            5
+          ]
+        },
+        {
+          "localized_name": "prompt",
+          "name": "prompt",
+          "type": "STRING",
+          "links": []
+        },
+        {
+          "localized_name": "camera_prompt",
+          "name": "camera_prompt",
+          "type": "STRING",
+          "links": []
+        },
+        {
+          "name": "model",
+          "type": "MODEL",
+          "links": [
+            6
+          ]
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "RSAtelierSphereCameraControl"
+      },
+      "widgets_values": [
+        -90,
+        0,
+        0.5,
+        0,
+        1.2,
+        "weighted",
+        "ComfyUI",
+        true,
+        "scene_and_characters",
+        "off",
+        0,
+        "fixed",
+        "fixed",
+        0.6842105263157895,
+        1.0
+      ]
+    },
+    {
+      "id": 16,
+      "type": "RSMultiCharacterFinalize",
+      "pos": [
+        1220,
+        0
+      ],
+      "size": [
+        270,
+        80
+      ],
+      "flags": {},
+      "order": 7,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "building_pipe",
+          "type": "RS_MC_BUILD_PIPE",
+          "link": 5
+        }
+      ],
+      "outputs": [
+        {
+          "name": "character_pipe",
+          "type": "RS_MC_CHARACTER_PIPE",
+          "links": [
+            9
+          ]
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "RSMultiCharacterFinalize"
+      },
+      "widgets_values": []
+    },
+    {
+      "id": 3,
+      "type": "RSMultiCharacterProgressiveSampler",
+      "pos": [
+        1535,
+        0
+      ],
+      "size": [
+        390,
+        760
+      ],
+      "flags": {},
+      "order": 8,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "model",
+          "type": "MODEL",
+          "link": 6
+        },
+        {
+          "name": "clip",
+          "type": "CLIP",
+          "link": 7
+        },
+        {
+          "name": "vae",
+          "type": "VAE",
+          "link": 8
+        },
+        {
+          "name": "character_pipe",
+          "type": "RS_MC_CHARACTER_PIPE",
+          "link": 9
+        }
+      ],
+      "outputs": [
+        {
+          "name": "image",
+          "type": "IMAGE",
+          "links": [
+            10
+          ]
+        },
+        {
+          "name": "latent",
+          "type": "LATENT",
+          "links": []
+        },
+        {
+          "name": "character_pipe",
+          "type": "RS_MC_CHARACTER_PIPE",
+          "links": []
+        },
+        {
+          "name": "generation_info",
+          "type": "STRING",
+          "links": []
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "RSMultiCharacterProgressiveSampler"
+      },
+      "widgets_values": [
+        "",
+        "worst quality, low quality, bad anatomy, extra limbs, text, watermark",
+        832,
+        1216,
+        0.67,
+        250917,
+        "fixed",
+        15,
+        3.0,
+        "euler_ancestral_cfg_pp",
+        "sgm_uniform",
+        false,
+        "PNG",
+        90,
+        "ComfyUI",
+        false,
+        0.04,
+        0.6,
+        0.1,
+        1.7,
+        0.9,
+        3,
+        0.2,
+        "regional",
+        3.5
+      ]
+    },
+    {
+      "id": 90,
+      "type": "PreviewImage",
+      "pos": [
+        1970,
+        0
+      ],
+      "size": [
+        350,
+        510
+      ],
+      "flags": {},
+      "order": 9,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "images",
+          "type": "IMAGE",
+          "link": 10
+        }
+      ],
+      "outputs": [
+        {
+          "name": "images",
+          "type": "IMAGE",
+          "links": []
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "PreviewImage"
+      },
+      "widgets_values": []
+    }
+  ],
+  "links": [
+    [
+      1,
+      1,
+      0,
+      20,
+      15,
+      "MODEL"
+    ],
+    [
+      2,
+      32,
+      0,
+      20,
+      1,
+      "STRING"
+    ],
+    [
+      3,
+      30,
+      0,
+      12,
+      1,
+      "STRING"
+    ],
+    [
+      4,
+      12,
+      0,
+      20,
+      0,
+      "RS_MC_BUILD_PIPE,RS_MC_CHARACTER_PIPE,NAI_CONTEXT"
+    ],
+    [
+      5,
+      20,
+      0,
+      16,
+      0,
+      "RS_MC_BUILD_PIPE"
+    ],
+    [
+      6,
+      20,
+      3,
+      3,
+      0,
+      "MODEL"
+    ],
+    [
+      7,
+      4,
+      0,
+      3,
+      1,
+      "CLIP"
+    ],
+    [
+      8,
+      5,
+      0,
+      3,
+      2,
+      "VAE"
+    ],
+    [
+      9,
+      16,
+      0,
+      3,
+      3,
+      "RS_MC_CHARACTER_PIPE"
+    ],
+    [
+      10,
+      3,
+      0,
+      90,
+      0,
+      "IMAGE"
+    ]
+  ],
+  "groups": [],
+  "config": {},
+  "extra": {
+    "ds": {
+      "scale": 0.67,
+      "offset": [
+        45,
+        70
+      ]
+    }
+  },
+  "version": 0.4
+}

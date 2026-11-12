@@ -1,5 +1,8 @@
 # RS Camera Control / 공통 카메라 시점
 
+For the Anima 2B node with the RS-CAMERA-CONTROL LoRA, see the
+[setup guide and example workflow](release-1.1.4.md).
+
 Included in version 1.0.5; validated on 2026-10-25.
 
 This node adds view/framing captions to an RS draft/final character pipe or an NAI context. Optional layout sync scales/rotates character regions or projects their common flat plane for azimuth/elevation; it does not move a 3D camera or enforce generated anatomy. Negative prompts, LoRAs and model settings remain attached to the context.

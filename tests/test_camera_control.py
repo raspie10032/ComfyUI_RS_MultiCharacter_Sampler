@@ -2,6 +2,7 @@
 """The camera node is importable without ComfyUI or a GPU."""
 from dataclasses import dataclass, field
 import importlib.util
+import json
 import math
 import sys
 import types
@@ -41,6 +42,26 @@ class SharedContext:
 
 
 class CameraTests(unittest.TestCase):
+    def test_atelier_selects_all_42_training_views_and_shares_composition(self):
+        node = camera.RSAtelierSphereCameraControl()
+        model = object()
+        source = SharedContext()
+        views = json.loads((Path(__file__).resolve().parents[1] / "atelier_camera_views.json").read_text())
+        self.assertEqual(len({row[2] for row in views}), 42)
+        for azimuth, elevation, learned, support in views:
+            with self.subTest(azimuth=azimuth, elevation=elevation):
+                angle = 0 if azimuth is None else (azimuth + 180) % 360 - 180
+                result = node.apply(model, lora_strength=0, azimuth=angle, elevation=elevation, context=source)
+                pipe, prompt, caption, output_model = result["result"]
+                self.assertEqual(caption, f"{learned}, {support}")
+                self.assertEqual(prompt, f"{caption}, {source.prompt}")
+                self.assertEqual(pipe.characters[0].prompt, f"{source.characters[0].prompt}, {support}")
+                self.assertEqual(pipe.text_regions, source.text_regions)
+                self.assertIs(output_model, model)
+        self.assertIn("facing left", node.apply(model, lora_strength=0, azimuth=-90)["result"][2])
+        self.assertIn("facing right", node.apply(model, lora_strength=0, azimuth=90)["result"][2])
+        self.assertEqual(node.apply(model, enabled=False, context=source)["result"], (source, source.prompt, "", model))
+
     def test_building_pipe_name_and_legacy_api_are_equivalent(self):
         node = camera.RSCameraControl()
         fields = node.INPUT_TYPES()['optional']

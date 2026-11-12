@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: GPL-3.0-only
-"""Camera captions shared by the local sampler and NAI nodes; no model patching."""
+"""Shared camera captions and local Atelier Sphere camera conditioning."""
 from dataclasses import dataclass, is_dataclass, replace
 import math
 
@@ -136,7 +136,7 @@ class RSCameraControl:
 
     def apply(self, azimuth=0., elevation=0., distance=.5, roll=0., strength=1.2,
               weighting="weighted", prompt_syntax="ComfyUI", enabled=True, scope="scene_and_characters", context=None, base_prompt=None,
-              random_mode="off", random_seed=0, layout_sync="fixed", canvas_aspect=1., **pipe_inputs):
+              random_mode="off", random_seed=0, layout_sync="fixed", canvas_aspect=1., *, atelier=False, **pipe_inputs):
         # Keep the old context keyword (and positional calls) working. This
         # finalized pipe must not run through the unfinished builder converter.
         pipe = pipe_inputs.pop("building_pipe", None)
@@ -174,12 +174,31 @@ class RSCameraControl:
             azimuth, elevation, distance, roll = (view[k] for k in ("azimuth", "elevation", "distance", "roll"))
         weights = camera_weights(azimuth, elevation, distance, roll, strength)
         camera = camera_caption(weights, syntax, weighting) if enabled else ""
-        prompt = ", ".join(part for part in (scene, camera) if part)
+        use_characters = not deferred and scope == "scene_and_characters"
+        character_syntax = (getattr(context, "character_syntax", None) or syntax) if use_characters else syntax
+        if atelier and enabled and strength:
+            from .atelier_camera import view_captions
+            # The verified orbit runs kept the scene framing at the center stop.
+            framing_weights = {tag: weight for tag, weight in weights.items()
+                               if tag == "dutch angle" or (distance != .5 and tag in DISTANCE_TAGS)}
+            learned, support = view_captions(azimuth, elevation, strength, syntax, weighting)
+            camera = ", ".join(filter(None, (learned, support, camera_caption(framing_weights, syntax, weighting))))
+            character_support = support
+            if character_syntax != syntax:
+                _, character_support = view_captions(azimuth, elevation, strength, character_syntax, weighting)
+            character_caption = ", ".join(filter(None, (character_support,
+                camera_caption(framing_weights, character_syntax, weighting))))
+            prompt = ", ".join(filter(None, (camera, scene)))
+        else:
+            character_caption = camera_caption(weights, character_syntax, weighting) if camera else ""
+            prompt = ", ".join(filter(None, (scene, camera)))
         if deferred:
             options = dict(azimuth=azimuth, elevation=elevation, distance=distance, roll=roll,
                 strength=strength, weighting=weighting, prompt_syntax=prompt_syntax,
                 enabled=enabled, scope=scope, base_prompt=base_prompt,
                 layout_sync=layout_sync, canvas_aspect=canvas_aspect)
+            if atelier:
+                options["atelier"] = True
             output = (context if context is not None else CameraBuildSeed()).rs_defer_camera(options)
             preview = getattr(context, "rs_camera_preview", None)
             regions = preview() if callable(preview) else []
@@ -189,16 +208,14 @@ class RSCameraControl:
                     "camera_values": [{"azimuth": azimuth, "elevation": elevation, "distance": distance, "roll": roll}]},
                     "result": (output, prompt, camera)}
         changes = {"prompt": prompt}
-        if context is not None and camera and scope == "scene_and_characters":
+        if camera and use_characters:
             # Regional sampling can suppress an early common caption. Each
             # character must see the same view, using its own prompt syntax.
-            character_syntax = getattr(context, "character_syntax", None) or syntax
-            caption = camera_caption(weights, character_syntax, weighting)
             characters = []
             for character in context.characters:
                 if not is_dataclass(character) or not isinstance(getattr(character, "prompt", None), str):
                     raise ValueError("Invalid character captions in the shared context. / 컨텍스트의 캐릭터 프롬프트 형식을 확인해 주세요.")
-                characters.append(replace(character, prompt=", ".join(p for p in (character.prompt, caption) if p)))
+                characters.append(replace(character, prompt=", ".join(filter(None, (character.prompt, character_caption)))))
             changes["characters"] = tuple(characters)
         output = replace(context, **changes) if context is not None and (camera or base_prompt is not None) else context
         source_regions = []
@@ -218,3 +235,39 @@ class RSCameraControl:
                        "camera_layout": [{"mode": layout_sync, "aspect": canvas_aspect}],
                        "camera_values": [{"azimuth": azimuth, "elevation": elevation, "distance": distance, "roll": roll}]},
                 "result": (output, prompt, camera)}
+
+
+class RSAtelierSphereCameraControl(RSCameraControl):
+    def __init__(self):
+        self._loader = None
+
+    @classmethod
+    def INPUT_TYPES(cls):
+        fields = super().INPUT_TYPES()
+        fields["required"]["model"] = ("MODEL", {"tooltip": "Connect the Anima 2B MODEL after style LoRAs. / 스타일 LoRA를 적용한 Anima 2B 모델을 연결하세요."})
+        fields["optional"]["lora_strength"] = ("FLOAT", {"default": 1., "min": 0., "max": 2., "step": .05,
+            "tooltip": "At 0, keep camera prompts for an A/B comparison. / 0이면 시점 프롬프트만 적용합니다."})
+        fields["required"]["distance"][1]["tooltip"] = "0.5 keeps scene framing; other values add distance tags. / 0.5는 장면 프레이밍을 따르고 다른 값은 거리 태그를 추가합니다."
+        return fields
+
+    RETURN_TYPES = (*RSCameraControl.RETURN_TYPES, "MODEL")
+    RETURN_NAMES = (*RSCameraControl.RETURN_NAMES, "model")
+    DESCRIPTION = ("Select the nearest of 42 trained views, add its camera tags and composition guidance, "
+                   "and apply RS-CAMERA-CONTROL to Anima 2B. Downloads the LoRA from Hugging Face if missing. / "
+                   "42개 학습 시점의 태그와 구도 보조를 적용합니다. LoRA 파일이 없으면 Hugging Face에서 받습니다.")
+
+    def apply(self, model, lora_strength=1., **kwargs):
+        result = super().apply(atelier=True, **kwargs)
+        if result["result"][2] and lora_strength:
+            from comfy.model_base import Anima
+            from nodes import LoraLoaderModelOnly
+            from .atelier_camera import ensure_atelier_lora
+
+            if not isinstance(model.model, Anima) or len(model.get_model_object("diffusion_model").blocks) != 28:
+                raise ValueError("RS-CAMERA-CONTROL requires Anima 2B. / Anima 2B 모델을 연결해 주세요.")
+            lora_name = ensure_atelier_lora()
+            if self._loader is None:
+                self._loader = LoraLoaderModelOnly()
+            model, = self._loader.load_lora_model_only(model, lora_name, lora_strength)
+        result["result"] = (*result["result"], model)
+        return result
