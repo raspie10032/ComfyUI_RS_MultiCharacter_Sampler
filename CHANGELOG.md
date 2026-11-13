@@ -6,6 +6,7 @@ versions and downloadable assets, see [GitHub Releases](https://github.com/raspi
 
 | Version | Main change | Details |
 | --- | --- | --- |
+| **1.1.6 Hangeul** | Use RS-CAMERA-CONTROL-v2 in the Anima camera node and add the selected view's left/right tag automatically. | [Release notes](docs/release-1.1.6.md) |
 | **1.1.5 Hangeul** | Automatically filter face and gaze tags in rear and rear-diagonal views on the Anima camera node. | [Release notes](docs/release-1.1.5.md) |
 | **1.1.4 Hangeul** | Anima 2B camera-view LoRA with 42 trained views, left/right presets, and automatic Hugging Face download. | [Release notes](docs/release-1.1.4.md) |
 | **1.1.3 Hangeul** | Prompt autocomplete in RS Workspace and graph widgets, reuse enabled external providers, and optional local tag dictionaries. | [Release notes](docs/release-1.1.3.md) |

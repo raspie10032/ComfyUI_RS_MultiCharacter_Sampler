@@ -76,6 +76,6 @@ for node_class in NODE_CLASS_MAPPINGS.values():
     shared_pipe_inputs(node_class)
 
 WEB_DIRECTORY = "./web"
-__version__ = "1.1.5"
+__version__ = "1.1.6"
 
 __all__ = ["NODE_CLASS_MAPPINGS", "NODE_DISPLAY_NAME_MAPPINGS", "WEB_DIRECTORY"]

@@ -182,6 +182,7 @@ class RSCameraControl:
         filter_face = False
         if atelier and enabled and strength:
             from .atelier_camera import filter_rear_prompt, nearest_view, view_captions
+            from .prompt_syntax import filter_prompt_tags
             # The verified orbit runs kept the scene framing at the center stop.
             framing_weights = {tag: weight for tag, weight in weights.items()
                                if tag == "dutch angle" or (distance != .5 and tag in DISTANCE_TAGS)}
@@ -191,7 +192,18 @@ class RSCameraControl:
             if filter_face and scene:
                 scene = filter_rear_prompt(scene, syntax)
             learned, support = view_captions(view, strength, syntax, weighting)
-            camera = ", ".join(filter(None, (learned, support, camera_caption(framing_weights, syntax, weighting))))
+            lateral = view[0][0]
+            side = ""
+            if abs(lateral) > 1e-8:
+                side = "from left" if lateral < 0 else "from right"
+                if scene:
+                    scene = filter_prompt_tags(
+                        scene, syntax,
+                        lambda tag: " ".join(tag.casefold().replace("_", " ").split()) in ("from left", "from right"),
+                    )
+            camera = ", ".join(filter(None, (
+                learned, support, camera_caption(framing_weights, syntax, weighting), side,
+            )))
             character_support = support
             if character_syntax != syntax:
                 _, character_support = view_captions(view, strength, character_syntax, weighting)
@@ -263,10 +275,10 @@ class RSAtelierSphereCameraControl(RSCameraControl):
     RETURN_TYPES = (*RSCameraControl.RETURN_TYPES, "MODEL")
     RETURN_NAMES = (*RSCameraControl.RETURN_NAMES, "model")
     DESCRIPTION = ("Select the nearest of 42 trained views, add its camera tags and composition guidance, "
-                   "and apply RS-CAMERA-CONTROL to Anima 2B. Rear views automatically filter face and gaze tags. "
+                   "and apply RS-CAMERA-CONTROL-v2 to Anima 2B. Rear views automatically filter face and gaze tags. "
                    "Downloads the LoRA from Hugging Face if missing. / "
                    "42개 학습 시점의 태그와 구도 보조를 적용합니다. 뒤쪽 시점에서는 눈·표정·시선 태그를 자동으로 거릅니다. "
-                   "LoRA 파일이 없으면 Hugging Face에서 받습니다.")
+                   "RS-CAMERA-CONTROL-v2 파일이 없으면 Hugging Face에서 받습니다.")
 
     def apply(self, model, lora_strength=1., **kwargs):
         result = super().apply(atelier=True, **kwargs)

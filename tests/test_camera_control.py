@@ -53,7 +53,11 @@ class CameraTests(unittest.TestCase):
                 angle = 0 if azimuth is None else (azimuth + 180) % 360 - 180
                 result = node.apply(model, lora_strength=0, azimuth=angle, elevation=elevation, context=source)
                 pipe, prompt, caption, output_model = result["result"]
-                self.assertEqual(caption, f"{learned}, {support}")
+                expected = f"{learned}, {support}"
+                for side in ("left", "right"):
+                    if f" {side}," in learned:
+                        expected += f", from {side}"
+                self.assertEqual(caption, expected)
                 self.assertEqual(prompt, f"{caption}, {source.prompt}")
                 self.assertEqual(pipe.characters[0].prompt, f"{source.characters[0].prompt}, {support}")
                 self.assertEqual(pipe.text_regions, source.text_regions)
@@ -92,7 +96,8 @@ class CameraTests(unittest.TestCase):
                 )["result"]
                 scene = "glass greenhouse, red watering can" if "'s rear" in learned else source.prompt
                 character = "(long hair:1.35), black apron" if "'s rear" in learned else source.characters[0].prompt
-                self.assertEqual(prompt, f"{learned}, {support}, {scene}")
+                side = next((f"from {side}, " for side in ("left", "right") if f" {side}," in learned), "")
+                self.assertEqual(prompt, f"{learned}, {support}, {side}{scene}")
                 self.assertEqual(pipe.characters[0], Caption(f"{character}, {support}"))
                 self.assertEqual(pipe.negative_prompt, source.negative_prompt)
                 self.assertEqual(pipe.text_regions, source.text_regions)
@@ -113,6 +118,21 @@ class CameraTests(unittest.TestCase):
         for switch in ({"enabled": False}, {"strength": 0}):
             bypassed = node.apply(object(), **options, **switch)["result"][0]
             self.assertIs(bypassed, source)
+
+    def test_atelier_side_tag_matches_the_snapped_view(self):
+        node = camera.RSAtelierSphereCameraControl()
+        _, prompt, caption, _ = node.apply(
+            object(), lora_strength=0, azimuth=-121.717474,
+            base_prompt="from left, (from_right:1.3), alley, blue eyes",
+        )["result"]
+        self.assertTrue(caption.endswith(", from left"))
+        self.assertEqual(prompt, f"{caption}, alley")
+        for azimuth, elevation in ((5, 0), (179, 0), (-90, 90)):
+            _, _, caption, _ = node.apply(
+                object(), lora_strength=0, azimuth=azimuth, elevation=elevation,
+            )["result"]
+            self.assertNotIn("from left", caption)
+            self.assertNotIn("from right", caption)
 
     def test_rear_filter_preserves_novelai_weights_and_other_tags(self):
         node = camera.RSAtelierSphereCameraControl()

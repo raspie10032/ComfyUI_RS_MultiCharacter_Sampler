@@ -1,7 +1,7 @@
 # RS Camera Control / 공통 카메라 시점
 
-For the Anima 2B node with the RS-CAMERA-CONTROL LoRA, see the
-[setup guide and example workflow](release-1.1.4.md).
+For the Anima 2B node with RS-CAMERA-CONTROL-v2, see the
+[setup guide and example workflow](release-1.1.6.md).
 
 When the Anima LoRA node selects a rear or rear-diagonal training view, it
 automatically drops standalone eye, expression and gaze tags from the positive
