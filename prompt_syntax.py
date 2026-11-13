@@ -4,6 +4,7 @@
 import re
 import math
 import logging
+from decimal import Decimal
 notice = logging.getLogger(__name__).warning
 
 # ---------------------------------------------------------------------------
@@ -235,3 +236,36 @@ def parse_naiv4(text):
             tags.append((content, weight))
 
     return tags
+
+
+def filter_prompt_tags(text, syntax, remove):
+    """Drop matching comma-delimited tags while retaining other conditioning."""
+    if syntax == "NovelAI":
+        tags = parse_naiv4(text)
+        kept = [(tag, weight) for tag, weight in tags if not remove(tag)]
+        if kept == tags:
+            return text
+        return _restore_artist(", ".join(
+            tag if weight == 1 else f"{Decimal(str(weight)):f}::{tag} ::"
+            for tag, weight in kept if tag
+        ))
+
+    def filter_comfy(part):
+        segment = part.strip()
+        if segment.startswith("(") and _matches_outer_paren(segment):
+            inner = segment[1:-1]
+            token, body = _trailing_weight(inner)
+            if token is None or _strict_float(token) is not None:
+                trimmed = filter_prompt_tags(body, syntax, remove)
+                if trimmed != body:
+                    if not trimmed:
+                        return None
+                    start = part.index("(") + 1
+                    end = inner.rfind(":") if token is not None else len(inner)
+                    return part[:start] + trimmed + part[start + end:]
+        tag = _eval_comfy_segment(_guard_artist(part))
+        return None if tag is not None and remove(tag[0]) else part
+
+    parts = _split_top_level(text)
+    kept = [part for original in parts if (part := filter_comfy(original)) is not None]
+    return text if kept == parts else ",".join(part for part in kept if part.strip()).strip()

@@ -77,6 +77,63 @@ class CameraTests(unittest.TestCase):
         with self.assertRaises(TypeError):
             node.apply(unexpected_pipe=source)
 
+    def test_rear_filter_follows_the_selected_training_view(self):
+        node = camera.RSAtelierSphereCameraControl()
+        source = SharedContext(
+            prompt="glass greenhouse, (looking at viewer:1.3), red watering can",
+            characters=(Caption("((blue_eyes:1.2), long hair:1.35), fang, black apron"),),
+        )
+        views = json.loads((Path(__file__).resolve().parents[1] / "atelier_camera_views.json").read_text())
+        for azimuth, elevation, learned, support in views:
+            with self.subTest(azimuth=azimuth, elevation=elevation):
+                angle = 0 if azimuth is None else (azimuth + 180) % 360 - 180
+                pipe, prompt, _, _ = node.apply(
+                    object(), lora_strength=0, context=source, azimuth=angle, elevation=elevation,
+                )["result"]
+                scene = "glass greenhouse, red watering can" if "'s rear" in learned else source.prompt
+                character = "(long hair:1.35), black apron" if "'s rear" in learned else source.characters[0].prompt
+                self.assertEqual(prompt, f"{learned}, {support}, {scene}")
+                self.assertEqual(pipe.characters[0], Caption(f"{character}, {support}"))
+                self.assertEqual(pipe.negative_prompt, source.negative_prompt)
+                self.assertEqual(pipe.text_regions, source.text_regions)
+
+    def test_rear_filter_respects_scopes_and_bypass(self):
+        node = camera.RSAtelierSphereCameraControl()
+        source = SharedContext(prompt="studio, blue eyes", characters=(Caption("smile, brown hair"),))
+        options = dict(lora_strength=0, context=source, azimuth=180)
+        self.assertNotIn("filter_rear_face_tags", node.INPUT_TYPES()["optional"])
+        filtered = node.apply(object(), **options)["result"][0]
+        self.assertNotIn("blue eyes", filtered.prompt)
+        self.assertNotIn("smile", filtered.characters[0].prompt)
+        legacy = node.apply(object(), **options, filter_rear_face_tags=False)["result"][0]
+        self.assertEqual(legacy, filtered)
+        scene_only = node.apply(object(), **options, scope="scene_only")["result"][0]
+        self.assertNotIn("blue eyes", scene_only.prompt)
+        self.assertIs(scene_only.characters, source.characters)
+        for switch in ({"enabled": False}, {"strength": 0}):
+            bypassed = node.apply(object(), **options, **switch)["result"][0]
+            self.assertIs(bypassed, source)
+
+    def test_rear_filter_preserves_novelai_weights_and_other_tags(self):
+        node = camera.RSAtelierSphereCameraControl()
+        source = SharedContext(character_syntax="NovelAI", characters=(Caption(
+            "1.123456::blue eyes, long hair, smile ::, open jacket, eye patch, a sign reading blue eyes"
+        ),))
+        pipe = node.apply(object(), context=source, azimuth=180, lora_strength=0)["result"][0]
+        self.assertEqual(pipe.characters[0].prompt,
+            "1.123456::long hair ::, open jacket, eye patch, a sign reading blue eyes, "
+            "1.5::from behind::, 1.4::back view::, facing away")
+
+    def test_rear_filter_handles_tags_only_and_keeps_literal_parentheses(self):
+        node = camera.RSAtelierSphereCameraControl()
+        source = SharedContext(prompt="(smile, blue eyes:1.4), (wink)",
+                               characters=(Caption(r"artist:name, character \(series\), (fang)"),))
+        pipe, prompt, caption, _ = node.apply(object(), context=source, azimuth=180,
+                                             lora_strength=0)["result"]
+        self.assertEqual(prompt, caption)
+        self.assertEqual(pipe.characters[0].prompt,
+                         r"artist:name, character \(series\), (from behind:1.5), (back view:1.4), facing away")
+
     def test_random_reproducible_and_respects_ranges(self):
         for mode, bounds in camera.RANDOM_RANGES.items():
             for seed in range(1000):

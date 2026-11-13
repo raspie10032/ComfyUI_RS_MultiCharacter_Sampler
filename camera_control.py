@@ -140,6 +140,9 @@ class RSCameraControl:
         # Keep the old context keyword (and positional calls) working. This
         # finalized pipe must not run through the unfinished builder converter.
         pipe = pipe_inputs.pop("building_pipe", None)
+        # Older workflows may still send the retired toggle.
+        if atelier:
+            pipe_inputs.pop("filter_rear_face_tags", None)
         if pipe_inputs:
             raise TypeError(f"Unexpected camera inputs: {', '.join(pipe_inputs)}")
         if pipe is not None:
@@ -176,16 +179,22 @@ class RSCameraControl:
         camera = camera_caption(weights, syntax, weighting) if enabled else ""
         use_characters = not deferred and scope == "scene_and_characters"
         character_syntax = (getattr(context, "character_syntax", None) or syntax) if use_characters else syntax
+        filter_face = False
         if atelier and enabled and strength:
-            from .atelier_camera import view_captions
+            from .atelier_camera import filter_rear_prompt, nearest_view, view_captions
             # The verified orbit runs kept the scene framing at the center stop.
             framing_weights = {tag: weight for tag, weight in weights.items()
                                if tag == "dutch angle" or (distance != .5 and tag in DISTANCE_TAGS)}
-            learned, support = view_captions(azimuth, elevation, strength, syntax, weighting)
+            view = nearest_view(azimuth, elevation)
+            # The front axis is Z. True side views and the poles have Z ≈ 0.
+            filter_face = view[0][2] < -1e-8
+            if filter_face and scene:
+                scene = filter_rear_prompt(scene, syntax)
+            learned, support = view_captions(view, strength, syntax, weighting)
             camera = ", ".join(filter(None, (learned, support, camera_caption(framing_weights, syntax, weighting))))
             character_support = support
             if character_syntax != syntax:
-                _, character_support = view_captions(azimuth, elevation, strength, character_syntax, weighting)
+                _, character_support = view_captions(view, strength, character_syntax, weighting)
             character_caption = ", ".join(filter(None, (character_support,
                 camera_caption(framing_weights, character_syntax, weighting))))
             prompt = ", ".join(filter(None, (camera, scene)))
@@ -215,7 +224,8 @@ class RSCameraControl:
             for character in context.characters:
                 if not is_dataclass(character) or not isinstance(getattr(character, "prompt", None), str):
                     raise ValueError("Invalid character captions in the shared context. / 컨텍스트의 캐릭터 프롬프트 형식을 확인해 주세요.")
-                characters.append(replace(character, prompt=", ".join(filter(None, (character.prompt, character_caption)))))
+                caption = filter_rear_prompt(character.prompt, character_syntax) if filter_face else character.prompt
+                characters.append(replace(character, prompt=", ".join(filter(None, (caption, character_caption)))))
             changes["characters"] = tuple(characters)
         output = replace(context, **changes) if context is not None and (camera or base_prompt is not None) else context
         source_regions = []
@@ -253,8 +263,10 @@ class RSAtelierSphereCameraControl(RSCameraControl):
     RETURN_TYPES = (*RSCameraControl.RETURN_TYPES, "MODEL")
     RETURN_NAMES = (*RSCameraControl.RETURN_NAMES, "model")
     DESCRIPTION = ("Select the nearest of 42 trained views, add its camera tags and composition guidance, "
-                   "and apply RS-CAMERA-CONTROL to Anima 2B. Downloads the LoRA from Hugging Face if missing. / "
-                   "42개 학습 시점의 태그와 구도 보조를 적용합니다. LoRA 파일이 없으면 Hugging Face에서 받습니다.")
+                   "and apply RS-CAMERA-CONTROL to Anima 2B. Rear views automatically filter face and gaze tags. "
+                   "Downloads the LoRA from Hugging Face if missing. / "
+                   "42개 학습 시점의 태그와 구도 보조를 적용합니다. 뒤쪽 시점에서는 눈·표정·시선 태그를 자동으로 거릅니다. "
+                   "LoRA 파일이 없으면 Hugging Face에서 받습니다.")
 
     def apply(self, model, lora_strength=1., **kwargs):
         result = super().apply(atelier=True, **kwargs)

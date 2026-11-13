@@ -3,6 +3,15 @@
 For the Anima 2B node with the RS-CAMERA-CONTROL LoRA, see the
 [setup guide and example workflow](release-1.1.4.md).
 
+When the Anima LoRA node selects a rear or rear-diagonal training view, it
+automatically drops standalone eye, expression and gaze tags from the positive
+prompts in the selected scene/character scope. Expand wildcards upstream so
+their tags are available to the filter.
+
+Anima LoRA 노드는 후면과 뒤쪽 대각선을 선택하면 눈 색·동공·표정·시선
+같은 단독 태그를 자동으로 거릅니다. 노드의 장면·캐릭터 적용 범위에
+따라 동작합니다. 와일드카드의 태그도 거르려면 카메라 노드 앞에서 펼치세요.
+
 Included in version 1.0.5; validated on 2026-10-25.
 
 This node adds view/framing captions to an RS draft/final character pipe or an NAI context. Optional layout sync scales/rotates character regions or projects their common flat plane for azimuth/elevation; it does not move a 3D camera or enforce generated anatomy. Negative prompts, LoRAs and model settings remain attached to the context.
