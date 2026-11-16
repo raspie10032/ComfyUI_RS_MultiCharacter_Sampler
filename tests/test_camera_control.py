@@ -8,6 +8,7 @@ import sys
 import types
 from pathlib import Path
 import unittest
+from unittest.mock import Mock, patch
 
 parent = types.ModuleType("_rs_camera_unit")
 parent.__path__ = [str(Path(__file__).resolve().parents[1])]
@@ -42,11 +43,55 @@ class SharedContext:
 
 
 class CameraTests(unittest.TestCase):
+    def test_atelier_selects_adapter_from_input_model(self):
+        from _rs_camera_unit import atelier_camera, moss_camera
+
+        class Anima:
+            pass
+
+        class MOSSImage:
+            pass
+
+        node = camera.RSAtelierSphereCameraControl()
+        output_model = object()
+        node._loader = Mock()
+        node._loader.load_lora_model_only.return_value = (output_model,)
+        comfy = types.SimpleNamespace(model_base=types.SimpleNamespace(Anima=Anima, MOSSImage=MOSSImage))
+        source = SharedContext()
+        moss = types.SimpleNamespace(model=MOSSImage())
+        anima = types.SimpleNamespace(model=Anima(), get_model_object=lambda _: types.SimpleNamespace(blocks=range(28)))
+        token = Mock()
+        other_token = object()
+        view_id = atelier_camera.nearest_view_index(-110.905157, 30)
+
+        with (patch.dict(sys.modules, {"comfy": comfy, "nodes": types.SimpleNamespace(LoraLoaderModelOnly=Mock())}),
+              patch.object(moss_camera, "moss_lora", return_value=moss_camera.MOSS_LORA),
+              patch.object(moss_camera, "moss_tokens", return_value={view_id: token}) as tokens,
+              patch.object(token, "clone", return_value=other_token),
+              patch.object(moss_camera, "install_moss_camera") as install_moss,
+              patch.object(atelier_camera, "ensure_atelier_lora", return_value=atelier_camera.ATELIER_LORA) as ensure_anima):
+            pipe, prompt, _, model = node.apply(moss, building_pipe=source, azimuth=-110.905157, elevation=30)["result"]
+            self.assertTrue(prompt.startswith("from left, camera on the character's rear left, high camera angle, Rear three-quarter view"))
+            self.assertTrue(pipe.characters[0].prompt.startswith("from left, "))
+            self.assertEqual(pipe.negative_prompt, source.negative_prompt)
+            self.assertEqual(pipe.text_regions, source.text_regions)
+            self.assertIs(model, output_model)
+            node._loader.load_lora_model_only.assert_called_once_with(moss, moss_camera.MOSS_LORA, 1.)
+            install_moss.assert_called_once_with(output_model, other_token, "scene_and_characters")
+            ensure_anima.assert_not_called()
+
+            self.assertIs(node.apply(moss, lora_strength=0, azimuth=-90)["result"][3], moss)
+            tokens.assert_called_once_with()
+            node.apply(anima, azimuth=-90)
+            node._loader.load_lora_model_only.assert_called_with(anima, atelier_camera.ATELIER_LORA, 1.)
+            ensure_anima.assert_called_once_with()
+            install_moss.assert_called_once()
+
     def test_atelier_selects_all_42_training_views_and_shares_composition(self):
         node = camera.RSAtelierSphereCameraControl()
         model = object()
         source = SharedContext()
-        views = json.loads((Path(__file__).resolve().parents[1] / "atelier_camera_views.json").read_text())
+        views = json.loads((Path(__file__).resolve().parents[1] / "web" / "atelier_camera_views.json").read_text())
         self.assertEqual(len({row[2] for row in views}), 42)
         for azimuth, elevation, learned, support in views:
             with self.subTest(azimuth=azimuth, elevation=elevation):
@@ -87,7 +132,7 @@ class CameraTests(unittest.TestCase):
             prompt="glass greenhouse, (looking at viewer:1.3), red watering can",
             characters=(Caption("((blue_eyes:1.2), long hair:1.35), fang, black apron"),),
         )
-        views = json.loads((Path(__file__).resolve().parents[1] / "atelier_camera_views.json").read_text())
+        views = json.loads((Path(__file__).resolve().parents[1] / "web" / "atelier_camera_views.json").read_text())
         for azimuth, elevation, learned, support in views:
             with self.subTest(azimuth=azimuth, elevation=elevation):
                 angle = 0 if azimuth is None else (azimuth + 180) % 360 - 180

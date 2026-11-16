@@ -1,14 +1,28 @@
 # RS Camera Control / 공통 카메라 시점
 
-For the Anima 2B node with RS-CAMERA-CONTROL-v2, see the
-[setup guide and example workflow](release-1.1.6.md).
+**RS Camera Control · RS-CAMERA-CONTROL** detects the connected MODEL.
+Anima 2B uses RS-CAMERA-CONTROL-v2. MOSS-Image uses the epoch-5 LoRA, its
+learned camera token and the caption for the nearest of the 42 trained views.
+The node downloads the selected weights on first use. For MOSS with a standard
+KSampler, connect the camera MODEL output to the sampler and its `prompt` output
+to positive CLIP Text Encode with the `moss_image` encoder. For the RS sampler,
+connect the camera MODEL and the finalized building pipe.
+[3D Orbit guide and wiring](release-1.1.7.md) ·
+[Anima setup and workflow](release-1.1.6.md) ·
+[MOSS weights and validation](https://huggingface.co/raspie/RS-CAMERA-CONTROL-MOSS)
 
-When the Anima LoRA node selects a rear or rear-diagonal training view, it
+**RS Camera Control · RS-CAMERA-CONTROL**은 입력 MODEL을 보고 자동으로 선택합니다.
+Anima 2B에는 v2 LoRA를, MOSS-Image에는 5에포크 LoRA와 가장 가까운 학습 방향의
+캡션·토큰을 적용합니다. 파일은 처음 사용할 때 자동으로 받습니다. 일반 KSampler에서는
+노드의 MODEL을 샘플러에, `prompt`를 `moss_image` 인코더의 양성 CLIP Text Encode에
+연결하세요. RS 샘플러에는 카메라 MODEL과 Finalize를 거친 파이프를 연결하세요.
+
+When the LoRA camera node selects a rear or rear-diagonal training view, it
 automatically drops standalone eye, expression and gaze tags from the positive
 prompts in the selected scene/character scope. Expand wildcards upstream so
 their tags are available to the filter.
 
-Anima LoRA 노드는 후면과 뒤쪽 대각선을 선택하면 눈 색·동공·표정·시선
+LoRA 카메라 노드는 후면과 뒤쪽 대각선을 선택하면 눈 색·동공·표정·시선
 같은 단독 태그를 자동으로 거릅니다. 노드의 장면·캐릭터 적용 범위에
 따라 동작합니다. 와일드카드의 태그도 거르려면 카메라 노드 앞에서 펼치세요.
 

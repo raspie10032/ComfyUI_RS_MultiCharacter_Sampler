@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: GPL-3.0-only
-"""Match RS-CAMERA-CONTROL-v2's 42 training views."""
+"""Shared 42 training views and camera asset downloads."""
 import json
 import math
 from pathlib import Path
@@ -18,10 +18,14 @@ ATELIER_LORA_SHA256 = "8a76802375ed798030c20fa0acf4ce0fbc80f28aec5b008e4816626f8
 
 
 def ensure_atelier_lora():
+    return ensure_camera_asset(ATELIER_LORA, ATELIER_LORA_URL, ATELIER_LORA_SIZE, ATELIER_LORA_SHA256)
+
+
+def ensure_camera_asset(name, url, size, sha256):
     import folder_paths
 
-    if folder_paths.get_full_path("loras", ATELIER_LORA):
-        return ATELIER_LORA
+    if folder_paths.get_full_path("loras", name):
+        return name
 
     import hashlib
     import logging
@@ -30,34 +34,34 @@ def ensure_atelier_lora():
 
     from .runtime_control import check_interrupted
 
-    target = Path(folder_paths.get_folder_paths("loras")[0]) / ATELIER_LORA
+    target = Path(folder_paths.get_folder_paths("loras")[0]) / name
     temporary = None
     try:
         check_interrupted()
         target.parent.mkdir(parents=True, exist_ok=True)
-        logging.info("RS Camera Control: downloading RS-CAMERA-CONTROL-v2 (33.2 MiB)")
+        logging.info("RS Camera Control: downloading %s", target.name)
         digest, received = hashlib.sha256(), 0
         with NamedTemporaryFile(dir=target.parent, prefix=".atelier-", suffix=".part", delete=False) as output:
             temporary = Path(output.name)
-            with urlopen(ATELIER_LORA_URL, timeout=30) as response:
+            with urlopen(url, timeout=30) as response:
                 while chunk := response.read(256 * 1024):
                     check_interrupted()
                     received += len(chunk)
-                    if received > ATELIER_LORA_SIZE:
-                        raise ValueError("Unexpected RS-CAMERA-CONTROL-v2 file size")
+                    if received > size:
+                        raise ValueError("Unexpected file size")
                     digest.update(chunk)
                     output.write(chunk)
         check_interrupted()
-        if received != ATELIER_LORA_SIZE or digest.hexdigest() != ATELIER_LORA_SHA256:
-            raise ValueError("RS-CAMERA-CONTROL-v2 download failed SHA-256 verification")
-        if not folder_paths.get_full_path("loras", ATELIER_LORA):
+        if received != size or digest.hexdigest() != sha256:
+            raise ValueError("Download failed SHA-256 verification")
+        if not folder_paths.get_full_path("loras", name):
             temporary.replace(target)
             folder_paths.filename_list_cache.pop("loras", None)
-        return ATELIER_LORA
+        return name
     except (OSError, ValueError) as error:
         raise RuntimeError(
-            f"Could not install RS-CAMERA-CONTROL-v2 from Hugging Face ({error}). "
-            f"Check the connection and retry, or place the LoRA in models/loras/{ATELIER_LORA}."
+            f"Could not install {target.name} from Hugging Face ({error}). "
+            f"Check the connection and retry, or place the file in models/loras/{name}."
         ) from error
     finally:
         if temporary is not None:
@@ -72,13 +76,19 @@ def direction(azimuth, elevation):
 
 VIEWS = tuple(
     (direction(azimuth or 0., elevation), tags, support)
-    for azimuth, elevation, tags, support in json.loads(Path(__file__).with_name("atelier_camera_views.json").read_text())
+    for azimuth, elevation, tags, support in json.loads(
+        Path(__file__).with_name("web").joinpath("atelier_camera_views.json").read_text()
+    )
 )
 
 
 def nearest_view(azimuth, elevation):
+    return VIEWS[nearest_view_index(azimuth, elevation)]
+
+
+def nearest_view_index(azimuth, elevation):
     requested = direction(azimuth, elevation)
-    return max(VIEWS, key=lambda view: sum(a*b for a, b in zip(requested, view[0])))
+    return max(range(len(VIEWS)), key=lambda i: sum(a*b for a, b in zip(requested, VIEWS[i][0])))
 
 
 def view_captions(view, strength, syntax, weighting):

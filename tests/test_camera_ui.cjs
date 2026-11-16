@@ -1,13 +1,19 @@
 // SPDX-License-Identifier: GPL-3.0-only
 const fs=require('fs'),vm=require('vm'),assert=require('node:assert/strict'),cp=require('child_process');
-const source=fs.readFileSync('web/camera_control.js','utf8').replace(/^import[^\n]*\n/gm,'').replaceAll('export function','function');
+const source=fs.readFileSync('web/camera_control.js','utf8').replace(/^import[^\n]*\n/gm,'').replaceAll('export function','function')
+ .replaceAll('import.meta.url', "'http://localhost/extensions/sampler/camera_control.js'");
 let locale='en';
 const extensions={};
 const app={extensionManager:{setting:{get:()=>locale}},registerExtension:e=>extensions[e.name]=e};
 const drawnText=[];
 const context2d=new Proxy({fillText(s){drawnText.push(s);}}, {get:(obj,name)=>obj[name] ?? (()=>{}),set:(obj,name,value)=>(obj[name]=value,true)});
-const element=()=>({style:{},children:[],listeners:{},append(...items){this.children.push(...items);},setAttribute(){},addEventListener(name,fn){this.listeners[name]=fn;},getContext(){return context2d;},setPointerCapture(){},focus(){},getBoundingClientRect(){return {left:10,top:20,width:320,height:175};}});
-const sandbox={app,document:{createElement:element},console,atob:s=>Buffer.from(s,'base64').toString('binary')};
+const element=()=>({style:{},children:[],listeners:{},attributes:{},append(...items){this.children.push(...items);},setAttribute(name,value){this.attributes[name]=value;},addEventListener(name,fn){this.listeners[name]=fn;},getContext(){return context2d;},setPointerCapture(id){this.captured=id;},hasPointerCapture(id){return this.captured===id;},releasePointerCapture(){this.captured=undefined;},focus(){},getBoundingClientRect(){return {left:10,top:20,width:320,height:175};}});
+const trainedRows=JSON.parse(fs.readFileSync('web/atelier_camera_views.json','utf8'));
+const sandbox={app,document:{createElement:element},console,URL,atob:s=>Buffer.from(s,'base64').toString('binary'),
+ fetch:async url=>{
+  assert.equal(url.pathname,'/extensions/sampler/atelier_camera_views.json');
+  return {ok:true,json:async()=>trainedRows};
+ }};
 vm.runInNewContext(source,sandbox);
 const coordinates=[];
 for(let i=0;i<301;i++) coordinates.push({azimuth:-180+360*i/300,elevation:-90+180*(i%37)/36,distance:(i%61)/60,roll:-45+90*(i%17)/16,strength:5*(i%13)/12});
@@ -76,14 +82,33 @@ class Node{
  class AtelierNode extends Node {}
  await extensions['RS.AtelierSphereCameraControl'].beforeRegisterNodeDef(AtelierNode,{name:'RSAtelierSphereCameraControl'});
  const atelier=new AtelierNode();atelier.onNodeCreated();
- const [atelierToolbar,,,atelierCaption]=atelier.rsCameraEditor.root.children;
+ const [atelierModes,atelierToolbar,,,atelierCaption]=atelier.rsCameraEditor.root.children;
+ const trainedViews=await sandbox.loadAtelierViews();
+ const viewPoints=trainedRows.map(([azimuth,elevation])=>({azimuth:azimuth??0,elevation}));
+ const viewProbes=[...viewPoints,...coordinates.map((v,i)=>({azimuth:v.azimuth+(i%7)*.017,elevation:v.elevation}))];
+ const trainedPython=cp.spawnSync(process.env.CAMERA_PYTHON||'python',['-c',`
+import json, sys, types
+from pathlib import Path
+root = types.ModuleType("rs_camera")
+root.__path__ = [str(Path.cwd())]
+sys.modules[root.__name__] = root
+from rs_camera.atelier_camera import nearest_view
+print(json.dumps([nearest_view(**v)[1] for v in json.load(sys.stdin)]))
+`],{input:JSON.stringify(viewProbes),encoding:'utf8'});
+ assert.equal(trainedPython.status,0,trainedPython.stderr);
+ assert.deepEqual(viewProbes.map(v=>sandbox.nearestAtelierView(trainedViews,v).tags),JSON.parse(trainedPython.stdout));
  atelierToolbar.children.find(w=>w.textContent==='Face left').onclick();
  assert.equal(atelier.widgets.find(w=>w.name==='azimuth').value,-90);
  atelierToolbar.children.find(w=>w.textContent==='Face right').onclick();
  assert.equal(atelier.widgets.find(w=>w.name==='azimuth').value,90);
- assert.match(atelierCaption.textContent,/nearest trained view/);
- atelier.onExecuted({camera_caption:['facing right']});
- assert.equal(atelierCaption.textContent,'facing right');
+ assert.match(atelierCaption.textContent,/LoRA trained view · 90.0° \/ 0.0°/);
+ const preview=atelierCaption.textContent;
+ atelierModes.children[1].onclick();
+ assert.equal(atelierCaption.textContent,preview);
+ const trainedTag=sandbox.nearestAtelierView(trainedViews,{azimuth:90,elevation:0}).tags;
+ atelier.onExecuted({camera_caption:[trainedTag+', backend tags'],camera_values:[{azimuth:90,elevation:0}]});
+ atelierModes.children[0].onclick();
+ assert.equal(atelierCaption.textContent,preview+', backend tags');
 
  await extension.beforeRegisterNodeDef(Node,{name:'RSCameraControl'});
  const defs={name:'RSCameraControl',input:{optional:{building_pipe:['RS_MC_CHARACTER_PIPE,NAI_CONTEXT'],context:['RS_MC_CHARACTER_PIPE,NAI_CONTEXT']}}};
@@ -102,7 +127,9 @@ class Node{
  assert.equal(node.onConfigure(),'configured');assert.equal(node.inputs[1].name,'building_pipe');
  const editor=node.rsCameraEditor,custom=node.widgets.at(-1);
  assert.equal(custom.serialize,false);assert.equal(custom.options.serialize,false);
- const [toolbar,canvas,notice,output,layoutNotice,layoutCanvas]=editor.root.children;
+ const [modes,toolbar,canvas,notice,output,layoutNotice,layoutCanvas]=editor.root.children;
+ const [dials,orbit]=modes.children;
+ assert.equal(dials.attributes['aria-pressed'],'true');
  const value=name=>node.widgets.find(w=>w.name===name).value;
  const before=node.widgets.filter(w=>w.serialize!==false).map(w=>[w.name,w.value]);
  sandbox.setCameraValues(node,{prompt_syntax:'NovelAI'});assert.match(output.textContent,/::from front::/);
@@ -144,7 +171,7 @@ class Node{
  canvas.onpointercancel(event(556,64));const cancelled=value('azimuth');
  canvas.onpointermove(event(64,164));assert.equal(value('azimuth'),cancelled);
  canvas.onpointerdown(event(556,164));canvas.onpointermove(event(400,64));assert.equal(value('elevation'),90);
- canvas.onlostpointercapture();canvas.onpointermove(event(456,264));assert.equal(value('elevation'),90);
+ canvas.onlostpointercapture(event(400,64));canvas.onpointermove(event(456,264));assert.equal(value('elevation'),90);
  canvas.onpointerdown({...event(64,164),button:2});assert.equal(value('azimuth'),cancelled);
  // Preserve the linked axis and keep the other diagram usable.
  node.inputs=[{name:'azimuth',link:1}];click(64,164);assert.equal(value('azimuth'),cancelled);
@@ -166,6 +193,33 @@ class Node{
  node.widgets.find(w=>w.name==='random_mode').value='full';toolbar.children.at(-2).onclick();assert.equal(value('random_mode'),'full');
  node.onExecuted({camera_caption:['random server caption'],camera_values:[{azimuth:10,elevation:20,distance:.3,roll:2}]});
  assert.equal(output.textContent,'random server caption');
+ const beforeOrbit=node.widgets.map(w=>w.value);
+ orbit.onclick();
+ assert.equal(orbit.attributes['aria-pressed'],'true');
+ assert.equal(output.textContent,'random server caption');
+ assert.deepEqual(node.widgets.map(w=>w.value),beforeOrbit);
+ click(300,160);assert.equal(value('random_mode'),'full');
+ canvas.onpointerdown(event(300,160));
+ canvas.onpointermove(event(400,140,2));assert.equal(value('random_mode'),'full');
+ canvas.onpointermove(event(400,140));
+ assert.equal(value('random_mode'),'off');
+ assert.deepEqual(['azimuth','elevation','distance','roll'].map(value),[75,33,.3,2]);
+ canvas.onpointerup(event(400,140));
+ sandbox.setCameraValues(node,{azimuth:175,elevation:80});
+ canvas.onpointerdown(event(300,160));canvas.onpointermove(event(320,100));
+ assert.equal(value('azimuth'),-172);assert.equal(value('elevation'),90);
+ canvas.onpointermove(event(320,120));assert.equal(value('elevation'),77);
+ dials.onclick();assert.equal(canvas.captured,undefined);
+ canvas.onpointermove(event(340,140));assert.equal(value('azimuth'),-172);
+ assert.equal(value('elevation'),77);assert.equal(dials.attributes['aria-pressed'],'true');
+ node.properties.rs_camera_control_mode='orbit';
+ node.onConfigure();assert.equal(orbit.attributes['aria-pressed'],'true');
+ node.inputs=[{name:'azimuth',link:1}];node.onConnectionsChange();
+ node.onExecuted({camera_values:[{azimuth:90,elevation:0,distance:.3,roll:2}]});
+ canvas.onpointerdown(event(300,160));canvas.onpointermove(event(340,140));canvas.onpointercancel(event(340,140));
+ assert.equal(value('azimuth'),-172);assert.equal(value('elevation'),13);
+ assert.ok(drawnText.some(s=>s.includes('(90° / 13°)')));
+ node.inputs=[];node.onConnectionsChange();dials.onclick();
  toolbar.children.at(-1).onclick();assert.equal(value('random_mode'),'off');
  node.onExecuted({camera_regions:[[{id:1,x:.3,y:.5,mask:{width:2,height:2,bits:'wA=='}},{id:2,x:.7,y:.5,box:[.5,.2,.8,.8]},{id:3,x:.5,y:.1,kind:'text',box:[.1,0,.9,.2]}]],camera_layout:[{mode:'distance_and_roll',aspect:1.5}]});
  assert.match(layoutNotice.textContent,/distance|거리|距離|距离/);assert.equal(layoutCanvas.height,427);
@@ -175,5 +229,5 @@ class Node{
  sandbox.setCameraValues(node,{enabled:false});editor.render();
  assert.equal(node.onConfigure(),'configured');
  vm.runInNewContext(source,{app,document:{createElement:element},console});
- console.log('Camera: 301 Python/JS curve matches; localized editor, drag/wheel/keyboard, linked controls, reset and serialization passed');
+ console.log('Camera: Python/JS curve and trained-view parity, dial/orbit interaction, linked controls and serialization passed');
 })().catch(error=>{console.error(error);process.exitCode=1;});

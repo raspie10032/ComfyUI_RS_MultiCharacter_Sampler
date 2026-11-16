@@ -2,7 +2,7 @@
 const fs=require('fs'),vm=require('vm'),assert=require('node:assert/strict'),cp=require('node:child_process');
 const strip=s=>s.replace(/^import[^\n]*\n/gm,'').replaceAll('export function','function');
 const camera={app:{registerExtension(){}}};
-vm.runInNewContext(strip(fs.readFileSync('web/camera_control.js','utf8')),camera);
+vm.runInNewContext(strip(fs.readFileSync('web/camera_control.js','utf8')).replaceAll('import.meta.url', 'undefined'),camera);
 const region={projectLayout:camera.projectLayout,randomCamera:camera.randomCamera};
 vm.runInNewContext(strip(fs.readFileSync('web/camera_regions.js','utf8')),region);
 const plain=x=>JSON.parse(JSON.stringify(x));

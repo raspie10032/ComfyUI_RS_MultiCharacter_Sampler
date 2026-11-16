@@ -6,7 +6,8 @@ const previewSandbox={app:{},api:{apiURL:s=>s},URLSearchParams};
 vm.runInNewContext(require("./ui_source.cjs")('web/mask_preview.js').replace(/^import[^\n]*\n/gm,'').replaceAll('export function','function'),previewSandbox);
 sandbox.placedSupport=previewSandbox.placedSupport;
 const cameraSandbox={app:{registerExtension(){}}};
-vm.runInNewContext(fs.readFileSync('web/camera_control.js','utf8').replace(/^import[^\n]*\n/gm,'').replaceAll('export function','function'),cameraSandbox);
+vm.runInNewContext(fs.readFileSync('web/camera_control.js','utf8').replace(/^import[^\n]*\n/gm,'').replaceAll('export function','function')
+ .replaceAll('import.meta.url', 'undefined'),cameraSandbox);
 const regionSandbox={projectLayout:cameraSandbox.projectLayout,randomCamera:cameraSandbox.randomCamera};
 vm.runInNewContext(fs.readFileSync('web/camera_regions.js','utf8').replace(/^import[^\n]*\n/gm,'').replaceAll('export function','function'),regionSandbox);
 sandbox.cameraSlots=regionSandbox.cameraSlots;

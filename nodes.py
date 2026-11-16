@@ -311,6 +311,13 @@ class RSMultiCharacterSampler:
         conditions = [encode(text_region_caption(c, convert, family not in ("Krea2", "MOSS", "FLUX1", "FLUX2", "FLUX3")), converted=True)[0]
                       if isinstance(c, TextRegion) else encode(c.prompt, encoder=loras.clips[i] if loras else clip, reference_slot=i)[0]
                       for i, c in enumerate(pipe.regions)] if native_prompt is None else []
+        if family == "MOSS" and native_prompt is None:
+            from .moss_camera import MOSS_CAMERA_WRAPPER, prepend_moss_camera
+
+            token = model.model_options.get(MOSS_CAMERA_WRAPPER)
+            if token is not None:
+                conditions = [[prepend_moss_camera(text, token), meta] if not isinstance(region, TextRegion)
+                              else [text, meta] for (text, meta), region in zip(conditions, pipe.regions, strict=True)]
         audit = {"layout_method": layout_method, "negative_policy": "regional" if any(c.uc.strip() for c in pipe.regions) else "common",
                  "effective_negative_prompt": negative_prompt,
                  "region_geometry": "masks" if all(c.region_mask is not None for c in pipe.regions) else

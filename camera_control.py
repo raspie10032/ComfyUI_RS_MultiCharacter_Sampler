@@ -136,7 +136,7 @@ class RSCameraControl:
 
     def apply(self, azimuth=0., elevation=0., distance=.5, roll=0., strength=1.2,
               weighting="weighted", prompt_syntax="ComfyUI", enabled=True, scope="scene_and_characters", context=None, base_prompt=None,
-              random_mode="off", random_seed=0, layout_sync="fixed", canvas_aspect=1., *, atelier=False, **pipe_inputs):
+              random_mode="off", random_seed=0, layout_sync="fixed", canvas_aspect=1., *, atelier=False, moss=False, **pipe_inputs):
         # Keep the old context keyword (and positional calls) working. This
         # finalized pipe must not run through the unfinished builder converter.
         pipe = pipe_inputs.pop("building_pipe", None)
@@ -201,15 +201,26 @@ class RSCameraControl:
                         scene, syntax,
                         lambda tag: " ".join(tag.casefold().replace("_", " ").split()) in ("from left", "from right"),
                     )
-            camera = ", ".join(filter(None, (
-                learned, support, camera_caption(framing_weights, syntax, weighting), side,
-            )))
-            character_support = support
-            if character_syntax != syntax:
-                _, character_support = view_captions(view, strength, character_syntax, weighting)
-            character_caption = ", ".join(filter(None, (character_support,
-                camera_caption(framing_weights, character_syntax, weighting))))
-            prompt = ", ".join(filter(None, (camera, scene)))
+            if moss:
+                from .moss_camera import moss_view_caption
+
+                view_caption = moss_view_caption(view, side)
+                framing_caption = camera_caption(framing_weights, "ComfyUI", "plain")
+                camera = " ".join(filter(None, (view_caption,
+                    f"{framing_caption.capitalize()}." if framing_caption else "")))
+                separator = " " if camera.endswith(".") else ", "
+                character_caption = camera
+                prompt = separator.join(filter(None, (camera, scene)))
+            else:
+                camera = ", ".join(filter(None, (
+                    learned, support, camera_caption(framing_weights, syntax, weighting), side,
+                )))
+                character_support = support
+                if character_syntax != syntax:
+                    _, character_support = view_captions(view, strength, character_syntax, weighting)
+                character_caption = ", ".join(filter(None, (character_support,
+                    camera_caption(framing_weights, character_syntax, weighting))))
+                prompt = ", ".join(filter(None, (camera, scene)))
         else:
             character_caption = camera_caption(weights, character_syntax, weighting) if camera else ""
             prompt = ", ".join(filter(None, (scene, camera)))
@@ -220,6 +231,8 @@ class RSCameraControl:
                 layout_sync=layout_sync, canvas_aspect=canvas_aspect)
             if atelier:
                 options["atelier"] = True
+            if moss:
+                options["moss"] = True
             output = (context if context is not None else CameraBuildSeed()).rs_defer_camera(options)
             preview = getattr(context, "rs_camera_preview", None)
             regions = preview() if callable(preview) else []
@@ -237,7 +250,9 @@ class RSCameraControl:
                 if not is_dataclass(character) or not isinstance(getattr(character, "prompt", None), str):
                     raise ValueError("Invalid character captions in the shared context. / 컨텍스트의 캐릭터 프롬프트 형식을 확인해 주세요.")
                 caption = filter_rear_prompt(character.prompt, character_syntax) if filter_face else character.prompt
-                characters.append(replace(character, prompt=", ".join(filter(None, (caption, character_caption)))))
+                new_caption = separator.join(filter(None, (character_caption, caption))) if moss else \
+                    ", ".join(filter(None, (caption, character_caption)))
+                characters.append(replace(character, prompt=new_caption))
             changes["characters"] = tuple(characters)
         output = replace(context, **changes) if context is not None and (camera or base_prompt is not None) else context
         source_regions = []
@@ -266,7 +281,7 @@ class RSAtelierSphereCameraControl(RSCameraControl):
     @classmethod
     def INPUT_TYPES(cls):
         fields = super().INPUT_TYPES()
-        fields["required"]["model"] = ("MODEL", {"tooltip": "Connect the Anima 2B MODEL after style LoRAs. / 스타일 LoRA를 적용한 Anima 2B 모델을 연결하세요."})
+        fields["required"]["model"] = ("MODEL", {"tooltip": "Connect Anima 2B or MOSS-Image after style LoRAs. The node selects the camera adapter automatically. / 스타일 LoRA를 적용한 Anima 2B 또는 MOSS-Image 모델을 연결하면 자동 선택합니다."})
         fields["optional"]["lora_strength"] = ("FLOAT", {"default": 1., "min": 0., "max": 2., "step": .05,
             "tooltip": "At 0, keep camera prompts for an A/B comparison. / 0이면 시점 프롬프트만 적용합니다."})
         fields["required"]["distance"][1]["tooltip"] = "0.5 keeps scene framing; other values add distance tags. / 0.5는 장면 프레이밍을 따르고 다른 값은 거리 태그를 추가합니다."
@@ -274,24 +289,41 @@ class RSAtelierSphereCameraControl(RSCameraControl):
 
     RETURN_TYPES = (*RSCameraControl.RETURN_TYPES, "MODEL")
     RETURN_NAMES = (*RSCameraControl.RETURN_NAMES, "model")
-    DESCRIPTION = ("Select the nearest of 42 trained views, add its camera tags and composition guidance, "
-                   "and apply RS-CAMERA-CONTROL-v2 to Anima 2B. Rear views automatically filter face and gaze tags. "
-                   "Downloads the LoRA from Hugging Face if missing. / "
-                   "42개 학습 시점의 태그와 구도 보조를 적용합니다. 뒤쪽 시점에서는 눈·표정·시선 태그를 자동으로 거릅니다. "
-                   "RS-CAMERA-CONTROL-v2 파일이 없으면 Hugging Face에서 받습니다.")
+    DESCRIPTION = ("Detects Anima 2B or MOSS-Image from the input MODEL and selects the nearest of 42 trained views. "
+                   "MOSS uses the epoch-5 LoRA, direction caption, and learned positive conditioning token. "
+                   "Downloads the selected camera files from Hugging Face. / "
+                   "입력 모델에 따라 Anima 2B 또는 MOSS-Image용 카메라를 자동으로 선택합니다. "
+                   "MOSS는 5에포크 LoRA·방향 캡션·학습 토큰을 함께 적용합니다.")
 
     def apply(self, model, lora_strength=1., **kwargs):
-        result = super().apply(atelier=True, **kwargs)
-        if result["result"][2] and lora_strength:
-            from comfy.model_base import Anima
-            from nodes import LoraLoaderModelOnly
-            from .atelier_camera import ensure_atelier_lora
+        moss = False
+        if kwargs.get("enabled", True) and kwargs.get("strength", 1.2) and hasattr(model, "model"):
+            from comfy import model_base
 
-            if not isinstance(model.model, Anima) or len(model.get_model_object("diffusion_model").blocks) != 28:
-                raise ValueError("RS-CAMERA-CONTROL requires Anima 2B. / Anima 2B 모델을 연결해 주세요.")
-            lora_name = ensure_atelier_lora()
+            moss = isinstance(model.model, getattr(model_base, "MOSSImage", ()))
+        result = super().apply(atelier=True, moss=moss, **kwargs)
+        if result["result"][2] and lora_strength:
+            from nodes import LoraLoaderModelOnly
+            from .atelier_camera import ensure_atelier_lora, nearest_view_index
+
+            if moss:
+                from .moss_camera import install_moss_camera, moss_lora, moss_tokens
+
+                values = result["ui"]["camera_values"][0]
+                view_id = nearest_view_index(values["azimuth"], values["elevation"])
+                token = moss_tokens()[view_id].clone()
+                lora_name = moss_lora()
+            else:
+                from comfy import model_base
+
+                if (not isinstance(getattr(model, "model", None), getattr(model_base, "Anima", ()))
+                        or len(model.get_model_object("diffusion_model").blocks) != 28):
+                    raise ValueError("Connect Anima 2B or MOSS-Image. / Anima 2B 또는 MOSS-Image 모델을 연결해 주세요.")
+                lora_name = ensure_atelier_lora()
             if self._loader is None:
                 self._loader = LoraLoaderModelOnly()
             model, = self._loader.load_lora_model_only(model, lora_name, lora_strength)
+            if moss:
+                install_moss_camera(model, token, kwargs.get("scope", "scene_and_characters"))
         result["result"] = (*result["result"], model)
         return result
