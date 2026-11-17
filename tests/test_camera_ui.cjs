@@ -79,7 +79,9 @@ class Node{
 }
 (async()=>{
  const extension=extensions['RS.CameraControl'];
- class AtelierNode extends Node {}
+ class AtelierNode extends Node {
+  constructor(){super();this.widgets.push({name:'visible_details',value:true});}
+ }
  await extensions['RS.AtelierSphereCameraControl'].beforeRegisterNodeDef(AtelierNode,{name:'RSAtelierSphereCameraControl'});
  const atelier=new AtelierNode();atelier.onNodeCreated();
  const [atelierModes,atelierToolbar,,,atelierCaption]=atelier.rsCameraEditor.root.children;
@@ -109,6 +111,8 @@ print(json.dumps([nearest_view(**v)[1] for v in json.load(sys.stdin)]))
  atelier.onExecuted({camera_caption:[trainedTag+', backend tags'],camera_values:[{azimuth:90,elevation:0}]});
  atelierModes.children[0].onclick();
  assert.equal(atelierCaption.textContent,preview+', backend tags');
+ atelier.widgets.find(w=>w.name==='visible_details').callback(false);
+ assert.equal(atelierCaption.textContent,preview);
 
  await extension.beforeRegisterNodeDef(Node,{name:'RSCameraControl'});
  const defs={name:'RSCameraControl',input:{optional:{building_pipe:['RS_MC_CHARACTER_PIPE,NAI_CONTEXT'],context:['RS_MC_CHARACTER_PIPE,NAI_CONTEXT']}}};

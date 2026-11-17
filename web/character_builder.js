@@ -8,6 +8,7 @@ import { addPositionEditor } from "./position_editor.js";
 import { cameraSlots } from "./camera_regions.js";
 
 const roles = new Set(["RSMultiCharacterPrompt", "RSMultiCharacterLoRA", "RSMultiCharacterPosition", "RSMultiCharacterMask", "RSMultiCharacterMaskDraw", "RSMultiCharacterPoseMasks", "RSMultiCharacterPose3D", "RSMultiCharacterInteraction", "RSMultiCharacterReference"]);
+const cameraTypes = new Set(["RSCameraControl", "NAICameraControl", "RSAtelierSphereCameraControl"]);
 const finalType = "RSMultiCharacterFinalize";
 const colors = ["#ff8d91", "#81bcff", "#94dd9d", "#ffd27f", "#c3a0ff", "#7fe5df", "#f5a6d8", "#cedd78", "#c7b6a2", "#e0e5ed"];
 const typeOf = node => node?.comfyClass ?? node?.type;
@@ -47,7 +48,7 @@ function collectState(node, seen = new Set()) {
             draft = false;
             node = null;
             break;
-        } else if (type === "RSCameraControl" || type === "NAICameraControl") {
+        } else if (cameraTypes.has(type)) {
             const upstream = inputNode(node, "building_pipe") ?? inputNode(node, "context");
             // Bypass preserves the type and values of its upstream output.
             if (node.mode === 4) { node = upstream; continue; }
@@ -187,7 +188,7 @@ export function editorSource(node) {
         if (children.length !== 1) break;
         const next = children[0], type = typeOf(next);
         if (type === finalType || type === "RSMultiCharacterPosition" ||
-            !(roles.has(type) || type === "RSCameraControl" || type === "NAICameraControl" || type === "Reroute")) break;
+            !(roles.has(type) || cameraTypes.has(type) || type === "Reroute")) break;
         node = next;
     }
     return node;

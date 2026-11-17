@@ -38,8 +38,8 @@ assert.equal(collectSlots(positioned).slots[0].maskOriginal,mask.testMask);
 const before=make('RSMultiCharacterMask',{character_id:1,enabled:true},make('RSMultiCharacterPosition',{character_count:2,mask_transforms:'{"1":[0.5,0,1]}'},build([actions[0]])));
 before.testMask=mask.testMask;
 assert.deepEqual(Array.from(collectSlots(before).slots[0].maskSupport.data),Array.from(collectSlots(positioned).slots[0].maskSupport.data));
-// Either camera may start a pipeline (the reported graph) or transform a finalized one.
-for(const type of ['RSCameraControl','NAICameraControl']) {
+// Each camera may start a pipeline (the reported graph) or transform a finalized one.
+for(const type of ['RSCameraControl','NAICameraControl','RSAtelierSphereCameraControl']) {
  const start=make(type,{layout_sync:'perspective',azimuth:45});
  const p=make('RSMultiCharacterPosition',{character_count:2,character1_geometry:'box',character1_x:.3},make('RSMultiCharacterPrompt',{character_count:2},start));
  assert.equal(collectSlots(p).unknown,false);assert.equal(collectSlots(p).slots[0].x,.3);
@@ -80,7 +80,7 @@ function* permutations(items) {
  if (!items.length) { yield []; return; }
  for (let i=0;i<items.length;i++) for(const tail of permutations(items.filter((_,j)=>i!==j))) yield [items[i],...tail];
 }
-for(const cameraType of ['RSCameraControl','NAICameraControl']) {
+for(const cameraType of ['RSCameraControl','NAICameraControl','RSAtelierSphereCameraControl']) {
  const factories=[
   up=>make('RSMultiCharacterPrompt',{character_count:3,character2_enable:false,character3_kind:'text'},up),
   up=>make('RSMultiCharacterLoRA',{character_count:2},up),

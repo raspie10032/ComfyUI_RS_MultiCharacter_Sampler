@@ -560,7 +560,7 @@ export function addCameraEditor(node, atelier = false) {
         }
     };
     for(const w of node.widgets ?? []){
-        if(![...Object.keys(defaults),"weighting","prompt_syntax","scope","random_mode","random_seed"].includes(w.name))continue;
+        if(![...Object.keys(defaults),"weighting","prompt_syntax","scope","random_mode","random_seed","visible_details"].includes(w.name))continue;
         const previous=w.callback;
         w.callback=function(...args){const result=previous?.apply(this,args);executed=null;executedView=null;executedLayout=null;if(!editing)render();return result;};
     }

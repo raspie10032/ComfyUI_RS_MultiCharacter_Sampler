@@ -117,16 +117,19 @@ class BuilderOrderTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, 'base_prompt'):
             b.finalize(pipe)
 
-    def test_atelier_rear_filter_applies_when_finalizing_character_prompts(self):
+    def test_atelier_view_filter_applies_when_finalizing_character_prompts(self):
         actions = [
-            ('prompt', b.RSMultiCharacterPrompt(), dict(character_count=1, character1='braid, purple eyes')),
+            ('prompt', b.RSMultiCharacterPrompt(), dict(character_count=1,
+                character1='braid, purple eyes, front view')),
             ('camera', cam.RSAtelierSphereCameraControl(), dict(model=object(), lora_strength=0,
-                azimuth=180, base_prompt='cafe, looking at viewer')),
+                azimuth=180, base_prompt='cafe, looking at viewer, from above')),
         ]
         for order in itertools.permutations(actions):
             pipe = self.assemble(order)
             self.assertTrue(pipe.prompt.endswith(', cafe'))
-            self.assertEqual(pipe.characters[0].prompt, 'braid, (from behind:1.5), (back view:1.4), facing away')
+            self.assertIn('upper back, backs of shoulders', pipe.prompt)
+            self.assertEqual(pipe.characters[0].prompt,
+                             'upper back, backs of shoulders, braid, (from behind:1.5), (back view:1.4), facing away')
 
     def test_repeated_camera_replaces_only_camera_table_and_off_clears_it(self):
         node = cam.RSCameraControl()

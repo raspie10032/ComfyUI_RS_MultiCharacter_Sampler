@@ -3,9 +3,6 @@
 import json
 import math
 from pathlib import Path
-import re
-
-from .prompt_syntax import filter_prompt_tags
 
 
 ATELIER_LORA = "anima/RS-CAMERA-CONTROL-v2.safetensors"
@@ -105,24 +102,3 @@ def view_captions(view, strength, syntax, weighting):
             amount = f"{float(amount)*strength/1.2:.2f}".rstrip("0").rstrip(".")
             parts.append(f"{amount}::{tag}::" if syntax == "NovelAI" else f"({tag}:{amount})")
     return learned, ", ".join(parts)
-
-
-_FACE_TAGS = frozenset({
-    "blush", "closed eyes", "closed mouth", "expressionless", "fang", "fangs",
-    "frown", "grin", "hair between eyes", "looking at viewer", "looking back",
-    "looking over shoulder", "looking over the shoulder", "one eye closed",
-    "open mouth", "parted lips", "pout", "smile", "smirk", "tongue out", "wink",
-})
-_EYE_COLOR = re.compile(
-    r"(?:(?:light|dark) )?(?:amber|aqua|black|blue|brown|cyan|gold|golden|gray|grey|"
-    r"green|hazel|orange|pink|purple|red|silver|teal|violet|white|yellow|heterochromatic) eyes"
-)
-_EYE_DETAILS = re.compile(r"(?:[a-z]+(?:[ -][a-z]+)* )?(?:pupils?|eyebrows?)")
-
-
-def filter_rear_prompt(prompt, syntax):
-    def face_tag(tag):
-        tag = " ".join(tag.casefold().replace("_", " ").split())
-        return tag in _FACE_TAGS or _EYE_COLOR.fullmatch(tag) or _EYE_DETAILS.fullmatch(tag)
-
-    return filter_prompt_tags(prompt, syntax, face_tag)

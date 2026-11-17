@@ -6,6 +6,7 @@ versions and downloadable assets, see [GitHub Releases](https://github.com/raspi
 
 | Version | Main change | Details |
 | --- | --- | --- |
+| **1.1.8 Hangeul** | Filter conflicting viewpoint cues and add visible subject details for Anima 2B and MOSS-Image. | [Release notes](docs/release-1.1.8.md) |
 | **1.1.7 Hangeul** | Add a 3D Orbit editor and select the correct camera LoRA for Anima 2B and MOSS-Image automatically. | [Release notes and guide](docs/release-1.1.7.md) |
 | **1.1.6 Hangeul** | Use RS-CAMERA-CONTROL-v2 in the Anima camera node and add the selected view's left/right tag automatically. | [Release notes](docs/release-1.1.6.md) |
 | **1.1.5 Hangeul** | Automatically filter face and gaze tags in rear and rear-diagonal views on the Anima camera node. | [Release notes](docs/release-1.1.5.md) |

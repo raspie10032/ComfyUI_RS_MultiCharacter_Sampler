@@ -29,7 +29,7 @@ def moss_tokens():
     return embeddings
 
 
-def moss_view_caption(view, side):
+def moss_view_caption(view, side, *, show_torso=True):
     (x, _, z), learned, _ = view
     if abs(z) < 1e-8:
         support = "Side profile, with the camera looking directly at the side of the torso." if side else ""
@@ -39,6 +39,10 @@ def moss_view_caption(view, side):
     else:
         support = ("Front three-quarter view, with the front and one side of the torso visible." if z > 0 else
                    "Rear three-quarter view, with the back and one side of the torso visible.")
+    if support and not show_torso:
+        bearing, _, description = support.partition(", ")
+        facing_away = " The subject faces straight away from the camera." if "The subject faces" in description else ""
+        support = f"{bearing}.{facing_away}"
     prefix = ", ".join(filter(None, (side, learned)))
     return f"{prefix}, {support}" if support else prefix
 

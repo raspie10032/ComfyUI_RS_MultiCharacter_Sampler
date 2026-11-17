@@ -1,6 +1,6 @@
 # SPDX-License-Identifier: GPL-3.0-only
 """The camera node is importable without ComfyUI or a GPU."""
-from dataclasses import dataclass, field
+from dataclasses import dataclass, field, replace
 import importlib.util
 import json
 import math
@@ -96,7 +96,8 @@ class CameraTests(unittest.TestCase):
         for azimuth, elevation, learned, support in views:
             with self.subTest(azimuth=azimuth, elevation=elevation):
                 angle = 0 if azimuth is None else (azimuth + 180) % 360 - 180
-                result = node.apply(model, lora_strength=0, azimuth=angle, elevation=elevation, context=source)
+                result = node.apply(model, lora_strength=0, azimuth=angle, elevation=elevation,
+                                    context=source, visible_details=False)
                 pipe, prompt, caption, output_model = result["result"]
                 expected = f"{learned}, {support}"
                 for side in ("left", "right"):
@@ -138,6 +139,7 @@ class CameraTests(unittest.TestCase):
                 angle = 0 if azimuth is None else (azimuth + 180) % 360 - 180
                 pipe, prompt, _, _ = node.apply(
                     object(), lora_strength=0, context=source, azimuth=angle, elevation=elevation,
+                    visible_details=False,
                 )["result"]
                 scene = "glass greenhouse, red watering can" if "'s rear" in learned else source.prompt
                 character = "(long hair:1.35), black apron" if "'s rear" in learned else source.characters[0].prompt
@@ -164,10 +166,132 @@ class CameraTests(unittest.TestCase):
             bypassed = node.apply(object(), **options, **switch)["result"][0]
             self.assertIs(bypassed, source)
 
+    def test_conflict_filter_across_all_training_directions(self):
+        node = camera.RSAtelierSphereCameraControl()
+        moss_node = camera.RSCameraControl()
+        horizontal = {
+            "front": "front view", "front right": "right front three-quarter view",
+            "right": "right profile", "rear right": "right rear three-quarter view",
+            "rear": "back view", "rear left": "left rear three-quarter view",
+            "left": "left profile", "front left": "left front three-quarter view",
+        }
+        vertical = {"level": "eye-level shot", "high": "high angle shot", "low": "low angle shot"}
+        poles = {90.: "top-down view", -90.: "worm’s-eye view"}
+        subject = "looking left, right hand raised, side ponytail, backless dress, high heels, over-the-shoulder shot"
+        original = ", ".join((*horizontal.values(), *vertical.values(), *poles.values(), subject))
+        source = SharedContext(prompt=original, characters=(Caption(original),))
+        views = json.loads((Path(__file__).resolve().parents[1] / "web" / "atelier_camera_views.json").read_text())
+        for azimuth, elevation, learned, support in views:
+            with self.subTest(view=learned):
+                angle = 0 if azimuth is None else (azimuth + 180) % 360 - 180
+                if azimuth is None:
+                    expected = f"{vertical['high' if elevation > 0 else 'low']}, {poles[elevation]}, {subject}"
+                else:
+                    direction = learned.split("'s ", 1)[1].split(",", 1)[0]
+                    height = "level" if elevation == 0 else "high" if elevation > 0 else "low"
+                    expected = f"{horizontal[direction]}, {vertical[height]}, {subject}"
+                pipe, prompt, caption, _ = node.apply(
+                    object(), context=source, azimuth=angle, elevation=elevation, lora_strength=0,
+                    visible_details=False,
+                )["result"]
+                self.assertEqual(prompt, f"{caption}, {expected}")
+                self.assertEqual(pipe.characters[0].prompt, f"{expected}, {support}")
+                pipe, prompt, caption = moss_node.apply(
+                    atelier=True, moss=True, context=source, azimuth=angle, elevation=elevation,
+                    visible_details=False,
+                )["result"]
+                separator = ", " if azimuth is None else " "
+                self.assertEqual(prompt, f"{caption}{separator}{expected}")
+                self.assertEqual(pipe.characters[0].prompt, prompt)
+
+    def test_conflicts_use_snapped_view_and_preserve_nonpositive_weights(self):
+        node = camera.RSAtelierSphereCameraControl()
+        source = SharedContext(
+            prompt="((front view:1.3), LEFT_PROFILE, green scarf:1.25), (from right:-1), from left",
+            character_syntax="NovelAI",
+            characters=(Caption("1.4::front view, green scarf ::, -1::from right ::, from left"),),
+        )
+        pipe, prompt, caption, _ = node.apply(
+            object(), context=source, azimuth=-88, elevation=2, lora_strength=0, visible_details=False,
+        )["result"]
+        self.assertEqual(prompt, f"{caption}, (LEFT_PROFILE, green scarf:1.25), (from right:-1)")
+        self.assertTrue(pipe.characters[0].prompt.startswith("1.4::green scarf ::, -1.0::from right ::, from left, "))
+        _, prompt, caption, _ = node.apply(
+            object(), base_prompt="front view, from left, from below, facing left, looking up",
+            azimuth=-88, elevation=89, lora_strength=0, visible_details=False,
+        )["result"]
+        self.assertEqual(prompt, f"{caption}, facing left, looking up")
+
+    def test_moss_removes_standalone_view_sentences(self):
+        source = SharedContext(
+            prompt="A worker opens a door. Straight-on rear view, with the back of the torso visible. "
+                   "The subject faces straight away from the camera.  She looks left.",
+            characters=(Caption("Low angle. A green coat with a front zipper."),),
+        )
+        pipe, prompt, caption = camera.RSCameraControl().apply(
+            atelier=True, moss=True, context=source,
+        )["result"]
+        self.assertEqual(prompt, f"{caption} A worker opens a door. She looks left.")
+        self.assertEqual(pipe.characters[0].prompt, f"{caption} A green coat with a front zipper.")
+        quoted = 'A sign says “Read this. Rear view. End of sign.”'
+        _, prompt, caption = camera.RSCameraControl().apply(
+            atelier=True, moss=True, base_prompt=quoted,
+        )["result"]
+        self.assertEqual(prompt, f"{caption} {quoted}")
+
+    def test_moss_filters_unquoted_sentences_and_preserves_quoted_text(self):
+        base = 'A sign reads "Welcome, front view, friend".'
+        source = SharedContext(
+            prompt=f"{base} Straight-on front view, with the front of the torso visible. Blue eyes!",
+            characters=(Caption("“Welcome, front view, friend”, front view, a black coat"),),
+        )
+        for syntax in ("ComfyUI", "NovelAI"):
+            with self.subTest(syntax=syntax):
+                context = replace(source, syntax=syntax)
+                pipe, prompt, caption = camera.RSCameraControl().apply(
+                    atelier=True, moss=True, context=context, azimuth=180,
+                )["result"]
+                self.assertEqual(prompt, f"{caption} {base}")
+                self.assertEqual(pipe.characters[0].prompt, f"{caption} “Welcome, front view, friend”, a black coat")
+
+    def test_generated_details_for_the_opposite_view_are_filtered(self):
+        node = camera.RSCameraControl()
+        source = SharedContext(
+            prompt="headshot, (face visible:1.3), (facial profile:-1), black coat",
+            characters=(Caption("headshot, front of torso, from front, black coat with a front zipper"),),
+        )
+        pipe, prompt, _ = node.apply(atelier=True, context=source, azimuth=180)["result"]
+        self.assertIn("back of head", prompt)
+        self.assertIn("(facial profile:-1)", prompt)
+        self.assertNotIn("face visible", prompt)
+        self.assertNotIn("front of torso", pipe.characters[0].prompt)
+        self.assertIn("black coat with a front zipper", pipe.characters[0].prompt)
+        _, prompt, _ = node.apply(
+            atelier=True, moss=True, base_prompt="The upper back is in view. A black coat.",
+        )["result"]
+        self.assertNotIn("upper back", prompt)
+        self.assertIn("A black coat.", prompt)
+
+    def test_moss_filters_earlier_camera_captions_in_a_finalized_pipe(self):
+        node = camera.RSCameraControl()
+        source = SharedContext(prompt="A worker opens a door.", characters=(Caption("A black coat."),))
+        for distance in (.25, .5):
+            with self.subTest(distance=distance):
+                rear, _, _ = node.apply(
+                    atelier=True, moss=True, azimuth=180, distance=distance, context=source,
+                )["result"]
+                front, prompt, _ = node.apply(atelier=True, moss=True, context=rear)["result"]
+                for caption in (prompt, front.characters[0].prompt):
+                    self.assertNotIn("rear view", caption)
+                    self.assertNotIn("back of the torso", caption)
+                    self.assertNotIn("back of the head", caption)
+                self.assertIn(source.prompt, prompt)
+                self.assertIn(source.characters[0].prompt, front.characters[0].prompt)
+
     def test_atelier_side_tag_matches_the_snapped_view(self):
         node = camera.RSAtelierSphereCameraControl()
         _, prompt, caption, _ = node.apply(
-            object(), lora_strength=0, azimuth=-121.717474,
+            object(), lora_strength=0, azimuth=-121.717474, visible_details=False,
             base_prompt="from left, (from_right:1.3), alley, blue eyes",
         )["result"]
         self.assertTrue(caption.endswith(", from left"))
@@ -184,7 +308,7 @@ class CameraTests(unittest.TestCase):
         source = SharedContext(character_syntax="NovelAI", characters=(Caption(
             "1.123456::blue eyes, long hair, smile ::, open jacket, eye patch, a sign reading blue eyes"
         ),))
-        pipe = node.apply(object(), context=source, azimuth=180, lora_strength=0)["result"][0]
+        pipe = node.apply(object(), context=source, azimuth=180, lora_strength=0, visible_details=False)["result"][0]
         self.assertEqual(pipe.characters[0].prompt,
             "1.123456::long hair ::, open jacket, eye patch, a sign reading blue eyes, "
             "1.5::from behind::, 1.4::back view::, facing away")
@@ -194,10 +318,124 @@ class CameraTests(unittest.TestCase):
         source = SharedContext(prompt="(smile, blue eyes:1.4), (wink)",
                                characters=(Caption(r"artist:name, character \(series\), (fang)"),))
         pipe, prompt, caption, _ = node.apply(object(), context=source, azimuth=180,
-                                             lora_strength=0)["result"]
+                                             lora_strength=0, visible_details=False)["result"]
         self.assertEqual(prompt, caption)
         self.assertEqual(pipe.characters[0].prompt,
                          r"artist:name, character \(series\), (from behind:1.5), (back view:1.4), facing away")
+
+    def test_visible_details_matrix_across_trained_views_and_framing(self):
+        node = camera.RSCameraControl()
+        torso = {
+            "front": ("front of torso", "front of the torso"),
+            "front quarter": ("front of torso", "front and one side of the torso"),
+            "side": ("side of torso", "side of the torso"),
+            "rear quarter": ("upper back", "back and one side of the torso"),
+            "rear": ("upper back", "back of the torso"),
+        }
+        head = {
+            "front": ("face visible", "The face is in view."),
+            "front quarter": ("face visible", "The face is in view."),
+            "side": ("facial profile", "The outline of the face is in view."),
+            "rear quarter": ("back of head", "The back of the head is in view."),
+            "rear": ("back of head", "The back of the head is in view."),
+        }
+        close, body, wide, special = "head", "body", "wide", "special"
+        framings = [
+            (0., "", close), (.25, "", close), (.375, "", close), (.5, "", body),
+            (.75, "", body), (1., "", wide), (.5, "headshot", close),
+            (.5, "medium_shot", body), (.5, "wide shot", wide), (.5, "feet focus", special),
+        ]
+        views = json.loads((Path(__file__).resolve().parents[1] / "web" / "atelier_camera_views.json").read_text())
+        self.assertEqual(len(views), 42)
+        for azimuth, elevation, learned, _ in views:
+            angle = 0 if azimuth is None else (azimuth + 180) % 360 - 180
+            bearing = ("side" if "front" not in learned and "rear" not in learned else
+                       "front" if "front" in learned else "rear")
+            if bearing != "side" and any(f" {side}," in learned for side in ("left", "right")):
+                bearing += " quarter"
+            for distance, hint, crop in framings:
+                for moss in (False, True):
+                    with self.subTest(view=learned, distance=distance, hint=hint, moss=moss):
+                        scene = ", ".join(filter(None, (hint, "greenhouse")))
+                        source = SharedContext(prompt=scene, characters=(Caption("black jacket"),))
+                        pipe, prompt, caption = node.apply(
+                            context=source, azimuth=angle, elevation=elevation, distance=distance,
+                            atelier=True, moss=moss,
+                        )["result"]
+                        if crop == special or (elevation == -90 and crop == close):
+                            expected = ""
+                        elif elevation == -90:
+                            expected = "The body outline is foreshortened." if moss else "foreshortened body outline"
+                        elif elevation == 90:
+                            expected = ("The top of the head is in view." if moss else "top of head")
+                        else:
+                            expected = (head if crop == close else torso)[bearing][moss]
+                        for text in (caption, pipe.characters[0].prompt):
+                            if expected:
+                                self.assertIn(expected, text)
+                            if crop in (close, special):
+                                self.assertNotIn("torso", text)
+                                self.assertNotIn("upper back", text)
+                            self.assertNotIn("bare back", text)
+                            self.assertNotIn("soles", text)
+                        self.assertIn(scene, prompt)
+                        self.assertIn("black jacket", pipe.characters[0].prompt)
+                        self.assertEqual(pipe.characters[0].uc, source.characters[0].uc)
+
+    def test_rear_details_are_scope_aware_and_keep_user_clothing(self):
+        node = camera.RSAtelierSphereCameraControl()
+        source = SharedContext(
+            prompt="medium shot, front view, studio",
+            character_syntax="NovelAI",
+            characters=(
+                Caption("headshot, 1.4::blue eyes, braid"),
+                Caption("1.3::UPPER_BACK, black jacket with a back zipper ::, -1::near shoulder ::"),
+                Caption("feet focus, red boots"),
+            ),
+        )
+        options = dict(context=source, lora_strength=0, azimuth=-121.717474)
+        pipe, prompt, caption, _ = node.apply(object(), **options)["result"]
+        self.assertIn("upper back, near shoulder visible", caption)
+        self.assertNotIn("front view", prompt)
+        self.assertIn("back of head, side of head, headshot", pipe.characters[0].prompt)
+        self.assertNotIn("upper back", pipe.characters[0].prompt)
+        self.assertNotIn("blue eyes", pipe.characters[0].prompt)
+        self.assertIn("UPPER_BACK, black jacket with a back zipper", pipe.characters[1].prompt)
+        self.assertNotIn("upper back", pipe.characters[1].prompt)
+        self.assertNotIn("near shoulder visible", pipe.characters[1].prompt)
+        self.assertNotIn("upper back", pipe.characters[2].prompt)
+
+        scene_only = node.apply(object(), **options, scope="scene_only")["result"][0]
+        self.assertIs(scene_only.characters, source.characters)
+        off = node.apply(object(), **options, visible_details=False)["result"][0]
+        self.assertNotIn("upper back", off.prompt)
+        self.assertNotIn("front view", off.prompt)
+        self.assertNotIn("blue eyes", off.characters[0].prompt)
+
+    def test_visible_details_respect_weight_groups_and_moss_prose_framing(self):
+        node = camera.RSCameraControl()
+        source = SharedContext(
+            prompt="studio",
+            characters=(Caption("((upper_back, black jacket):1.2), (backs of shoulders:-1)"),),
+        )
+        pipe, _, _ = node.apply(atelier=True, context=source, azimuth=180)["result"]
+        self.assertTrue(pipe.characters[0].prompt.startswith(source.characters[0].prompt + ", "))
+        self.assertNotIn("upper back", pipe.characters[0].prompt)
+        self.assertEqual(pipe.characters[0].prompt.count("backs of shoulders"), 1)
+
+        source = SharedContext(prompt="A child wearing a hat. A close-up of their head.",
+                               characters=(Caption("The back of the head is visible. A blue hat."),))
+        pipe, prompt, caption = node.apply(atelier=True, moss=True, context=source, azimuth=180)["result"]
+        self.assertIn("The back of the head is in view.", caption)
+        self.assertNotIn("torso", prompt)
+        self.assertNotIn("The back of the head is in view.", pipe.characters[0].prompt)
+        self.assertIn("The back of the head is visible. A blue hat.", pipe.characters[0].prompt)
+
+        scene = 'A sign reads “Wait, headshot, please.” A medium shot.'
+        _, prompt, caption = node.apply(atelier=True, moss=True, base_prompt=scene, azimuth=180)["result"]
+        self.assertIn("back of the torso visible", caption)
+        self.assertIn("The backs of the shoulders are in view.", caption)
+        self.assertIn(scene, prompt)
 
     def test_random_reproducible_and_respects_ranges(self):
         for mode, bounds in camera.RANDOM_RANGES.items():

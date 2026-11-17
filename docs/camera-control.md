@@ -17,14 +17,38 @@ Anima 2B에는 v2 LoRA를, MOSS-Image에는 5에포크 LoRA와 가장 가까운 
 노드의 MODEL을 샘플러에, `prompt`를 `moss_image` 인코더의 양성 CLIP Text Encode에
 연결하세요. RS 샘플러에는 카메라 MODEL과 Finalize를 거친 파이프를 연결하세요.
 
-When the LoRA camera node selects a rear or rear-diagonal training view, it
-automatically drops standalone eye, expression and gaze tags from the positive
-prompts in the selected scene/character scope. Expand wildcards upstream so
-their tags are available to the filter.
+The LoRA camera node filters standalone viewpoint tags against the selected
+training view. For example, a left profile removes `front view` and `from right`,
+while a directly overhead view removes `eye level` and `from below`. Rear and
+rear-diagonal views also filter standalone eye, expression and gaze tags. For
+MOSS, the filter also recognizes standalone camera sentences from its view captions.
+The filter applies to positive captions in the selected scene/character scope.
+Expand wildcards upstream so their tags are available to the filter.
 
-LoRA 카메라 노드는 후면과 뒤쪽 대각선을 선택하면 눈 색·동공·표정·시선
-같은 단독 태그를 자동으로 거릅니다. 노드의 장면·캐릭터 적용 범위에
-따라 동작합니다. 와일드카드의 태그도 거르려면 카메라 노드 앞에서 펼치세요.
+The LoRA node also adds visible subject details after filtering. A rear medium
+shot adds upper back and the backs of the shoulders. A rear close-up describes
+the back of the head, and an overhead shot uses the top of the head. At
+`distance=0.5`, it reads recognizable framing tags from the scene and character
+captions. Specific crops such as `feet focus` skip general body details. MOSS uses
+short sentences and reuses the torso descriptions already in its camera caption.
+Turn off `visible_details` to compare against viewpoint filtering alone.
+
+LoRA 카메라 노드는 실제로 선택한 학습 방향을 기준으로 충돌하는 단독 시점
+태그를 거릅니다. 왼쪽 측면에서는 `front view`, `from right`를 거르고,
+정수직 하향에서는 `eye level`, `from below`를 거릅니다. 후면과 뒤쪽
+대각선에서는 기존 눈 색·표정·시선 태그 정리도 적용합니다. `looking left`처럼
+캐릭터의 시선을 지정하는 태그는 좌우 카메라 방향과 별개입니다. 필터는
+선택한 장면·캐릭터 범위의 긍정 프롬프트에 적용됩니다. MOSS에서는
+노드 캡션에 쓰이는 독립된 시점 문장도 인식합니다. 와일드카드 태그도
+거르려면 카메라 앞에서 펼치세요.
+
+필터를 적용한 뒤 프레이밍에 맞는 부위를 보강합니다. 후면 중간 거리에서는
+윗등과 어깨 뒤쪽, 후면 클로즈업에서는 뒤통수, 수직 하향에서는 정수리를
+묘사합니다. `distance=0.5`에서는 장면과 캐릭터의 프레이밍 태그를 읽습니다.
+`feet focus`처럼 특정 부위만 담는 구도에서는 일반적인 신체 묘사 보강을
+건너뜁니다. MOSS는 기존 카메라 캡션의 몸통 묘사를 활용하고 짧은 문장으로
+보강합니다. `visible_details`를 끄면 시점 필터만 적용된 결과와 비교할 수
+있습니다.
 
 Included in version 1.0.5; validated on 2026-10-25.
 
@@ -101,7 +125,7 @@ The table in [third-party notices](../THIRD_PARTY_NOTICES.md#features-incorporat
 
 **각 중심에서 마우스가 향하는 쪽으로 클릭·드래그하면 왼쪽 원은 방향만, 오른쪽 반원은 높이만 조절**합니다. 중심에서는 현재 각도를 유지하고, 마우스를 멀리 움직여도 거리는 바뀌지 않습니다. **휠=거리, Shift+휠=기울기**입니다. 시작 강도는 1.2이며 0.8~1.4부터 조정하세요. 도식과 각도는 태그 계산을 위한 안내이며 실제 이미지의 카메라 각도 측정값은 아닙니다. 연결된 수치 입력은 마우스로 덮어쓰지 않습니다.
 
-실제 생성에서 측면·위·거리 변화는 확인됐지만 뒤돌기·원경의 두 인물 크기는 완벽하지 않았습니다. 이 노드는 **시점 태그 유도 기능**이며, 선택형 배치 연동으로 마스크도 변형합니다. 생성된 인체를 3D 카메라처럼 강제하지는 않습니다. 두 노드를 연달아 연결하거나 이미 시점 태그가 있는 컨텍스트에 넣으면 태그가 더해지므로, 상반되는 기존 시점 문장은 직접 정리하세요.
+실제 생성에서 측면·위·거리 변화는 확인됐지만 뒤돌기·원경의 두 인물 크기는 완벽하지 않았습니다. 이 노드는 **시점 태그 유도 기능**이며, 선택형 배치 연동으로 마스크도 변형합니다. 기본 태그 방식의 RS 카메라 시점에서는 상반되는 기존 시점 태그를 직접 정리하세요.
 
 
 ## Random composition / 랜덤 구도

@@ -238,11 +238,33 @@ def parse_naiv4(text):
     return tags
 
 
+def iter_prompt_tags(text, syntax):
+    """Yield individual tags even inside a weighted comma group."""
+    if syntax == "NovelAI":
+        yield from parse_naiv4(text)
+        return
+
+    for part in _split_top_level(_guard_artist(text)):
+        segment = part.strip()
+        if segment.startswith("(") and _matches_outer_paren(segment):
+            token, body = _trailing_weight(segment[1:-1])
+            weight = _strict_float(token) if token is not None else None
+            if token is None or weight is not None:
+                if weight is None or not _WEIGHT_MIN <= weight <= _WEIGHT_MAX:
+                    weight = _DEFAULT_WEIGHT
+                for tag, child_weight in iter_prompt_tags(body, syntax):
+                    yield tag, weight * child_weight
+                continue
+        resolved = _eval_comfy_segment(segment)
+        if resolved is not None:
+            yield resolved
+
+
 def filter_prompt_tags(text, syntax, remove):
-    """Drop matching comma-delimited tags while retaining other conditioning."""
+    """Drop matching positively weighted tags while retaining other conditioning."""
     if syntax == "NovelAI":
         tags = parse_naiv4(text)
-        kept = [(tag, weight) for tag, weight in tags if not remove(tag)]
+        kept = [(tag, weight) for tag, weight in tags if weight <= 0 or not remove(tag)]
         if kept == tags:
             return text
         return _restore_artist(", ".join(
@@ -255,7 +277,10 @@ def filter_prompt_tags(text, syntax, remove):
         if segment.startswith("(") and _matches_outer_paren(segment):
             inner = segment[1:-1]
             token, body = _trailing_weight(inner)
-            if token is None or _strict_float(token) is not None:
+            weight = _strict_float(token) if token is not None else None
+            if weight is not None and _WEIGHT_MIN <= weight <= 0:
+                return part
+            if token is None or weight is not None:
                 trimmed = filter_prompt_tags(body, syntax, remove)
                 if trimmed != body:
                     if not trimmed:
@@ -264,7 +289,7 @@ def filter_prompt_tags(text, syntax, remove):
                     end = inner.rfind(":") if token is not None else len(inner)
                     return part[:start] + trimmed + part[start + end:]
         tag = _eval_comfy_segment(_guard_artist(part))
-        return None if tag is not None and remove(tag[0]) else part
+        return None if tag is not None and tag[1] > 0 and remove(tag[0]) else part
 
     parts = _split_top_level(text)
     kept = [part for original in parts if (part := filter_comfy(original)) is not None]

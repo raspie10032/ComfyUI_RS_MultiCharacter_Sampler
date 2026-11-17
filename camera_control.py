@@ -92,6 +92,10 @@ def camera_caption(weights, syntax="ComfyUI", weighting="weighted"):
     return ", ".join(parts)
 
 
+def join_moss_caption(camera, prompt):
+    return (" " if camera.endswith(".") else ", ").join(filter(None, (camera, prompt)))
+
+
 @dataclass(frozen=True)
 class CameraBuildSeed:
     """A first camera carries settings until a shared builder supplies slots."""
@@ -136,7 +140,8 @@ class RSCameraControl:
 
     def apply(self, azimuth=0., elevation=0., distance=.5, roll=0., strength=1.2,
               weighting="weighted", prompt_syntax="ComfyUI", enabled=True, scope="scene_and_characters", context=None, base_prompt=None,
-              random_mode="off", random_seed=0, layout_sync="fixed", canvas_aspect=1., *, atelier=False, moss=False, **pipe_inputs):
+              random_mode="off", random_seed=0, layout_sync="fixed", canvas_aspect=1., *, atelier=False, moss=False,
+              visible_details=True, **pipe_inputs):
         # Keep the old context keyword (and positional calls) working. This
         # finalized pipe must not run through the unfinished builder converter.
         pipe = pipe_inputs.pop("building_pipe", None)
@@ -179,38 +184,55 @@ class RSCameraControl:
         camera = camera_caption(weights, syntax, weighting) if enabled else ""
         use_characters = not deferred and scope == "scene_and_characters"
         character_syntax = (getattr(context, "character_syntax", None) or syntax) if use_characters else syntax
-        filter_face = False
+        clean_prompt = None
+        add_details = atelier and enabled and strength and visible_details
         if atelier and enabled and strength:
-            from .atelier_camera import filter_rear_prompt, nearest_view, view_captions
-            from .prompt_syntax import filter_prompt_tags
+            from .atelier_camera import nearest_view, view_captions
+            from .camera_prompt import camera_prompt_filter
+            from .camera_visibility import detail_framing, hidden_detail_tags, visible_detail_caption
+
             # The verified orbit runs kept the scene framing at the center stop.
             framing_weights = {tag: weight for tag, weight in weights.items()
                                if tag == "dutch angle" or (distance != .5 and tag in DISTANCE_TAGS)}
             view = nearest_view(azimuth, elevation)
-            # The front axis is Z. True side views and the poles have Z ≈ 0.
-            filter_face = view[0][2] < -1e-8
-            if filter_face and scene:
-                scene = filter_rear_prompt(scene, syntax)
+            clean_prompt = camera_prompt_filter(view, hidden_detail_tags(view))
+            if scene:
+                scene = clean_prompt(scene, syntax, replace_lateral=True, literal_sentences=moss)
+            if add_details:
+                scene_framing = detail_framing(scene, syntax, moss, distance, fallback=None)
+                if scene_framing is None:
+                    local_framings = set()
+                    if use_characters:
+                        for character in context.characters:
+                            raw = getattr(character, "prompt", None)
+                            if isinstance(raw, str):
+                                framing_hint = detail_framing(raw, character_syntax, moss, distance, fallback=None)
+                                if framing_hint is not None:
+                                    local_framings.add(framing_hint)
+                    scene_framing = ("special" if len(local_framings) > 1 else next(iter(local_framings), "body"))
             learned, support = view_captions(view, strength, syntax, weighting)
             lateral = view[0][0]
             side = ""
             if abs(lateral) > 1e-8:
                 side = "from left" if lateral < 0 else "from right"
-                if scene:
-                    scene = filter_prompt_tags(
-                        scene, syntax,
-                        lambda tag: " ".join(tag.casefold().replace("_", " ").split()) in ("from left", "from right"),
-                    )
             if moss:
                 from .moss_camera import moss_view_caption
 
-                view_caption = moss_view_caption(view, side)
                 framing_caption = camera_caption(framing_weights, "ComfyUI", "plain")
-                camera = " ".join(filter(None, (view_caption,
-                    f"{framing_caption.capitalize()}." if framing_caption else "")))
-                separator = " " if camera.endswith(".") else ", "
+
+                def moss_caption(framing_kind, subject_prompt, subject_syntax):
+                    view_caption = moss_view_caption(view, side, show_torso=framing_kind not in ("head", "special"))
+                    caption = " ".join(filter(None, (view_caption,
+                        f"{framing_caption.capitalize()}." if framing_caption else "")))
+                    if not add_details:
+                        return caption
+                    details = visible_detail_caption(view, framing_kind, subject_prompt, subject_syntax,
+                                                     moss=True, camera=view_caption)
+                    return join_moss_caption(caption, details)
+
+                camera = moss_caption(scene_framing if add_details else None, scene, syntax)
                 character_caption = camera
-                prompt = separator.join(filter(None, (camera, scene)))
+                prompt = join_moss_caption(camera, scene)
             else:
                 camera = ", ".join(filter(None, (
                     learned, support, camera_caption(framing_weights, syntax, weighting), side,
@@ -220,6 +242,9 @@ class RSCameraControl:
                     _, character_support = view_captions(view, strength, character_syntax, weighting)
                 character_caption = ", ".join(filter(None, (character_support,
                     camera_caption(framing_weights, character_syntax, weighting))))
+                if add_details:
+                    details = visible_detail_caption(view, scene_framing, scene, syntax)
+                    camera = ", ".join(filter(None, (camera, details)))
                 prompt = ", ".join(filter(None, (camera, scene)))
         else:
             character_caption = camera_caption(weights, character_syntax, weighting) if camera else ""
@@ -231,6 +256,7 @@ class RSCameraControl:
                 layout_sync=layout_sync, canvas_aspect=canvas_aspect)
             if atelier:
                 options["atelier"] = True
+                options["visible_details"] = visible_details
             if moss:
                 options["moss"] = True
             output = (context if context is not None else CameraBuildSeed()).rs_defer_camera(options)
@@ -249,9 +275,20 @@ class RSCameraControl:
             for character in context.characters:
                 if not is_dataclass(character) or not isinstance(getattr(character, "prompt", None), str):
                     raise ValueError("Invalid character captions in the shared context. / 컨텍스트의 캐릭터 프롬프트 형식을 확인해 주세요.")
-                caption = filter_rear_prompt(character.prompt, character_syntax) if filter_face else character.prompt
-                new_caption = separator.join(filter(None, (character_caption, caption))) if moss else \
-                    ", ".join(filter(None, (caption, character_caption)))
+                caption = character.prompt
+                if clean_prompt is not None:
+                    caption = clean_prompt(caption, character_syntax, replace_lateral=moss, literal_sentences=moss)
+                if add_details:
+                    local_framing = detail_framing(caption, character_syntax, moss, distance, fallback=scene_framing)
+                    if moss:
+                        new_caption = join_moss_caption(moss_caption(local_framing, caption, character_syntax), caption)
+                    else:
+                        details = visible_detail_caption(view, local_framing, caption, character_syntax)
+                        new_caption = ", ".join(filter(None, (details, caption, character_caption)))
+                elif moss:
+                    new_caption = join_moss_caption(character_caption, caption)
+                else:
+                    new_caption = ", ".join(filter(None, (caption, character_caption)))
                 characters.append(replace(character, prompt=new_caption))
             changes["characters"] = tuple(characters)
         output = replace(context, **changes) if context is not None and (camera or base_prompt is not None) else context
@@ -284,6 +321,8 @@ class RSAtelierSphereCameraControl(RSCameraControl):
         fields["required"]["model"] = ("MODEL", {"tooltip": "Connect Anima 2B or MOSS-Image after style LoRAs. The node selects the camera adapter automatically. / 스타일 LoRA를 적용한 Anima 2B 또는 MOSS-Image 모델을 연결하면 자동 선택합니다."})
         fields["optional"]["lora_strength"] = ("FLOAT", {"default": 1., "min": 0., "max": 2., "step": .05,
             "tooltip": "At 0, keep camera prompts for an A/B comparison. / 0이면 시점 프롬프트만 적용합니다."})
+        fields["optional"]["visible_details"] = ("BOOLEAN", {"default": True,
+            "tooltip": "Add visible subject details for the selected view and framing. / 선택한 시점과 프레이밍에서 보이는 부위를 묘사합니다."})
         fields["required"]["distance"][1]["tooltip"] = "0.5 keeps scene framing; other values add distance tags. / 0.5는 장면 프레이밍을 따르고 다른 값은 거리 태그를 추가합니다."
         return fields
 
