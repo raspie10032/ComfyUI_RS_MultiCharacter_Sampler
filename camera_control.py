@@ -154,6 +154,13 @@ class RSCameraControl:
             if context is not None and context is not pipe:
                 raise ValueError("Connect only one building_pipe. / building_pipe는 하나만 연결해 주세요.")
             context = pipe
+        apply_nai = getattr(context, "rs_apply_nai_camera", None)
+        if not atelier and callable(apply_nai):
+            return apply_nai(azimuth=azimuth, elevation=elevation, distance=distance, roll=roll,
+                strength=strength, weighting=weighting, prompt_syntax=prompt_syntax,
+                enabled=enabled, scope=scope, base_prompt=base_prompt,
+                random_mode=random_mode, random_seed=random_seed, layout_sync=layout_sync,
+                canvas_aspect=canvas_aspect, visible_details=visible_details)
         if layout_sync not in ("fixed", "distance_and_roll", "perspective"):
             raise ValueError("Choose fixed, distance_and_roll or perspective layout sync. / 마스크 배치 연동 방식을 선택해 주세요.")
         from .camera_layout import framing, camera_layout, layout_preview

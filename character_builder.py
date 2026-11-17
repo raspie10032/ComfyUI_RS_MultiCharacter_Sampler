@@ -36,6 +36,8 @@ class Slot:
 
 @dataclass(frozen=True)
 class BuildPipe:
+    rs_camera_node_replay = True
+
     slots: tuple = ()
     prompt_count: int | None = None
     lora_application_mode: str = "precision"
@@ -133,8 +135,10 @@ def finalize(pipe, *, apply_cameras=True):
                      source.pose3d_json if source is not None else None)
     if apply_cameras and pipe.camera_settings:
         from .camera_control import RSCameraControl
-        for options in pipe.camera_settings:
-            result = RSCameraControl().apply(building_pipe=result, **dict(options))["result"][0]
+        for settings in pipe.camera_settings:
+            options = dict(settings)
+            camera_node = options.pop("camera_node", RSCameraControl)
+            result = camera_node().apply(building_pipe=result, **options)["result"][0]
     return result
 
 
