@@ -1,18 +1,18 @@
 # RS Camera Control / 공통 카메라 시점
 
 **RS Camera Control · RS-CAMERA-CONTROL** detects the connected MODEL.
-Anima 2B uses RS-CAMERA-CONTROL-v2. MOSS-Image uses the epoch-5 LoRA, its
+Anima 2B uses RS-CAMERA-CONTROL-v3. MOSS-Image uses the epoch-5 LoRA, its
 learned camera token and the caption for the nearest of the 42 trained views.
 The node downloads the selected weights on first use. For MOSS with a standard
 KSampler, connect the camera MODEL output to the sampler and its `prompt` output
 to positive CLIP Text Encode with the `moss_image` encoder. For the RS sampler,
 connect the camera MODEL and the finalized building pipe.
 [3D Orbit guide and wiring](release-1.1.7.md) ·
-[Anima setup and workflow](release-1.1.6.md) ·
+[Anima v3 and workflow](release-1.1.10.md) ·
 [MOSS weights and validation](https://huggingface.co/raspie/RS-CAMERA-CONTROL-MOSS)
 
 **RS Camera Control · RS-CAMERA-CONTROL**은 입력 MODEL을 보고 자동으로 선택합니다.
-Anima 2B에는 v2 LoRA를, MOSS-Image에는 5에포크 LoRA와 가장 가까운 학습 방향의
+Anima 2B에는 v3 LoRA를, MOSS-Image에는 5에포크 LoRA와 가장 가까운 학습 방향의
 캡션·토큰을 적용합니다. 파일은 처음 사용할 때 자동으로 받습니다. 일반 KSampler에서는
 노드의 MODEL을 샘플러에, `prompt`를 `moss_image` 인코더의 양성 CLIP Text Encode에
 연결하세요. RS 샘플러에는 카메라 MODEL과 Finalize를 거친 파이프를 연결하세요.

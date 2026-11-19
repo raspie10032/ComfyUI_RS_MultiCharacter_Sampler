@@ -5,13 +5,13 @@ import math
 from pathlib import Path
 
 
-ATELIER_LORA = "anima/RS-CAMERA-CONTROL-v2.safetensors"
+ATELIER_LORA = "anima/RS-CAMERA-CONTROL-v3.safetensors"
 ATELIER_LORA_URL = (
     "https://huggingface.co/raspie/RS-CAMERA-CONTROL/resolve/"
-    f"8e28bb227d8b7a8177ea17b975d1e71599d6bfc7/{Path(ATELIER_LORA).name}"
+    f"73c0afede977233cd61360f92d6bcf9233a55132/{Path(ATELIER_LORA).name}"
 )
 ATELIER_LORA_SIZE = 34_800_080
-ATELIER_LORA_SHA256 = "8a76802375ed798030c20fa0acf4ce0fbc80f28aec5b008e4816626f843bf9b6"
+ATELIER_LORA_SHA256 = "bda8fa23707c01b70b9552c203fc72aab464d19b9fa5fc3ce55fbc83549167df"
 
 
 def ensure_atelier_lora():
