@@ -2084,5 +2084,80 @@
         "name": "合併強度"
       }
     }
+  },
+  "RSUnifiedCameraControl": {
+    "display_name": "RS 統一相機控制",
+    "description": "參考姿勢使用合併 LoRA，相機模式使用訓練過的 42 個視角與 LoRA，提示詞模式產生視角標籤。",
+    "inputs": {
+      "azimuth": {
+        "name": "水平角度"
+      },
+      "elevation": {
+        "name": "俯仰角度"
+      },
+      "distance": {
+        "name": "拍攝距離"
+      },
+      "roll": {
+        "name": "傾斜"
+      },
+      "strength": {
+        "name": "視角強度"
+      },
+      "weighting": {
+        "name": "權重格式"
+      },
+      "prompt_syntax": {
+        "name": "提示詞語法"
+      },
+      "enabled": {
+        "name": "啟用"
+      },
+      "base_prompt": {
+        "name": "場景提示詞"
+      },
+      "scope": {
+        "name": "套用範圍"
+      },
+      "random_mode": {
+        "name": "隨機構圖"
+      },
+      "random_seed": {
+        "name": "相機隨機種子"
+      },
+      "layout_sync": {
+        "name": "遮罩配置連動",
+        "tooltip": "perspective：平面透視＋縮放/旋轉。±90°會退化成線，請調整角度。文字框固定。"
+      },
+      "canvas_aspect": {
+        "name": "輸出寬高比"
+      },
+      "building_pipe": {
+        "name": "building_pipe"
+      },
+      "camera_mode": {
+        "name": "相機模式"
+      },
+      "lora_strength": {
+        "name": "LoRA 強度"
+      },
+      "visible_details": {
+        "name": "描述可見部位"
+      },
+      "anima_lora": {
+        "name": "Anima LoRA"
+      },
+      "model": {
+        "name": "模型"
+      }
+    },
+    "outputs": {
+      "0": {
+        "name": "building_pipe"
+      },
+      "3": {
+        "name": "模型"
+      }
+    }
   }
 }

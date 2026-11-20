@@ -56,6 +56,12 @@ export function cameraSupport(source, m) {
 
 export function cameraSlots(node, slots) {
     if (!slots.length || node.mode === 4) return {slots, unknown:false};
+    if ((node.comfyClass ?? node.type) === "RSUnifiedCameraControl" && node.mode !== 2) {
+        if (linked(node, "camera_mode")) return {slots, unknown:true};
+        const mode = value(node, "camera_mode", "merged_lora_only");
+        if (mode === "merged_lora_only") return {slots, unknown:false};
+        if (!["camera_and_lora", "prompt_only"].includes(mode)) return {slots, unknown:true};
+    }
     if (node.mode === 2 || slots.some(s=>s.dynamic)) return {slots,unknown:true};
     const v = Object.fromEntries(Object.entries({enabled:true,strength:1.2,layout_sync:"fixed",
         azimuth:0,elevation:0,distance:.5,roll:0,canvas_aspect:1,random_mode:"off",random_seed:0})

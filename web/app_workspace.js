@@ -77,7 +77,7 @@ function field(node, name, parent, label) {
             change(node, name, value); wildcardPreview=null;
             if (currentTab === 'wildcards') overlay?.querySelector('.rs-app-wildcard-preview')?.remove();
             if (name === 'character_count') { workspace.characters(); render(); }
-            else if (name.endsWith('_kind') || name === 'anima_method') render();
+            else if (name.endsWith('_kind') || name === 'anima_method' || name === 'camera_mode') render();
         } catch (error) { report(error); }
     };
     input.addEventListener('change', onChange);
@@ -109,6 +109,19 @@ function modelNotice(parent) {
     el('p', `${cap.family} · 3D: ${pose} · 배치: ${cap.layout} · 참조: ${cap.reference ? (cap.reference_method === 'frame' ? 'Anima Reference Frame' : '모델별 참조') : '현재 체크포인트 미지원'}`, parent, 'rs-app-hint');
     if (cap.note) el('p', cap.note, parent);
     for (const error of workspace.issues()) el('p', error, parent, 'rs-app-error');
+}
+function cameraControls(node, panel) {
+    const unified = node.type === 'RSUnifiedCameraControl';
+    const linkedMode = node.inputs?.some(input => input.name === 'camera_mode' && input.link != null);
+    const compact = unified && !linkedMode && widget(node, 'camera_mode')?.value === 'merged_lora_only';
+    const box = section(compact ? '병합 LoRA' : '카메라 시점·거리·기울기', panel);
+    if (compact) {
+        fields(node, box, ['camera_mode', 'enabled', 'lora_strength']);
+        return;
+    }
+    for (const w of node.widgets ?? []) if (w.element) mountEditor(node, w.name, box);
+    const names = unified ? node.widgets.filter(w => !w.hidden).map(w => w.name) : undefined;
+    fields(node, box, names);
 }
 function render() {
     restoreDOM();
@@ -157,9 +170,7 @@ function render() {
         advanced(node, box);
     }
     if (currentTab === 'camera') {
-        const box = section('카메라 시점·거리·기울기', panel), node = workspace.node('camera');
-        for (const w of node.widgets ?? []) if (w.element) mountEditor(node, w.name, box);
-        fields(node, box);
+        cameraControls(workspace.node('camera'), panel);
         if (workspace.state.interaction) fields(workspace.node('interaction'), section('상호작용 경계 해제', panel));
     }
     if (currentTab === 'settings') {

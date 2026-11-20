@@ -321,7 +321,7 @@
     },
     {
       "id": 20,
-      "type": "RSAtelierSphereCameraControl",
+      "type": "RSUnifiedCameraControl",
       "pos": [
         775,
         0
@@ -335,6 +335,13 @@
       "mode": 0,
       "inputs": [
         {
+          "localized_name": "model",
+          "name": "model",
+          "shape": 7,
+          "type": "MODEL",
+          "link": 1
+        },
+        {
           "localized_name": "building_pipe",
           "name": "building_pipe",
           "shape": 7,
@@ -347,6 +354,15 @@
           "shape": 7,
           "type": "STRING",
           "link": 2
+        },
+        {
+          "localized_name": "camera_mode",
+          "name": "camera_mode",
+          "type": "COMBO",
+          "widget": {
+            "name": "camera_mode"
+          },
+          "link": null
         },
         {
           "localized_name": "azimuth",
@@ -470,16 +486,32 @@
           "link": null
         },
         {
-          "name": "model",
-          "type": "MODEL",
-          "link": 1
-        },
-        {
+          "localized_name": "lora_strength",
           "name": "lora_strength",
-          "type": "FLOAT",
           "shape": 7,
+          "type": "FLOAT",
           "widget": {
             "name": "lora_strength"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "visible_details",
+          "name": "visible_details",
+          "shape": 7,
+          "type": "BOOLEAN",
+          "widget": {
+            "name": "visible_details"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "anima_lora",
+          "name": "anima_lora",
+          "shape": 7,
+          "type": "COMBO",
+          "widget": {
+            "name": "anima_lora"
           },
           "link": null
         }
@@ -506,6 +538,7 @@
           "links": []
         },
         {
+          "localized_name": "model",
           "name": "model",
           "type": "MODEL",
           "links": [
@@ -514,9 +547,10 @@
         }
       ],
       "properties": {
-        "Node name for S&R": "RSAtelierSphereCameraControl"
+        "Node name for S&R": "RSUnifiedCameraControl"
       },
       "widgets_values": [
+        "camera_and_lora",
         -90,
         0,
         0.5,
@@ -531,8 +565,30 @@
         "fixed",
         "fixed",
         0.6842105263157895,
-        1.0
-      ]
+        1,
+        true,
+        "camera_v3"
+      ],
+      "widgets_values_named": {
+        "camera_mode": "camera_and_lora",
+        "azimuth": -90,
+        "elevation": 0,
+        "distance": 0.5,
+        "roll": 0,
+        "strength": 1.2,
+        "weighting": "weighted",
+        "prompt_syntax": "ComfyUI",
+        "enabled": true,
+        "scope": "scene_and_characters",
+        "random_mode": "off",
+        "random_seed": 0,
+        "control_after_generate": "fixed",
+        "layout_sync": "fixed",
+        "canvas_aspect": 0.6842105263157895,
+        "lora_strength": 1,
+        "visible_details": true,
+        "anima_lora": "camera_v3"
+      }
     },
     {
       "id": 16,
@@ -700,7 +756,7 @@
       1,
       0,
       20,
-      15,
+      0,
       "MODEL"
     ],
     [
@@ -708,7 +764,7 @@
       32,
       0,
       20,
-      1,
+      2,
       "STRING"
     ],
     [
@@ -724,7 +780,7 @@
       12,
       0,
       20,
-      0,
+      1,
       "RS_MC_BUILD_PIPE,RS_MC_CHARACTER_PIPE,NAI_CONTEXT"
     ],
     [

@@ -15,6 +15,19 @@ const sandbox={app,document:{createElement:element},console,URL,atob:s=>Buffer.f
   return {ok:true,json:async()=>trainedRows};
  }};
 vm.runInNewContext(source,sandbox);
+// With NAI loaded first, keep its own node untouched but move the common
+// compatibility ID out of the default menu even if NAI owns its definition.
+const sharedGuardSandbox = {...sandbox, app:{...app, registerExtension(e) { this.extensions[e.name] = e; }, extensions:{}}};
+vm.runInNewContext('globalThis[Symbol.for("raspie.camera.editor")] = true;', sharedGuardSandbox);
+vm.runInNewContext(source, sharedGuardSandbox);
+const foreignDefs = {RSCameraControl:{category:'NAI/Camera'}, NAICameraControl:{category:'NAI/Camera'}};
+sharedGuardSandbox.app.extensions['RS.LegacyCameraDefinition'].addCustomNodeDefs(foreignDefs);
+assert.equal(foreignDefs.RSCameraControl.category, 'RS MultiCharacter/Legacy');
+assert.equal(foreignDefs.RSCameraControl.deprecated, true);
+assert.deepEqual(foreignDefs.NAICameraControl, {category:'NAI/Camera'});
+assert.equal(sharedGuardSandbox.app.extensions['RS.CameraControl'], undefined);
+assert.ok(sharedGuardSandbox.app.extensions['RS.AtelierSphereCameraControl']);
+assert.ok(sharedGuardSandbox.app.extensions['RS.UnifiedCameraControl']);
 const coordinates=[];
 for(let i=0;i<301;i++) coordinates.push({azimuth:-180+360*i/300,elevation:-90+180*(i%37)/36,distance:(i%61)/60,roll:-45+90*(i%17)/16,strength:5*(i%13)/12});
 const python=cp.spawnSync(process.env.CAMERA_PYTHON||'python',['-c','import json,sys;from camera_control import camera_weights;print(json.dumps([camera_weights(**v) for v in json.load(sys.stdin)]))'],{input:JSON.stringify(coordinates),encoding:'utf8'});
@@ -113,6 +126,109 @@ print(json.dumps([nearest_view(**v)[1] for v in json.load(sys.stdin)]))
  assert.equal(atelierCaption.textContent,preview+', backend tags');
  atelier.widgets.find(w=>w.name==='visible_details').callback(false);
  assert.equal(atelierCaption.textContent,preview);
+
+ class UnifiedNode extends Node {
+  constructor(){
+   super();
+   this.widgets=[
+    {name:'camera_mode',value:'merged_lora_only',type:'combo',computeSize:()=>[300,20],inputEl:{hidden:false},callback(){return 7;}},
+    ...this.widgets.map(w=>({...w,type:'number',computeSize:()=>[300,20],inputEl:{hidden:false}})),
+    {name:'control_after_generate',value:'fixed',type:'combo',computeSize:()=>[300,20],inputEl:{hidden:false}},
+    {name:'lora_strength',value:1,type:'number',computeSize:()=>[300,20],inputEl:{hidden:false},callback(){return 8;}},
+    {name:'visible_details',value:true,type:'toggle',computeSize:()=>[300,20],inputEl:{hidden:false}},
+    {name:'anima_lora',value:'camera_v3',type:'combo',computeSize:()=>[300,20],inputEl:{hidden:false}},
+   ];
+  }
+  computeSize(){return [380,40+this.widgets.reduce((n,w)=>n+(w.computeSize?.(380)[1]??20),0)];}
+ }
+ const unifiedDefs={name:'RSUnifiedCameraControl',input:{optional:{model:['MODEL'],building_pipe:['RS_MC_BUILD_PIPE'],context:['RS_MC_BUILD_PIPE']}}};
+ await extensions['RS.UnifiedCameraControl'].beforeRegisterNodeDef(UnifiedNode,unifiedDefs);
+ assert.ok(unifiedDefs.input.optional.model);
+ assert.ok(unifiedDefs.input.optional.building_pipe);
+ assert.equal(unifiedDefs.input.optional.context,undefined);
+ const unified=new UnifiedNode();unified.onNodeCreated();
+ const uWidget=name=>unified.widgets.find(w=>w.name===name);
+ const uCustom=unified.widgets.at(-1);
+ const [,uToolbar,,,uOutput]=unified.rsCameraEditor.root.children;
+ assert.equal(uCustom.serialize,false);assert.equal(uCustom.options.serialize,false);
+ // Default merged_lora_only is compact: hides camera angles/prompts/layout while allowing enabled and lora_strength.
+ const compactHeight=unified.size[1];
+ assert.ok(compactHeight < 235);
+ assert.equal(uCustom.hidden,true);
+ assert.ok(uCustom.computeSize()[1]<=0);
+ for(const name of ['camera_mode','enabled','lora_strength']) assert.notEqual(uWidget(name).hidden,true);
+ for(const name of ['azimuth','elevation','distance','roll','strength','weighting','prompt_syntax','random_mode','random_seed','control_after_generate','layout_sync','canvas_aspect','visible_details','anima_lora']){
+  assert.equal(uWidget(name).hidden,true,`merged_lora_only should hide ${name}`);
+  assert.equal(uWidget(name).inputEl.hidden,true);
+ }
+ assert.equal(unified.rsCameraEditor.root.style.display,'none');
+ uWidget('lora_strength').value=.75;assert.equal(uWidget('lora_strength').callback(),8);
+ // Switch to camera_and_lora: expands controls, shows trained view preview, and handles executed output.
+ uWidget('strength').value=1.2;
+ uWidget('camera_mode').value='camera_and_lora';assert.equal(uWidget('camera_mode').callback(),7);
+ await Promise.resolve();await Promise.resolve();
+ assert.equal(uCustom.computeSize()[1],670);
+ assert.ok(unified.size[1]>compactHeight+400);
+ for(const name of ['camera_mode','azimuth','elevation','enabled','lora_strength','visible_details','anima_lora','control_after_generate']){
+  assert.notEqual(uWidget(name).hidden,true);
+  assert.equal(uWidget(name).inputEl.hidden,false);
+ }
+ assert.notEqual(unified.rsCameraEditor.root.style.display,'none');
+ uToolbar.children.find(w=>w.textContent==='Face right').onclick();
+ assert.equal(uWidget('azimuth').value,90);
+ assert.match(uOutput.textContent,/LoRA trained view · 90\.0° \/ 0\.0°/);
+ unified.onExecuted({camera_caption:[trainedTag+', unified details'],camera_values:[{azimuth:90,elevation:0}]});
+ assert.match(uOutput.textContent,/unified details/);
+ // Switch to prompt_only: hides LoRA-only widgets and switches preview to prompt caption.
+ uWidget('camera_mode').value='prompt_only';uWidget('camera_mode').callback();
+ for(const name of ['lora_strength','visible_details','anima_lora']) assert.equal(uWidget(name).hidden,true);
+ for(const name of ['camera_mode','azimuth','elevation','distance','roll','strength','prompt_syntax','enabled']) assert.notEqual(uWidget(name).hidden,true);
+ assert.match(uOutput.textContent,/viewed from the right side/);
+ sandbox.setCameraValues(unified,{prompt_syntax:'NovelAI',weighting:'plain'});
+ assert.equal(uOutput.textContent,'viewed from the right side, medium shot');
+ sandbox.setCameraValues(unified,{strength:0});assert.match(uOutput.textContent,/Camera OFF/);
+ sandbox.setCameraValues(unified,{strength:1.2,weighting:'weighted'});
+ // Switch back to merged_lora_only: returns to compact height and preserves all serialized values & order.
+ const savedOrder=unified.widgets.filter(w=>w.serialize!==false).map(w=>w.name);
+ const savedValues=unified.widgets.filter(w=>w.serialize!==false).map(w=>w.value);
+ uWidget('camera_mode').value='merged_lora_only';uWidget('camera_mode').callback();
+ assert.equal(unified.size[1],compactHeight);
+ assert.deepEqual(unified.widgets.filter(w=>w.serialize!==false).map(w=>w.name),savedOrder);
+ assert.deepEqual(unified.widgets.filter(w=>w.serialize!==false).map(w=>w.value).slice(1),savedValues.slice(1));
+ // Save/reload simulation via onConfigure updates mode, visibility, and preview while preserving values.
+ const reloaded=new UnifiedNode();reloaded.onNodeCreated();
+ const reloadedWidgets=reloaded.widgets.filter(w=>w.serialize!==false);
+ savedValues.forEach((val,i)=>{reloadedWidgets[i].value=val;});
+ reloadedWidgets[0].value='camera_and_lora';
+ reloaded.onConfigure();await Promise.resolve();await Promise.resolve();
+ assert.equal(reloaded.widgets.find(w=>w.name==='azimuth').value,90);
+ assert.equal(reloaded.widgets.find(w=>w.name==='lora_strength').value,.75);
+ assert.equal(reloaded.widgets.find(w=>w.name==='prompt_syntax').value,'NovelAI');
+ assert.notEqual(reloaded.widgets.find(w=>w.name==='azimuth').hidden,true);
+ assert.match(reloaded.rsCameraEditor.root.children[4].textContent,/LoRA trained view · 90\.0° \/ 0\.0°/);
+ reloadedWidgets[0].value='prompt_only';reloaded.onConfigure();
+ assert.match(reloaded.rsCameraEditor.root.children[4].textContent,/::viewed from the right side::/);
+ reloadedWidgets[0].value='merged_lora_only';reloaded.onConfigure();
+ assert.equal(reloaded.widgets.find(w=>w.name==='azimuth').hidden,true);
+ assert.equal(reloaded.widgets.find(w=>w.name==='azimuth').value,90);
+ // Linked camera_mode expands controls and defers preview until execution.
+ reloaded.inputs=[{name:'camera_mode',link:9}];reloaded.onConnectionsChange();
+ assert.notEqual(reloaded.widgets.find(w=>w.name==='azimuth').hidden,true);
+ assert.match(reloaded.rsCameraEditor.root.children[3].textContent,/camera_mode/);
+ assert.match(reloaded.rsCameraEditor.root.children[4].textContent,/resolves on execution/);
+ reloaded.onExecuted({camera_mode:['merged_lora_only']});
+ assert.match(reloaded.rsCameraEditor.root.children[4].textContent,/Last run: merged LoRA only/);
+ reloaded.onExecuted({camera_mode:['prompt_only'],camera_caption:['linked executed caption']});
+ assert.equal(reloaded.rsCameraEditor.root.children[4].textContent,'linked executed caption');
+ reloaded.inputs=[];reloaded.onConnectionsChange();
+ assert.equal(reloaded.widgets.find(w=>w.name==='azimuth').hidden,true);
+ // Converted widgets stay untouched across mode toggles.
+ const converted=reloaded.widgets.find(w=>w.name==='azimuth');
+ reloadedWidgets[0].value='camera_and_lora';reloaded.onConfigure();
+ converted.type='converted-widget';converted.hidden=true;
+ reloadedWidgets[0].value='merged_lora_only';reloaded.onConfigure();
+ reloadedWidgets[0].value='camera_and_lora';reloaded.onConfigure();
+ assert.equal(converted.type,'converted-widget');assert.equal(converted.hidden,true);
 
  await extension.beforeRegisterNodeDef(Node,{name:'RSCameraControl'});
  const defs={name:'RSCameraControl',input:{optional:{building_pipe:['RS_MC_CHARACTER_PIPE,NAI_CONTEXT'],context:['RS_MC_CHARACTER_PIPE,NAI_CONTEXT']}}};

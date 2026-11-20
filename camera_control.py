@@ -135,7 +135,8 @@ class RSCameraControl:
     RETURN_TYPES = ("RS_MC_BUILD_PIPE,RS_MC_CHARACTER_PIPE,NAI_CONTEXT", "STRING", "STRING")
     RETURN_NAMES = ("building_pipe", "prompt", "camera_prompt")
     FUNCTION = "apply"
-    CATEGORY = "RS/Camera"
+    CATEGORY = "RS MultiCharacter/Legacy"
+    DEPRECATED = True
     DESCRIPTION = "Shared camera captions and optional mask zoom, rotation and flat-plane perspective. / 공용 카메라 시점. 마스크 확대·축소·회전과 평면 원근 변형을 선택할 수 있습니다."
 
     def apply(self, azimuth=0., elevation=0., distance=.5, roll=0., strength=1.2,
@@ -327,7 +328,8 @@ def require_anima_2b(model):
 
 
 class RSAnimaCameraMultiLoRA:
-    CATEGORY = "RS/Camera"
+    CATEGORY = "RS MultiCharacter/Legacy"
+    DEPRECATED = True
     RETURN_TYPES = ("MODEL",)
     FUNCTION = "apply"
     DESCRIPTION = ("Apply the Anima 2B camera (0.20) and multi-character composition (0.50) merge. "
@@ -406,3 +408,59 @@ class RSAtelierSphereCameraControl(RSCameraControl):
                 install_moss_camera(model, token, kwargs.get("scope", "scene_and_characters"))
         result["result"] = (*result["result"], model)
         return result
+
+
+class RSUnifiedCameraControl(RSAtelierSphereCameraControl):
+    CATEGORY = "RS/Camera"
+    DEPRECATED = False
+    SEARCH_ALIASES = ["RS Camera Control", "RS Anima Camera + Multi LoRA", "Atelier Sphere Camera",
+                      "카메라 컨트롤", "병합 LoRA"]
+    DESCRIPTION = ("Choose merged_lora_only for reference poses, camera_and_lora for the trained "
+                   "42-view camera, or prompt_only for camera captions with an optional MODEL.")
+
+    def __init__(self):
+        super().__init__()
+        self._merged = RSAnimaCameraMultiLoRA()
+
+    @classmethod
+    def INPUT_TYPES(cls):
+        fields = super().INPUT_TYPES()
+        fields["required"].pop("model")
+        model = ("MODEL", {"tooltip": "Anima 2B for the merged LoRA, Anima 2B or MOSS-Image for the trained camera. Optional in prompt_only."})
+        del fields["optional"]["context"]
+        fields["required"] = {
+            "camera_mode": (["merged_lora_only", "camera_and_lora", "prompt_only"], {
+                "tooltip": "Reference pose: merged LoRA only. Trained view: camera and LoRA. "
+                           "Prompt only: continuous camera tags, also available without a model."}),
+            **fields["required"],
+        }
+        fields["optional"] = {"model": model, **fields["optional"]}
+        return fields
+
+    def apply(self, camera_mode="merged_lora_only", model=None, lora_strength=1.,
+              anima_lora="camera_v3", **kwargs):
+        if camera_mode == "prompt_only":
+            result = RSCameraControl.apply(self, **kwargs)
+            if model is None:
+                from comfy_execution.graph import ExecutionBlocker
+                model = ExecutionBlocker("Connect a MODEL to use the camera's MODEL output.")
+            result["ui"]["camera_mode"] = [camera_mode]
+            result["result"] = (*result["result"], model)
+            return result
+        if camera_mode not in ("merged_lora_only", "camera_and_lora"):
+            raise ValueError(f"Unknown camera mode: {camera_mode}")
+        if model is None:
+            raise ValueError(f"Connect a MODEL for {camera_mode}. / 이 모드에는 MODEL을 연결하세요.")
+        if camera_mode == "camera_and_lora":
+            result = super().apply(model, lora_strength=lora_strength, anima_lora=anima_lora, **kwargs)
+            result["ui"]["camera_mode"] = [camera_mode]
+            return result
+
+        if kwargs.get("enabled", True):
+            model, = self._merged.apply(model, lora_strength)
+        pipe = kwargs.get("building_pipe")
+        prompt = kwargs.get("base_prompt")
+        if prompt is None:
+            prompt = getattr(pipe, "prompt", None) or ""
+        return {"ui": {"camera_mode": [camera_mode], "camera_caption": [""]},
+                "result": (pipe if pipe is not None else CameraBuildSeed(), prompt, "", model)}

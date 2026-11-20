@@ -1260,5 +1260,80 @@
         "name": "適用強度"
       }
     }
+  },
+  "RSUnifiedCameraControl": {
+    "display_name": "RS 統合カメラ制御",
+    "description": "参照ポーズには統合 LoRA、カメラには学習した42視点と LoRA、プロンプトには視点タグを適用します。",
+    "inputs": {
+      "azimuth": {
+        "name": "左右の角度"
+      },
+      "elevation": {
+        "name": "上下の角度"
+      },
+      "distance": {
+        "name": "撮影距離"
+      },
+      "roll": {
+        "name": "傾き"
+      },
+      "strength": {
+        "name": "視点の強度"
+      },
+      "weighting": {
+        "name": "重みの表現"
+      },
+      "prompt_syntax": {
+        "name": "プロンプト構文"
+      },
+      "enabled": {
+        "name": "有効"
+      },
+      "base_prompt": {
+        "name": "共通プロンプト"
+      },
+      "scope": {
+        "name": "適用範囲"
+      },
+      "random_mode": {
+        "name": "ランダム構図"
+      },
+      "random_seed": {
+        "name": "カメラ乱数シード"
+      },
+      "layout_sync": {
+        "name": "マスク配置連動",
+        "tooltip": "perspective: 平面の遠近＋距離・回転。±90°は線になるため角度を変更。文字枠は固定。"
+      },
+      "canvas_aspect": {
+        "name": "出力の縦横比"
+      },
+      "building_pipe": {
+        "name": "building_pipe"
+      },
+      "camera_mode": {
+        "name": "カメラモード"
+      },
+      "lora_strength": {
+        "name": "LoRA 強度"
+      },
+      "visible_details": {
+        "name": "見える部位を描写"
+      },
+      "anima_lora": {
+        "name": "Anima LoRA"
+      },
+      "model": {
+        "name": "モデル"
+      }
+    },
+    "outputs": {
+      "0": {
+        "name": "building_pipe"
+      },
+      "3": {
+        "name": "モデル"
+      }
+    }
   }
 }

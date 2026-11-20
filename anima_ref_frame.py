@@ -54,7 +54,8 @@ class RSAnimaCharacterReference:
     RETURN_TYPES = ('RS_MC_BUILD_PIPE',)
     RETURN_NAMES = ('building_pipe',)
     FUNCTION = 'apply'
-    CATEGORY = 'RS MultiCharacter/Reference'
+    CATEGORY = 'RS MultiCharacter/Legacy'
+    DEPRECATED = True
     EXPERIMENTAL = True
     DESCRIPTION = ('Anima numbered reference-frame image. Match the character number, then Finalize. '
         'The sampler prepares the default adapter automatically; an explicit adapter node is optional. '

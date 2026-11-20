@@ -334,6 +334,7 @@ def graph_assets(prompt, unique_id):
     known = {"UNETLoader": ("unet_name", "weight_dtype"), "CheckpointLoaderSimple": ("ckpt_name",),
              "CLIPLoader": ("clip_name", "type", "device"), "VAELoader": ("vae_name",),
              "RSAnimaCameraMultiLoRA": ("strength_model",),
+             "RSUnifiedCameraControl": ("camera_mode", "enabled"),
              "LoraLoaderModelOnly": ("lora_name", "strength_model"),
              "LoraLoader": ("lora_name", "strength_model", "strength_clip")}
     result = {"loaders": [], "unresolved": []}
@@ -355,13 +356,23 @@ def graph_assets(prompt, unique_id):
             return
         for name in ("model", "clip", "vae"):
             visit(inputs.get(name))
-        values = {k: inputs[k] for k in known[kind] if isinstance(inputs.get(k), (str, int, float))}
+        fields = known[kind]
+        if kind == "RSUnifiedCameraControl":
+            mode = inputs.get("camera_mode")
+            if mode in ("merged_lora_only", "camera_and_lora"):
+                fields += ("lora_strength",)
+            if mode == "camera_and_lora":
+                fields += ("anima_lora", "strength")
+            inputs = {"lora_strength": 1., "anima_lora": "camera_v3", **inputs}
+        values = {k: inputs[k] for k in fields if isinstance(inputs.get(k), (str, int, float))}
         loader = {"node": kind, **values}
-        if kind == "RSAnimaCameraMultiLoRA":
+        if kind == "RSAnimaCameraMultiLoRA" or (kind == "RSUnifiedCameraControl" and
+                values.get("camera_mode") == "merged_lora_only" and
+                values.get("enabled") is True and values.get("lora_strength", 0) != 0):
             from .atelier_camera import MERGED_LORA
             loader["lora_name"] = MERGED_LORA
         result["loaders"].append(loader)
-        if len(values) != len(known[kind]):
+        if len(values) != len(fields):
             result["unresolved"].append(kind + ": dynamic setting")
 
     inputs = prompt[str(unique_id)].get("inputs", {})

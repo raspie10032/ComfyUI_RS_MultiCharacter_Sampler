@@ -8,7 +8,7 @@ import { addPositionEditor } from "./position_editor.js";
 import { cameraSlots } from "./camera_regions.js";
 
 const roles = new Set(["RSMultiCharacterPrompt", "RSMultiCharacterLoRA", "RSMultiCharacterPosition", "RSMultiCharacterMask", "RSMultiCharacterMaskDraw", "RSMultiCharacterPoseMasks", "RSMultiCharacterPose3D", "RSMultiCharacterInteraction", "RSMultiCharacterReference"]);
-const cameraTypes = new Set(["RSCameraControl", "NAICameraControl", "RSAtelierSphereCameraControl"]);
+const cameraTypes = new Set(["RSCameraControl", "NAICameraControl", "RSAtelierSphereCameraControl", "RSUnifiedCameraControl"]);
 const finalType = "RSMultiCharacterFinalize";
 const colors = ["#ff8d91", "#81bcff", "#94dd9d", "#ffd27f", "#c3a0ff", "#7fe5df", "#f5a6d8", "#cedd78", "#c7b6a2", "#e0e5ed"];
 const typeOf = node => node?.comfyClass ?? node?.type;
@@ -52,6 +52,14 @@ function collectState(node, seen = new Set()) {
             const upstream = inputNode(node, "building_pipe") ?? inputNode(node, "context");
             // Bypass preserves the type and values of its upstream output.
             if (node.mode === 4) { node = upstream; continue; }
+            if (type === "RSUnifiedCameraControl") {
+                const dynamicMode = node.inputs?.some(i => i.name === "camera_mode" && i.link != null) || !!inputNode(node, "camera_mode");
+                if (dynamicMode) unknown = true;
+                else if (node.mode !== 2 && value(node, "camera_mode", "merged_lora_only") === "merged_lora_only") {
+                    node = upstream;
+                    continue;
+                }
+            }
             const source = collectState(upstream, seen);
             unknown ||= source.unknown;
             if (source.draft) {

@@ -93,7 +93,13 @@ export class Workspace {
             const node = this.node(role);
             if (node?.properties?.rs_workspace_role === role) { this.graph.remove?.(node); delete this.state.ids[role]; }
         }
-        this.node('camera', 'RSCameraControl'); this.node('interaction', 'RSMultiCharacterInteraction');
+        const camera = this.node('camera');
+        if (!camera) {
+            setValue(this.node('camera', 'RSUnifiedCameraControl'), 'camera_mode', 'prompt_only');
+        } else if (!['RSCameraControl', 'RSUnifiedCameraControl'].includes(camera.type)) {
+            throw Error('Workspace camera was replaced; restore its original type.');
+        }
+        this.node('interaction', 'RSMultiCharacterInteraction');
         this.node('global_lora', 'LoraLoader'); this.node('save', 'SaveImage');
         if (first) setValue(this.node('save'), 'filename_prefix', 'RS_Workspace');
         for (const role of ['sampler', 'progressive']) {
@@ -196,10 +202,15 @@ export class Workspace {
         for (const role of ['prompt', 'loras', 'position']) chain(this.node(role));
         if (this.state.interaction) chain(this.node('interaction'));
         if (this.state.camera) {
+            const camera = this.node('camera');
             const common = this.node('common_prompt', 'PrimitiveStringMultiline');
             setValue(common, 'value', widget(this.sample(), 'prompt').value);
-            connect(common, 0, this.node('camera'), 'base_prompt');
-            chain(this.node('camera'));
+            connect(common, 0, camera, 'base_prompt');
+            chain(camera);
+            if (camera.type === 'RSUnifiedCameraControl') {
+                connect(...m, camera, 'model');
+                m = [camera, 'model'];
+            }
         }
         for (let i = 1; i <= this.count(); i++) if (this.state.refs[i]) {
             const ref = this.node(`ref${i}`, 'RSMultiCharacterReference'), image = this.node(`image${i}`, 'LoadImage');

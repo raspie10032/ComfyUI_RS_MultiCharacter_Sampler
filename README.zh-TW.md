@@ -7,7 +7,7 @@
 
 [English](README.md) · [한국어](README.ko.md) · [日本語](README.ja.md) · [简体中文](README.zh-CN.md) · **繁體中文** · [詳細文件](docs/README.md) · [更新記錄](CHANGELOG.md) · [釋出版本](https://github.com/raspie10032/ComfyUI_RS_MultiCharacter_Sampler/releases)
 
-**當前版本：[1.1.11 Hangeul](docs/release-1.1.11.md)。** 使用本地模型，無需安裝 RS NovelAI 擴充套件或提供 API 金鑰。
+**當前版本：[1.1.12 Hangeul](docs/release-1.1.12.md)。** 使用本地模型，無需安裝 RS NovelAI 擴充套件或提供 API 金鑰。
 
 ## 開啟應用介面 — RS Workspace（實驗）
 
@@ -25,7 +25,7 @@
 
 ![未使用 LoRA 的 Anima 雙角色示例](examples/two-characters-result.png)
 
-**相機視角：** [RS Camera Control](docs/camera-control.md) 向RS與NAI共用上下文加入視角標籤，可在節點內調整方向、高度、距離、隨機視角，還可選擇區域縮放、旋轉和平面透視變換。生成的三維姿態取決於模型。
+**相機視角：** [RS 統一相機控制](docs/camera-control.md) 可套用合併 LoRA、42 視角相機與 LoRA，或單獨產生視角標籤。可在節點內調整方向、高度、距離、隨機視角，還可選擇區域縮放、旋轉和平面透視變換。生成的三維姿態取決於模型。
 
 **相機功能參考：** [Anima 相機標籤輔助](https://arca.live/b/aiart/179423561) / `ComfyUI-KR-Camera-Control`（原始署名：`ComfyUI_bsk_UI` / 灰暗x）。[參考範圍與來源說明](THIRD_PARTY_NOTICES.md#camera-control-references)。
 

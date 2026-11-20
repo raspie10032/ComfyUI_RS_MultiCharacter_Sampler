@@ -66,6 +66,39 @@ for(const type of ['RSCameraControl','NAICameraControl','RSAtelierSphereCameraCo
  assert.equal(collectSlots(make(type,{},native)).unknown,false);
  assert.equal(collectSlots(make(type,{},native)).slots.length,2);
 }
+const cameraSettings={layout_sync:'distance_and_roll',distance:1};
+const mergeOnly=make('RSUnifiedCameraControl',cameraSettings,root);
+assert.equal(collectSlots(mergeOnly).slots[0].x,.25);
+assert.equal(sandbox.collectEditorSlots(mergeOnly).cameraPending,false);
+const earlierCamera=make('RSCameraControl',cameraSettings,root);
+const mergeAfter=make('RSUnifiedCameraControl',cameraSettings,earlierCamera);
+assert.equal(collectSlots(mergeAfter).slots[0].x,.375);
+assert.equal(sandbox.collectEditorSlots(mergeAfter).cameraPending,true);
+for(const camera_mode of ['camera_and_lora','prompt_only']){
+ const unified=make('RSUnifiedCameraControl',{...cameraSettings,camera_mode},root);
+ assert.equal(collectSlots(unified).slots[0].x,.375);
+ assert.equal(sandbox.collectEditorSlots(unified).cameraPending,true);
+ const finalizedUnified=make('RSUnifiedCameraControl',{...cameraSettings,camera_mode},make('RSMultiCharacterFinalize',{},root));
+ assert.equal(collectSlots(finalizedUnified).unknown,false);
+ assert.equal(collectSlots(finalizedUnified).slots[0].x,.375);
+}
+const mergedStart=make('RSUnifiedCameraControl',{layout_sync:'perspective',azimuth:45});
+const mergedPrompt=make('RSMultiCharacterPrompt',{character_count:2},mergedStart);
+assert.equal(sandbox.collectEditorSlots(mergedPrompt).cameraPending,false);
+const mergedFinal=make('RSUnifiedCameraControl',{layout_sync:'perspective',azimuth:90,distance:1},make('RSMultiCharacterFinalize',{},root));
+assert.equal(collectSlots(mergedFinal).unknown,false);
+assert.equal(collectSlots(mergedFinal).slots[0].x,.25);
+const mergedNative=make('RSUnifiedCameraControl',{layout_sync:'perspective',azimuth:90},make('CharacterPromptSelect',{character_count:2,character1_x:.3,character2_enable:true,character2_x:.7}));
+assert.equal(collectSlots(mergedNative).unknown,false);
+assert.equal(collectSlots(mergedNative).slots[0].x,.3);
+const linkedModeUnified=make('RSUnifiedCameraControl',{layout_sync:'fixed'},root);
+linkedModeUnified.inputs.push({name:'camera_mode',link:9});
+assert.equal(collectSlots(linkedModeUnified).unknown,true);
+const mutedMerged=make('RSUnifiedCameraControl',{camera_mode:'merged_lora_only'},root);
+mutedMerged.mode=2;
+assert.equal(collectSlots(mutedMerged).unknown,true);
+mutedMerged.mode=4;
+assert.equal(collectSlots(mutedMerged).unknown,false);
 const manual2=make('RSMultiCharacterMask',{character_id:2,enabled:true},root);manual2.testMask=mask.testMask;
 const pose1=make('RSMultiCharacterPoseMasks',{},manual2);pose1.testPose=[mask.testMask];
 assert.equal(collectSlots(pose1).slots[1].maskSupport,mask.testMask); // A smaller pose preserves a manual mask.

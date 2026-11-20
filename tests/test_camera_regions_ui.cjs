@@ -65,4 +65,15 @@ assert.equal(region.cameraSlots(node({layout_sync:'distance_and_roll',random_mod
 assert.equal(region.cameraSlots(node({layout_sync:'distance_and_roll',random_mode:'balanced',random_seed:-1}),slots).unknown,true);
 const muted=node();muted.mode=2;assert.equal(region.cameraSlots(muted,slots).unknown,true);
 assert.equal(region.cameraSlots(node(),[{id:1,dynamic:true}]).unknown,true);
+const unified=(settings={},links=[])=>({type:'RSUnifiedCameraControl',...node(settings,links)});
+assert.equal(region.cameraSlots(unified({layout_sync:'perspective',azimuth:90},['distance','enabled']),slots).slots,slots);
+assert.equal(region.cameraSlots(unified({layout_sync:'perspective',azimuth:90},['distance','enabled']),slots).unknown,false);
+assert.equal(region.cameraSlots(unified({camera_mode:'merged_lora_only',layout_sync:'perspective',azimuth:90}),[{id:1,dynamic:true}]).unknown,false);
+assert.equal(region.cameraSlots(unified({camera_mode:'camera_and_lora',layout_sync:'distance_and_roll',distance:1}),slots).slots[2].x,.55);
+assert.equal(region.cameraSlots(unified({camera_mode:'prompt_only',layout_sync:'distance_and_roll',distance:1}),slots).slots[2].x,.55);
+assert.equal(region.cameraSlots(unified({camera_mode:'merged_lora_only'},['camera_mode']),slots).unknown,true);
+assert.equal(region.cameraSlots(unified({camera_mode:'invalid'}),slots).unknown,true);
+const mutedUnified=unified({camera_mode:'merged_lora_only'});mutedUnified.mode=2;
+assert.equal(region.cameraSlots(mutedUnified,slots).unknown,true);
+mutedUnified.mode=4;assert.equal(region.cameraSlots(mutedUnified,slots).unknown,false);
 console.log('Camera region previews: 18 Python raster/box/point parity cases, fixed text, cached masks, random/linked/off/bypass safeguards passed');

@@ -13,7 +13,7 @@ from .detector_bundle import RSMultiCharacterDetectionLoader
 from .wd_tagger import RSMultiCharacterTaggerLoader
 from .mask_drawing import RSMultiCharacterMaskDraw
 from .image_reference import RSMultiCharacterReference
-from .camera_control import RSCameraControl, RSAtelierSphereCameraControl, RSAnimaCameraMultiLoRA
+from .camera_control import RSCameraControl, RSAtelierSphereCameraControl, RSAnimaCameraMultiLoRA, RSUnifiedCameraControl
 from .progressive import RSMultiCharacterProgressiveSampler
 from .anima_ref_frame import RSAnimaReferenceAdapter, RSAnimaCharacterReference
 
@@ -24,6 +24,7 @@ NODE_CLASS_MAPPINGS = {
     "RSAnimaCharacterReference": RSAnimaCharacterReference,
     "RSAnimaReferenceAdapter": RSAnimaReferenceAdapter,
     "RSMultiCharacterProgressiveSampler": RSMultiCharacterProgressiveSampler,
+    "RSUnifiedCameraControl": RSUnifiedCameraControl,
     "RSCameraControl": RSCameraControl,
     "RSAnimaCameraMultiLoRA": RSAnimaCameraMultiLoRA,
     "RSAtelierSphereCameraControl": RSAtelierSphereCameraControl,
@@ -50,6 +51,7 @@ NODE_DISPLAY_NAME_MAPPINGS = {
     "RSAnimaCharacterReference": "RS Anima Character Reference (Experimental)",
     "RSAnimaReferenceAdapter": "RS Anima Reference Frame (Experimental)",
     "RSMultiCharacterProgressiveSampler": "RS Progressive Resolution Sampler",
+    "RSUnifiedCameraControl": "RS Unified Camera Control",
     "RSCameraControl": "RS Camera Control",
     "RSAnimaCameraMultiLoRA": "RS Anima Camera + Multi LoRA",
     "RSAtelierSphereCameraControl": "RS Camera Control · RS-CAMERA-CONTROL",
@@ -78,6 +80,6 @@ for node_class in NODE_CLASS_MAPPINGS.values():
     shared_pipe_inputs(node_class)
 
 WEB_DIRECTORY = "./web"
-__version__ = "1.1.11"
+__version__ = "1.1.12"
 
 __all__ = ["NODE_CLASS_MAPPINGS", "NODE_DISPLAY_NAME_MAPPINGS", "WEB_DIRECTORY"]

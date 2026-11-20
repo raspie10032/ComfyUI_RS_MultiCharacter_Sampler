@@ -176,7 +176,7 @@ class RSMultiCharacterPrompts:
     RETURN_TYPES = (PIPE_TYPE,)
     RETURN_NAMES = ("character_pipe",)
     FUNCTION = "build"
-    CATEGORY = "RS MultiCharacter"
+    CATEGORY = "RS MultiCharacter/Legacy"
     DESCRIPTION = "1–10 character/text regions with X/Y points, boxes, or both. Coincident points spread left to right. In mixed mode boxes take priority over point regions. Text uses a literal word and style description in a box; spelling depends on the model. More characters do not guarantee quality. / 처리수가 많을수록 품질을 보장하지 못합니다."
 
     def build(self, character_count=5, layout_mode="points", **values):

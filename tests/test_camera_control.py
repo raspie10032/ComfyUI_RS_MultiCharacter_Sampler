@@ -43,6 +43,39 @@ class SharedContext:
 
 
 class CameraTests(unittest.TestCase):
+    def test_unified_camera_preserves_the_three_paths(self):
+        node = camera.RSUnifiedCameraControl()
+        model, patched = object(), object()
+        pipe = SharedContext()
+        schema = node.INPUT_TYPES()
+        self.assertNotIn("model", schema["required"])
+        self.assertIn("model", schema["optional"])
+        self.assertNotIn("context", schema["optional"])
+        self.assertEqual(schema["required"]["camera_mode"][0][0], "merged_lora_only")
+        self.assertEqual(node.RETURN_NAMES, ("building_pipe", "prompt", "camera_prompt", "model"))
+        with patch.object(node._merged, "apply", return_value=(patched,)) as load:
+            result = node.apply(model=model, building_pipe=pipe, lora_strength=.5,
+                                azimuth=90, layout_sync="perspective")["result"]
+            self.assertIs(result[0], pipe)
+            self.assertEqual(result[1:], (pipe.prompt, "", patched))
+            load.assert_called_once_with(model, .5)
+            self.assertIs(node.apply(model=model, enabled=False)["result"][3], model)
+            kwargs = dict(building_pipe=pipe, azimuth=82, roll=24)
+            plain = node.apply("prompt_only", model=model, **kwargs)
+            self.assertEqual(plain["result"], (*camera.RSCameraControl().apply(**kwargs)["result"], model))
+            trained = node.apply("camera_and_lora", model=model, lora_strength=0, **kwargs)
+            legacy = camera.RSAtelierSphereCameraControl().apply(model, lora_strength=0, **kwargs)
+            self.assertEqual(trained["ui"].pop("camera_mode"), ["camera_and_lora"])
+            self.assertEqual(plain["ui"]["camera_mode"], ["prompt_only"])
+            self.assertEqual(trained, legacy)
+            self.assertEqual(load.call_count, 1)
+        with self.assertRaisesRegex(ValueError, "MODEL"):
+            node.apply()
+        with self.assertRaisesRegex(ValueError, "MODEL"):
+            node.apply("camera_and_lora")
+        with self.assertRaisesRegex(ValueError, "mode"):
+            node.apply("bogus")
+
     def test_atelier_selects_adapter_from_input_model(self):
         from _rs_camera_unit import atelier_camera, moss_camera
 

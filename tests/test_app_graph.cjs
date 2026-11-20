@@ -16,19 +16,37 @@ function createNode(type) {
     character_count:2,scene_json:'{"width":1024,"height":1024,"people":[]}',drawing:'{"version":1,"width":768,"height":1024,"layers":{}}',
     pose_control:'auto',pose_strength:1,pose_start:0,pose_end:1,width:1024,height:1024,cfg:4,filename_prefix:'ComfyUI',prompt:'keep common prompt',value:'',lora_name:'None',name:'anima_3dpose_6200.safetensors'
   });
+  if(type==='RSUnifiedCameraControl') values.camera_mode='merged_lora_only';
   for(let i=1;i<=10;i++) Object.assign(values,{['character'+i+'_kind']:'character',['character'+i+'_enable']:true,['character'+i+'_lora']:'None'});
   const inputs=['building_pipe','base_prompt','model','clip','vae','images','image','scene_json','model_patch','character_pipe','detectors','tagger',...Array.from({length:10},(_,i)=>'character'+(i+1))];
   return {type,widgets:Object.entries(values).map(([name,value])=>({name,value,options:{values:name==='name'?['anima_3dpose_6200.safetensors']:undefined}})),
-    inputs:inputs.map(name=>({name,link:null})),outputs:['result','pose_image','scene_json','character_pipe'].map(name=>({name})),
+    inputs:inputs.map(name=>({name,link:null})),outputs:(type==='RSUnifiedCameraControl'
+      ? ['building_pipe','prompt','camera_prompt','model']
+      : ['result','pose_image','scene_json','character_pipe']).map(name=>({name})),
     disconnectInput(i){delete this.graph.links[this.inputs[i].link];this.inputs[i].link=null;},
     connect(a,to,b){to.disconnectInput(b);const id=++this.graph.serial;this.graph.links[id]={origin_id:this.id,origin_slot:a,target_id:to.id,target_slot:b};to.inputs[b].link=id;}};
 }
 const graph=new Graph(),w=new Workspace(graph,createNode,presets).initialize();
+assert.equal(w.node('camera').type,'RSUnifiedCameraControl');
+assert.equal(widget(w.node('camera'),'camera_mode').value,'prompt_only');
+setValue(w.node('camera'),'camera_mode','camera_and_lora');
+w.initialize();assert.equal(widget(w.node('camera'),'camera_mode').value,'camera_and_lora');
+const legacyGraph=new Graph(),legacyWorkspace=new Workspace(legacyGraph,createNode,presets);
+const legacyCamera=legacyWorkspace.node('camera','RSCameraControl');
+legacyWorkspace.initialize(); assert.equal(legacyWorkspace.node('camera'),legacyCamera);
+const brokenGraph=new Graph(),brokenWorkspace=new Workspace(brokenGraph,createNode,presets);
+brokenWorkspace.node('camera','SaveImage');
+assert.throws(()=>brokenWorkspace.initialize(),/replaced/);
 function model(profile,preset,pose){return {id:profile,name:profile,profile,preset,category:'checkpoints',missing:[],capabilities:{family:profile,reference:true,layout:profile==='moss'?'moss_native':'regional',pose,pose_reference:false,pose_progressive:false}};}
 const anima=model('anima','anima_points','lllite'),moss=model('moss','moss_base','scene_adapter');
 function closure(){const prompt={};for(const n of graph.nodes){const inputs=Object.fromEntries(n.widgets.map(w=>[w.name,w.value]));for(const input of n.inputs)if(input.link!=null){const l=graph.links[input.link];inputs[input.name]=[String(l.origin_id),l.origin_slot];}prompt[n.id]={class_type:n.type,inputs};}return ancestorPrompt(prompt,w.node('save').id);}
 w.select(anima);w.state.globalLora=true;setValue(w.sample(),'cfg',3.75);const scene=widget(w.node('pose'),'scene_json').value;
 w.state.camera=true;w.route();assert.equal(widget(w.node('common_prompt'),'value').value,widget(w.sample(),'prompt').value,'camera must receive the common scene caption');
+const samplerModelLink = () => graph.links[w.sample().inputs.find(i=>i.name==='model').link];
+assert.equal(samplerModelLink().origin_id,w.node('camera').id);
+assert.equal(samplerModelLink().origin_slot,3);
+w.state.camera=false;w.route();assert.equal(samplerModelLink().origin_id,w.node('checkpoint').id);
+w.state.camera=true;w.route();
 w.select(moss);assert.equal(w.state.globalLora,false);setValue(w.sample(),'cfg',1.5);
 w.select(anima);assert.equal(w.state.globalLora,true);assert.equal(widget(w.sample(),'cfg').value,3.75);assert.equal(widget(w.node('pose'),'scene_json').value,scene);
 w.state.detail=true;w.route();assert(Object.values(closure()).some(n=>n.class_type==='RSMultiCharacterTaggerLoader'),'multiple characters automatically require matching');
@@ -62,4 +80,22 @@ reactiveSettings.selected.push('c');
 assert.equal(snapshot.selected.length,2,'saved model settings must not alias reactive widgets');
 w.select(moss);w.select(anima);
 assert.equal(widget(w.sample(),'extension_settings').value.selected.length,3,'model switches retain JSON widget contents');
+const workspacePanel = fs.readFileSync('web/app_workspace.js','utf8')
+  .replace(/^import .*$/gm,'').replaceAll('import.meta.url', "'https://example.test/workspace.js'");
+const panelContext = {app:{registerExtension(){}}, widget};
+vm.runInNewContext(workspacePanel + `
+  section = (title, panel) => panel;
+  fields = (node, panel, names) => { panel.names = names; };
+  mountEditor = (node, name, panel) => panel.editors.push(name);
+  this.controls = cameraControls;`, panelContext);
+const cameraPanelNode = {type:'RSUnifiedCameraControl',widgets:[
+  {name:'camera_mode',value:'merged_lora_only'}, {name:'azimuth',value:60},
+  {name:'lora_strength',value:.8}, {name:'rs_camera_editor',element:{}}]};
+const compactPanel = {editors:[]}; panelContext.controls(cameraPanelNode, compactPanel);
+assert.deepEqual(Array.from(compactPanel.names),['camera_mode','enabled','lora_strength']);
+assert.equal(compactPanel.editors.length,0);
+cameraPanelNode.widgets[0].value = 'prompt_only'; cameraPanelNode.widgets[2].hidden = true;
+const promptPanel = {editors:[]}; panelContext.controls(cameraPanelNode, promptPanel);
+assert(promptPanel.names.includes('azimuth') && !promptPanel.names.includes('lora_strength'));
+assert.deepEqual(promptPanel.editors,['rs_camera_editor']);
 console.log('App graph: model restoration, mandatory tagger, inactive-slot exclusion, combination gates and persistence passed.');

@@ -40,7 +40,13 @@ class PackageTests(unittest.TestCase):
     def test_independent_nodes_and_legacy_schema(self):
         self.assertIn("RSMultiCharacterMask", pkg.NODE_CLASS_MAPPINGS)
         self.assertIn("RSMultiCharacterReference", pkg.NODE_CLASS_MAPPINGS)
-        self.assertEqual(len(pkg.NODE_CLASS_MAPPINGS), 24)
+        self.assertIn("RSUnifiedCameraControl", pkg.NODE_CLASS_MAPPINGS)
+        self.assertEqual({key for key, node in pkg.NODE_CLASS_MAPPINGS.items()
+                          if getattr(node, "DEPRECATED", False)},
+                         {"RSCameraControl", "RSAtelierSphereCameraControl", "RSAnimaCameraMultiLoRA",
+                          "RSMultiCharacterPrompts", "RS3DPoseAdapter", "RSAnimaCharacterReference"})
+        for node in pkg.NODE_CLASS_MAPPINGS.values():
+            self.assertEqual(node.CATEGORY.endswith("/Legacy"), getattr(node, "DEPRECATED", False))
         self.assertIn('RSImageToPose3D', pkg.NODE_CLASS_MAPPINGS)
         self.assertIn('RSMultiCharacterPose3D', pkg.NODE_CLASS_MAPPINGS)
         self.assertIn('RSAnimaCharacterReference', pkg.NODE_CLASS_MAPPINGS)
@@ -52,6 +58,22 @@ class PackageTests(unittest.TestCase):
         self.assertFalse(any("NAI_API" in key for key in sys.modules))
         with patch.dict(sys.modules, {"folder_paths": SimpleNamespace(get_filename_list=lambda _: [])}):
             self.assertEqual(len(c.RSMultiCharacterPrompts.INPUT_TYPES()["required"]), 51)
+
+    def test_unified_camera_metadata_through_model_output(self):
+        from importlib import import_module
+        merged = import_module(pkg.__name__ + ".atelier_camera").MERGED_LORA
+        graph = {"1": {"class_type": "RSUnifiedCameraControl", "inputs": {
+                    "camera_mode": "merged_lora_only", "enabled": True, "model": ["2", 0]}},
+                 "2": {"class_type": "UNETLoader", "inputs": {"unet_name": "test", "weight_dtype": "default"}},
+                 "3": {"inputs": {"model": ["1", 3]}}}
+        audit = m.graph_assets(graph, "3")
+        self.assertEqual(audit["unresolved"], [])
+        self.assertEqual(audit["loaders"][0]["node"], "UNETLoader")
+        self.assertEqual(audit["loaders"][1]["lora_name"], merged)
+        for name, value in (("enabled", False), ("lora_strength", 0.), ("lora_strength", ["4", 0]),
+                            ("camera_mode", "prompt_only")):
+            with patch.dict(graph["1"]["inputs"], {name: value}):
+                self.assertNotIn("lora_name", m.graph_assets(graph, "3")["loaders"][1])
 
     def test_hidden_disabled_empty_slots_never_enter_pipe(self):
         values = {f"character{i}": f"person {i}" for i in range(1, 11)}

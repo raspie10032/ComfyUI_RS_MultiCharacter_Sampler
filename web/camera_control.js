@@ -285,8 +285,16 @@ function drawCameraOrbit(c, v) {
         "青＝人物・黄＝カメラ", "蓝色＝人物 · 黄色＝相机", "藍色＝人物 · 黃色＝相機"), 320, 343, "#b7c6d9");
 }
 
-export function addCameraEditor(node, atelier = false) {
+export function addCameraEditor(node, mode = false) {
     if (node.rsCameraEditor) return;
+    const unified = mode === "unified";
+    const atelier = mode === true;
+    const unifiedMergedWidgets = new Set(["camera_mode", "enabled", "lora_strength"]);
+    const unifiedLoraOnlyWidgets = new Set(["lora_strength", "visible_details", "anima_lora"]);
+    const cameraMode = () => widget(node, "camera_mode")?.value ?? "merged_lora_only";
+    const modeLinked = () => unified && linked(node, "camera_mode");
+    const isMergedOnly = () => unified && !modeLinked() && cameraMode() === "merged_lora_only";
+    const isTrainedMode = () => atelier || (unified && !modeLinked() && cameraMode() === "camera_and_lora");
     const root = document.createElement("div");
     root.className = "rs-camera-editor";
     root.style.cssText = "height:100%;overflow:auto;background:#1e2530;color:#eee;padding:8px;box-sizing:border-box;font:12px sans-serif";
@@ -319,7 +327,7 @@ export function addCameraEditor(node, atelier = false) {
     });
     const presets = [
         [["Front", "정면", "正面", "正面"], {azimuth:0,elevation:0}],
-        ...(atelier ? [
+        ...(atelier || unified ? [
             [["Face left", "화면 왼쪽", "画面左向き", "面向左侧"], {azimuth:-90,elevation:0}],
             [["Face right", "화면 오른쪽", "画面右向き", "面向右侧"], {azimuth:90,elevation:0}],
         ] : [[["Side", "측면", "側面", "侧面", "側面"], {azimuth:90,elevation:0}]]),
@@ -358,8 +366,53 @@ export function addCameraEditor(node, atelier = false) {
     layoutCanvas.style.cssText="display:block;width:100%;height:180px;object-fit:contain;background:#111820";
     root.append(layoutNotice,layoutCanvas);
     for (const event of ["pointerdown", "wheel", "keydown"]) root.addEventListener(event, e => e.stopPropagation());
-    let executed = null, executedView = null, executedLayout=null, resolvedSyntax=null, regions=[];
-    let drag = null, editing = false, trainedViews, linkedView;
+    let executed = null, executedView = null, executedLayout=null, executedMode=null, resolvedSyntax=null, regions=[];
+    let drag = null, editing = false, trainedViews, trainedViewsLoading = false, linkedView, lastUnifiedLayout = null;
+    function ensureTrainedViews() {
+        if (trainedViews || trainedViewsLoading) return;
+        trainedViewsLoading = true;
+        loadAtelierViews().then(
+            views => { trainedViews = views; trainedViewsLoading = false; render(); },
+            error => { trainedViewsLoading = false; console.warn(error); },
+        );
+    }
+    function syncUnifiedLayout(forceResize = false) {
+        if (!unified) return;
+        const linkedMode = modeLinked(), modeName = cameraMode();
+        const merged = !linkedMode && modeName === "merged_lora_only";
+        const promptOnly = !linkedMode && modeName === "prompt_only";
+        const layoutKey = linkedMode ? "linked" : modeName;
+        for (const w of node.widgets ?? []) {
+            if (w.name !== "control_after_generate" &&
+                (w.serialize === false || w.options?.serialize === false || w.type === "rs_mc_display")) continue;
+            if (w.type?.startsWith("converted-widget")) continue;
+            const hide = merged ? !unifiedMergedWidgets.has(w.name) : promptOnly && unifiedLoraOnlyWidgets.has(w.name);
+            if (hide && !w.rsCameraVisible) {
+                w.rsCameraVisible = { type: w.type, computeSize: w.computeSize, hidden: w.hidden };
+                w.type = "rs-camera-hidden";
+                w.hidden = true;
+                w.computeSize = () => [0, -4];
+                if (w.inputEl) w.inputEl.hidden = true;
+            } else if (!hide && w.rsCameraVisible) {
+                if (w.type === "rs-camera-hidden") Object.assign(w, w.rsCameraVisible);
+                delete w.rsCameraVisible;
+                if (w.inputEl) w.inputEl.hidden = false;
+            }
+        }
+        if (merged && drag) {
+            if (canvas.hasPointerCapture(drag.pointerId)) canvas.releasePointerCapture(drag.pointerId);
+            drag = null;
+        }
+        root.style.display = merged ? "none" : "";
+        custom.hidden = merged;
+        const changed = lastUnifiedLayout !== null && lastUnifiedLayout !== layoutKey;
+        lastUnifiedLayout = layoutKey;
+        if (changed || forceResize) {
+            const size = node.computeSize?.();
+            if (size) node.setSize?.([Math.max(380, node.size?.[0] ?? 0, size[0]), size[1]]);
+            node.setDirtyCanvas?.(true, true);
+        }
+    }
     function displayedValues() {
         const view = {...values(node), ...executedView};
         for (const axis of ["azimuth", "elevation"]) {
@@ -376,8 +429,11 @@ export function addCameraEditor(node, atelier = false) {
         }
         render();
     }
-    function render() {
-        const v = displayedValues(), c = canvas.getContext("2d"), orbit = orbitMode();
+    function render(forceResize = false) {
+        syncUnifiedLayout(forceResize);
+        const v = displayedValues();
+        if (isMergedOnly()) return;
+        const c = canvas.getContext("2d"), orbit = orbitMode();
         modeGroup.setAttribute("aria-label", text("Camera control mode", "카메라 조작 모드", "カメラ操作モード", "相机操作模式", "相機操作模式"));
         for (const [b, activeInOrbit, labels] of modeButtons) {
             const active = activeInOrbit === orbit;
@@ -402,7 +458,7 @@ export function addCameraEditor(node, atelier = false) {
             "从各中心朝鼠标方向点击或拖动。左:方向，右:高度。滚轮:距离，Shift+滚轮:倾斜。",
             "從各中心朝滑鼠方向點擊或拖曳。左:方向，右:高度。滾輪:距離，Shift+滾輪:傾斜。");
         canvas.setAttribute("aria-label", instructions);
-        const links = [...Object.keys(defaults), "random_mode", "random_seed"].filter(k => linked(node, k));
+        const links = [...(unified ? ["camera_mode"] : []), ...Object.keys(defaults), "random_mode", "random_seed"].filter(k => linked(node, k));
         notice.textContent = instructions;
         if (links.length) notice.textContent += " " + text(
             "Linked controls resolve on execution: ", "연결 항목은 실행 시 확정: ", "接続項目は実行時に確定: ",
@@ -414,10 +470,22 @@ export function addCameraEditor(node, atelier = false) {
             "随机视角: fixed重复，randomize每次改变。拖动或预设切回手动。",
             "隨機視角: fixed重複，randomize每次改變。拖曳或預設切回手動。");
         const syntax=linked(node,"building_pipe") && resolvedSyntax ? resolvedSyntax : widget(node,"prompt_syntax")?.value ?? "ComfyUI";
-        if (atelier) {
+        const trained = isTrainedMode() || (modeLinked() && executedMode === "camera_and_lora");
+        if (trained) ensureTrainedViews();
+        if (modeLinked() && executedMode === "merged_lora_only") {
+            output.textContent = text("Last run: merged LoRA only", "마지막 실행: 병합 LoRA 전용",
+                "前回実行: 統合LoRAのみ", "上次执行：仅合并 LoRA", "上次執行：僅合併 LoRA");
+        } else if (modeLinked() && !trained && executed === null) {
+            output.textContent = text(
+                "Camera mode resolves on execution.",
+                "카메라 모드는 실행 시 확정됩니다.",
+                "カメラモードは実行時に確定します。",
+                "相机模式在执行时确定。",
+                "相機模式在執行時確定。");
+        } else if (trained) {
             const waiting = !executedView && links.some(name =>
                 ["azimuth", "elevation"].includes(name) ? linkedView?.[name] === undefined :
-                    ["enabled", "strength", "random_mode", "random_seed"].includes(name));
+                    ["enabled", "strength", "random_mode", "random_seed", "camera_mode"].includes(name));
             if (executed === "" || (executed === null && !waiting && (!v.enabled || !v.strength))) {
                 output.textContent = text("Camera OFF", "카메라 꺼짐", "カメラOFF", "相机已关闭", "相機已關閉");
             } else {
@@ -436,7 +504,7 @@ export function addCameraEditor(node, atelier = false) {
                 }
             }
         } else {
-            output.textContent = !v.enabled || !v.strength ? text("Camera OFF", "카메라 꺼짐", "カメラOFF", "相机已关闭", "相機已關閉") :
+            output.textContent = executed === "" || (executed === null && (!v.enabled || !v.strength)) ? text("Camera OFF", "카메라 꺼짐", "カメラOFF", "相机已关闭", "相機已關閉") :
                 executed ?? cameraCaption(cameraWeights(v), syntax, widget(node,"weighting")?.value ?? "weighted");
         }
         if(linked(node,"building_pipe") && !resolvedSyntax) notice.textContent += " " + text(
@@ -560,31 +628,34 @@ export function addCameraEditor(node, atelier = false) {
         }
     };
     for(const w of node.widgets ?? []){
-        if(![...Object.keys(defaults),"weighting","prompt_syntax","scope","random_mode","random_seed","visible_details"].includes(w.name))continue;
+        if(![...Object.keys(defaults),"weighting","prompt_syntax","scope","random_mode","random_seed","visible_details","camera_mode","lora_strength","anima_lora"].includes(w.name))continue;
         const previous=w.callback;
-        w.callback=function(...args){const result=previous?.apply(this,args);executed=null;executedView=null;executedLayout=null;if(!editing)render();return result;};
+        w.callback=function(...args){const result=previous?.apply(this,args);executed=null;executedView=null;executedLayout=null;executedMode=null;if(!editing)render();return result;};
     }
     const custom=node.addDOMWidget("rs_camera_editor","rs_camera_editor",root,{serialize:false,hideOnZoom:false});
-    custom.computeSize=()=>[360,670];custom.serialize=false;
+    custom.computeSize=()=>isMergedOnly() ? [0,-4] : [360,670];custom.serialize=false;
     const previous=node.onExecuted;
     node.onExecuted = function(message) {
         const result = previous?.apply(this, arguments);
-        resolvedSyntax = message.camera_syntax?.[0] ?? null;
-        executed = message.camera_caption?.[0] ?? null;
-        executedView = message.camera_values?.[0] ?? null;
+        resolvedSyntax = message?.camera_syntax?.[0] ?? null;
+        executed = message?.camera_caption?.[0] ?? null;
+        executedView = message?.camera_values?.[0] ?? null;
+        executedMode = message?.camera_mode?.[0] ?? null;
         const manualView = !linked(node, "random_mode") && (widget(node, "random_mode")?.value ?? "off") === "off";
         linkedView = manualView ? executedView : null;
-        executedLayout = message.camera_layout?.[0] ?? null;
-        regions = message.camera_regions?.[0] ?? [];
+        executedLayout = message?.camera_layout?.[0] ?? null;
+        regions = message?.camera_regions?.[0] ?? [];
         render();
         return result;
     };
     const configured=node.onConfigure;
-    node.onConfigure=function(){const result=configured?.apply(this,arguments);migrateCameraPipe(this);executed=null;linkedView=executedView=null;executedLayout=null;resolvedSyntax=null;regions=[];render();return result;};
+    node.onConfigure=function(){const result=configured?.apply(this,arguments);migrateCameraPipe(this);executed=null;linkedView=executedView=null;executedLayout=null;executedMode=null;resolvedSyntax=null;regions=[];render(true);return result;};
+    const graphConfigured=node.onGraphConfigured;
+    node.onGraphConfigured=function(){const result=graphConfigured?.apply(this,arguments);render(true);return result;};
     const connections=node.onConnectionsChange;
-    node.onConnectionsChange=function(){const result=connections?.apply(this,arguments);executed=null;linkedView=executedView=null;executedLayout=null;resolvedSyntax=null;regions=[];render();return result;};
+    node.onConnectionsChange=function(){const result=connections?.apply(this,arguments);executed=null;linkedView=executedView=null;executedLayout=null;executedMode=null;resolvedSyntax=null;regions=[];render(true);return result;};
     node.rsCameraEditor={root,render};render();
-    if (atelier) loadAtelierViews().then(views => { trainedViews = views; render(); }, error => console.warn(error));
+    if (atelier) ensureTrainedViews();
 }
 
 app.registerExtension({
@@ -595,16 +666,37 @@ app.registerExtension({
     },
 });
 
-function registerCameraEditor(nodeType,nodeData,atelier=false) {
+app.registerExtension({
+    name:"RS.UnifiedCameraControl",
+    async beforeRegisterNodeDef(nodeType,nodeData){
+        if(nodeData.name!=="RSUnifiedCameraControl")return;
+        registerCameraEditor(nodeType,nodeData,"unified");
+    },
+});
+
+function registerCameraEditor(nodeType,nodeData,mode=false) {
     if(nodeData.input?.optional) delete nodeData.input.optional.context;
     const previous=nodeType.prototype.onNodeCreated;
     nodeType.prototype.onNodeCreated=function(){
-        const result=previous?.apply(this,arguments);addCameraEditor(this,atelier);
+        const result=previous?.apply(this,arguments);addCameraEditor(this,mode);
         this.setSize?.([Math.max(380,this.size[0]),this.computeSize()[1]]);return result;
     };
 }
 
 // The NAI editor can register the shared node first when both packages load.
+// NAI can also supply this ID's backend definition. Set its menu metadata
+// before LiteGraph and the Vue node library both consume the definitions.
+app.registerExtension({
+    name: "RS.LegacyCameraDefinition",
+    addCustomNodeDefs(defs) {
+        const shared = defs.RSCameraControl;
+        if (shared) {
+            shared.category = defs.RSAnimaCameraMultiLoRA?.category ?? "RS MultiCharacter/Legacy";
+            shared.deprecated = true;
+        }
+    },
+});
+
 globalThis[Symbol.for("raspie.camera.addEditor")] = addCameraEditor;
 if(!globalThis[Symbol.for("raspie.camera.editor")]){
     globalThis[Symbol.for("raspie.camera.editor")]=true;

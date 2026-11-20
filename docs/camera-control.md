@@ -1,6 +1,22 @@
 # RS Camera Control / 공통 카메라 시점
 
-**RS Camera Control · RS-CAMERA-CONTROL** detects the connected MODEL.
+Add **RS Unified Camera Control** from **RS → Camera**. Choose a mode for the workflow.
+
+| `camera_mode` | Inputs and outputs |
+|---|---|
+| `merged_lora_only` (default) | Connect Anima 2B to `model`. The MODEL output applies the camera 0.20 + composition 0.50 merge once at `lora_strength=1`. It passes the character pipe through and produces an empty camera caption. Use this for reference poses. |
+| `camera_and_lora` | Connect Anima 2B or MOSS-Image and adjust the dials or orbit. Use the MODEL and building pipe or prompt outputs together. On Anima, `anima_lora` selects camera v3 or the merge. |
+| `prompt_only` | Connect a base prompt or an RS/NAI pipe for continuous camera captions and optional layout adjustment. A connected MODEL passes through. |
+
+**RS → Camera → RS 통합 카메라 컨트롤**에서 레퍼런스 포즈는 기본값 `merged_lora_only`로 사용합니다.
+42방위 다이얼·오비트는 `camera_and_lora`, MODEL 없이 시점 태그를 쓸 때는 `prompt_only`를 선택합니다.
+
+Saved workflows can still execute the original camera nodes under **RS MultiCharacter → Legacy**.
+That category also contains the original combined character prompts, standalone 3D pose adapter and
+Anima character reference. For new graphs use the modular character nodes, **RS 3D Pose Masks**
+with `pose_control=auto`, and **RS Image Reference** respectively.
+
+The `camera_and_lora` mode detects the connected MODEL.
 Anima 2B uses RS-CAMERA-CONTROL-v3. MOSS-Image uses the epoch-5 LoRA, its
 learned camera token and the caption for the nearest of the 42 trained views.
 The node downloads the selected weights on first use. For MOSS with a standard
@@ -11,7 +27,7 @@ connect the camera MODEL and the finalized building pipe.
 [Anima v3 and workflow](release-1.1.10.md) ·
 [MOSS weights and validation](https://huggingface.co/raspie/RS-CAMERA-CONTROL-MOSS)
 
-**RS Camera Control · RS-CAMERA-CONTROL**은 입력 MODEL을 보고 자동으로 선택합니다.
+`camera_and_lora`는 입력 MODEL에 따라 카메라 가중치를 선택합니다.
 Anima 2B에는 v3 LoRA를, MOSS-Image에는 5에포크 LoRA와 가장 가까운 학습 방향의
 캡션·토큰을 적용합니다. 파일은 처음 사용할 때 자동으로 받습니다. 일반 KSampler에서는
 노드의 MODEL을 샘플러에, `prompt`를 `moss_image` 인코더의 양성 CLIP Text Encode에
