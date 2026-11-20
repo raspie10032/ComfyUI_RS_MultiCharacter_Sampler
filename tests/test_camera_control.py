@@ -87,6 +87,28 @@ class CameraTests(unittest.TestCase):
             ensure_anima.assert_called_once_with()
             install_moss.assert_called_once()
 
+    def test_merged_loader_and_camera_select_the_same_asset(self):
+        from _rs_camera_unit import atelier_camera
+
+        node = camera.RSAnimaCameraMultiLoRA()
+        self.assertNotIn("lora_name", node.INPUT_TYPES()["required"])
+        self.assertEqual(node.apply(None, 0), (None,))
+        orbit = camera.RSAtelierSphereCameraControl()
+        self.assertEqual(orbit.INPUT_TYPES()["optional"]["anima_lora"][0][0], "camera_v3")
+        loader = Mock()
+        node._loader = orbit._loader = loader
+        model = object()
+        with (patch.dict(sys.modules, {"nodes": types.SimpleNamespace(LoraLoaderModelOnly=Mock())}),
+              patch.object(camera, "require_anima_2b") as require,
+              patch.object(atelier_camera, "ensure_merged_lora", return_value=atelier_camera.MERGED_LORA) as ensure):
+            node.apply(model, .8)
+            loader.load_lora_model_only.assert_called_once_with(model, atelier_camera.MERGED_LORA, .8)
+            loader.load_lora_model_only.return_value = (model,)
+            orbit.apply(model, anima_lora="camera_multi_merge", azimuth=-90)
+            loader.load_lora_model_only.assert_called_with(model, atelier_camera.MERGED_LORA, 1.)
+            self.assertEqual(ensure.call_count, 2)
+            self.assertEqual(require.call_count, 2)
+
     def test_atelier_selects_all_42_training_views_and_shares_composition(self):
         node = camera.RSAtelierSphereCameraControl()
         model = object()

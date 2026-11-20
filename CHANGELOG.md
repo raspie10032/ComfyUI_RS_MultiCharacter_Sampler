@@ -6,6 +6,7 @@ versions and downloadable assets, see [GitHub Releases](https://github.com/raspi
 
 | Version | Main change | Details |
 | --- | --- | --- |
+| **1.1.11 Hangeul** | Load the Anima camera and multi-character merge from Hugging Face on first use. | [Release notes](docs/release-1.1.11.md) |
 | **1.1.10 Hangeul** | Automatically load RS-CAMERA-CONTROL-v3 on Anima 2B. | [Release notes](docs/release-1.1.10.md) |
 | **1.1.9 Hangeul** | Apply the NAI camera's prompt processing when finalizing mixed RS/NovelAI workflows. | [Release notes](docs/release-1.1.9.md) |
 | **1.1.8 Hangeul** | Filter conflicting viewpoint cues and add visible subject details for Anima 2B and MOSS-Image. | [Release notes](docs/release-1.1.8.md) |

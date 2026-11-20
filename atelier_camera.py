@@ -14,6 +14,18 @@ ATELIER_LORA_SIZE = 34_800_080
 ATELIER_LORA_SHA256 = "bda8fa23707c01b70b9552c203fc72aab464d19b9fa5fc3ce55fbc83549167df"
 
 
+MERGED_LORA = "anima/RS-Anima-Camera020-Multi050.safetensors"
+MERGED_LORA_URL = (
+    "https://huggingface.co/raspie/RS-CAMERA-CONTROL/resolve/"
+    f"1dabdaf118e26acd55b066616eb1859aa3f60e50/{Path(MERGED_LORA).name}"
+)
+
+
+def ensure_merged_lora():
+    return ensure_camera_asset(MERGED_LORA, MERGED_LORA_URL, 96_961_696,
+                               "930f8f71fd1fa24ed8ff9101bf16e90b2651ab979b182f0dc7a770fc64903cd2")
+
+
 def ensure_atelier_lora():
     return ensure_camera_asset(ATELIER_LORA, ATELIER_LORA_URL, ATELIER_LORA_SIZE, ATELIER_LORA_SHA256)
 

@@ -1248,5 +1248,17 @@
   "RS3DPoseAdapter": {
     "display_name": "RS 3D ポーズアダプター (Krea2 / MOSS・実験)",
     "description": "3DシーンをKrea2 TurboのOpenPose、またはMOSSの色・深度ポーズアダプターに渡します。対応VAEを接続し、MODELをRSサンプラーに接続してください。初回は重みを取得します。正確な関節・接触・人数は保証しません。"
+  },
+  "RSAnimaCameraMultiLoRA": {
+    "display_name": "RS Anima カメラ＋複数人物構図 LoRA",
+    "description": "初回実行時に取得します。強度1.00でカメラ0.20と複数人物構図0.50を適用します。",
+    "inputs": {
+      "model": {
+        "name": "モデル"
+      },
+      "strength_model": {
+        "name": "適用強度"
+      }
+    }
   }
 }

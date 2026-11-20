@@ -318,6 +318,41 @@ class RSCameraControl:
                 "result": (output, prompt, camera)}
 
 
+def require_anima_2b(model):
+    from comfy import model_base
+
+    if (not isinstance(getattr(model, "model", None), getattr(model_base, "Anima", ()))
+            or len(model.get_model_object("diffusion_model").blocks) != 28):
+        raise ValueError("The camera and composition LoRA requires Anima 2B. / Anima 2B 모델을 연결해 주세요.")
+
+
+class RSAnimaCameraMultiLoRA:
+    CATEGORY = "RS/Camera"
+    RETURN_TYPES = ("MODEL",)
+    FUNCTION = "apply"
+    DESCRIPTION = ("Apply the Anima 2B camera (0.20) and multi-character composition (0.50) merge. "
+                   "Downloads the weights from Hugging Face on first use.")
+
+    def __init__(self):
+        self._loader = None
+
+    @classmethod
+    def INPUT_TYPES(cls):
+        return {"required": {"model": ("MODEL",),
+                             "strength_model": ("FLOAT", {"default": 1., "min": 0., "max": 2., "step": .05})}}
+
+    def apply(self, model, strength_model):
+        if not strength_model:
+            return (model,)
+        require_anima_2b(model)
+        from nodes import LoraLoaderModelOnly
+        from .atelier_camera import ensure_merged_lora
+
+        if self._loader is None:
+            self._loader = LoraLoaderModelOnly()
+        return self._loader.load_lora_model_only(model, ensure_merged_lora(), strength_model)
+
+
 class RSAtelierSphereCameraControl(RSCameraControl):
     def __init__(self):
         self._loader = None
@@ -330,6 +365,8 @@ class RSAtelierSphereCameraControl(RSCameraControl):
             "tooltip": "At 0, keep camera prompts for an A/B comparison. / 0이면 시점 프롬프트만 적용합니다."})
         fields["optional"]["visible_details"] = ("BOOLEAN", {"default": True,
             "tooltip": "Add visible subject details for the selected view and framing. / 선택한 시점과 프레이밍에서 보이는 부위를 묘사합니다."})
+        fields["optional"]["anima_lora"] = (["camera_v3", "camera_multi_merge"], {
+            "tooltip": "Anima 2B adapter. The merge includes camera 0.20 and composition 0.50 at strength 1.00."})
         fields["required"]["distance"][1]["tooltip"] = "0.5 keeps scene framing; other values add distance tags. / 0.5는 장면 프레이밍을 따르고 다른 값은 거리 태그를 추가합니다."
         return fields
 
@@ -341,7 +378,7 @@ class RSAtelierSphereCameraControl(RSCameraControl):
                    "입력 모델에 따라 Anima 2B 또는 MOSS-Image용 카메라를 자동으로 선택합니다. "
                    "MOSS는 5에포크 LoRA·방향 캡션·학습 토큰을 함께 적용합니다.")
 
-    def apply(self, model, lora_strength=1., **kwargs):
+    def apply(self, model, lora_strength=1., anima_lora="camera_v3", **kwargs):
         moss = False
         if kwargs.get("enabled", True) and kwargs.get("strength", 1.2) and hasattr(model, "model"):
             from comfy import model_base
@@ -350,7 +387,7 @@ class RSAtelierSphereCameraControl(RSCameraControl):
         result = super().apply(atelier=True, moss=moss, **kwargs)
         if result["result"][2] and lora_strength:
             from nodes import LoraLoaderModelOnly
-            from .atelier_camera import ensure_atelier_lora, nearest_view_index
+            from .atelier_camera import ensure_atelier_lora, ensure_merged_lora, nearest_view_index
 
             if moss:
                 from .moss_camera import install_moss_camera, moss_lora, moss_tokens
@@ -360,12 +397,8 @@ class RSAtelierSphereCameraControl(RSCameraControl):
                 token = moss_tokens()[view_id].clone()
                 lora_name = moss_lora()
             else:
-                from comfy import model_base
-
-                if (not isinstance(getattr(model, "model", None), getattr(model_base, "Anima", ()))
-                        or len(model.get_model_object("diffusion_model").blocks) != 28):
-                    raise ValueError("Connect Anima 2B or MOSS-Image. / Anima 2B 또는 MOSS-Image 모델을 연결해 주세요.")
-                lora_name = ensure_atelier_lora()
+                require_anima_2b(model)
+                lora_name = ensure_merged_lora() if anima_lora == "camera_multi_merge" else ensure_atelier_lora()
             if self._loader is None:
                 self._loader = LoraLoaderModelOnly()
             model, = self._loader.load_lora_model_only(model, lora_name, lora_strength)

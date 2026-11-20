@@ -333,6 +333,7 @@ def graph_assets(prompt, unique_id):
     """
     known = {"UNETLoader": ("unet_name", "weight_dtype"), "CheckpointLoaderSimple": ("ckpt_name",),
              "CLIPLoader": ("clip_name", "type", "device"), "VAELoader": ("vae_name",),
+             "RSAnimaCameraMultiLoRA": ("strength_model",),
              "LoraLoaderModelOnly": ("lora_name", "strength_model"),
              "LoraLoader": ("lora_name", "strength_model", "strength_clip")}
     result = {"loaders": [], "unresolved": []}
@@ -355,7 +356,11 @@ def graph_assets(prompt, unique_id):
         for name in ("model", "clip", "vae"):
             visit(inputs.get(name))
         values = {k: inputs[k] for k in known[kind] if isinstance(inputs.get(k), (str, int, float))}
-        result["loaders"].append({"node": kind, **values})
+        loader = {"node": kind, **values}
+        if kind == "RSAnimaCameraMultiLoRA":
+            from .atelier_camera import MERGED_LORA
+            loader["lora_name"] = MERGED_LORA
+        result["loaders"].append(loader)
         if len(values) != len(known[kind]):
             result["unresolved"].append(kind + ": dynamic setting")
 
