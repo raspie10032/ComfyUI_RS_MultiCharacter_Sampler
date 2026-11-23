@@ -4,7 +4,7 @@ Arrange native skinned MHR bodies in a local 3D editor, then use their camera-pr
 
 1. Add **RS 3D Pose Masks (Experimental)**. Drop a one-person PNG/JPEG/WebP (under 20 MB) onto the **Image → 3D** panel, or click to select it. Estimation runs automatically in the ordinary ComfyUI queue, saves the source camera/crop and opens the 3D editor; no separate Load Image/estimator connection or extra Queue/Apply is needed. This replaces the node's current scene with one estimated person. For manual posing, use **Open 3D editor** instead.
 2. Choose a character number matching the Prompt/LoRA slot. Add or copy up to ten people. Numbers stay fixed when people cross; renumber explicitly to change the assignment.
-3. Click a joint and drag its colored rings, or select a joint and use the XYZ sliders. Choose **Move person** to drag the whole person. Height and body-width controls change that person's silhouette.
+3. Choose **Body type** for the selected person. **Adult**, **Teen** and **Child** change head, shoulder and limb proportions and joint positions. Adjust height and body width as needed. Click a joint and drag its colored rings, or use the XYZ sliders. Choose **Move person** to drag the whole person.
 4. Drag empty space to orbit the output camera; right-drag pans, the wheel zooms. Use Front/Side/Back to reset the view and set canvas dimensions (64–2048 pixels per side).
 5. Choose **Full silhouettes** to keep overlapping character regions, or **Visible silhouettes** to subtract regions hidden behind other people. The small preview shows the actual CPU mask projection.
 6. Click **Apply to node**. Connect its `building_pipe` anywhere before **Finalize**, along with the Prompt, LoRA and Position nodes. Finalize still determines the active prompt slots. Set the sampler to the same aspect ratio as the editor; other aspect ratios stretch the normalized masks.
@@ -33,7 +33,7 @@ Tested with [toyxyz/Anima_ControlNet-LLLite](https://huggingface.co/toyxyz/Anima
 ## Boundaries
 
 - The building pipe carries both numbered masks and the optional learned pose-guidance settings. The sampler renders and applies the matching adapter internally; the generation model never receives the 3D rig itself.
-- New bodies use a native skinned adult MHR mesh and hand/finger controls. Legacy scenes keep ellipsoid bodies. Single-image pose estimation uses the optional SAM 3D Body path below. Clothing simulation, facial controls and video body tracking are not included.
+- Adult, Teen and Child use the same skinned MHR rig with different proportions and the same hand and finger controls. Legacy scenes keep ellipsoid bodies. Single-image pose estimation uses the optional SAM 3D Body path below. Clothing simulation, facial controls and video body tracking are not included.
 - Masks outside the canvas are clipped. If a selected silhouette is entirely outside/behind the camera or fully hidden in visible mode, Apply/execution explains which character needs correction. Full mode can retain hidden characters.
 - Moving a person does not change its prompt number. Prompt enable/count settings determine which numbered regions are used by generation.
 - New 3D masks preserve incoming prompts, LoRAs, placement transforms and camera settings. Position before/after this node gives the same result. Later mask producers overwrite earlier masks for their slot.
@@ -70,6 +70,7 @@ If required reference/download dependencies are absent, install the existing `re
 ## Import another image while editing
 
 Drop an image onto the 3D viewport or its image panel. In a one-person scene the image also updates the camera and canvas ratio; in a group scene only the selected person is replaced and the existing composition stays fixed. The result is applied to the node automatically. Subsequent manual edits still use **Apply to node**. If the scene changes during inference, the result is rejected to preserve those edits.
+Image fitting uses the Adult rig. Changing the body type afterward clears the source-image crop for that person.
 
 The panel displays queue/download/estimation state. The first estimate downloads SAM 3D Body (2.83 GB) into the local detection-model directory; a compatible ComfyUI core with `SAM3DBody_Loader` and `SAM3DBody_Predict` is required. Its weights use the separate [SAM License](https://github.com/facebookresearch/sam-3d-body/blob/main/LICENSE). Images are processed on the local ComfyUI server. Use one person or a crop: hidden depth and joints are estimated, and body parts outside the original image frame are clipped from output.
 

@@ -14,6 +14,7 @@ export function applyImagePose(scene,number,result){
     }
     person.joints=structuredClone(result.pose.joints);
     person.source_frame=structuredClone(result.pose.source_frame);
+    if(person.source_frame)delete person.body_type;
     person.position[1]-=Math.min(...rigMannequin(person).vertices.map(v=>v[1]));
     return next;
 }

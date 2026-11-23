@@ -77,7 +77,7 @@ def read_scene(raw):
         raise ValueError('Camera needs a distinct target and a nonvertical view. / 카메라를 대상에서 떨어뜨리고 수직 시점을 살짝 기울여 주세요.')
     joint_names = JOINTS
     if raw['version'] == 2:
-        from .mhr import asset
+        from .mhr import asset, body_profiles
         joint_names = asset()['controls']
         if type(raw.get('outline', True)) is not bool:
             raise ValueError('Outline must be true or false.')
@@ -94,6 +94,12 @@ def read_scene(raw):
                           scale=number(p.get('scale'), .4, 1.8, 'Body height'),
                           bulk=number(p.get('bulk'), .5, 1.8, 'Body width'),
                           joints={k: vector(v, -180, 180, k) for k, v in rotations.items()}))
+        if raw['version'] == 2:
+            body_type = p.get('body_type', 'adult')
+            if not isinstance(body_type, str) or body_type not in ('adult', *body_profiles()):
+                raise ValueError('Unknown body type. / 지원하지 않는 체형입니다.')
+            if body_type != 'adult':
+                clean[-1]['body_type'] = body_type
         if 'source_frame' in p:
             planes = p['source_frame']
             if raw['version'] != 2 or not isinstance(planes, list) or len(planes) != 5:

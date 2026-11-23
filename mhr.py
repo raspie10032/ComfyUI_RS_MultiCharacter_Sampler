@@ -33,13 +33,13 @@ def quaternion(values):
                      [2*(x*z-y*w), 2*(y*z+x*w), 1-2*(x*x+y*y)]])
 
 
-def global_matrices(angles):
+def global_matrices(angles, positions=None):
     d = asset()
     matrices = []
     for i, local in enumerate(d['localTransforms']):
         m = np.eye(4)
         m[:3, :3] = quaternion(local['quaternion'])*local['scale'] @ rotation(angles.get(d['names'][i], [0, 0, 0]))
-        m[:3, 3] = local['position']
+        m[:3, 3] = positions[i] if positions is not None else local['position']
         parent = d['parents'][i]
         matrices.append(matrices[parent] @ m if parent >= 0 else m)
     return np.array(matrices)
@@ -50,9 +50,53 @@ def bind_data():
     d = asset()
     weights = np.asarray(d['weights']).reshape(-1, 4)
     weights = weights/weights.sum(1, keepdims=True)
-    return (np.column_stack((np.asarray(d['vertices']).reshape(-1, 3), np.ones(len(weights)))),
-            np.asarray(d['faces']).reshape(-1, 3), np.asarray(d['indices']).reshape(-1, 4),
-            weights, np.linalg.inv(global_matrices({})))
+    return np.asarray(d['faces']).reshape(-1, 3), np.asarray(d['indices']).reshape(-1, 4), weights
+
+
+@lru_cache(maxsize=1)
+def body_profiles():
+    return json.loads((Path(__file__).parent/'web/pose3d/body-profiles.json').read_text())
+
+
+def morph_body(points, shoulders, profile):
+    # Map rest height to [height, width multiplier, depth multiplier].
+    # Arms slope down in this bind pose, so blend to a shoulder-relative
+    # mapping across the upper arm to keep the wrists and hands proportional.
+    levels, height, width, depth = np.asarray(profile['body']).T
+    x, y, z = points.T
+    body = np.column_stack((x*np.interp(y, levels, width),
+                            np.interp(y, levels, height),
+                            z*np.interp(y, levels, depth)))
+    side = (x >= 0).astype(int)
+    shoulder = shoulders[side]
+    arm = (points-shoulder)*profile['armScale'] + np.column_stack((
+        shoulder[:, 0]*np.interp(shoulder[:, 1], levels, width),
+        np.interp(shoulder[:, 1], levels, height),
+        shoulder[:, 2]*np.interp(shoulder[:, 1], levels, depth)))
+    # The height threshold excludes the lower body from the arm blend.
+    blend = np.clip((abs(x)-.18)/.12, 0, 1)*np.clip((y-.92)/.1, 0, 1)
+    blend = (blend*blend*(3-2*blend))[:, None]
+    return body+(arm-body)*blend
+
+
+@lru_cache(maxsize=3)
+def body_bind(body_type):
+    d = asset()
+    bind = global_matrices({})
+    vertices = np.asarray(d['vertices']).reshape(-1, 3)
+    positions = None
+    if body_type != 'adult':
+        profile = body_profiles()[body_type]
+        centers = bind[:, :3, 3]
+        shoulders = centers[[d['names'].index(d['controls'][name])
+                             for name in ('right_shoulder', 'left_shoulder')]]
+        vertices = morph_body(vertices, shoulders, profile)
+        shaped_centers = morph_body(centers, shoulders, profile)
+        positions = np.array([center if parent < 0 else
+                              (center-shaped_centers[parent]) @ bind[parent, :3, :3]
+                              for center, parent in zip(shaped_centers, d['parents'])])
+        bind[:, :3, 3] = shaped_centers
+    return np.column_stack((vertices, np.ones(len(vertices)))), positions, np.linalg.inv(bind)
 
 
 def default_scene():
@@ -113,8 +157,9 @@ def mannequin(person):
     for rule in d['proceduralRotations']:
         angles[d['names'][rule['bone']]] = [sum(angles.get(d['names'][j], [0, 0, 0])[axis]*weight
                                                for j, axis, weight in terms) for terms in rule['axes']]
-    posed = global_matrices(angles)
-    vertices, faces, indices, weights, inverse = bind_data()
+    vertices, positions, inverse = body_bind(person.get('body_type', 'adult'))
+    posed = global_matrices(angles, positions)
+    faces, indices, weights = bind_data()
     transforms = posed @ inverse
     skinned = np.zeros((len(vertices), 3))
     for k in range(4):

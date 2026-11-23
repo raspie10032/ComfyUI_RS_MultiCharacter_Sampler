@@ -6,6 +6,7 @@ versions and downloadable assets, see [GitHub Releases](https://github.com/raspi
 
 | Version | Main change | Details |
 | --- | --- | --- |
+| **1.1.13 Hangeul** | Choose adult, teen or child body proportions per person in the 3D pose editor. | [Release notes](docs/release-1.1.13.md) |
 | **1.1.12 Hangeul** | Use one camera node for reference poses, trained camera views and camera prompts. Older nodes remain loadable under Legacy. | [Release notes](docs/release-1.1.12.md) |
 | **1.1.11 Hangeul** | Load the Anima camera and multi-character merge from Hugging Face on first use. | [Release notes](docs/release-1.1.11.md) |
 | **1.1.10 Hangeul** | Automatically load RS-CAMERA-CONTROL-v3 on Anima 2B. | [Release notes](docs/release-1.1.10.md) |

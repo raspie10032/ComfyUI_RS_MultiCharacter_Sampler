@@ -8,7 +8,9 @@ const original=defaultRigScene(),single=structuredClone(original);single.people=
 const imported=structuredClone(single);imported.people[0].id=1;imported.people[0].joints.head=[12,0,0];
 imported.people[0].source_frame=[[0,1,0,-.9]];imported.width=380;imported.height=280;imported.camera.position=[.2,.5,1.5];imported.camera.target=[.2,.5,.5];
 const result={scene:imported,pose:{joints:imported.people[0].joints,source_frame:imported.people[0].source_frame}};
+original.people[0].body_type='child';original.people[1].body_type='teen';
 const fitted=applyImagePose(single,7,result);assert.deepEqual(fitted.camera,imported.camera);assert.equal(fitted.width,380);assert.equal(fitted.height,280);assert.equal(fitted.people[0].id,7);assert.deepEqual(fitted.people[0].source_frame,imported.people[0].source_frame);
 const group=applyImagePose(original,original.people[0].id,result);assert.deepEqual(group.camera,original.camera);assert.deepEqual(group.people[1],original.people[1]);assert.equal(group.width,original.width);assert.deepEqual(group.people[0].joints,result.pose.joints);
 assert.notDeepEqual(group.people[0].joints,original.people[0].joints);assert.throws(()=>applyImagePose(original,10,result),/removed/);assert.equal(imported.people[0].id,1);assert.equal(original.people[0].source_frame,undefined);
+assert.equal(group.people[0].body_type,undefined);assert.equal(original.people[0].body_type,'child');
 console.log('Image pose scene: single source framing, group isolation, numbering, crop and non-mutation passed');

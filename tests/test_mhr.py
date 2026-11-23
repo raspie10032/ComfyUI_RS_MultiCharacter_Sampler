@@ -28,15 +28,50 @@ class MHRTests(unittest.TestCase):
         code=f"""import {{readFileSync}} from 'node:fs';import {{gunzipSync}} from 'node:zlib';
 import {{initRig,rigMannequin,rigSkeleton}} from {json.dumps((ROOT/'web/pose3d/mhr.mjs').as_uri())};
 initRig(JSON.parse(gunzipSync(readFileSync({json.dumps(str(ROOT/'web/pose3d/mhr-body.json.gz'))}))));
-const person={json.dumps(person)};console.log(JSON.stringify({{...rigMannequin(person),...rigSkeleton(person)}}));"""
-        js=json.loads(subprocess.check_output(['node','--input-type=module','-e',code],text=True))
-        vertices,faces,points=m.mannequin(person)
-        np.testing.assert_allclose(vertices,js['vertices'],atol=2e-12,rtol=0)
-        np.testing.assert_array_equal(faces,js['faces'])
-        for key in points:np.testing.assert_allclose(points[key],js['points'][key],atol=2e-12,rtol=0)
+const person={json.dumps(person)};
+console.log(JSON.stringify(['adult','teen','child'].map(body_type=>{{
+    const p={{...person,body_type}},mesh=rigMannequin(p);
+    return {{...mesh,gizmo:rigSkeleton(p).points}};
+}})));"""
+        results=json.loads(subprocess.check_output(['node','--input-type=module','-e',code],text=True))
+        for body_type,js in zip(('adult','teen','child'),results):
+            with self.subTest(body_type=body_type):
+                vertices,faces,points=m.mannequin(dict(person,body_type=body_type))
+                np.testing.assert_allclose(vertices,js['vertices'],atol=2e-12,rtol=0)
+                np.testing.assert_array_equal(faces,js['faces'])
+                for key in points:
+                    np.testing.assert_allclose(points[key],js['points'][key],atol=2e-12,rtol=0)
+                    np.testing.assert_allclose(points[key],js['gizmo'][key],atol=2e-12,rtol=0)
         # Bind reconstruction at zero joint deltas is identity skinning.
         rest=copy.deepcopy(person);rest.update(rotation=[0,0,0],position=[0,0,0],scale=1,bulk=1,joints={})
         np.testing.assert_allclose(m.mannequin(rest)[0],np.array(m.asset()['vertices']).reshape(-1,3),atol=2e-12)
+
+    def test_body_profiles_change_proportions_and_reach_the_node_outputs(self):
+        scene=self.scene()
+        person=scene['people'][0]
+        heights=[]
+        relative_heads=[]
+        control_images=[]
+        for body_type in ('adult','teen','child'):
+            person['body_type']=body_type
+            canonical=p.read_scene(json.dumps(scene))
+            self.assertEqual(canonical['people'][0].get('body_type','adult'),body_type)
+            vertices,_,joints=m.mannequin(canonical['people'][0])
+            height=np.ptp(vertices[:,1])
+            heights.append(height)
+            relative_heads.append((vertices[:,1].max()-joints['neck'][1])/height)
+            output=n.RSMultiCharacterPose3D().apply(json.dumps(scene))['result']
+            self.assertEqual(json.loads(output[-1]),canonical)
+            self.assertGreater(int(output[2][0].sum()),0)
+            control_images.append(output[-2].numpy())
+        self.assertGreater(heights[0],heights[1])
+        self.assertGreater(heights[1],heights[2])
+        self.assertGreater(relative_heads[2],relative_heads[1])
+        self.assertGreater(relative_heads[1],relative_heads[0])
+        self.assertFalse(np.array_equal(control_images[1],control_images[2]))
+        person['body_type']='unknown'
+        with self.assertRaisesRegex(ValueError,'Unknown body type'):
+            p.read_scene(scene)
 
     def test_finger_deforms_hand_not_other_arm_and_is_validated(self):
         s=self.scene();before=m.mannequin(s['people'][0]);s['people'][0]['joints']['left_index1']=[65,0,0]

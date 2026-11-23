@@ -103,6 +103,7 @@ def import_pose(rotations, scene_json='', character_number=1, prediction=None, i
     person['joints'] = pose['joints']
     person.pop('source_frame', None)
     if prediction is not None:
+        person.pop('body_type', None)
         planes, camera = source_frame(prediction, person['joints'], image_size)
         person['source_frame'] = planes
         pose['source_frame'] = planes

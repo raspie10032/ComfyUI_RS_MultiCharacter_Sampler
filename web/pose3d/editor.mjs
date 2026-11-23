@@ -38,6 +38,10 @@ const libraryText={
     'zh-TW':{library:'本機姿勢庫',randomPerson:'隨機選取人物',randomAll:'每個人物隨機',refreshLibrary:'重新整理姿勢庫',imagePose:'影像 → 3D姿勢',imagePoseHelp:'使用單人影像或裁切圖。僅輸出原圖畫面內的身體，排除畫面外部分。深度與遮擋關節仍為估計。首次使用下載SAM 3D Body（2.83GB）。'},
 };
 for(const [lang,entries] of Object.entries(libraryText))Object.assign(messages[lang],entries);
+Object.assign(messages.ko,{bodyType:'체형',bodyAdult:'성인',bodyTeen:'청소년',bodyChild:'어린이',bodyCropCleared:'체형을 바꿔 원본 이미지 자르기 범위를 해제했습니다.'});
+Object.assign(messages.ja,{bodyType:'体型',bodyAdult:'成人',bodyTeen:'十代',bodyChild:'子ども',bodyCropCleared:'体型を変更し、元画像の切り抜き範囲を解除しました。'});
+Object.assign(messages.zh,{bodyType:'体型',bodyAdult:'成人',bodyTeen:'青少年',bodyChild:'儿童',bodyCropCleared:'体型已更改，原图裁剪范围已移除。'});
+Object.assign(messages['zh-TW'],{bodyType:'體型',bodyAdult:'成人',bodyTeen:'青少年',bodyChild:'兒童',bodyCropCleared:'體型已變更，已移除原圖裁切範圍。'});
 Object.assign(messages.ko,{imageRunning:'이미지 → 3D: ComfyUI 대기열에서 처리합니다.',imageDone:'3D 추정 완료. 노드에도 자동 적용했습니다. 관절을 바로 조절하세요.',imageStale:'추정 중 장면이 바뀌었습니다. 이미지를 다시 넣어 주세요.',imageDrop:'이미지 선택 또는 여기에 드롭',imageDropHelp:'한 명이 나온 이미지 → 자동 추정 → 바로 3D. 그룹 장면에서는 선택한 인물만 바꿉니다.'});
 Object.assign(messages.ja,{imageRunning:'画像 → 3D：ComfyUIのキューで処理します。',imageDone:'3D推定完了。ノードにも適用しました。関節を調整できます。',imageStale:'推定中にシーンが変更されました。もう一度画像を入れてください。',imageDrop:'画像を選択、またはここにドロップ',imageDropHelp:'1人の画像 → 自動推定 → 3D。グループでは選択人物だけを変更します。'});
 Object.assign(messages.zh,{imageRunning:'图像 → 3D：正在ComfyUI队列中处理。',imageDone:'3D估计完成，已自动应用到节点。可直接调整关节。',imageStale:'估计期间场景已更改，请重新导入。',imageDrop:'选择图像或拖放到此处',imageDropHelp:'单人图像 → 自动估计 → 3D。多人场景仅替换所选人物。'});
@@ -141,6 +145,8 @@ function controls(){
     $('outline').checked=state.outline??false;$('outline').disabled=state.version!==2;
     $('person').replaceChildren(...state.people.map(p=>new Option(String(p.id),String(p.id))));$('person').value=String(selected);
     $('number').value=selected;$('joint').value=joint;
+    $('body-type').disabled=state.version!==2;
+    $('body-type').value=p.body_type??'adult';
     for(const k of ['scale','bulk']){$(k).value=p[k];$(k+'-value').textContent=p[k].toFixed(2);}
     const angles=p.joints[joint]??[0,0,0];for(let i=0;i<3;i++){$('angle'+i).value=angles[i];$('angle-value'+i).textContent=Math.round(angles[i]);}
     $('width').value=state.width;$('height').value=state.height;$('fov').value=state.camera.fov;$('fov-value').textContent=Math.round(state.camera.fov);
@@ -199,6 +205,16 @@ function addPerson(copy){
 $('add').onclick=()=>addPerson(false);$('copy').onclick=()=>addPerson(true);
 $('remove').onclick=()=>{if(state.people.length>1)mutate(()=>{state.people=state.people.filter(p=>p.id!==selected);selected=state.people[0].id;});};
 for(const [id,value] of [['rotate','rotate'],['move','translate']])$(id).onclick=()=>{mode=value;refresh();};
+$('body-type').onchange=()=>{
+    const p=person(),type=$('body-type').value,cropped=!!p.source_frame;
+    mutate(()=>{
+        const bottom=cropped?null:Math.min(...rigMannequin(p).vertices.map(v=>v[1]));
+        if(type==='adult')delete p.body_type;else p.body_type=type;
+        delete p.source_frame;
+        if(bottom!==null)p.position[1]+=bottom-Math.min(...rigMannequin(p).vertices.map(v=>v[1]));
+    });
+    if(cropped)status(text('bodyCropCleared','Changed body type and removed the source image crop.'));
+};
 for(const key of ['scale','bulk']){$(key).oninput=()=>{person()[key]=Number($(key).value);refresh();};$(key).onchange=saveHistory;}
 $('pose').onclick=()=>mutate(()=>{
     const presets={standing:{},wave:{left_shoulder:[0,0,-145],left_elbow:[-25,0,0]},
