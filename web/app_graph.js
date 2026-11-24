@@ -152,6 +152,13 @@ export class Workspace {
         for (const w of previous.widgets ?? []) if (w.serialize !== false && widget(next, w.name)) setValue(next, w.name, w.value);
         this.route();
     }
+    activeReferences() {
+        const prompt = this.node('prompt'), count = this.count();
+        return Object.keys(this.state.refs)
+            .filter(i => Number(i) <= count && this.state.refs[i] && widget(prompt, `character${i}_enable`)?.value !== false)
+            .map(i => this.node(`ref${i}`))
+            .filter(ref => widget(ref, 'enabled')?.value !== false && Number(widget(ref, 'strength')?.value ?? 1) > 0);
+    }
     issues() {
         if (!this.model) return ['Choose an installed model.'];
         const errors = [...this.model.missing], cap = this.model.capabilities;
@@ -161,9 +168,8 @@ export class Workspace {
                 if (!Object.values(drawing.layers ?? {}).some(layer => layer.strokes?.some(stroke => stroke.tool === 'brush' && stroke.points?.length))) errors.push('마스크 그리기를 켰습니다. 먼저 번호를 선택해 영역을 그리거나 기능을 꺼 주세요.');
             } catch { errors.push('마스크 드로잉 데이터를 확인해 주세요.'); }
         }
-        const methods = Object.keys(this.state.refs)
-            .filter(i => Number(i) <= this.count() && this.state.refs[i])
-            .map(i => widget(this.node(`ref${i}`), 'anima_method')?.value ?? 'reference_frame');
+        const methods = this.activeReferences()
+            .map(ref => widget(ref, 'anima_method')?.value ?? 'reference_frame');
         const refs = methods.length > 0;
         if (refs && !cap.reference) errors.push('This checkpoint has no supported image-reference route. FLUX.1 requires Kontext.');
         if (this.model.profile === 'anima29' && methods.includes('role_kv')) errors.push('Anima 2.9B supports Role Ref KV v2 and v3. Legacy Role K/V uses 2B.');
@@ -171,7 +177,13 @@ export class Workspace {
         const animaRefPose = this.model.profile === 'anima' &&
             (methods.every(method => ['snapref', 'snapref_char'].includes(method)) ||
              methods.every(method => method === 'reference_frame_v2'));
-        if (learnedPose && cap.pose && refs && !cap.pose_reference && !animaRefPose) errors.push(`${cap.family}: switch the 3D pose node to masks_only or select a compatible reference method.`);
+        if (learnedPose && cap.pose && refs && !cap.pose_reference && !animaRefPose) {
+            errors.push(cap.pose === 'scene_adapter'
+                ? `${cap.family}: 이미지 참조를 유지하려면 3D 포즈의 pose_control을 masks_only로 바꾸세요. 학습형 포즈를 유지하려면 이미지 참조를 끄세요.`
+                : `${cap.family}: 3D 포즈와 함께 쓰려면 모든 활성 참조를 SnapRef 계열 또는 Reference Frame v2로 맞추거나, pose_control을 masks_only로 바꾸세요.`);
+        } else if (cap.pose === 'scene_adapter' && methods.some(method => method !== 'reference_frame')) {
+            errors.push(`${cap.family}: 각 이미지 참조의 anima_method를 reference_frame으로 설정하세요.`);
+        }
         if (learnedPose && cap.pose && this.state.progressive && !cap.pose_progressive) errors.push(`${cap.family}: 3D pose adapter + progressive resolution is not supported together.`);
         return errors;
     }
@@ -237,8 +249,7 @@ export class Workspace {
         const sampler = this.sample();
         connect(...m, sampler, 'model'); connect(...c, sampler, 'clip'); connect(...vae, sampler, 'vae');
         connect(this.node('finalize'), 0, sampler, 'character_pipe');
-        const references = Object.keys(this.state.refs).some(i => Number(i) <= this.count() && this.state.refs[i]);
-        setValue(sampler, 'layout_method', references ? 'regional' : cap.layout);
+        setValue(sampler, 'layout_method', this.activeReferences().length ? 'regional' : cap.layout);
         let image = [sampler, 0];
         if (this.state.detail) {
             const firstDetail = !this.node('detail');

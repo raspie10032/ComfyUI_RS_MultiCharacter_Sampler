@@ -14,10 +14,10 @@ class Graph {
 function createNode(type) {
   const values = Object.assign({}, ...presets.map(p=>p.settings), {
     character_count:2,scene_json:'{"width":1024,"height":1024,"people":[]}',drawing:'{"version":1,"width":768,"height":1024,"layers":{}}',
-    pose_control:'auto',pose_strength:1,pose_start:0,pose_end:1,width:1024,height:1024,cfg:4,filename_prefix:'ComfyUI',prompt:'keep common prompt',value:'',lora_name:'None',name:'anima_3dpose_6200.safetensors'
+    pose_control:'auto',pose_strength:1,pose_start:0,pose_end:1,layout_method:'auto',width:1024,height:1024,cfg:4,filename_prefix:'ComfyUI',prompt:'keep common prompt',value:'',lora_name:'None',name:'anima_3dpose_6200.safetensors'
   });
   if(type==='RSUnifiedCameraControl') values.camera_mode='merged_lora_only';
-  if(type==='RSMultiCharacterReference') values.anima_method='reference_frame';
+  if(type==='RSMultiCharacterReference') Object.assign(values,{anima_method:'reference_frame',enabled:true,strength:1});
   for(let i=1;i<=10;i++) Object.assign(values,{['character'+i+'_kind']:'character',['character'+i+'_enable']:true,['character'+i+'_lora']:'None'});
   const inputs=['building_pipe','base_prompt','model','clip','vae','images','image','scene_json','model_patch','character_pipe','detectors','tagger',...Array.from({length:10},(_,i)=>'character'+(i+1))];
   if(type==='RSMultiCharacterReference') inputs.push('pose_image');
@@ -40,7 +40,7 @@ const brokenGraph=new Graph(),brokenWorkspace=new Workspace(brokenGraph,createNo
 brokenWorkspace.node('camera','SaveImage');
 assert.throws(()=>brokenWorkspace.initialize(),/replaced/);
 function model(profile,preset,pose){return {id:profile,name:profile,profile,preset,category:'checkpoints',missing:[],capabilities:{family:profile,reference:true,layout:profile==='moss'?'moss_native':'regional',pose,pose_reference:false,pose_progressive:false}};}
-const anima=model('anima','anima_points','lllite'),moss=model('moss','moss_base','scene_adapter');
+const anima=model('anima','anima_points','lllite'),moss=model('moss','moss_base','scene_adapter'),krea=model('krea2','krea2','scene_adapter');
 function closure(){const prompt={};for(const n of graph.nodes){const inputs=Object.fromEntries(n.widgets.map(w=>[w.name,w.value]));for(const input of n.inputs)if(input.link!=null){const l=graph.links[input.link];inputs[input.name]=[String(l.origin_id),l.origin_slot];}prompt[n.id]={class_type:n.type,inputs};}return ancestorPrompt(prompt,w.node('save').id);}
 w.select(anima);w.state.globalLora=true;setValue(w.sample(),'cfg',3.75);const scene=widget(w.node('pose'),'scene_json').value;
 w.state.camera=true;w.route();assert.equal(widget(w.node('common_prompt'),'value').value,widget(w.sample(),'prompt').value,'camera must receive the common scene caption');
@@ -57,8 +57,28 @@ w.select(anima);assert.equal(widget(w.node('detail'),'cfg').value,3.5,'detail se
 setValue(w.node('prompt'),'character_count',1);w.route();assert(!Object.values(closure()).some(n=>n.class_type==='RSMultiCharacterTaggerLoader'),'unused matching is excluded from one-character execution');
 w.state.detail=false;w.state.refs={3:true};w.route();assert(!Object.values(closure()).some(n=>n.class_type==='RSMultiCharacterReference'),'hidden slots must not execute');
 assert.equal(executionNodes(graph,w.node('save').id).length,Object.keys(closure()).length,'widget callbacks follow only active ancestors');
-w.state.refs={1:true};w.state.pose=true;w.select(moss);assert(w.issues().length,'unsupported pose/reference combination must block generation');
-assert(w.state.refs[1] && w.state.pose,'conflicting user work must remain available');
+w.state.refs={1:true};w.state.pose=true;
+setValue(w.node('prompt'),'character_count',2);
+for (const profile of [krea,moss]) {
+  w.select(profile);
+  const ref=w.node('ref1'), pose=w.node('pose');
+  setValue(pose,'pose_control','auto');
+  assert.match(w.issues()[0],new RegExp(`${profile.profile}:.*masks_only.*이미지 참조를 끄세요`));
+  assert.doesNotMatch(w.issues()[0],/Anima|SnapRef|Reference Frame v2/);
+  assert(w.state.refs[1] && w.state.pose,'conflicting user work must remain available');
+  assert.equal(widget(w.sample(),'layout_method').value,'regional');
+  setValue(ref,'strength',0); w.route(); assert.equal(w.issues().length,0);
+  assert.equal(widget(w.sample(),'layout_method').value,profile.capabilities.layout);
+  setValue(ref,'strength',1); w.route();
+  setValue(ref,'enabled',false); assert.equal(w.issues().length,0);
+  setValue(ref,'enabled',true);
+  setValue(w.node('prompt'),'character1_enable',false); assert.equal(w.issues().length,0);
+  setValue(w.node('prompt'),'character1_enable',true);
+  setValue(pose,'pose_control','masks_only'); assert.equal(w.issues().length,0);
+  setValue(ref,'anima_method','snapref'); assert.match(w.issues()[0],/anima_method.*reference_frame/);
+  setValue(ref,'anima_method','reference_frame'); assert.equal(w.issues().length,0);
+  setValue(pose,'pose_control','auto');
+}
 w.state.refs={};w.state.progressive=true;w.route();assert(w.issues().length);
 setValue(w.node('pose'),'pose_control','masks_only');assert(!w.issues().length,'masks-only permits progressive sampling');
 w.state.progressive=false;w.state.refs={};w.select(anima);w.state.pose=true;w.route();

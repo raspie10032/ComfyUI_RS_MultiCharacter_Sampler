@@ -177,6 +177,10 @@ class RSMultiCharacterSampler:
             raise ValueError("Choose valid prompt text and syntax.")
         pipe = resolved_pipe
         model, pipe_pose_status = apply_pipe_pose(model, vae, pipe, family, settings['width'], settings['height'], unique_id)
+        from .pose_adapter import prepare_pose, pose_conditioning, scene_pose_reference_error
+        if (family in ('Krea2', 'MOSS') and model.model_options.get('rs_3d_pose') and
+                incompatible_pose_references(model, pipe, family)):
+            raise scene_pose_reference_error(family, legacy=True)
         pose_control = validate_model_patches(model, family)
         layout_method = resolve_layout_method(layout_method, family, model.model_options)
         settings['layout_method'] = layout_method
@@ -187,6 +191,9 @@ class RSMultiCharacterSampler:
         role_refs = [(i, ref) for i, ref in refs if isinstance(ref, RoleKVImageReference)]
         snap_refs = [(i, ref) for i, ref in refs if isinstance(ref, SnapRefImageReference)]
         v2_refs = [(i, ref) for i, ref in refs if isinstance(ref, FrameV2ImageReference)]
+        if family in ('Krea2', 'MOSS') and (role_refs or snap_refs or v2_refs):
+            raise ValueError(f'Choose anima_method=reference_frame on the numbered Image Reference nodes for {family}. / '
+                             f'{family} 이미지 참조는 각 번호의 Image Reference에서 anima_method를 reference_frame으로 설정하세요.')
         if snap_refs and (family != 'Anima' or PLAN in model.model_options or len(snap_refs) != len(refs)):
             raise ValueError('SnapRef requires Anima and SnapRef on all active references. Disconnect the reference-frame adapter.')
         if snap_refs or v2_refs:
@@ -260,9 +267,6 @@ class RSMultiCharacterSampler:
         masks = character_masks(pipe.regions, centers, settings["width"], settings["height"], settings["region_feather"])
         convert = lambda text: text
 
-        from .pose_adapter import prepare_pose, pose_conditioning
-        if model.model_options.get('rs_3d_pose') and any(c.reference is not None and c.reference.strength > 0 for c in pipe.characters):
-            raise ValueError('Disconnect character image references before using the 3D pose adapter.')
         model, pose_runtime = prepare_pose(model, family, settings['width'], settings['height'])
 
 

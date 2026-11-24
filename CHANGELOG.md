@@ -6,6 +6,7 @@ versions and downloadable assets, see [GitHub Releases](https://github.com/raspi
 
 | Version | Main change | Details |
 | --- | --- | --- |
+| **1.1.15 Hangeul** | Correct 3D pose and image reference guidance for Krea2 and MOSS in the sampler and RS Workspace. | [Release notes](docs/release-1.1.15.md) |
 | **1.1.14 Hangeul** | Add Anima LLLite pose presets, SnapRef v2a, 2.9B support for Reference Frame v2, and Role Ref KV v2/v3. | [Release notes](docs/release-1.1.14.md) |
 | **1.1.13 Hangeul** | Choose adult, teen or child body proportions per person in the 3D pose editor. | [Release notes](docs/release-1.1.13.md) |
 | **1.1.12 Hangeul** | Use one camera node for reference poses, trained camera views and camera prompts. Older nodes remain loadable under Legacy. | [Release notes](docs/release-1.1.12.md) |

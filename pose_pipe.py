@@ -39,7 +39,7 @@ def incompatible_pose_references(model, pipe, family):
         return True
     active = [c.reference for c in pipe.characters if c.reference is not None and c.reference.strength > 0]
     if family != 'Anima':
-        return frame is not None or bool(active)
+        return frame is not None or bool(active) or bool(model.model_options.get('rs_native_reference'))
     if frame is not None:
         return frame.backend != 'asymmetric_v2' or any(isinstance(ref, (RoleKVImageReference, SnapRefImageReference))
                                                        for ref in active)
@@ -63,8 +63,11 @@ def apply_pipe_pose(model, vae, pipe, family, width, height, node_id=None):
         raise ValueError('3D pose is already patched on MODEL. Use the 3D building pipe alone; remove the older pose adapter. / '
                          '포즈가 모델에 중복 연결되었습니다. 이전 모델 어댑터를 빼고 3D 조립 파이프만 사용해 주세요.')
     if incompatible_pose_references(model, pipe, family):
+        if family != 'Anima':
+            from .pose_adapter import scene_pose_reference_error
+            raise scene_pose_reference_error(family)
         raise ValueError('Choose SnapRef or Reference Frame v2 with Anima LLLite, or use masks_only. / '
-                         'Anima LLLite와 함께 쓸 때는 SnapRef 또는 Reference Frame v2를 선택하세요.')
+                         'Anima LLLite와 함께 쓸 때는 SnapRef 또는 Reference Frame v2를 선택하거나 masks_only를 사용하세요.')
     if family in ('Krea2', 'MOSS'):
         if model.model_options.get('rs_progressive_scale', 1.) != 1.:
             raise ValueError('3D pose adapter needs full resolution on Krea2/MOSS. Choose masks_only or start scale 1. / '

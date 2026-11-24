@@ -77,8 +77,9 @@ function field(node, name, parent, label) {
             change(node, name, value); wildcardPreview=null;
             if (currentTab === 'wildcards') overlay?.querySelector('.rs-app-wildcard-preview')?.remove();
             if (name === 'character_count') { workspace.characters(); render(); }
-            else if (name === 'anima_method') { workspace.route(); render(); }
-            else if (name.endsWith('_kind') || name === 'camera_mode') render();
+            else if (name.endsWith('_enable') || (node.type === 'RSMultiCharacterReference' &&
+                ['anima_method', 'strength', 'enabled'].includes(name))) { workspace.route(); render(); }
+            else if (name.endsWith('_kind') || ['camera_mode', 'pose_control', 'pose_strength'].includes(name)) render();
         } catch (error) { report(error); }
     };
     input.addEventListener('change', onChange);

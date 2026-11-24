@@ -57,6 +57,17 @@ class RS3DPoseAdapter:
         return (work,)
 
 
+def scene_pose_reference_error(family, *, legacy=False):
+    disable_pose = ('set strength=0 on the legacy RS 3D Pose Adapter' if legacy else
+                    'set pose_control=masks_only on RS 3D Pose Masks')
+    disable_pose_ko = ('이전 RS 3D Pose Adapter의 strength를 0으로 두세요' if legacy else
+                       'RS 3D Pose Masks의 pose_control을 masks_only로 바꾸세요')
+    return ValueError(f'{family} learned 3D pose and image references cannot run together. To keep image references, '
+                      f'{disable_pose} and use regional layout. To keep learned pose, disable image references. / '
+                      f'{family}에서 이미지 참조를 유지하려면 {disable_pose_ko}. 배치는 regional로 설정하세요. '
+                      '학습형 포즈를 유지하려면 이미지 참조를 끄세요.')
+
+
 def prepare_pose(model, family, width, height):
     """Load weights on a clone. Images/latents live only for this generation."""
     plan = model.model_options.get('rs_3d_pose')
@@ -67,7 +78,7 @@ def prepare_pose(model, family, width, height):
     if family != plan['family']:
         raise ValueError('Pose adapter and sampling model differ. Reconnect the matching model.')
     if any(model.model_options.get(k) for k in ('rs_native_reference', 'rs_image_reference', 'rs_anima_ref_frame_plan')):
-        raise ValueError('Disconnect image references before using the 3D pose adapter. / 포즈 어댑터 시험 경로에서는 이미지 참조를 분리해 주세요.')
+        raise scene_pose_reference_error(family)
     from .pose_control_maps import control_maps
     from .reference_assets import _verified_adapter
     import comfy.sd

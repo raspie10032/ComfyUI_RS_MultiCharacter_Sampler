@@ -289,6 +289,45 @@ class NativeModelTests(unittest.TestCase):
 
     def test_krea_native_refiners_joint_attention_and_negative(self): self.joint('Krea2')
     def test_moss_native_rope_joint_attention_and_negative(self): self.joint('MOSS')
+
+    def test_scene_pose_reference_conflicts_report_available_controls(self):
+        from comfy import model_base
+        if not all(hasattr(model_base, name) for name in ('Krea2', 'MOSSImage')):
+            self.skipTest('Requires Krea2 and MOSS model classes')
+        nodes = importlib.import_module(PKG + '.nodes')
+        chars = importlib.import_module(PKG + '.characters')
+        refs = importlib.import_module(PKG + '.image_reference')
+        pose = importlib.import_module(PKG + '.pose3d')
+        pipe = chars.CharacterPipe((chars.Character('left', reference=refs.ImageReference(bytes(3), (1, 1), 384, 1.)),))
+        plan = dict(scene=pose.default_scene(), mode='auto', strength=1., start=0., end=1.)
+        sample = nodes.RSMultiCharacterSampler().generate
+
+        class ReferencePreparationReached(Exception):
+            pass
+
+        for family, model_class in (('Krea2', model_base.Krea2), ('MOSS', model_base.MOSSImage)):
+            with self.subTest(family=family), patch.object(refs, 'prepare_model_references', side_effect=ReferencePreparationReached) as prepare:
+                model = SimpleNamespace(model=object.__new__(model_class), model_options={})
+                args = (model, None, None)
+                with self.assertRaisesRegex(ValueError, rf'{family} learned 3D pose.*pose_control=masks_only.*regional') as conflict:
+                    sample(*args, replace(pipe, pose3d_json=json.dumps(plan)), 'common', '')
+                self.assertNotRegex(str(conflict.exception), 'Anima|SnapRef|Reference Frame v2')
+
+                model.model_options['rs_3d_pose'] = {'family': family}
+                with self.assertRaisesRegex(ValueError, rf'{family} learned 3D pose.*strength=0.*regional'):
+                    sample(*args, pipe, 'common', '')
+                prepare.assert_not_called()
+
+                model.model_options.clear()
+                masks_only = json.dumps({**plan, 'mode': 'masks_only'})
+                snap = refs.SnapRefImageReference(bytes(3), (1, 1), 384, 1.)
+                snap_pipe = replace(pipe, characters=(replace(pipe.characters[0], reference=snap),), pose3d_json=masks_only)
+                with self.assertRaisesRegex(ValueError, rf'anima_method=reference_frame.*{family}'):
+                    sample(*args, snap_pipe, 'common', '')
+                with self.assertRaises(ReferencePreparationReached):
+                    sample(*args, replace(pipe, pose3d_json=masks_only), 'common', '')
+                self.assertEqual(prepare.call_args.args[4:6], (family, 'regional'))
+
     def test_krea_mixed_native_attention_and_negative(self): self.joint('Krea2',boxes='mixed')
     def test_moss_mixed_native_attention_and_negative(self): self.joint('MOSS',boxes='mixed')
 
