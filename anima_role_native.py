@@ -5,7 +5,7 @@
 """Anima Role Ref KV inference on native ComfyUI Anima components.
 
 Supports single-image inference with BF16 or FP32 Anima Base v1.0.
-Adapter weights remain in FP32; the shared base model is not patched.
+The shared base model is not patched.
 """
 import torch
 import torch.nn.functional as F
@@ -15,27 +15,32 @@ TARGETS = ("self_attn.q_proj", "self_attn.k_proj", "self_attn.v_proj",
 
 
 class NativeEngine:
-    def __init__(self, net, weights, strength=1., device=None):
+    def __init__(self, net, weights, strength=1., device=None, block_map=None):
         self.net, self.weights, self.strength = net, weights, strength
-        expected = {f"diffusion_model.blocks.{b}.{t}.{s}" for b in range(len(net.blocks))
+        block_map = tuple(range(len(net.blocks))) if block_map is None else block_map
+        expected = {f"diffusion_model.blocks.{b}.{t}.{s}" for b in range(len(block_map))
                     for t in TARGETS for s in ("lora_down.weight", "lora_up.weight", "alpha")}
         if set(weights) != expected:
             raise ValueError("Incomplete Anima Role Ref KV ComfyUI adapter")
-        for b in range(len(net.blocks)):
+        for b, target in enumerate(block_map):
             for t in TARGETS:
                 root = f"diffusion_model.blocks.{b}.{t}."
                 a, z = weights[root + "lora_down.weight"], weights[root + "lora_up.weight"]
-                m = net.blocks[b]
+                m = net.blocks[target]
                 for part in t.split("."):
                     m = getattr(m, part)
                 if a.shape != (128, m.in_features) or z.shape != (m.out_features, 128):
                     raise ValueError(f"Shape mismatch: {root}")
-                if float(weights[root + "alpha"]) != 128 or a.dtype != torch.float32 or z.dtype != torch.float32:
+                if (float(weights[root + "alpha"]) != 128 or a.dtype != z.dtype
+                        or a.dtype not in (torch.bfloat16, torch.float32)):
                     raise ValueError(f"Unsupported rank/alpha/dtype: {root}")
                 if not torch.isfinite(a).all() or not torch.isfinite(z).all():
                     raise ValueError(f"Non-finite adapter: {root}")
         device = next(net.parameters()).device if device is None else torch.device(device)
-        self.weights = {k: v.to(device) for k, v in weights.items()}
+        self.weights = {}
+        for key, value in weights.items():
+            prefix, blocks, index, suffix = key.split('.', 3)
+            self.weights[f'{prefix}.{blocks}.{block_map[int(index)]}.{suffix}'] = value.to(device)
 
     @staticmethod
     def rms(module, x, eps=None):
@@ -51,16 +56,22 @@ class NativeEngine:
         if self.strength == 0:
             return y
         root = f"diffusion_model.blocks.{block}.{name}."
-        a = self.weights[root + "lora_down.weight"].to(x.device)
-        b = self.weights[root + "lora_up.weight"].to(x.device)
+        a = self.weights.get(root + "lora_down.weight")
+        if a is None:
+            return y
+        a = a.to(x.device)
+        b = self.weights[root + "lora_up.weight"].to(a)
         delta = (x.to(a.dtype) @ a.t()) @ b.t()
         return y + self.strength * delta.to(y.dtype)
 
-    def rope(self, height, width, target_hw=None, device=None):
+    def rope(self, height, width, target_hw=None, device=None, *, pose=False):
         r = self.net.pos_embedder
         device = next(self.net.parameters()).device if device is None else device
         hs, ws = torch.arange(height, device=device), torch.arange(width, device=device)
-        if target_hw is not None:
+        if pose:
+            hs = (hs.float() + .5) * (target_hw[0] / height) - .5
+            ws = (ws.float() + .5) * (target_hw[1] / width) - .5
+        elif target_hw is not None:
             hs = hs + target_hw[0] // 2 - height // 2
             ws = ws + target_hw[1] // 2 - width // 2
         spatial = r.dim_spatial_range.to(device)
@@ -73,7 +84,7 @@ class NativeEngine:
             dim_t = self.net.model_channels // self.net.num_heads - 2 * dim_h
             spatial = torch.arange(0, dim_h, 2, device=device, dtype=torch.float32)[:dim_h // 2] / dim_h
             temporal = torch.arange(0, dim_t, 2, device=device, dtype=torch.float32)[:dim_t // 2] / dim_t
-        ts = torch.tensor([0. if target_hw is None else 10.], device=device)
+        ts = torch.tensor([20. if pose else 0. if target_hw is None else 10.], device=device)
         ft = torch.outer(ts, 1.0 / (10000 * r.t_ntk_factor) ** temporal)[:, None, None].expand(1, height, width, -1)
         fh = torch.outer(hs.float(), 1.0 / (10000 * r.h_ntk_factor) ** spatial)[None, :, None].expand(1, height, width, -1)
         fw = torch.outer(ws.float(), 1.0 / (10000 * r.w_ntk_factor) ** spatial)[None, None].expand(1, height, width, -1)
@@ -126,11 +137,11 @@ class NativeEngine:
         o = block.mlp.activation(self.linear(block.mlp.layer1, n, i, "mlp.layer1"))
         return h + gate * self.linear(block.mlp.layer2, o, i, "mlp.layer2"), own
 
-    def reference(self, ref, ctx, target_hw):
+    def reference(self, ref, ctx, target_hw, *, pose=False):
         h = self.tokens(ref)
         e, t = self.time(torch.zeros(1, device=ref.device), h.dtype)
         rope = self.rope(ref.shape[-2] // 2, ref.shape[-1] // 2,
-                         (target_hw[0] // 2, target_hw[1] // 2), device=ref.device)
+                         (target_hw[0] // 2, target_hw[1] // 2), device=ref.device, pose=pose)
         cache = []
         from .runtime_control import check_interrupted
         for i, block in enumerate(self.net.blocks):

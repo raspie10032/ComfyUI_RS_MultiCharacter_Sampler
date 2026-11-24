@@ -161,11 +161,17 @@ export class Workspace {
                 if (!Object.values(drawing.layers ?? {}).some(layer => layer.strokes?.some(stroke => stroke.tool === 'brush' && stroke.points?.length))) errors.push('마스크 그리기를 켰습니다. 먼저 번호를 선택해 영역을 그리거나 기능을 꺼 주세요.');
             } catch { errors.push('마스크 드로잉 데이터를 확인해 주세요.'); }
         }
-        const refs = Object.keys(this.state.refs).some(i => Number(i) <= this.count() && this.state.refs[i]);
+        const methods = Object.keys(this.state.refs)
+            .filter(i => Number(i) <= this.count() && this.state.refs[i])
+            .map(i => widget(this.node(`ref${i}`), 'anima_method')?.value ?? 'reference_frame');
+        const refs = methods.length > 0;
         if (refs && !cap.reference) errors.push('This checkpoint has no supported image-reference route. FLUX.1 requires Kontext.');
-        if (this.model.profile === 'anima29' && Object.keys(this.state.refs).some(i => this.state.refs[i] && Number(i) <= this.count() && widget(this.node(`ref${i}`), 'anima_method')?.value === 'role_kv')) errors.push('Anima 2.9B supports reference_frame; Role K/V weights are for 2B.');
+        if (this.model.profile === 'anima29' && methods.includes('role_kv')) errors.push('Anima 2.9B supports Role Ref KV v2 and v3. Legacy Role K/V uses 2B.');
         const learnedPose = this.state.pose && widget(this.node('pose'), 'pose_control')?.value !== 'masks_only' && Number(widget(this.node('pose'), 'pose_strength')?.value ?? 1) > 0;
-        if (learnedPose && cap.pose && refs && !cap.pose_reference) errors.push(`${cap.family}: 3D pose adapter + image reference is not supported together. Turn one off; images and scene are preserved.`);
+        const animaRefPose = this.model.profile === 'anima' &&
+            (methods.every(method => ['snapref', 'snapref_char'].includes(method)) ||
+             methods.every(method => method === 'reference_frame_v2'));
+        if (learnedPose && cap.pose && refs && !cap.pose_reference && !animaRefPose) errors.push(`${cap.family}: switch the 3D pose node to masks_only or select a compatible reference method.`);
         if (learnedPose && cap.pose && this.state.progressive && !cap.pose_progressive) errors.push(`${cap.family}: 3D pose adapter + progressive resolution is not supported together.`);
         return errors;
     }
@@ -214,7 +220,18 @@ export class Workspace {
         }
         for (let i = 1; i <= this.count(); i++) if (this.state.refs[i]) {
             const ref = this.node(`ref${i}`, 'RSMultiCharacterReference'), image = this.node(`image${i}`, 'LoadImage');
-            setValue(ref, 'character_id', i); connect(image, 0, ref, 'image'); chain(ref);
+            setValue(ref, 'character_id', i); connect(image, 0, ref, 'image');
+            const poseInput = inputIndex(ref, 'pose_image');
+            if (poseInput >= 0) {
+                const poseRole = `referencePose${i}`, savedPose = this.node(poseRole);
+                const usePose = ['anima', 'anima29'].includes(model.profile) &&
+                    widget(ref, 'anima_method')?.value === 'role_kv_v3' && this.state.referencePoses?.[i];
+                if (usePose) connect(this.node(poseRole, 'LoadImage'), 0, ref, 'pose_image');
+                else if (savedPose && this.graph.links[ref.inputs[poseInput].link]?.origin_id === savedPose.id) {
+                    disconnect(ref, 'pose_image');
+                }
+            }
+            chain(ref);
         }
         connect(pipe, 0, this.node('finalize'), 'building_pipe');
         const sampler = this.sample();

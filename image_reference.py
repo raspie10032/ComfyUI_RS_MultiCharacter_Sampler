@@ -34,15 +34,32 @@ class ImageReference:
 
 @dataclass(frozen=True)
 class RoleKVImageReference(ImageReference):
-    """Anima learned Role K/V adapter, not the reference-frame adapter."""
+    """Numbered character reference for Anima Role Ref KV."""
+    version: str = 'v1'
+    pose: ImageReference | None = None
+
+
+@dataclass(frozen=True)
+class SnapRefImageReference(ImageReference):
+    mode: str = 'cs'
+
+
+@dataclass(frozen=True)
+class FrameV2ImageReference(ImageReference):
+    """Opt in to the asymmetric rank-64 reference frame."""
+
+
+ANIMA_REFERENCE_METHODS = (
+    'reference_frame', 'reference_frame_v2', 'snapref', 'snapref_char',
+    'role_kv_v2', 'role_kv_v3', 'role_kv',
+)
 
 
 def anima_method_input():
-    return (['reference_frame', 'role_kv'], {'default': 'reference_frame',
-        'tooltip': 'Anima only: reference_frame preserves existing behavior. '
-                   '2B/2.9B matching frame weights download automatically. '
-                   'role_kv is 2B only and downloads a dedicated 504 MiB adapter; '
-                   'experimental balanced regional routing, BF16/FP32 only.'})
+    return (list(ANIMA_REFERENCE_METHODS), {'default': 'reference_frame',
+        'tooltip': 'Anima: SnapRef v2a supports LLLite pose. snapref keeps character and style; snapref_char keeps character. '
+                   'Role KV v2 is for character references; v3 also accepts pose_image. role_kv keeps legacy v1. '
+                   'Reference Frame v2 uses the rank-64 asymmetric adapter.'})
 
 
 class RSMultiCharacterReference:
@@ -55,7 +72,8 @@ class RSMultiCharacterReference:
             'resolution': reference_size_input(),
             'strength': ('FLOAT', {'default': .6, 'min': 0., 'max': 2., 'step': .05, 'tooltip': '0 disables processing. Start low; strength meaning depends on the backend. FLUX.1 references require a Kontext checkpoint.'}),
             'enabled': ('BOOLEAN', {'default': True}),
-        }, 'optional': {'building_pipe': (BUILD_PIPE_TYPE,), 'anima_method': anima_method_input()}}
+        }, 'optional': {'building_pipe': (BUILD_PIPE_TYPE,), 'anima_method': anima_method_input(),
+                        'pose_image': ('IMAGE', {'tooltip': 'Role Ref KV v3 only. Connect a pose illustration or black-on-white figure on the output canvas.'})}}
 
     RETURN_TYPES = ('RS_MC_BUILD_PIPE',)
     RETURN_NAMES = ('building_pipe',)
@@ -69,21 +87,35 @@ class RSMultiCharacterReference:
                    '/ 実験的画像参照: 対応していますが推奨しません。画質はモデルによって異なります。')
 
     def apply(self, image, character_id=1, resolution=384, strength=.6, enabled=True, building_pipe=None,
-              anima_method='reference_frame'):
+              anima_method='reference_frame', pose_image=None):
         from .character_builder import update_slot
         validate_reference_size(resolution)
-        if anima_method not in ('reference_frame', 'role_kv'):
-            raise ValueError('Choose reference_frame or role_kv for the Anima reference method.')
+        if anima_method not in ANIMA_REFERENCE_METHODS:
+            raise ValueError('Choose a supported Anima reference method.')
         if type(enabled) is not bool or isinstance(strength, bool) or not isinstance(strength, (int, float)) or not math.isfinite(strength) or not 0 <= strength <= 2:
             raise ValueError('Reference strength must be 0–2 and enabled must be on/off.')
         ref = None
         if enabled and strength > 0:
-            if not isinstance(image, torch.Tensor) or image.ndim != 4 or image.shape[0] != 1 or image.shape[-1] < 3 or min(image.shape[1:3]) < 1 or not torch.isfinite(image).all():
-                raise ValueError('Connect one valid RGB image per reference. / 참조마다 RGB 이미지 한 장을 연결해 주세요.')
-            pixels = (image[0, :, :, :3].detach().cpu().clamp(0, 1).numpy() * 255).astype(np.uint8)
-            fitted, _ = prepare_reference(Image.fromarray(pixels), resolution, square_padding=False)
-            factory = RoleKVImageReference if anima_method == 'role_kv' else ImageReference
-            ref = factory(fitted.tobytes(), fitted.size, resolution, float(strength), character_id)
+            def pixels(value):
+                if (not isinstance(value, torch.Tensor) or value.ndim != 4 or value.shape[0] != 1
+                        or value.shape[-1] < 3 or min(value.shape[1:3]) < 1 or not torch.isfinite(value).all()):
+                    raise ValueError('Connect one valid RGB image per reference. / 참조마다 RGB 이미지 한 장을 연결해 주세요.')
+                data = (value[0, :, :, :3].detach().cpu().clamp(0, 1).numpy() * 255).astype(np.uint8)
+                fitted, _ = prepare_reference(Image.fromarray(data), resolution, square_padding=False)
+                return fitted.tobytes(), fitted.size, resolution, float(strength), character_id
+
+            if pose_image is not None and anima_method != 'role_kv_v3':
+                raise ValueError('Choose role_kv_v3 to use pose_image.')
+            data = pixels(image)
+            if anima_method.startswith('role_kv'):
+                version = {'role_kv': 'v1', 'role_kv_v2': 'v2', 'role_kv_v3': 'v3'}[anima_method]
+                pose = ImageReference(*pixels(pose_image)) if pose_image is not None else None
+                ref = RoleKVImageReference(*data, version=version, pose=pose)
+            elif anima_method in ('snapref', 'snapref_char'):
+                ref = SnapRefImageReference(*data, mode='char' if anima_method == 'snapref_char' else 'cs')
+            else:
+                factory = FrameV2ImageReference if anima_method == 'reference_frame_v2' else ImageReference
+                ref = factory(*data)
         return (update_slot(building_pipe, character_id, reference=ref),)
 
 
@@ -95,6 +127,10 @@ def prepare_model_references(model, clip, vae, pipe, family, layout_method='regi
         if family != 'Anima' or not all(isinstance(r, RoleKVImageReference) for _, r in refs):
             raise ValueError('Role K/V requires Anima and one shared reference method. / '
                              'Role K/V는 Anima 전용입니다. 활성 참조의 방식을 모두 맞춰 주세요.')
+        return model
+    if any(isinstance(r, SnapRefImageReference) for _, r in refs):
+        if family != 'Anima' or not all(isinstance(r, SnapRefImageReference) for _, r in refs):
+            raise ValueError('SnapRef requires Anima and SnapRef on all active references.')
         return model
     from .anima_ref_frame import FrameImageReference
     if any(isinstance(r, FrameImageReference) for _, r in refs):

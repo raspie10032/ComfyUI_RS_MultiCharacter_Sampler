@@ -46,6 +46,7 @@ class AnimaRouting:
         self.spatial_bias = None
         self.spatial_bias_separation = None
         self.role_kv_runtime = None
+        self.snapref_runtime = None
 
     def sample(self, executor, *args, **kwargs):
         guider, sigmas, extra, _, noise, latent, denoise_mask, *_ = args
@@ -78,8 +79,9 @@ class AnimaRouting:
 
         self.process = process
         try:
-            if self.role_kv_runtime is not None:
-                with self.role_kv_runtime.sampling():
+            reference_runtime = self.role_kv_runtime or self.snapref_runtime
+            if reference_runtime is not None:
+                with reference_runtime.sampling():
                     return executor(*args, **kwargs)
             return executor(*args, **kwargs)
         finally:
@@ -102,6 +104,9 @@ class AnimaRouting:
             self.contexts = self.process()
         if self.role_kv_runtime is not None:
             self.role_kv_runtime.prepare_grid(model, x)
+        snapref = self.snapref_runtime
+        if snapref is not None:
+            snapref.prepare_grid(model, x, kinds)
         actual_grid = [s // model.patch_spatial for s in x.shape[-2:]]
         if self.groups is None or self.audit.get("token_grid") != actual_grid:
             self.groups = self.part_cells = self.spatial_bias = None
@@ -257,7 +262,10 @@ class AnimaRouting:
                 if "self_bias_foreign" not in record and len(self.groups) > 1:
                     record["self_bias_foreign"] = float(self.spatial_bias[self.groups[0][0], self.groups[1][0]])
                     record["self_bias_own"] = float(self.spatial_bias[self.groups[0][0], self.groups[0][0]])
-                if reference_slots:
+                if snapref is not None:
+                    result = snapref.attention(q, k, v, self.groups, self.spatial_bias,
+                                               kinds, transformer_options['block_index'])
+                elif reference_slots:
                     from .anima_ref_frame import route_character_references
                     result = route_character_references(q, k, v, self.groups,
                         actual_grid[0]*actual_grid[1], self.spatial_bias, reference_slots,
@@ -271,6 +279,10 @@ class AnimaRouting:
             return result
 
         with installed_ops(model.blocks, cross, spatial if self.mode == "cross_self" or weak_spatial else None):
-            result = executor(x, timesteps, joined, *args, **kwargs)
+            if snapref is None:
+                result = executor(x, timesteps, joined, *args, **kwargs)
+            else:
+                with snapref.lora('tgt'):
+                    result = executor(x, timesteps, joined, *args, **kwargs)
         self.audit["restored_forwards"] += 1
         return result

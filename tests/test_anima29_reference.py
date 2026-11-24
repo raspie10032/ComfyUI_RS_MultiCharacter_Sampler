@@ -78,6 +78,15 @@ class Anima29Reference(unittest.TestCase):
                 self.load(rt, network(40), state)
             self.assertIsNone(rt.weights)
 
+    def test_v2_automatically_maps_unconverted_weights_to_original_blocks(self):
+        plan = ref.ReferencePlan(None, 'unused', 1., 4.5, 'apg', False, backend='asymmetric_v2')
+        rt = ref.FrameRuntime(plan, torch.zeros(1, 16, 1, 2, 2), {})
+        self.load(rt, network(40), weights(range(28)))
+        self.assertEqual(len(rt.weights), 280)
+        self.assertEqual(rt.audit['unchanged_new_blocks'], sorted(INSERTED))
+        self.assertNotIn('blocks.2.self_attn.q_proj', rt.weights)
+        self.assertIn('blocks.3.self_attn.q_proj', rt.weights)
+
     def test_base_rejects_expanded_adapter_and_unknown_depth_reads_no_weights(self):
         with self.assertRaises(ValueError):
             self.load(self.runtime(), network(28), weights(set(range(40)) - INSERTED))

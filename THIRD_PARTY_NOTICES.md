@@ -76,6 +76,18 @@ ownership, overlapping-reference selection, conditional-only reference access,
 invocation-scoped cleanup and progressive-grid cache rebuilding.
 Original discussion: https://arca.live/b/aiart/187357665 .
 
+The v2/v3 integration also follows the BF16 files, Anima 2.9B original-block
+mapping, and independently encoded pose reference in upstream revision
+[`6da57385`](https://huggingface.co/AnticPan/Anima-Role-Ref-KV/tree/6da5738595f25e0b9f6e3784488c98328f85ef73).
+
+## SnapRef v2a
+
+`anima_snapref.py` adapts the LoRA stream format, clean reference prefill,
+and shifted RoPE from [ArcAnima/SnapRef](https://github.com/ArcAnima/SnapRef/tree/49821514af19db1f0682bb8dfd9c81cd3cf747a6)
+(Apache-2.0, text in `ANIMA-REF-ADAPTER-LICENSE`). The RS backend uses native
+Anima target blocks to preserve LLLite and routes numbered banks by region.
+The weight file pinned in `reference_assets.json` uses the
+[CircleStone Labs Non-Commercial License v1.2](https://huggingface.co/0ppxnhximxr/snapref-v2a/blob/e6d6a21e4d56faae4454a1cc9bfd065d87358bf2/LICENSE.md).
 
 ## Anima asymmetric reference v2
 

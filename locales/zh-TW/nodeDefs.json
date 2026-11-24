@@ -1686,9 +1686,12 @@
       "building_pipe": {
         "name": "構建管線"
       },
+      "pose_image": {
+        "name": "姿勢圖像 (Role Ref KV v3)"
+      },
       "anima_method": {
         "name": "Anima 參考方式",
-        "tooltip": "Anima 2B/2.9B：reference_frame自動下載符合模型的轉接器。role_kv僅支援2B，首次下載504 MiB。僅BF16/FP32；角色LoRA使用一般模式。",
+        "tooltip": "適用於 Anima 2B/2.9B。SnapRef 和 Reference Frame v2 可與 Anima 2B LLLite 一起使用。Role Ref KV v3 可接收姿勢圖像。",
         "options": {
           "reference_frame": "原有參考影格",
           "role_kv": "分區Role K/V"
@@ -2015,9 +2018,12 @@
       "building_pipe": {
         "name": "建構管線"
       },
+      "pose_image": {
+        "name": "姿勢圖像 (Role Ref KV v3)"
+      },
       "anima_method": {
         "name": "Anima 參考方式",
-        "tooltip": "Anima 2B/2.9B：reference_frame自動下載符合模型的轉接器。role_kv僅支援2B，首次下載504 MiB。僅BF16/FP32；角色LoRA使用一般模式。",
+        "tooltip": "適用於 Anima 2B/2.9B。SnapRef 和 Reference Frame v2 可與 Anima 2B LLLite 一起使用。Role Ref KV v3 可接收姿勢圖像。",
         "options": {
           "reference_frame": "原有參考影格",
           "role_kv": "分區Role K/V"
@@ -2046,6 +2052,9 @@
       },
       "pose_end": {
         "name": "結束"
+      },
+      "anima_pose_model": {
+        "name": "Anima LLLite 模型"
       }
     },
     "outputs": {

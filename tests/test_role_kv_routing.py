@@ -58,12 +58,25 @@ class RoleRoutingTests(unittest.TestCase):
         self.assertIs(seen[0], obj.banks)
         self.assertIsNone(seen[1])
 
+    def test_snapref_respects_slot_ownership_weight_and_negative_cfg(self):
+        module = importlib.import_module(package + '.anima_snapref')
+        obj = object.__new__(module.SnapRefRuntime)
+        masks = torch.tensor([[[1., 0., 1., 0.]], [[0., 1., 1., 0.]]])
+        groups = routing.token_groups(masks, 1, 4, boxes=True)
+        q = k = v = torch.zeros(2, 4, 1, 1)
+        obj.banks = {slot: [(torch.zeros(1, 1, 1, 1), torch.full((1, 1, 1, 1), value))]
+                     for slot, value in enumerate((2., 6.))}
+        obj.strengths = [1., .5]
+        actual = obj.attention(q, k, v, groups, q.new_zeros(4, 4), [1, 0], 0)
+        torch.testing.assert_close(actual[0], torch.zeros_like(actual[0]))
+        torch.testing.assert_close(actual[1].flatten(), torch.tensor([2/5, 3/4.5, 5/5.5, 0.]))
+
     def test_exception_restores_model_forward_and_releases_caches(self):
         obj = object.__new__(runtime.RoleKVRuntime)
         original = lambda *args: None
         obj.net = SimpleNamespace(_forward=original)
         obj.audit = {}; obj.engine = object(); obj.banks = object(); obj.grid = (2, 2)
-        obj.latents = {0: object()}
+        obj.latents = {0: object()}; obj.pose_latents = {0: object()}
         with self.assertRaisesRegex(RuntimeError, 'interrupted'):
             with obj.sampling():
                 self.assertIs(obj.net._forward, original)
@@ -71,6 +84,7 @@ class RoleRoutingTests(unittest.TestCase):
         self.assertIs(obj.net._forward, original)
         self.assertIsNone(obj.engine); self.assertIsNone(obj.banks)
         self.assertIsNone(obj.grid); self.assertEqual(obj.latents, {})
+        self.assertEqual(obj.pose_latents, {})
         self.assertTrue(obj.audit['cache_released'])
 
     def test_role_method_does_not_change_old_widget_order_or_disabled_input(self):
@@ -83,6 +97,18 @@ class RoleRoutingTests(unittest.TestCase):
         p = reference.RSMultiCharacterReference().apply(None, building_pipe=p, anima_method='role_kv', enabled=False)[0]
         self.assertIsNone(p.slots[0].reference)
         self.assertEqual(p.slots[0].prompt, 'adult woman')
+
+    def test_v3_pose_keeps_its_own_pixels_and_requires_v3(self):
+        image = torch.zeros(1, 64, 32, 3)
+        pose = torch.ones(1, 32, 64, 3)
+        node = reference.RSMultiCharacterReference()
+        pipe, = node.apply(image, anima_method='role_kv_v3', pose_image=pose)
+        ref = pipe.slots[0].reference
+        self.assertEqual(ref.version, 'v3')
+        self.assertGreater(ref.pose.size[0], ref.pose.size[1])
+        self.assertNotEqual(ref.source, ref.pose.source)
+        with self.assertRaisesRegex(ValueError, 'role_kv_v3'):
+            node.apply(image, anima_method='role_kv_v2', pose_image=pose)
 
 
 if __name__ == '__main__':

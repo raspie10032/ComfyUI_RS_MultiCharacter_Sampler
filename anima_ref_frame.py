@@ -19,6 +19,13 @@ import torch.nn.functional as F
 
 KEY = 'rs_anima_ref_frame'
 PLAN = 'rs_anima_ref_frame_plan'
+INSERTED_29B = frozenset((2, 5, 8, 11, 14, 17, 21, 24, 27, 30, 33, 36))
+
+
+def base_block_indices(count):
+    if count not in (28, 40):
+        raise ValueError('Anima reference adapter requires 2B (28 blocks) or 2.9B (40 blocks).')
+    return tuple(i for i in range(count) if count == 28 or i not in INSERTED_29B)
 
 
 @dataclass(frozen=True)
@@ -49,7 +56,8 @@ class RSAnimaCharacterReference:
             'strength': ('FLOAT', {'default': 1., 'min': 0., 'max': 2., 'step': .05,
                 'tooltip': 'Reference prediction strength in this character region. Zero removes the reference.'}),
             'enabled': ('BOOLEAN', {'default': True}),
-        }, 'optional': {'building_pipe': ('RS_MC_BUILD_PIPE',), 'anima_method': anima_method_input()}}
+        }, 'optional': {'building_pipe': ('RS_MC_BUILD_PIPE',), 'anima_method': anima_method_input(),
+                        'pose_image': ('IMAGE', {'tooltip': 'Optional pose image for Role Ref KV v3.'})}}
 
     RETURN_TYPES = ('RS_MC_BUILD_PIPE',)
     RETURN_NAMES = ('building_pipe',)
@@ -63,10 +71,12 @@ class RSAnimaCharacterReference:
         'Overlaps blend both sources. Quality is experimental; more references cost memory/time.')
 
     def apply(self, image, character_id=1, strength=1., enabled=True, building_pipe=None,
-              anima_method='reference_frame'):
+              anima_method='reference_frame', pose_image=None):
         from .character_builder import update_slot
-        if anima_method not in ('reference_frame', 'role_kv'):
-            raise ValueError('Choose reference_frame or role_kv for the Anima reference method.')
+        if anima_method not in ('reference_frame', 'role_kv') or pose_image is not None:
+            from .image_reference import RSMultiCharacterReference
+            return RSMultiCharacterReference().apply(image, character_id, 768, strength, enabled,
+                                                       building_pipe, anima_method, pose_image)
         if (type(enabled) is not bool or isinstance(strength, bool)
                 or not isinstance(strength, (int, float)) or not math.isfinite(strength) or not 0 <= strength <= 2):
             raise ValueError('Character reference strength must be 0–2 and enabled must be on/off.')
@@ -97,8 +107,8 @@ class RSAnimaReferenceAdapter:
         import folder_paths
         return {'required': {
             'model': ('MODEL',),
-            'adapter_name': (folder_paths.get_filename_list('loras') + ['Auto: Anima v2 (2B)'],
-                {'tooltip': 'Anima reference weights. Auto v2 downloads verified 2B weights on use; other variants can be installed in loras. See weight license.'}),
+            'adapter_name': (folder_paths.get_filename_list('loras') + ['Auto: Anima v2 (2B / 2.9B)', 'Auto: Anima v2 (2B)'],
+                {'tooltip': 'Auto v2 downloads verified rank-64 weights. Anima 2.9B maps them to the 28 original blocks.'}),
             'strength': ('FLOAT', {'default': 1., 'min': 0., 'max': 2., 'step': .05,
                 'tooltip': 'Learned adapter strength. Zero bypasses reference processing.'}),
             'reference_guidance': ('FLOAT', {'default': 4.5, 'min': 0., 'max': 20., 'step': .1,
@@ -140,9 +150,11 @@ class RSAnimaReferenceAdapter:
             return (result,)
         if image is not None:
             validate_image(image)
-        if adapter_name == 'Auto: Anima v2 (2B)':
-            if len(model.get_model_object('diffusion_model').blocks) != 28:
+        if adapter_name in ('Auto: Anima v2 (2B / 2.9B)', 'Auto: Anima v2 (2B)'):
+            count = len(model.get_model_object('diffusion_model').blocks)
+            if adapter_name == 'Auto: Anima v2 (2B)' and count != 28:
                 raise ValueError('Anima reference v2 currently requires Anima 2B (28 blocks). / v2는 현재 Anima 2B용입니다.')
+            base_block_indices(count)
             from .reference_assets import _verified_adapter
             path = str(_verified_adapter('anima_frame_v2', unique_id))
         else:
@@ -152,8 +164,8 @@ class RSAnimaReferenceAdapter:
         with safe_open(path, framework='pt') as handle:
             metadata = json.loads((handle.metadata() or {}).get('anima_ref_adapter', '{}'))
         backend = 'asymmetric_v2' if metadata.get('arch') == 'asym' else 'pilot'
-        if backend == 'asymmetric_v2' and len(model.get_model_object('diffusion_model').blocks) != 28:
-            raise ValueError('Anima reference v2 currently requires Anima 2B (28 blocks).')
+        if backend == 'asymmetric_v2':
+            base_block_indices(len(model.get_model_object('diffusion_model').blocks))
         result = model.clone()
         result.remove_wrappers_with_key(WrappersMP.DIFFUSION_MODEL, 'rs_ref_require')
         result.add_wrapper_with_key(WrappersMP.DIFFUSION_MODEL, 'rs_ref_require', require_sampler)
@@ -380,16 +392,22 @@ class FrameRuntime:
         if self.weights is not None:
             return
         count = len(dm.blocks)
-        if count not in (28, 40):
-            raise ValueError('Anima reference adapter supports 2B (28 blocks) or 2.9B (40 blocks).')
+        mapped = base_block_indices(count)
         import comfy.utils
         state = comfy.utils.load_torch_file(self.plan.adapter_path, safe_load=True)
+        prefix = 'diffusion_model.blocks.'
+        source = {int(key[len(prefix):].split('.', 1)[0]) for key in state
+                  if key.startswith(prefix) and key.endswith('.lora_down.weight')}
+        remap = count == 40 and self.plan.backend == 'asymmetric_v2' and source == set(range(28))
         weights = {}
         for key, down in state.items():
             if not key.startswith('diffusion_model.') or not key.endswith('.lora_down.weight'):
                 continue
             name = key[len('diffusion_model.'):-len('.lora_down.weight')]
             up = state.get(key.replace('lora_down', 'lora_up'))
+            if remap and name.startswith('blocks.'):
+                _, index, part = name.split('.', 2)
+                name = f'blocks.{mapped[int(index)]}.{part}'
             try:
                 module = dm.get_submodule(name)
             except AttributeError as error:
@@ -409,8 +427,6 @@ class FrameRuntime:
         # The published 2.9B conversion maps the 28 trained blocks around
         # twelve inserted blocks (Gazingstars123/Anima-2.9B expand_manifest.json).
         # Those blocks run normally without adapter hooks.
-        inserted = {2, 5, 8, 11, 14, 17, 21, 24, 27, 30, 33, 36}
-        mapped = set(range(count)) - (inserted if count == 40 else set())
         expected = {f'blocks.{i}.{part}' for i in mapped for part in (
             'self_attn.q_proj', 'self_attn.k_proj', 'self_attn.v_proj', 'self_attn.output_proj',
             'cross_attn.q_proj', 'cross_attn.k_proj', 'cross_attn.v_proj', 'cross_attn.output_proj',
@@ -421,7 +437,7 @@ class FrameRuntime:
                              '모델에 맞는 참조 어댑터를 선택해 주세요. 2.9B는 변환된 29B 가중치가 필요합니다.')
         self.weights = weights
         self.audit.update(adapter_layers=len(weights), model_blocks=count, adapter_blocks=len(mapped),
-                          unchanged_new_blocks=sorted(set(range(count)) - mapped))
+                          unchanged_new_blocks=sorted(set(range(count)) - set(mapped)))
 
     @contextmanager
     def installed(self, dm, context, active):

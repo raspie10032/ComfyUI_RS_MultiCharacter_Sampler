@@ -7,7 +7,7 @@
 
 [English](README.md) · [한국어](README.ko.md) · [日本語](README.ja.md) · **简体中文** · [繁體中文](README.zh-TW.md) · [详细文档](docs/README.md) · [更新记录](CHANGELOG.md) · [发布版本](https://github.com/raspie10032/ComfyUI_RS_MultiCharacter_Sampler/releases)
 
-**当前版本：[1.1.13 Hangeul](docs/release-1.1.13.md)。** 使用本地模型，无需安装 RS NovelAI 扩展或提供 API 密钥。
+**当前版本：[1.1.14 Hangeul](docs/release-1.1.14.md)。** 使用本地模型，无需安装 RS NovelAI 扩展或提供 API 密钥。
 
 ## 打开应用界面 — RS Workspace（实验）
 
@@ -29,7 +29,7 @@
 
 **相机功能参考：** [Anima 相机标签辅助](https://arca.live/b/aiart/179423561) / `ComfyUI-KR-Camera-Control`（原始署名：`ComfyUI_bsk_UI` / 灰暗x）。[参考范围与来源说明](THIRD_PARTY_NOTICES.md#camera-control-references)。
 
-**1.0.7 实验功能：**[3D人体编辑器](docs/pose3d.md)可调整关节、手部和相机，输出编号遮罩与姿势图像。仅使用遮罩无需额外权重；姿势引导需要另接Anima 2B LLLite适配器，不保证精确关节或接触。[工作流PNG](examples/pose3d/anima-native-pose.png)。[参考v2](docs/anima-reference-v2.md)需在MODEL适配器节点中选择 `Auto: Anima v2 (2B)`。实测更快，但可能改变头发、服装并增加内存，不替换默认参考路径。v2不支持2.9B或角色独立LoRA。
+**3D人体编辑器：** 调整关节、手部和相机，输出编号遮罩与姿势图像。Anima 2B 可在 **Anima LLLite 模型**中选择 `outline_7000` 或 `shaded_6200`。[3D 姿势指南](docs/pose3d.md)
 
 ## 主要功能
 
@@ -41,10 +41,7 @@
 
 坐标与遮罩只引导提示词影响区域，不保证准确人数、身份、姿势或文字拼写。[角色图像参考](docs/image-reference.md) 为**实验性支持，不推荐使用**；有合适的角色 LoRA 时优先使用 LoRA。
 
-
-**Anima Role K/V · 实验性：** 图像参考节点可选择编号区域各自独立的参考K/V。首次生成时自动下载约504 MiB专用适配器，默认仍使用原有参考帧。[使用方法、限制与验证](docs/anima-role-kv.md)。
-
-**Anima 2B/2.9B参考帧：** 用户自行选择检查点，采样器自动准备匹配的参考适配器。质量和速度可能不同。独立的Role K/V适配器目前仅支持2B。[用法与限制](docs/anima-reference-frame.md)。
+**Anima 图像参考（实验功能）。** 在编号图像参考节点中可选择 SnapRef v2a、Reference Frame v2 或 Role Ref KV v2/v3，均支持 2B 和 2.9B。在 2B 上，SnapRef 和 Reference Frame v2 可与 3D 姿势 LLLite 同时使用。[用法和支持范围](docs/image-reference.md#anima-reference-methods)
 
 ## 安装与更新
 

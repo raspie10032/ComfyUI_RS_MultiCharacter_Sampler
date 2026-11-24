@@ -95,7 +95,8 @@ class AsymmetricTests(unittest.TestCase):
   self.assertIsNone(rt.model_patcher)
   self.assertTrue(all(not m._forward_hooks for m in self.dm.modules()))
  def test_unsupported_models_and_attention_patches_rejected(self):
-  with self.assertRaisesRegex(ValueError,'2B'):self.runtime().load_weights(types.SimpleNamespace(blocks=[None]*40))
+  rt=self.runtime();rt.weights=None
+  with self.assertRaisesRegex(ValueError,'2B'):rt.load_weights(types.SimpleNamespace(blocks=[None]*39))
   rt=self.runtime()
   with self.assertRaisesRegex(ValueError,'attention patches'):
    rt.ref_forward(self.dm,None,None,None,None,{'patches':{'x':[]}})

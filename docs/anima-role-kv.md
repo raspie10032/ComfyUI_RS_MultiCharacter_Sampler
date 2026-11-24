@@ -7,20 +7,25 @@ guaranteed. The shared image state still couples adjacent regions.
 
 ## Connect and download
 
-1. Use Anima 2B Base v1.0 in native BF16 or FP32 and the usual CLIP/VAE loaders.
+1. Use Anima 2B or 2.9B in native BF16 or FP32 with the usual CLIP/VAE loaders.
 2. Feed each ordinary Load Image output to an **Image Reference** node. Match its
    character number to Prompt, Position/Mask and optional character LoRA.
-3. Choose **Anima reference method → role_kv** on all enabled reference inputs.
+3. Choose **Anima reference method → role_kv_v2** or **role_kv_v3** on all
+   enabled reference inputs. V3 accepts a second IMAGE on **pose_image**. Frame a
+   single-person illustration or black-on-white figure to the output aspect ratio.
    Building-node order remains free. Finalize into the ordinary RS sampler or
    the RS progressive sampler. No extra MODEL adapter node is needed.
 4. Queue generation. The dedicated adapter is downloaded on first use, showing
    status through the existing node download-progress system. It is about
-   **504 MiB / 528,546,184 bytes**. OFF/strength 0 performs no Role K/V loading.
+   **252 MiB** for v2/v3. OFF/strength 0 performs no Role K/V loading.
+
+`role_kv` selects legacy v1 for Anima 2B and uses its original 504 MiB file.
+On Anima 2.9B, v2/v3 map to the original 28 blocks.
 
 Install `requirements-reference.txt` with ComfyUI's Python. The fixed upstream
 revision and SHA-256 are in `reference_assets.json`. Existing matching files in
-configured model/LoRA folders are reused. The managed location is
-`models/ipadapter/rs_reference/anima_role_kv/comfy/anima-role-ref-kv-v1.0.safetensors`.
+configured model/LoRA folders are reused. Managed files are under
+`models/ipadapter/rs_reference/anima_role_kv/`.
 A failed download can be retried; a checksum mismatch names the file to replace.
 The adapter is applied internally at 1.0. Do not also apply it via a LoRA loader.
 
@@ -106,8 +111,3 @@ https://huggingface.co/AnticPan/Anima-Role-Ref-KV
 The independent one-capture experiment at
 https://arca.live/b/aiart/187358922 is related research; Spectrum acceleration
 from that experiment is **not included** in this integration.
-
-
-## Anima 2.9B
-
-The published Role K/V weights target 28-block Anima 2B. For a 40-block Anima 2.9B checkpoint, choose `reference_frame` instead; its matching converted adapter is prepared automatically. This limitation belongs to this Role K/V adapter and does not remove 2.9B support from the sampler. See [Anima reference frames](anima-reference-frame.md).

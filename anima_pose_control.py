@@ -4,6 +4,10 @@
 
 def validate_model_patches(model, family):
     options = model.model_options.get('transformer_options', {})
+    return validate_hooks(options, family, lambda: model.get_model_object('diffusion_model').blocks)
+
+
+def validate_hooks(options, family, get_blocks):
     patches = options.get('patches', {})
     if not any(options.get(k) for k in ('patches', 'patches_replace', 'optimized_attention_override')):
         return False
@@ -11,7 +15,10 @@ def validate_model_patches(model, family):
              'Remove other attention patches. / 기본 Apply Anima LLLite만 함께 사용할 수 있습니다. 다른 어텐션 패치를 분리해 주세요.')
     if family != 'Anima' or options.get('patches_replace') or options.get('optimized_attention_override'):
         raise ValueError(error)
-    from comfy.ldm.anima.lllite import AnimaLLLitePatch, AnimaLLLiteAttentionPatch, AnimaLLLiteMLPPatch
+    try:
+        from comfy.ldm.anima.lllite import AnimaLLLitePatch, AnimaLLLiteAttentionPatch, AnimaLLLiteMLPPatch
+    except ImportError as exc:
+        raise ValueError(error) from exc
     kinds = {'post_input': AnimaLLLitePatch, 'attn1_patch': AnimaLLLiteAttentionPatch,
              'attn2_patch': AnimaLLLiteAttentionPatch, 'mlp_patch': AnimaLLLiteMLPPatch}
     if set(patches) != set(kinds) or any(not values for values in patches.values()):
@@ -27,7 +34,7 @@ def validate_model_patches(model, family):
     for key, targets in expected.items():
         if any(p.targets != targets for p in patches[key]):
             raise ValueError(error)
-    blocks = model.get_model_object('diffusion_model').blocks
+    blocks = get_blocks()
     width = blocks[0].self_attn.q_proj.weight.shape[0]
     for patch in roots:
         adapter = patch.model_patch.model

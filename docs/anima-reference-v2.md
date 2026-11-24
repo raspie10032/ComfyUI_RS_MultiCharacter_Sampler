@@ -1,4 +1,4 @@
-# Asymmetric Anima reference v2 — experimental option (1.0.7)
+# Asymmetric Anima reference v2 (experimental)
 
 This experiment tests **regional reference attention**, not a single global
 image prompt. Each numbered reference is encoded independently and its guided
@@ -7,18 +7,18 @@ denoising can still cause identity changes or mixing after this routing.
 
 ## Use
 
-Connect the MODEL through `RS Anima Reference Adapter (Experimental)` and select
-`Auto: Anima v2 (2B)`. The first active use prepares the pinned 175 MiB adapter,
+Select `reference_frame_v2` on each numbered **Image Reference** node. For a
+global reference, connect the MODEL through `RS Anima Reference Adapter
+(Experimental)` and select `Auto: Anima v2 (2B / 2.9B)`. The first active
+use prepares the pinned 175 MiB adapter,
 shows download/verification progress and checks its SHA-256. Existing matching
 files in ordinary or extra LoRA folders are reused. Disabled/zero-strength use
 does not download. Keep the adapter's IMAGE disconnected when using numbered
 Character Reference inputs through the building pipe; each number must match
 its Prompt/Position slot.
 
-The common Image Reference node's automatic `reference_frame` choice continues
-to select the existing pilot adapter. This experimental option requires the
-explicit MODEL adapter selection above. No existing workflow is silently moved
-to v2.
+The common Image Reference node defaults to `reference_frame`, the pilot adapter.
+The older `Auto: Anima v2 (2B)` selection remains available for saved workflows.
 
 ## What changes
 
@@ -36,12 +36,13 @@ changed source content or model parameter/hook state cannot reuse old features.
 
 ## Scope and limits
 
-- Anima **2B / 28 blocks only**. The existing pilot 2.9B conversion remains
-  separate; v2 2.9B is rejected before automatic download.
+- Anima **2B and 2.9B**. On the 40-block 2.9B model, the original 2B weights
+  map to the 28 original blocks. A local v2 file already converted to 2.9B also works.
 - Numbered references use precision predictions. Per-character LoRA combination
   is deliberately rejected in this experiment pending its own cache/quality
   validation. A global style LoRA applied before this adapter is supported.
-- Other model attention patches are rejected instead of bypassed silently.
+- Anima 2B can run native Apply Anima LLLite or the RS 3D pose pipe alongside
+  v2. Leave the optional text K/V cache off for that combination.
 - Progressive sampling, swapped numbered references and overlapping masks have
   been generated. This does not establish accurate identity/contact control.
 - More references and larger grids need more K/V memory. Faster execution is

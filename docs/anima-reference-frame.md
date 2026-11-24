@@ -53,7 +53,7 @@ Generation metadata records adapter settings and numbered reference fingerprints
 - [Anima 2.9B model](https://huggingface.co/Gazingstars123/Anima-2.9B) and its `expand_manifest.json`.
 - [Converted 2.9B reference adapter](https://huggingface.co/pamparamm/anima-ref-adapter-2.9B-converted).
 - `reference_assets.json` pins adapter revisions and SHA256; downloads and reused files are checked.
-- `role_kv` remains a separate **2B-only** adapter. Choose `reference_frame` for 2.9B.
+- `role_kv` selects the legacy **2B-only** weights. `role_kv_v2` and `role_kv_v3` support both checkpoints. [Role Ref KV](anima-role-kv.md)
 
 ## Validation limits
 
@@ -63,7 +63,7 @@ The expanded model mapping and public-node GPU regression results are documented
 
 ## Asymmetric v2 development experiment
 
-The advanced adapter node also offers an explicit `Auto: Anima v2 (2B)` choice.
+The advanced adapter node also offers `Auto: Anima v2 (2B / 2.9B)`.
 This prepares different weights and a generation-local image K/V backend.
 See [scope, limitations and regional routing](anima-reference-v2.md).
 The ordinary reference-frame choice and 2.9B conversion are unchanged.

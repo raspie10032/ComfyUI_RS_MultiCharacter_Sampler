@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: GPL-3.0-only
-"""Experimental asymmetric Anima 2B reference, with sample-local K/V banks.
+"""Experimental asymmetric Anima reference, with sample-local K/V banks.
 
 Block/frame math adapted from ElectronGirl/ComfyUI-Anima-Ref-Adapter
 bd1e094a (Apache-2.0, see ANIMA-REF-ADAPTER-LICENSE). Released weights separate.
@@ -10,6 +10,7 @@ import time
 
 import torch
 
+from .anima_pose_control import validate_hooks
 from .anima_ref_frame import FrameRuntime, frame_rope
 from .routing import sdpa
 
@@ -52,7 +53,10 @@ def asym_block(block,value,emb,adaln,rope,context=None,ref_kv=None,options=None)
     residual_dtype,compute_dtype=value.dtype,emb.dtype
     B,T,H,W,_=value.shape
     n=norm(value,block.layer_norm_self_attn,sa[1],sa[0]).to(compute_dtype).flatten(1,3)
-    q,k,v=block.self_attn.compute_qkv(n,None,rope_emb=rope)
+    if options is not None and options.get('patches'):
+        q,k,v=block.self_attn.compute_qkv(n,None,rope_emb=rope,transformer_options=options)
+    else:
+        q,k,v=block.self_attn.compute_qkv(n,None,rope_emb=rope)
     own=(k,v)
     if context is None:
         # No RS masks, text conditions, or live target features in prefill.
@@ -68,6 +72,11 @@ def asym_block(block,value,emb,adaln,rope,context=None,ref_kv=None,options=None)
         out=block.cross_attn(n,context,rope_emb=None,transformer_options=options).reshape(B,T,H,W,-1)
         value=torch.addcmul(value,ca[2].to(residual_dtype),out.to(residual_dtype))
     n=norm(value,block.layer_norm_mlp,mlp[1],mlp[0]).to(compute_dtype)
+    if options is not None:
+        args={'x':n,'transformer_options':options}
+        for patch in options.get('patches',{}).get('mlp_patch',()):
+            args=patch(args)
+        n=args['x']
     value=torch.addcmul(value,mlp[2].to(residual_dtype),block.mlp(n).to(residual_dtype))
     return value,own
 
@@ -102,11 +111,6 @@ class AsymmetricRuntime(FrameRuntime):
         self.model_patcher = None
         super().clear()
 
-    def load_weights(self,dm):
-        if len(dm.blocks)!=28:
-            raise ValueError('Anima reference v2 weights require the 28-block Anima 2B model. / v2는 현재 Anima 2B용입니다.')
-        super().load_weights(dm)
-
     def mark(self,executor,x,timesteps,context,*args,**kwargs):
         def next_(x,timesteps,context,*args,**kwargs):
             opts=dict(kwargs.get('transformer_options',{}))
@@ -119,8 +123,7 @@ class AsymmetricRuntime(FrameRuntime):
         return super().mark(next_,x,timesteps,context,*args,**kwargs)
 
     def ref_forward(self,dm,x,timesteps,context,reference,options):
-        if options.get('patches') or options.get('patches_replace') or options.get('optimized_attention_override'):
-            raise ValueError('Experimental Anima v2 does not yet support other model attention patches.')
+        with_lllite=validate_hooks(options,'Anima',lambda:dm.blocks)
         import comfy.ldm.common_dit
         orig=x.shape
         x=comfy.ldm.common_dit.pad_to_patch_size(x,(dm.patch_temporal,dm.patch_spatial,dm.patch_spatial))
@@ -157,6 +160,10 @@ class AsymmetricRuntime(FrameRuntime):
             self.audit['peak_reference_cache_bytes']=max(self.audit['peak_reference_cache_bytes'],total)
         else:self.audit['reference_cache_hits']+=1
         value,rope,emb,adaln=frame_embed(dm,x,timesteps.reshape(x.shape[0],-1)[:,0])
+        if with_lllite:
+            options={**options,'model_patch_data':{}}
+            for patch in options['patches']['post_input']:
+                value=patch({'img':value,'x':x,'transformer_options':options})['img']
         for i,block in enumerate(dm.blocks):
             options['block_index']=i
             value,_=asym_block(block,value,emb,adaln,rope,context,bank[i],options)

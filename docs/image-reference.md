@@ -31,11 +31,24 @@ No external IP-Adapter/model-patch node is needed for this input.
 - **Metadata:** saves reference number, fingerprint, resolution and strength,
   not image pixels. Reconnect source images after loading generation metadata.
 
-## Optional Anima Role K/V
+## Anima Reference methods
 
-Choose `anima_method = role_kv` on each numbered Image Reference node to use the
-new dedicated adapter. It downloads automatically on first sampling.
-`reference_frame` remains the default and supports 2B / 2.9B; `role_kv` uses 2B-only weights. [Connection, routing differences and limits](anima-role-kv.md).
+Choose the method on each enabled **Image Reference** node. The first use
+verifies or downloads its dedicated adapter. Set the same backend for all
+active reference slots. SnapRef modes can differ by slot.
+
+| Method | Model and use |
+|---|---|
+| `reference_frame` | Default pilot frame for 2B / 2.9B. |
+| `reference_frame_v2` | Asymmetric rank-64 Ref Adapter for 2B / 2.9B with sample-scoped K/V caching. Supports LLLite on 2B. [Guide](anima-reference-v2.md) |
+| `snapref` / `snapref_char` | SnapRef v2a for 2B / 2.9B. Choose character + style or character mode. Supports LLLite 3D pose on 2B and Normal character LoRAs. [Upstream model](https://huggingface.co/0ppxnhximxr/snapref-v2a) |
+| `role_kv_v2` / `role_kv_v3` | Role Ref KV BF16 weights for 2B / 2.9B. V3 accepts a separate pose image on the node. [Guide](anima-role-kv.md) |
+| `role_kv` | Legacy v1 for 2B and existing workflows. |
+
+The new reference adapters use the original 28 blocks on Anima 2.9B. Reference
+quality on 2.9B depends on how well the 2B-trained weights transfer. Use the
+numbered image input for each character to keep the adapter's K/V bank assigned
+to that slot.
 
 ## Model-specific paths
 

@@ -7,6 +7,30 @@
     "subdir": "anima_role_kv",
     "sha256": "102dcc38b48f984844305fff5c04730a857603f8796f47e92b67c61baef124bb"
   },
+  "anima_role_kv_v2": {
+    "repo": "AnticPan/Anima-Role-Ref-KV",
+    "revision": "6da5738595f25e0b9f6e3784488c98328f85ef73",
+    "file": "comfy/anima-role-ref-kv-v2.0.safetensors",
+    "folder": "ipadapter",
+    "subdir": "anima_role_kv",
+    "sha256": "94194fdcaa2664f33f3c6ecb4ad41884c7d11061534f7e429bccf6e37bfb5b7b"
+  },
+  "anima_role_kv_v3": {
+    "repo": "AnticPan/Anima-Role-Ref-KV",
+    "revision": "6da5738595f25e0b9f6e3784488c98328f85ef73",
+    "file": "comfy/anima-role-ref-kv-v3.0.safetensors",
+    "folder": "ipadapter",
+    "subdir": "anima_role_kv",
+    "sha256": "d5e50bd4704958b476f6cebb2584f669e0f42a2b37dc5f061a50bdf6a82047b2"
+  },
+  "anima_snapref": {
+    "repo": "0ppxnhximxr/snapref-v2a",
+    "revision": "e6d6a21e4d56faae4454a1cc9bfd065d87358bf2",
+    "file": "snapref_v2a.safetensors",
+    "folder": "ipadapter",
+    "subdir": "anima_snapref",
+    "sha256": "8a22fc28d060447544eda283b36efe2dcdbad7422cbc0b8d42828d55a8a61ab4"
+  },
   "anima_adapter": {
     "repo": "LuciferTC/Anima-IP-Adapter",
     "revision": "99e9c351c9f00bdd188b5added0066a80d3b1de6",
@@ -134,6 +158,14 @@
     "folder": "loras",
     "subdir": "moss_pose",
     "sha256": "e5c0c3efd05e4269207a39de6005798f14c90c6687c89c54eaffe4b76c43a763"
+  },
+  "anima_pose_shaded": {
+    "repo": "toyxyz/Anima_ControlNet-LLLite",
+    "revision": "37f3a4b6574f1dce3dfe3b5440285a39b11b3d8d",
+    "file": "anima_3dpose_6200.safetensors",
+    "folder": "model_patches",
+    "subdir": "anima_pose",
+    "sha256": "97542346a658d23ca65368b568aa9aaf2486ccda8942612983aaffdc986cd495"
   },
   "anima_pose": {
     "repo": "toyxyz/Anima_ControlNet-LLLite",

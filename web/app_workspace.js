@@ -77,7 +77,8 @@ function field(node, name, parent, label) {
             change(node, name, value); wildcardPreview=null;
             if (currentTab === 'wildcards') overlay?.querySelector('.rs-app-wildcard-preview')?.remove();
             if (name === 'character_count') { workspace.characters(); render(); }
-            else if (name.endsWith('_kind') || name === 'anima_method' || name === 'camera_mode') render();
+            else if (name === 'anima_method') { workspace.route(); render(); }
+            else if (name.endsWith('_kind') || name === 'camera_mode') render();
         } catch (error) { report(error); }
     };
     input.addEventListener('change', onChange);
@@ -165,7 +166,7 @@ function render() {
         mountEditor(node, 'pose3d_import', box); mountEditor(node, 'pose3d_preview', box); mountEditor(node, 'pose3d_status', box);
         if (workspace.state.pose) {
             const cap = workspace.model?.capabilities;
-            for (const name of ['pose_control', 'pose_strength', 'pose_start', 'pose_end']) field(node, name, box);
+            for (const name of ['pose_control', 'pose_strength', 'pose_start', 'pose_end', 'anima_pose_model']) field(node, name, box);
         }
         advanced(node, box);
     }
@@ -193,6 +194,22 @@ function render() {
     const run = overlay.querySelector('[data-action="generate"]'); run.disabled = busy || workspace.issues().length > 0;
     for (const control of content.querySelectorAll('input,select,textarea,button')) control.disabled = busy;
 }
+function referenceImage(image, label, box) {
+    field(image, 'image', box, label);
+    const upload = el('input', null, box); upload.type = 'file'; upload.accept = 'image/png,image/jpeg,image/webp';
+    upload.setAttribute('aria-label', `${label} 업로드`);
+    upload.onchange = async () => {
+        try {
+            const file = upload.files?.[0]; if (!file) return;
+            const body = new FormData(); body.append('image', file); body.append('type', 'input'); body.append('subfolder', 'RS_Workspace');
+            const response = await api.fetchApi('/upload/image', {method:'POST', body});
+            if (!response.ok) throw Error(`Image upload: HTTP ${response.status}`);
+            const result = await response.json(), name = [result.subfolder, result.name].filter(Boolean).join('/');
+            const w = widget(image,'image'); if (Array.isArray(w.options?.values) && !w.options.values.includes(name)) w.options.values.push(name);
+            change(image,'image',name); render();
+        } catch (error) { report(error); }
+    };
+}
 function characters(parent) {
     el('p', '__fabe__ · __ff__ · {선택지 A|선택지 B}를 프롬프트에 쓸 수 있습니다. 와일드카드 탭에서 파일 선택·미리보기를 할 수 있어요. 글자 영역은 입력 그대로 사용합니다.', parent, 'rs-app-hint');
     field(workspace.node('prompt'), 'character_count', parent, '캐릭터 / 글자 영역 수');
@@ -205,20 +222,23 @@ function characters(parent) {
         const ref = el('label', null, box, 'rs-app-toggle'), check = el('input', null, ref); check.type = 'checkbox'; check.checked = !!workspace.state.refs[i]; el('span','참조 이미지 사용',ref);
         check.onchange = () => { try { workspace.state.refs[i] = check.checked; workspace.route(); render(); } catch (error) { report(error); } };
         if (check.checked) {
-            const image = workspace.node(`image${i}`); field(image, 'image', box, '참조 이미지');
-            const upload = el('input', null, box); upload.type = 'file'; upload.accept = 'image/png,image/jpeg,image/webp';
-            upload.onchange = async () => {
-                try {
-                    const file = upload.files?.[0]; if (!file) return;
-                    const body = new FormData(); body.append('image', file); body.append('type', 'input'); body.append('subfolder', 'RS_Workspace');
-                    const response = await api.fetchApi('/upload/image', {method:'POST', body});
-                    if (!response.ok) throw Error(`Image upload: HTTP ${response.status}`);
-                    const result = await response.json(), name = [result.subfolder, result.name].filter(Boolean).join('/');
-                    const w = widget(image,'image'); if (Array.isArray(w.options?.values) && !w.options.values.includes(name)) w.options.values.push(name);
-                    change(image,'image',name); render();
-                } catch (error) { report(error); }
-            };
-            fields(workspace.node(`ref${i}`), box, ['resolution','strength','anima_method']);
+            const refNode = workspace.node(`ref${i}`);
+            referenceImage(workspace.node(`image${i}`), '참조 이미지', box);
+            fields(refNode, box, ['resolution','strength','anima_method']);
+            if (['anima', 'anima29'].includes(workspace.model?.profile) &&
+                widget(refNode, 'anima_method')?.value === 'role_kv_v3' &&
+                refNode.inputs?.some(input => input.name === 'pose_image')) {
+                const poseLabel = el('label', null, box, 'rs-app-toggle'), pose = el('input', null, poseLabel);
+                pose.type = 'checkbox'; pose.checked = !!workspace.state.referencePoses?.[i];
+                el('span', '포즈 이미지 사용', poseLabel);
+                pose.onchange = () => {
+                    try {
+                        (workspace.state.referencePoses ??= {})[i] = pose.checked;
+                        workspace.route(); render();
+                    } catch (error) { report(error); }
+                };
+                if (pose.checked) referenceImage(workspace.node(`referencePose${i}`), '포즈 이미지', box);
+            }
         }
     }
 }

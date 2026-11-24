@@ -1003,9 +1003,12 @@
       "building_pipe": {
         "name": "조립 파이프"
       },
+      "pose_image": {
+        "name": "포즈 이미지 (Role Ref KV v3)"
+      },
       "anima_method": {
         "name": "Anima 참조 방식",
-        "tooltip": "Anima 2B·2.9B: reference_frame은 모델에 맞는 어댑터를 자동으로 받습니다. role_kv는 2B 전용이며 최초 504 MiB 다운로드. BF16/FP32·캐릭터 LoRA 일반 적용 전용.",
+        "tooltip": "Anima 2B·2.9B 참조 방식. SnapRef와 Reference Frame v2는 Anima 2B LLLite와 함께 사용 가능. Role Ref KV v3는 포즈 이미지를 추가로 받습니다.",
         "options": {
           "reference_frame": "기존 참조 프레임",
           "role_kv": "영역별 Role K/V"
@@ -1191,9 +1194,12 @@
       "building_pipe": {
         "name": "빌딩 파이프"
       },
+      "pose_image": {
+        "name": "포즈 이미지 (Role Ref KV v3)"
+      },
       "anima_method": {
         "name": "Anima 참조 방식",
-        "tooltip": "Anima 2B·2.9B: reference_frame은 모델에 맞는 어댑터를 자동으로 받습니다. role_kv는 2B 전용이며 최초 504 MiB 다운로드. BF16/FP32·캐릭터 LoRA 일반 적용 전용.",
+        "tooltip": "Anima 2B·2.9B 참조 방식. SnapRef와 Reference Frame v2는 Anima 2B LLLite와 함께 사용 가능. Role Ref KV v3는 포즈 이미지를 추가로 받습니다.",
         "options": {
           "reference_frame": "기존 참조 프레임",
           "role_kv": "영역별 Role K/V"
@@ -1222,6 +1228,9 @@
       },
       "pose_end": {
         "name": "자세 종료"
+      },
+      "anima_pose_model": {
+        "name": "Anima LLLite 모델"
       }
     },
     "outputs": {

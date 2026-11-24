@@ -17,10 +17,10 @@ The node outputs its mask preview and two MASK batches (full/visible), sorted by
 
 **Use one 3D node and its building pipe.** Set `pose_control=auto`, then connect **3D Pose Masks → Prompt/LoRA/Position (any order) → Finalize → RS Sampler**. The sampler uses its loaded model and VAE internally. Do not add a MODEL adapter, patch loader, or VAE connection to the pose node.
 
-- **Anima 2B:** automatically verifies/reuses or downloads `anima_3dpose_outline_7000.safetensors` (49 MiB), renders the scene at sampler dimensions and applies native Anima LLLite.
+- **Anima 2B:** choose `outline_7000` (default) or `shaded_6200` in **Anima LLLite model**. The sampler verifies or downloads the 49 MiB file and renders at sampler dimensions. The shaded option removes outlines from the conditioning image and its preview.
 - **Krea2 / MOSS:** uses the existing trained scene adapters and automatic verified weights. MOSS native layout can keep color/depth guidance while character masks become boxes.
 - **Other families / Anima 2.9B:** numbered masks only; the sampler reports the missing matching adapter.
-- `masks_only` or strength 0 disables learned guidance and downloads nothing. Strength and start/end belong to the 3D node. Image references cannot currently run with learned pose guidance; choose masks only for that combination. Krea2/MOSS learned guidance requires full resolution.
+- `masks_only` or strength 0 disables learned guidance and downloads nothing. Strength and start/end belong to the 3D node. Anima 2B learned guidance supports numbered SnapRef v2a and Reference Frame v2 image references. For other reference methods, choose `masks_only`. Krea2/MOSS learned guidance requires full resolution.
 
 The old **RS 3D Pose Adapter** MODEL node stays registered and deprecated for existing workflows. Existing socket numbers, pose image and scene JSON outputs are preserved. Older saved 3D nodes without the new controls retain mask-only behavior until auto is selected. The app migrates its own former adapter chain into the editor settings.
 

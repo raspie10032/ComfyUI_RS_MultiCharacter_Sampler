@@ -147,12 +147,11 @@ class RSMultiCharacterSampler:
         else:
             raise ValueError("Connect Anima, SD1.5 base, SDXL base, Krea2, MOSS-Image or native FLUX.1/2/3. FLUX Fill/Control, SD2, Refiner, inpainting and instruct-pix2pix models need different inputs and are unsupported here.")
         from .anima_pose_control import validate_model_patches
+        from .pose_pipe import apply_pipe_pose, incompatible_pose_references
         pose_control = validate_model_patches(model, family)
-        if pose_control and (model.model_options.get('rs_anima_ref_frame_plan') is not None or
-                model.model_options.get('rs_image_reference') is not None or
-                any(c.reference is not None and c.reference.strength > 0 for c in character_pipe.characters)):
-            raise ValueError('Anima LLLite pose control with image references is not supported yet. Disconnect image references. / '
-                             '현재 포즈 제어와 이미지 참조는 동시에 지원하지 않습니다. 참조 연결을 분리해 주세요.')
+        if pose_control and incompatible_pose_references(model, character_pipe, family):
+            raise ValueError('Choose SnapRef or Reference Frame v2 with Anima LLLite. / '
+                             'Anima LLLite와 함께 쓸 때는 SnapRef 또는 Reference Frame v2를 선택하세요.')
         settings = {k: v for k, v in locals().items() if k in DEFAULTS or k == "seed"}
         resolved_pipe = sampling_pipe(character_pipe, prompt, negative_prompt, prompt_syntax)
         prompt, negative_prompt, prompt_syntax = resolved_pipe.prompt, resolved_pipe.negative_prompt, resolved_pipe.syntax
@@ -177,15 +176,25 @@ class RSMultiCharacterSampler:
         if not isinstance(prompt, str) or not isinstance(negative_prompt, str) or prompt_syntax not in ("ComfyUI", "NovelAI"):
             raise ValueError("Choose valid prompt text and syntax.")
         pipe = resolved_pipe
-        from .pose_pipe import apply_pipe_pose
         model, pipe_pose_status = apply_pipe_pose(model, vae, pipe, family, settings['width'], settings['height'], unique_id)
         pose_control = validate_model_patches(model, family)
         layout_method = resolve_layout_method(layout_method, family, model.model_options)
         settings['layout_method'] = layout_method
-        from .anima_ref_frame import PLAN, FrameRuntime, FrameImageReference, patch_extra_conds, ReferencePlan
-        from .image_reference import RoleKVImageReference
-        role_refs = [(i, c.reference) for i, c in enumerate(pipe.characters)
-                     if isinstance(c.reference, RoleKVImageReference) and c.reference.strength > 0]
+        from .anima_ref_frame import PLAN, FrameRuntime, FrameImageReference, patch_extra_conds, ReferencePlan, base_block_indices
+        from .image_reference import FrameV2ImageReference, RoleKVImageReference, SnapRefImageReference
+        refs = [(i, c.reference) for i, c in enumerate(pipe.characters)
+                if c.reference is not None and c.reference.strength > 0]
+        role_refs = [(i, ref) for i, ref in refs if isinstance(ref, RoleKVImageReference)]
+        snap_refs = [(i, ref) for i, ref in refs if isinstance(ref, SnapRefImageReference)]
+        v2_refs = [(i, ref) for i, ref in refs if isinstance(ref, FrameV2ImageReference)]
+        if snap_refs and (family != 'Anima' or PLAN in model.model_options or len(snap_refs) != len(refs)):
+            raise ValueError('SnapRef requires Anima and SnapRef on all active references. Disconnect the reference-frame adapter.')
+        if snap_refs or v2_refs:
+            if family != 'Anima':
+                raise ValueError('Choose Anima to use SnapRef or Reference Frame v2.')
+            base_block_indices(len(model.get_model_object('diffusion_model').blocks))
+        if v2_refs and len(v2_refs) != len(refs):
+            raise ValueError('Choose Reference Frame v2 for all active references.')
         if role_refs and (family != 'Anima' or PLAN in model.model_options or
                 any(c.reference is not None and c.reference.strength > 0 and
                     not isinstance(c.reference, RoleKVImageReference) for c in pipe.characters)):
@@ -193,9 +202,13 @@ class RSMultiCharacterSampler:
                              'Anima 모델과 동일한 참조 방식을 사용하고 참조 프레임 어댑터는 분리해 주세요.')
         if role_refs:
             role_net = model.get_model_object('diffusion_model')
-            if len(role_net.blocks) != 28:
-                raise ValueError('Role K/V weights support Anima 2B only. For Anima 2.9B choose reference_frame on all reference nodes. / '
-                                 'Anima 2.9B는 모든 참조 노드에서 reference_frame을 선택해 주세요. Role K/V 가중치는 2B용입니다.')
+            versions = {ref.version for _, ref in role_refs}
+            if len(versions) != 1:
+                raise ValueError('Choose the same Role Ref KV version on all active reference nodes.')
+            role_version = versions.pop()
+            base_block_indices(len(role_net.blocks))
+            if role_version == 'v1' and len(role_net.blocks) != 28:
+                raise ValueError('Legacy Role K/V requires Anima 2B. Choose Role Ref KV v2 or v3 for Anima 2.9B.')
             if any(
                     block.self_attn.q_proj.weight.dtype not in (torch.bfloat16, torch.float32)
                     for block in role_net.blocks):
@@ -204,17 +217,20 @@ class RSMultiCharacterSampler:
             if any(c.body_part_strength > 0 and c.body_parts for c in pipe.characters):
                 raise ValueError('Role K/V does not apply body-part name guidance yet. Set body-part strength to 0; masks remain usable. / '
                                  'Role K/V는 부위 이름 유도를 아직 지원하지 않습니다. 부위 강도를 0으로 두세요. 마스크는 사용할 수 있습니다.')
-        if family == 'Anima' and not role_refs and any(c.reference is not None and c.reference.strength > 0 for c in pipe.characters):
+        if family == 'Anima' and refs and not (role_refs or snap_refs):
             from dataclasses import replace
-            from .reference_assets import frame_adapter
+            from .reference_assets import frame_adapter, _verified_adapter
             model = model.clone()
             pipe = replace(pipe, characters=tuple(replace(c, reference=FrameImageReference(
                 c.reference.pixels, c.reference.size, c.reference.resolution,
                 c.reference.strength, c.reference.character_id)) if c.reference is not None else c
                 for c in pipe.characters))
             if PLAN not in model.model_options:
-                model.model_options[PLAN] = ReferencePlan(None, str(frame_adapter(model, unique_id)),
-                    1., 4.5, 'apg', False)
+                path = _verified_adapter('anima_frame_v2', unique_id) if v2_refs else frame_adapter(model, unique_id)
+                model.model_options[PLAN] = ReferencePlan(None, str(path), 1., 4.5, 'apg', False,
+                    backend='asymmetric_v2' if v2_refs else 'pilot')
+            elif v2_refs and model.model_options[PLAN].backend != 'asymmetric_v2':
+                raise ValueError('Reference Frame v2 needs matching weights on the connected reference adapter.')
             model.model_options.setdefault('rs_reference_follow_resolution', True)
             model.model_options.setdefault('rs_reference_compact_spatial', True)
         frame_plan = model.model_options.get(PLAN)
@@ -223,6 +239,8 @@ class RSMultiCharacterSampler:
         if frame_refs and frame_plan is None:
             raise ValueError('Character reference frames need RS Anima Reference Frame on the model connection. / 모델에 RS 아니마 참조 어댑터를 연결해 주세요.')
         if frame_plan is not None:
+            if pose_control and frame_plan.cache:
+                raise ValueError('Disable the reference adapter text K/V cache when combining it with Anima LLLite.')
             if family != 'Anima':
                 raise ValueError('Reference-frame adapter requires Anima.')
             if any(c.reference is not None and c.reference.strength > 0 and not isinstance(c.reference, FrameImageReference) for c in pipe.characters):
@@ -408,9 +426,14 @@ class RSMultiCharacterSampler:
                     raise ValueError('Role K/V uses balanced routing. Select the baseline interaction preset. / '
                                      'Role K/V에서는 겹침 제어 프리셋을 baseline으로 선택해 주세요.')
                 from .anima_role_kv import RoleKVRuntime, encode_role_references
-                from .reference_assets import role_kv_adapter
-                role_latents = encode_role_references(role_refs, vae, work.get_model_object('process_latent_in'))
-                role_runtime = RoleKVRuntime(role_refs, role_latents, role_kv_adapter(unique_id), routing, audit)
+                from .reference_assets import role_kv_adapter, _verified_adapter
+                process = work.get_model_object('process_latent_in')
+                role_latents = encode_role_references(role_refs, vae, process)
+                pose_latents = encode_role_references(
+                    [(slot, ref.pose) for slot, ref in role_refs if ref.pose is not None], vae, process)
+                path = role_kv_adapter(unique_id) if role_version == 'v1' else _verified_adapter('anima_role_kv_' + role_version, unique_id)
+                role_runtime = RoleKVRuntime(role_refs, role_latents, path, routing, audit,
+                                             pose_latents=pose_latents, version=role_version)
                 routing.role_kv_runtime = role_runtime
                 # Strong RS isolation collapsed the trained Role adapter in the
                 # research comparison. Keep character text/ownership, use the
@@ -418,6 +441,13 @@ class RSMultiCharacterSampler:
                 # claiming the sampler's normal strength schedule was applied.
                 routing.mode = 'weighted_static'
                 routing.initial_spatial_separation = routing.late_spatial_separation = 0.
+            if snap_refs:
+                from .anima_role_kv import encode_role_references
+                from .anima_snapref import SnapRefRuntime
+                from .reference_assets import _verified_adapter
+                path = _verified_adapter('anima_snapref', unique_id)
+                latents = encode_role_references(snap_refs, vae, work.get_model_object('process_latent_in'))
+                routing.snapref_runtime = SnapRefRuntime(snap_refs, latents, encode('')[0], path, len(masks), audit)
             work.add_wrapper_with_key(WrappersMP.SAMPLER_SAMPLE, "rs_multicharacter", routing.sample)
             work.add_wrapper_with_key(WrappersMP.DIFFUSION_MODEL, "rs_multicharacter", routing.forward)
         elif family in ("SD1.5", "SDXL"):
@@ -446,6 +476,9 @@ class RSMultiCharacterSampler:
             if role_refs and loras.execution['effective'] == 'precision':
                 raise ValueError('This character LoRA needs precision hooks, unsupported by Role K/V. / '
                                  '이 LoRA는 정밀 적용이 필요합니다. 참조 방식을 reference_frame으로 바꿔 주세요.')
+            if snap_refs and loras.execution['effective'] == 'precision':
+                raise ValueError('SnapRef requires Normal application for character LoRAs. / '
+                                 'SnapRef와 캐릭터 LoRA를 함께 쓸 때는 일반 적용을 선택해 주세요.')
             audit["regional_loras"] = loras.audit
             audit["lora_application"] = loras.execution
         else:
@@ -495,6 +528,8 @@ class RSMultiCharacterSampler:
         if role_refs:
             ui['text'].append('Role K/V: balanced regional routing; normal isolation strength schedules are not applied. / '
                               'Role K/V: 균형 영역 제어를 사용하며 기존 강도·경계 스케줄은 적용하지 않습니다.')
+        if snap_refs:
+            ui['text'].append('SnapRef v2a: ' + ', '.join(f'{i+1} ({ref.mode})' for i, ref in snap_refs))
         if autosave:
             folder, filename, counter, subfolder, _ = folder_paths.get_save_image_path(
                 "RS_MultiCharacter/RS_MC", folder_paths.get_output_directory(), settings["width"], settings["height"])

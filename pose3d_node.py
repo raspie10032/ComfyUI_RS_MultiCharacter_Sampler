@@ -61,7 +61,9 @@ class RSMultiCharacterPose3D:
                     'pose_control': (['auto', 'masks_only'], {'default': 'auto', 'tooltip': 'Auto applies a matching pose adapter inside the sampler. Other model families use masks only. / 자동: 샘플러에서 모델에 맞는 포즈 어댑터 적용. 미지원 모델은 마스크만 사용.'}),
                     'pose_strength': ('FLOAT', {'default': 1., 'min': 0., 'max': 2., 'step': .05, 'tooltip': 'Pose guidance strength. 0 uses masks only and downloads nothing. / 자세 유도 강도. 0은 마스크만 사용.'}),
                     'pose_start': ('FLOAT', {'default': 0., 'min': 0., 'max': 1., 'step': .01, 'tooltip': 'Start fraction of denoising. / 자세 유도 시작 구간.'}),
-                    'pose_end': ('FLOAT', {'default': 1., 'min': 0., 'max': 1., 'step': .01, 'tooltip': 'End fraction; must follow start. / 자세 유도 종료 구간.'})}, 'hidden': {'unique_id': 'UNIQUE_ID'}}
+                    'pose_end': ('FLOAT', {'default': 1., 'min': 0., 'max': 1., 'step': .01, 'tooltip': 'End fraction; must follow start. / 자세 유도 종료 구간.'}),
+                    'anima_pose_model': (['outline_7000', 'shaded_6200'], {'default': 'outline_7000',
+                        'tooltip': 'Anima 2B LLLite: newer outline checkpoint or original shaded-mesh checkpoint. / Anima 2B LLLite 포즈 가중치를 고릅니다.'})}, 'hidden': {'unique_id': 'UNIQUE_ID'}}
 
     RETURN_TYPES = (BUILD_PIPE_TYPE, 'IMAGE', 'MASK', 'MASK', 'STRING', 'IMAGE', 'STRING')
     RETURN_NAMES = ('building_pipe', 'mask_preview', 'full_masks', 'visible_masks', 'scene_info', 'pose_image', 'scene_json')
@@ -76,13 +78,15 @@ class RSMultiCharacterPose3D:
                    'Scene data is stored in the workflow. Connect anywhere before Finalize.')
 
     def apply(self, scene_json, building_pipe=None, unique_id=None, pose_control='auto',
-              pose_strength=1., pose_start=0., pose_end=1.):
+              pose_strength=1., pose_start=0., pose_end=1., anima_pose_model='outline_7000'):
         if building_pipe is not None and not isinstance(building_pipe, BuildPipe):
             raise ValueError('Connect an RS building pipe. / RS 조립 파이프를 연결해 주세요.')
         from .pose_pipe import pipe_pose_settings
         plan = pipe_pose_settings(dict(scene=scene_json, mode=pose_control, strength=pose_strength,
-                                       start=pose_start, end=pose_end))
-        scene, full, visible, pose_rgb = render_scene(scene_json, shaded=True)
+                                       start=pose_start, end=pose_end, anima_pose_model=anima_pose_model))
+        scene = plan['scene']
+        guide_scene = dict(scene, outline=False) if anima_pose_model == 'shaded_6200' else scene
+        _, full, visible, pose_rgb = render_scene(guide_scene, shaded=True)
         selected = full if scene['mask_mode'] == 'full' else visible
         pipe = building_pipe or BuildPipe()
         numbers = {p['id'] for p in scene['people']}

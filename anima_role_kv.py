@@ -10,6 +10,7 @@ import numpy as np
 import torch
 
 from .runtime_control import check_interrupted
+from .reference_assets import CATALOG
 
 
 def encode_role_references(refs, vae, process_latent):
@@ -33,16 +34,20 @@ def encode_role_references(refs, vae, process_latent):
 
 
 class RoleKVRuntime:
-    def __init__(self, refs, latents, adapter_path, routing, audit):
+    def __init__(self, refs, latents, adapter_path, routing, audit, *, pose_latents=None, version='v1'):
         self.refs, self.latents, self.adapter_path = refs, latents, adapter_path
+        self.pose_latents = pose_latents or {}
+        self.version = version
         self.routing = routing
         self.engine = self.banks = self.grid = None
+        spec = CATALOG['anima_role_kv' if version == 'v1' else f'anima_role_kv_{version}']
         self.audit = audit['anima_role_kv'] = dict(
             method='anima_role_kv', adapter_strength=1.,
-            adapter='AnticPan/Anima-Role-Ref-KV@259a0dce876ed70fc8835b888139756e23fb8a9f',
+            adapter=f"{spec['repo']}@{spec['revision']}", adapter_file=adapter_path.name, version=version,
             profile='balanced regional text; no extra self isolation',
             scope='sampling invocation and target grid',
             reference_slots=[i + 1 for i, _ in refs],
+            pose_slots=[i + 1 for i in self.pose_latents],
             cache_builds=0, grid_changes=[], cache_bytes=0,
             overlap='all owning reference banks', background='no reference bank',
             reference_shapes={str(i + 1): list(v.shape) for i, v in latents.items()})
@@ -57,7 +62,7 @@ class RoleKVRuntime:
         if self.engine is None:
             import comfy.utils
             state = comfy.utils.load_torch_file(str(self.adapter_path), safe_load=True)
-            if len(net.blocks) != 28 or any(
+            if any(
                     block.self_attn.q_proj.weight.dtype not in (torch.bfloat16, torch.float32)
                     for block in net.blocks):
                 raise ValueError('Role K/V currently requires native Anima Base BF16/FP32. / '
@@ -65,17 +70,23 @@ class RoleKVRuntime:
             strengths = [0.] * len(self.routing.masks)
             for slot, ref in self.refs:
                 strengths[slot] = ref.strength
+            from .anima_ref_frame import base_block_indices
             self.engine = RegionalRoleEngine(net, state, device=x.device,
                 masks=self.routing.masks, common_tokens=self.routing.common_tokens,
                 boxes=self.routing.boxes,
-                reference_strengths=strengths, profile='text')
+                reference_strengths=strengths, profile='text', block_map=base_block_indices(len(net.blocks)))
         self.banks = None
         caches = [None] * len(self.routing.masks)
         with torch.autocast(x.device.type, dtype=torch.bfloat16, enabled=x.dtype == torch.bfloat16):
             for slot, _ in self.refs:
                 check_interrupted()
-                caches[slot] = self.engine.reference(self.latents[slot].to(x),
-                    self.routing.contexts[slot].to(x), x.shape[-2:])
+                context = self.routing.contexts[slot].to(x)
+                cache = self.engine.reference(self.latents[slot].to(x), context, x.shape[-2:])
+                if slot in self.pose_latents:
+                    pose = self.engine.reference(self.pose_latents[slot].to(x), context, x.shape[-2:], pose=True)
+                    cache = [(torch.cat((rk, pk), dim=2), torch.cat((rv, pv), dim=2))
+                             for (rk, rv), (pk, pv) in zip(cache, pose, strict=True)]
+                caches[slot] = cache
                 self.audit['cache_builds'] += 1
         self.banks = [[None if bank is None else bank[i] for bank in caches]
                       for i in range(len(net.blocks))]
@@ -114,4 +125,5 @@ class RoleKVRuntime:
         finally:
             self.banks = self.engine = self.grid = None
             self.latents.clear()
+            self.pose_latents.clear()
             self.audit['cache_released'] = True

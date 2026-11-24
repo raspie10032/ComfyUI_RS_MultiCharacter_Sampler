@@ -49,7 +49,8 @@ For the full Korean walkthrough, see [앱 사용 가이드](app-workspace.ko.md)
 
 
 - **캐릭터:** numbered STRING prompts, character/text choice, per-character
-  LoRA and image references. Inactive slots remain saved but do not execute.
+  LoRA and image references. With Role Ref KV v3, use the optional pose image
+  selector in the same slot. Inactive slots remain saved but do not execute.
 - **와일드카드:** search installed TXT files, insert `__name__` into common,
   negative or active character prompts, and preview the expansion for the
   current generation seed. `{A|B}`, nested files and wildcard filename matching
@@ -63,8 +64,8 @@ For the full Korean walkthrough, see [앱 사용 가이드](app-workspace.ko.md)
   panel explicitly distinguishes these routes. The editor requires WebGL2.
   The editor's building pipe carries all pose settings; no extra MODEL/VAE/patch
   nodes are needed. Select auto or masks_only and strength/start/end in this tab.
-  Mask-only uses no adapter downloads. Learned pose + image references is blocked;
-  Krea2/MOSS learned pose also requires full resolution.
+  Mask-only uses no adapter downloads. With Anima 2B, choose SnapRef or Reference Frame v2 for
+  image references alongside LLLite pose. Krea2/MOSS learned pose requires full resolution.
 - **카메라:** the existing shared camera editor and interaction controls.
 - **생성 / 보정:** common prompts, sampling settings, progressive resolution,
   global LoRA, detection and face detail settings. Multiple characters
@@ -96,9 +97,8 @@ classify arbitrary renamed text encoders or expose a GGUF loader in this screen.
 
 Krea2/MOSS scene adapters cannot currently run together with image references
 or progressive resolution. FLUX1 checkpoints need a supported Kontext path for
-image references; the app blocks an unsupported combination. Anima 2.9B does
-not accept the 2B Role K/V weights. These boundaries come from the existing
-generation paths and are displayed before execution.
+image references; the app displays compatibility before execution. Anima 2.9B
+supports Role Ref KV v2/v3, SnapRef v2a and Reference Frame v2.
 
 Graph routing checks do not prove image quality or every combination. See the
 [release validation](app-workspace-validation.md) for tested paths and actual execution evidence.

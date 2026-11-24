@@ -17,8 +17,10 @@ function createNode(type) {
     pose_control:'auto',pose_strength:1,pose_start:0,pose_end:1,width:1024,height:1024,cfg:4,filename_prefix:'ComfyUI',prompt:'keep common prompt',value:'',lora_name:'None',name:'anima_3dpose_6200.safetensors'
   });
   if(type==='RSUnifiedCameraControl') values.camera_mode='merged_lora_only';
+  if(type==='RSMultiCharacterReference') values.anima_method='reference_frame';
   for(let i=1;i<=10;i++) Object.assign(values,{['character'+i+'_kind']:'character',['character'+i+'_enable']:true,['character'+i+'_lora']:'None'});
   const inputs=['building_pipe','base_prompt','model','clip','vae','images','image','scene_json','model_patch','character_pipe','detectors','tagger',...Array.from({length:10},(_,i)=>'character'+(i+1))];
+  if(type==='RSMultiCharacterReference') inputs.push('pose_image');
   return {type,widgets:Object.entries(values).map(([name,value])=>({name,value,options:{values:name==='name'?['anima_3dpose_6200.safetensors']:undefined}})),
     inputs:inputs.map(name=>({name,link:null})),outputs:(type==='RSUnifiedCameraControl'
       ? ['building_pipe','prompt','camera_prompt','model']
@@ -64,6 +66,22 @@ const poseClosure=Object.values(closure()).map(n=>n.class_type);
 assert(poseClosure.includes('RSMultiCharacterPose3D'));
 for(const type of ['AnimaLLLiteApply','ModelPatchLoader','RS3DPoseAdapter'])assert(!poseClosure.includes(type),'no external pose MODEL nodes: '+type);
 assert.equal(poseClosure.filter(n=>n==='RSMultiCharacterPose3D').length,1);
+w.state.refs={1:true};
+setValue(w.node('pose'),'pose_control','auto');w.route();
+assert(w.issues().length,'the pilot reference and LLLite conflict');
+for (const method of ['snapref','snapref_char','reference_frame_v2']) {
+  setValue(w.node('ref1'),'anima_method',method);
+  assert.deepEqual(Array.from(w.issues()),[],method+' can use LLLite');
+}
+setValue(w.node('ref1'),'anima_method','role_kv_v3');
+w.state.referencePoses={1:true};w.route();
+const poseInput=() => closure()[w.node('ref1').id].inputs.pose_image;
+assert.equal(poseInput()[0],String(w.node('referencePose1').id));
+setValue(w.node('ref1'),'anima_method','snapref');w.route();
+assert.equal(poseInput(),undefined);
+setValue(w.node('ref1'),'anima_method','role_kv_v3');w.route();
+assert.equal(poseInput()[0],String(w.node('referencePose1').id));
+w.state.refs={};w.route();
 w.state.pose=false;w.state.progressive=false;w.state.masks=true;setValue(w.node('masks'),'drawing','{"layers":{}}');assert(w.issues().some(message=>message.includes('영역을 그리')));
 setValue(w.node('save'),'filename_prefix','My_Custom_Output');
 w.initialize();assert.equal(widget(w.node('save'),'filename_prefix').value,'My_Custom_Output','reopening must retain the custom output prefix');

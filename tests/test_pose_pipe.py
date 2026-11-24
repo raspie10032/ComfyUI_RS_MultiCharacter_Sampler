@@ -46,6 +46,19 @@ class PipePoseTests(unittest.TestCase):
             plan = json.loads(self.plan());plan[field] = value
             with self.subTest(field=field), self.assertRaises(ValueError):p.pipe_pose_settings(plan)
 
+    def test_pose_adapter_choice_and_snapref(self):
+        import torch
+        refs = importlib.import_module(ROOT.name + '.image_reference')
+        ref = refs.RSMultiCharacterReference().apply(torch.zeros(1, 32, 24, 3), anima_method='snapref_char')[0].slots[0].reference
+        self.assertEqual(ref.mode, 'char')
+        pipe = NS(characters=(NS(reference=ref),))
+        self.assertFalse(p.incompatible_pose_references(Model(), pipe, 'Anima'))
+        self.assertTrue(p.incompatible_pose_references(Model(), pipe, 'MOSS'))
+        self.assertEqual(p.pipe_pose_settings(self.plan())['anima_pose_model'], 'outline_7000')
+        self.assertEqual(p.pipe_pose_settings(self.plan(anima_pose_model='shaded_6200'))['anima_pose_model'], 'shaded_6200')
+        with self.assertRaisesRegex(ValueError, 'shaded_6200'):
+            p.pipe_pose_settings(self.plan(anima_pose_model='wrong'))
+
     def test_pipe_order_and_context_roundtrip(self):
         plan = self.plan()
         geometry = b.BuildPipe(pose3d_json=plan, prompt_count=1)
@@ -56,7 +69,7 @@ class PipePoseTests(unittest.TestCase):
             context = b.finalize(pipe)
             self.assertEqual(context.pose3d_json, plan)
             restored = m.pipe_from_record(m.pipe_record(context))
-            self.assertEqual(json.loads(restored.pose3d_json), json.loads(plan))
+            self.assertEqual(json.loads(restored.pose3d_json), p.pipe_pose_settings(plan))
             self.assertEqual(b.finalize(importlib.import_module(ROOT.name + '.pipe_compat').building_pipe(restored)).pose3d_json, restored.pose3d_json)
 
     def test_disabled_and_unsupported_paths_never_load(self):
@@ -81,7 +94,7 @@ class PipePoseTests(unittest.TestCase):
         assets=importlib.import_module(ROOT.name+'.reference_assets')
         with patch.object(assets,'_verified_adapter') as download:
             model=Model();pipe=NS(pose3d_json=self.plan(),characters=(NS(reference=NS(strength=1.)),))
-            with self.assertRaisesRegex(ValueError,'image reference'):p.apply_pipe_pose(model,None,pipe,'Anima',768,1024)
+            with self.assertRaisesRegex(ValueError,'SnapRef or Reference Frame v2'):p.apply_pipe_pose(model,None,pipe,'Anima',768,1024)
             pipe.characters=();model.model_options['rs_3d_pose']={"family":"MOSS"}
             with self.assertRaisesRegex(ValueError,'already patched'):p.apply_pipe_pose(model,None,pipe,'Anima',768,1024)
             model.model_options={'rs_progressive_scale':.5}
