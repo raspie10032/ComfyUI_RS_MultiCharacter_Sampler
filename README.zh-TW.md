@@ -1,13 +1,17 @@
 # RS MultiCharacter Sampler
 
-**影像 → 3D（實驗）:** 將單人影像拖入3D姿態節點，自動估計並開啟編輯器。保留半身影像的比例和裁切範圍。群組編輯時只取代選取人物。首次下載SAM 3D Body（2.83GB，另依SAM License）。[用法](docs/pose3d.md#import-another-image-while-editing)。
-**漸進解析度：**[RS 漸進解析度取樣器](docs/progressive-resolution.md)以最終寬高的0.5–1.0倍開始，使用Lanczos逐步放大，以部分細節換取大尺寸圖像的取樣速度。起始比例越低，細節損失和構圖變化可能越大，無法保證品質。實際速度取決於模型和設定。原有多角色取樣功能仍可使用。
-
-用於 ComfyUI 的區域生成與本地細節修復。為每個角色提供獨立提示詞、可選 LoRA，以及點、矩形或遮罩，引導角色特徵在畫面中的分佈。
+在 ComfyUI 中為每個角色設定獨立的提示詞、LoRA 和區域，再用一個取樣器生成。可透過點、矩形、遮罩或 3D 場景引導角色的位置。
 
 [English](README.md) · [한국어](README.ko.md) · [日本語](README.ja.md) · [简体中文](README.zh-CN.md) · **繁體中文** · [詳細文件](docs/README.md) · [更新記錄](CHANGELOG.md) · [釋出版本](https://github.com/raspie10032/ComfyUI_RS_MultiCharacter_Sampler/releases)
 
 **當前版本：[1.1.16 Hangeul](docs/release-1.1.16.md)。** 使用本地模型，無需安裝 RS NovelAI 擴充套件或提供 API 金鑰。
+
+## 下載工作流
+
+- **雙角色入門範例。** 輸入共用場景和兩個角色的提示詞，再調整位置。 [Anima 工作流 JSON](examples/modular/two-characters-anima.json) · [設定步驟](#從示例工作流開始)
+- **五角色全功能工作流。** 將 RS TIPO Native、角色專用 LoRA 和 3D 姿態接入一個 RS 漸進解析度取樣器。Anima 2B 範例使用 LLLite 引導五人圍成一圈、低頭看向地面相機的姿態。 [內含英文圖解指南、工作流 JSON 和 PNG 的 ZIP](https://github.com/raspie10032/ComfyUI_RS_MultiCharacter_Sampler/releases/download/v1.1.16/RS-All-in-One-Anima-5-EN.zip) · [韓文標籤工作流 JSON](https://github.com/raspie10032/ComfyUI_RS_MultiCharacter_Sampler/releases/download/v1.1.16/RS-All-in-One-Anima-5.json)
+
+五角色工作流需要支援 Anima LLLite 的 ComfyUI、RS MultiCharacter Sampler 1.1.16、RS TIPO Native 0.2.15，以及處理萬用字元的 Impact Pack。解壓縮後開啟 `guide.html` 查看模型設定和各項功能的畫面。 [RS TIPO Native](https://github.com/raspie10032/ComfyUI_RS_TIPO_Native/releases/tag/v0.2.15) · [ComfyUI-Impact-Pack](https://github.com/ltdrdata/ComfyUI-Impact-Pack)
 
 ## 開啟應用介面 — RS Workspace（實驗）
 
@@ -21,17 +25,19 @@
 
 介面目前以韓語為主。[英文指南](docs/app-workspace.md) · [韓文完整指南](docs/app-workspace.ko.md)。基礎模型需另行準備。若按鈕未出現，請檢查版本、伺服器重新啟動、瀏覽器強制重新整理與擴充啟用狀態，並避免重複安裝。
 
-**1.0.10：** Krea 2 Turbo、MOSS專用的已訓練3D姿勢適配器可與分角色區域配合使用。`auto`在啟用MOSS姿勢控制時選擇原生JSON，在Krea中選擇regional。首次使用自動下載專用權重。[連接與限制](docs/pose3d.md#krea2-turbo-and-moss-pose-adapters-experimental) · [36張比較](docs/pose3d-genshin-diverse-validation.md)。
+## 主要功能
 
 ![未使用 LoRA 的 Anima 雙角色示例](examples/two-characters-result.png)
+
+**取樣。** 使用 ComfyUI 的取樣器與排程器。在漸進解析度節點將 `start_scale` 設為低於 1.0，即可從較小尺寸開始，在取樣時用 Lanczos 放大。較低的起始比例可能縮短耗時，也可能改變細節或構圖。 [漸進解析度用法](docs/progressive-resolution.md)
 
 **相機視角：** [RS 統一相機控制](docs/camera-control.md) 可套用合併 LoRA、42 視角相機與 LoRA，或單獨產生視角標籤。可在節點內調整方向、高度、距離、隨機視角，還可選擇區域縮放、旋轉和平面透視變換。生成的三維姿態取決於模型。
 
 **相機功能參考：** [Anima 相機標籤輔助](https://arca.live/b/aiart/179423561) / `ComfyUI-KR-Camera-Control`（原始署名：`ComfyUI_bsk_UI` / 灰暗x）。[參考範圍與來源說明](THIRD_PARTY_NOTICES.md#camera-control-references)。
 
-**3D人體編輯器：** 調整關節、手部和相機，輸出編號遮罩與姿勢影像。Anima 2B 可在 **Anima LLLite 模型**中選擇 `outline_7000` 或 `shaded_6200`。[3D 姿勢指南](docs/pose3d.md)
+**3D 佈局與姿態引導（實驗）。** 3D 編輯器將各人物的輪廓投影為編號區域。使用 `pose_control=auto` 時，取樣器還可在 Anima 2B（LLLite）、Krea 2 Turbo（人體關鍵點）和 MOSS-Image SFT（人物顏色與深度）上套用對應的姿態介面卡。選擇 `masks_only` 或使用 Anima 2.9B、SDXL 等無對應介面卡的模型時，只使用人物區域。 [3D 姿態設定與限制](docs/pose3d.md#experimental-pose-adapter-path)
 
-## 主要功能
+**影像 → 3D（實驗）:** 將單人影像拖入3D姿態節點，自動估計並開啟編輯器。保留半身影像的比例和裁切範圍。群組編輯時只取代選取人物。首次下載SAM 3D Body（2.83GB，另依SAM License）。[用法](docs/pose3d.md#import-another-image-while-editing)。
 
 - 公共場景提示詞與獨立角色提示詞，最多 **10 個角色/文字區域**。
 - 為各角色指定 LoRA，透過點、矩形、外部遮罩或按編號繪製的遮罩設定位置。
@@ -129,15 +135,17 @@ Krea 2 和 MOSS 的區域支援為實驗性。MOSS 使用 ComfyUI 普通 CFG，�
 
 ## 節點一覽
 
-共 **15 個節點**。介面標籤與說明支援英語、韓語、日語、簡體中文和繁體中文，並跟隨 ComfyUI 語言設定。
+介面標籤與說明支援英語、韓語、日語、簡體中文和繁體中文，並跟隨 ComfyUI 語言設定。
 
 | 節點 | 用途 |
 | --- | --- |
 | RS 角色提示詞 / LoRA / 位置 / 管線彙總 | 按編號構建角色設定，輸出取樣器/細節修復管線。 |
 | RS 角色遮罩 / 遮罩繪製 | 連線外部遮罩或按編號繪製。 |
+| RS 3D 姿態遮罩（實驗） | 從 3D 場景產生編號輪廓，並在支援的模型上引導姿態。 |
 | RS OpenPose 自動遮罩 / 角色重疊控制 | 建立姿勢遮罩並調節重疊區域分離。 |
 | RS 角色影像參考（實驗性，不推薦） | 將參考圖關聯到角色編號。 |
 | RS 多角色取樣器 / 影像載入器 | 生成影像並恢復儲存設定。 |
+| RS 漸進解析度取樣器 / RS 統一相機控制 | 逐步提高解析度或設定相機視角。 |
 | RS 多角色細節修復 / 檢測組合載入器 / 角色標籤模型載入器 | 檢測、匹配和區域性修復角色。 |
 | RS 多角色提示詞（舊版） | 保留以相容舊工作流，新工作流請使用模組化節點。 |
 
@@ -164,6 +172,3 @@ node tests/test_ui.cjs
 原生整合測試可將 `RS_MC_TEST_COMFYUI` 設為 ComfyUI 原始碼目錄。[CI 配置](.github/workflows/tests.yml) 列出全部 JavaScript 介面測試及核心/系統矩陣。
 
 GPL-3.0-only。參閱 [COPYING](COPYING)、[第三方宣告](THIRD_PARTY_NOTICES.md)及[原始碼來源](docs/source-lineage.json)。
-
-
-**統一3D姿態控制（實驗）：** 只連接 **3D姿態 → 構建管道 → Finalize → Sampler**。內部準備Anima 2B、Krea2和MOSS適配器，無需額外MODEL、VAE或補丁節點。`masks_only`或強度0僅使用遮罩。未支援架構也僅使用遮罩並顯示原因。[用法與限制](docs/pose3d.md)。

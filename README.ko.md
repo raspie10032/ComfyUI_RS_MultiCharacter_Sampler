@@ -1,13 +1,17 @@
 # RS MultiCharacter Sampler
 
-**이미지 → 3D(실험):** 3D 포즈 노드 패널에 한 명이 나온 이미지를 드롭하면 자동 추정 후 편집기를 엽니다. 반신은 원본 화면 비율과 잘린 범위를 유지합니다. 그룹 편집기에서는 선택 인물만 교체합니다. 최초 사용 시 SAM 3D Body(2.83GB, 별도 SAM License)를 받습니다. [사용법](docs/pose3d.md#import-another-image-while-editing).
-**점진적 해상도:** [RS 점진적 해상도 샘플러](docs/progressive-resolution.md)는 최종 가로·세로의 0.5~1.0 배율에서 시작해 Lanczos로 확대하며, **디테일을 일부 희생하는 대신 큰 해상도 이미지를 더 빠르게 샘플링하는 기능**입니다. 시작 배율이 낮을수록 디테일 손실·구도 변화가 커질 수 있어 품질을 보장하지 못합니다. 실제 속도는 모델·설정에 따라 달라집니다. **기존 멀티캐릭터 샘플링 기능은 그대로 사용할 수 있습니다.**
-
-ComfyUI에서 캐릭터별 프롬프트·LoRA·영역을 지정해 생성하고, 인물을 감지해 부분 보정하는 확장입니다. 좌표·박스·마스크로 각 캐릭터의 외형을 적용할 위치를 유도합니다.
+ComfyUI에서 캐릭터별 프롬프트·LoRA·영역을 지정해 샘플러 하나로 생성합니다. 좌표·박스·마스크·3D 씬으로 각 캐릭터의 위치를 유도할 수 있습니다.
 
 [English](README.md) · [日本語](README.ja.md) · [문서 모음](docs/README.md) · [변경 기록](CHANGELOG.md) · [릴리스](https://github.com/raspie10032/ComfyUI_RS_MultiCharacter_Sampler/releases) · [简体中文](README.zh-CN.md) · [繁體中文](README.zh-TW.md)
 
 **현재 버전: [1.1.16 한글](docs/release-1.1.16.md).** 로컬 모델로 실행하며 RS NovelAI 확장이나 API 키가 필요하지 않습니다.
+
+## 워크플로 다운로드
+
+- **2인 기본 예제.** 공통 장면과 캐릭터 둘의 프롬프트를 입력하고 위치를 조절합니다. [Anima 워크플로 JSON](examples/modular/two-characters-anima.json) · [설정 방법](#예제로-시작하기)
+- **5인 올인원.** RS TIPO Native로 프롬프트를 구성하고, 선택한 캐릭터별 LoRA와 3D 포즈를 RS 점진적 해상도 샘플러 하나에 전달합니다. 기본 예제는 Anima 2B와 LLLite로 다섯 명이 원을 이루고 바닥 카메라를 내려다보는 장면입니다. [한국어 워크플로 JSON](https://github.com/raspie10032/ComfyUI_RS_MultiCharacter_Sampler/releases/download/v1.1.16/RS-All-in-One-Anima-5.json) · [영문 그림 가이드·워크플로 JSON·PNG ZIP](https://github.com/raspie10032/ComfyUI_RS_MultiCharacter_Sampler/releases/download/v1.1.16/RS-All-in-One-Anima-5-EN.zip)
+
+5인 예제에는 Anima LLLite를 지원하는 ComfyUI, RS MultiCharacter Sampler 1.1.16, RS TIPO Native 0.2.15와 와일드카드용 Impact Pack이 필요합니다. ZIP을 풀고 `guide.html`을 열면 모델 설정과 기능별 화면을 볼 수 있습니다. [RS TIPO Native](https://github.com/raspie10032/ComfyUI_RS_TIPO_Native/releases/tag/v0.2.15) · [ComfyUI-Impact-Pack](https://github.com/ltdrdata/ComfyUI-Impact-Pack)
 
 ## 앱 화면 열기 — RS Workspace (시험판)
 
@@ -25,17 +29,19 @@ ComfyUI에서 캐릭터별 프롬프트·LoRA·영역을 지정해 생성하고,
 
 **버튼이 안 보이면:** 설치 버전 → 서버 재시작 → 브라우저 강력 새로고침 → ComfyUI 확장 설정의 활성화 여부를 확인하세요. 같은 확장은 한 곳에만 설치합니다. [자세한 해결 방법](docs/app-workspace.ko.md#11-막혔을-때).
 
-**1.0.10:** Krea 2 Turbo·MOSS 전용 3D 포즈 어댑터를 캐릭터별 영역과 함께 사용합니다. `auto`는 활성 MOSS 포즈에서 네이티브 JSON, Krea에서 리저널을 선택합니다. 최초 사용 시 전용 가중치를 자동으로 받습니다. [연결·사용 가이드](docs/pose3d-krea-moss-guide.ko.md) · [36장 비교와 한계](docs/pose3d-genshin-diverse-validation.md).
+## 주요 기능
 
 ![LoRA 없이 생성한 Anima 2인 예제](examples/two-characters-result.png)
+
+**샘플링.** ComfyUI의 샘플러와 스케줄러를 사용합니다. 점진적 해상도 노드에서 `start_scale`을 1.0보다 낮추면 작은 해상도에서 시작해 샘플링 중 Lanczos로 확대합니다. 시작 배율을 낮추면 시간을 줄일 수 있고 디테일이나 구도가 달라질 수 있습니다. [점진적 해상도 사용법](docs/progressive-resolution.md)
 
 **카메라 시점:** [RS 통합 카메라 컨트롤](docs/camera-control.md)에서 병합 LoRA 단독 적용, 42방위 카메라와 LoRA, 시점 태그 생성 중 하나를 선택합니다. 노드 안에서 방향·높이·거리·랜덤 구도를 조절하고, 영역의 확대·축소·회전·평면 원근 변형을 선택합니다. 실제 3D 자세 재현은 모델에 따라 달라집니다.
 
 **카메라 참고 출처:** [Anima 카메라 태그 도우미](https://arca.live/b/aiart/179423561) / `ComfyUI-KR-Camera-Control` (원본 표기: `ComfyUI_bsk_UI` / 灰暗x). [참고 범위·출처 안내](THIRD_PARTY_NOTICES.md#camera-control-references).
 
-**3D 인체 편집기:** 관절·손·카메라를 조절해 번호별 마스크와 포즈 이미지를 만듭니다. Anima 2B에서 **Anima LLLite 모델**로 `outline_7000` 또는 `shaded_6200`을 선택할 수 있습니다. [3D 포즈 가이드](docs/pose3d.md)
+**3D 배치와 자세 유도(실험).** 캐릭터 파이프의 **최종 캐릭터 파이프** 앞에 **3D 포즈 마스크**를 연결합니다. 3D 편집기의 인물 실루엣이 번호별 영역으로 들어갑니다. `pose_control=auto`에서는 Anima 2B(LLLite), Krea 2 Turbo(관절 키포인트), MOSS-Image SFT(인물별 색상·깊이)에 맞는 자세 어댑터도 적용할 수 있습니다. `masks_only`를 선택하거나 Anima 2.9B·SDXL처럼 대응 어댑터가 없는 모델을 쓰면 실루엣을 배치 영역으로 사용합니다. [3D 포즈 연결법과 제약](docs/pose3d.md#experimental-pose-adapter-path)
 
-## 주요 기능
+**이미지 → 3D(실험).** 3D 포즈 노드에 한 명이 나온 이미지를 끌어다 놓으면 자세를 추정해 편집기를 엽니다. 그룹 편집기에서는 선택 인물만 교체합니다. 최초 사용 시 SAM 3D Body(2.83GB, 별도 SAM License)를 받습니다. [이미지에서 자세 가져오기](docs/pose3d.md#import-another-image-while-editing)
 
 - 공통 장면과 캐릭터별 문장을 분리하고, **캐릭터·글자 합계 최대 10영역**을 설정합니다.
 - 캐릭터별 LoRA를 선택하고 좌표·박스·외부 마스크·번호별 마스크 그리기로 배치합니다.
@@ -131,15 +137,17 @@ Krea 2·MOSS의 영역 생성은 실험 지원입니다. MOSS는 일반 ComfyUI 
 
 ## 노드 구성
 
-현재 **15개 노드**를 등록합니다. 노드 이름·선택 안내·도움말은 ComfyUI의 한국어·일본어·영어·중국어 간체·번체 설정을 따릅니다.
+노드 이름·선택 안내·도움말은 ComfyUI의 한국어·일본어·영어·중국어 간체·번체 설정을 따릅니다.
 
 | 노드 | 용도 |
 | --- | --- |
 | 캐릭터 프롬프트 / LoRA / 위치 / 최종 캐릭터 파이프 | 번호별 캐릭터 설정을 조립해 샘플러·디테일러에 전달합니다. |
 | 캐릭터 마스크 / 마스크 그리기 | 외부 마스크를 연결하거나 번호별 영역을 칠합니다. |
+| 3D 포즈 마스크(실험적) | 3D 씬에서 번호별 실루엣을 만들고 지원 모델에 자세를 유도합니다. |
 | OpenPose 마스크(실험적) / 캐릭터 상호작용 | 포즈에서 영역을 만들고 겹침 주변의 분리를 조절합니다. |
 | 이미지 참조(실험적·비권장) | 캐릭터 번호에 참조 이미지를 연결합니다. |
 | MultiCharacter Sampler / Load Image | 생성하고 저장된 설정을 복원합니다. |
+| 점진적 해상도 샘플러 / 통합 카메라 컨트롤 | 해상도를 단계적으로 높이거나 카메라 시점을 지정합니다. |
 | MultiCharacter Detailer / Detection Combine Loader / Character Tagger Loader | 인물을 감지·매칭하고 부분 보정합니다. |
 | MultiCharacter Prompts · 구형 | 기존 워크플로 호환용 통합 입력입니다. 새 워크플로에는 역할별 노드를 사용하세요. |
 
@@ -163,9 +171,6 @@ python -m unittest discover -s tests -p 'test_*.py' -v
 node tests/test_ui.cjs
 ```
 
-네이티브 통합 검사는 `RS_MC_TEST_COMFYUI`에 ComfyUI 경로를 지정합니다. 전체 JavaScript UI 검사 11종과 코어·OS 조합은 [CI 설정](.github/workflows/tests.yml)에 있습니다.
+네이티브 통합 검사는 `RS_MC_TEST_COMFYUI`에 ComfyUI 경로를 지정합니다. JavaScript UI 검사와 코어·OS 조합은 [CI 설정](.github/workflows/tests.yml)에 있습니다.
 
 GPL-3.0-only. [COPYING](COPYING) · [서드파티 고지](THIRD_PARTY_NOTICES.md) · [소스 계보](docs/source-lineage.json)
-
-
-**3D 자세 유도 통합(실험):** **3D 포즈 → 조립 파이프 → 최종 파이프 → 샘플러**만 연결합니다. 아니마 2B·Krea2·MOSS에 맞는 어댑터를 내부에서 준비하며, MODEL·VAE·패치 노드를 따로 연결할 필요가 없습니다. `masks_only` 또는 강도 0은 마스크만 사용합니다. 대응 어댑터가 없는 모델도 마스크만 사용하며 이유를 표시합니다. 정확한 관절·접촉은 보장하지 않습니다. [사용법·제한](docs/pose3d.md).

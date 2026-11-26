@@ -1,12 +1,17 @@
 # RS MultiCharacter Sampler
 
-**Progressive resolution:** [RS Progressive Resolution Sampler](docs/progressive-resolution.md) samples larger images faster by starting at 0.5–1.0 of the final side lengths and expanding with Lanczos. This trades some detail for speed; lower start scales can lose more detail or change composition, and quality is not guaranteed. Actual speed depends on the model and settings. Existing multi-character sampling remains available.
-
-Regional generation and local detailing for ComfyUI. Give each character a prompt, an optional LoRA, and a point, box or mask to guide where their attributes appear.
+Regional prompting for ComfyUI. Give each character a prompt, an optional LoRA, and a region, then send them to one sampler. Set regions with points, boxes, masks or a 3D scene.
 
 [한국어](README.ko.md) · [日本語](README.ja.md) · [Documentation](docs/README.md) · [Changelog](CHANGELOG.md) · [Releases](https://github.com/raspie10032/ComfyUI_RS_MultiCharacter_Sampler/releases) · [简体中文](README.zh-CN.md) · [繁體中文](README.zh-TW.md)
 
 **Current release: [1.1.16 Hangeul](docs/release-1.1.16.md).** Runs with local models; no RS NovelAI extension or API key is required.
+
+## Download a workflow
+
+- **Two-character starter.** Set a common scene and two character prompts, then adjust their positions. [Anima workflow JSON](examples/modular/two-characters-anima.json) · [Setup](#start-with-a-workflow)
+- **Five-character all-in-one.** Set five numbered prompts with RS TIPO Native, add character LoRAs if needed, and edit the 3D scene. Generation uses one RS Progressive Resolution Sampler. The Anima 2B example uses LLLite to guide a five-person huddle viewed from below. [ZIP with English illustrated guide, workflow JSON and PNG](https://github.com/raspie10032/ComfyUI_RS_MultiCharacter_Sampler/releases/download/v1.1.16/RS-All-in-One-Anima-5-EN.zip) · [Korean-labeled workflow JSON](https://github.com/raspie10032/ComfyUI_RS_MultiCharacter_Sampler/releases/download/v1.1.16/RS-All-in-One-Anima-5.json)
+
+For the five-character workflow, use a ComfyUI build with native Anima LLLite support, RS MultiCharacter Sampler 1.1.16, RS TIPO Native 0.2.15 and Impact Pack for the wildcard inputs. Extract the ZIP and open `guide.html` for the model setup and feature-by-feature screenshots. [RS TIPO Native](https://github.com/raspie10032/ComfyUI_RS_TIPO_Native/releases/tag/v0.2.15) · [ComfyUI-Impact-Pack](https://github.com/ltdrdata/ComfyUI-Impact-Pack)
 
 ## Open the app screen — RS Workspace (experimental)
 
@@ -24,17 +29,17 @@ The app currently uses Korean labels; the [English guide](docs/app-workspace.md)
 
 **No button?** Check the installed version, restart the server as well as refreshing the browser, and confirm the extension is enabled in ComfyUI's extension settings. Keep a single installation. If a reverse proxy is used, load ComfyUI through its normal working URL. [Troubleshooting](docs/app-workspace.md#opening-and-troubleshooting).
 
-**1.0.10:** Trained Krea 2 Turbo and MOSS 3D pose adapters work alongside numbered character regions. `auto` prefers native JSON for active MOSS pose control, and regional routing for Krea. First-use weights download automatically. [Setup and limits](docs/pose3d.md#krea2-turbo-and-moss-pose-adapters-experimental) · [36-image audit](docs/pose3d-genshin-diverse-validation.md).
+## What you can do
 
 ![Two-character Anima example without LoRA](examples/two-characters-result.png)
+
+**Sampling.** RS uses ComfyUI's samplers and schedulers. Set `start_scale` below 1.0 in the progressive node to start smaller and upscale with Lanczos during sampling. Lower starting scales can save time at the cost of detail or changes in composition. [Progressive resolution](docs/progressive-resolution.md)
 
 **Camera control:** [RS Unified Camera Control](docs/camera-control.md) can apply the merged LoRA alone, use the 42-view camera adapter, or add camera captions to shared RS/NAI contexts, with an interactive view editor. It supports random views and optional region zoom, rotation and flat-plane perspective; generated 3D pose remains model-dependent.
 
 **Camera reference:** [Anima camera-tag helper](https://arca.live/b/aiart/179423561) / `ComfyUI-KR-Camera-Control` (credits `ComfyUI_bsk_UI` / 灰暗x). [Reference scope and notices](THIRD_PARTY_NOTICES.md#camera-control-references).
 
-**Unified 3D pose control (experimental):** connect **3D Pose Masks → building pipe → Finalize → Sampler**. Anima 2B, Krea2 and MOSS load their matching adapter internally. Anima 2B offers `outline_7000` and `shaded_6200`. No separate MODEL/VAE/patch node is needed. Select `masks_only` to disable learned guidance; unsupported architectures use masks only. Exact joints/contact are not guaranteed. [Setup and limits](docs/pose3d.md).
-
-## What you can do
+**3D placement and pose guidance (experimental).** Connect **RS 3D Pose Masks** before **Finalize** in the character pipe. The editor projects silhouettes into numbered character regions. With `pose_control=auto`, the sampler can also apply a learned pose adapter on Anima 2B (LLLite), Krea 2 Turbo (body keypoints) and MOSS-Image SFT (person colors and depth). Use `masks_only` to keep just the placement regions. This is also the fallback on models without a matching pose adapter, including Anima 2.9B and SDXL. [3D setup and limits](docs/pose3d.md#experimental-pose-adapter-path)
 
 - Write a shared scene and separate character prompts, with up to **10 character/text regions**.
 - Assign character LoRAs and edit placement with points, boxes, external masks or a numbered mask-painting canvas.
@@ -132,7 +137,7 @@ Model, LoRA, CLIP and VAE connections must be supplied explicitly. Metadata does
 
 ## Node reference
 
-The extension registers **15 nodes**. UI labels and contextual help follow ComfyUI's English, Korean, Japanese, Simplified Chinese or Traditional Chinese locale.
+UI labels and contextual help follow ComfyUI's English, Korean, Japanese, Simplified Chinese or Traditional Chinese locale.
 
 | Nodes | Purpose |
 | --- | --- |
@@ -142,6 +147,7 @@ The extension registers **15 nodes**. UI labels and contextual help follow Comfy
 | RS OpenPose Masks (Experimental) / Character Interaction | Build pose-derived masks and adjust overlap separation. |
 | RS Image Reference (Experimental · Not Recommended) | Associate an image reference with a character number. |
 | RS MultiCharacter Sampler / Load Image | Generate and restore saved settings. |
+| RS Progressive Resolution Sampler / RS Unified Camera Control | Sample with progressive resolution or set a camera view. |
 | RS MultiCharacter Detailer / Detection Combine Loader / Character Tagger Loader | Detect, match and locally correct characters. |
 | RS MultiCharacter Prompts · legacy | Combined input retained for existing workflows. Use the modular nodes for new workflows. |
 
@@ -165,6 +171,6 @@ python -m unittest discover -s tests -p 'test_*.py' -v
 node tests/test_ui.cjs
 ```
 
-Set `RS_MC_TEST_COMFYUI` to a ComfyUI checkout for native integrations. The [CI workflow](.github/workflows/tests.yml) lists all twelve JavaScript UI suites and the core/OS matrix.
+Set `RS_MC_TEST_COMFYUI` to a ComfyUI checkout for native integrations. See the [CI workflow](.github/workflows/tests.yml) for JavaScript UI tests and the core/OS matrix.
 
 GPL-3.0-only. See [COPYING](COPYING), [third-party notices](THIRD_PARTY_NOTICES.md) and [source lineage](docs/source-lineage.json).

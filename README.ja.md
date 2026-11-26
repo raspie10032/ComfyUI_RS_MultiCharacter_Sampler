@@ -1,13 +1,17 @@
 # RS MultiCharacter Sampler
 
-**画像 → 3D（実験）:** 3Dポーズノードに1人の画像をドロップすると、自動推定後にエディターが開きます。半身画像の比率と範囲を維持。グループ編集中は選択人物だけを置換します。初回にSAM 3D Body（2.83GB、別途SAM License）を取得。[使い方](docs/pose3d.md#import-another-image-while-editing)。
-**段階的な解像度:** [RS 段階的解像度サンプラー](docs/progressive-resolution.md)は最終サイズの各辺の0.5〜1.0倍から開始し、Lanczosで拡大して、大きな画像をより速くサンプリングします。細部と速度のトレードオフであり、開始倍率が低いほど細部の損失や構図変化が増える場合があります。品質は保証されず、実際の速度はモデルと設定で異なります。既存のマルチキャラクター生成機能は引き続き利用できます。
-
-ComfyUIでキャラクター別のプロンプト・LoRA・領域を設定して生成し、検出した人物を部分補正する拡張です。座標・枠・マスクで、それぞれの外見を適用する場所を誘導します。
+ComfyUIでキャラクターごとのプロンプト・LoRA・領域を設定し、1つのサンプラーで生成します。座標・枠・マスク・3Dシーンで各キャラクターの配置を誘導できます。
 
 [English](README.md) · [한국어](README.ko.md) · [ドキュメント](docs/README.md) · [変更履歴](CHANGELOG.md) · [リリース](https://github.com/raspie10032/ComfyUI_RS_MultiCharacter_Sampler/releases) · [简体中文](README.zh-CN.md) · [繁體中文](README.zh-TW.md)
 
 **現在のバージョン：[1.1.16 Hangeul](docs/release-1.1.16.md)。** ローカルモデルで動作し、RS NovelAI拡張やAPIキーは不要です。
+
+## ワークフローのダウンロード
+
+- **2人用の基本例。** 共通シーンと2人分のプロンプトを入力し、位置を調整します。 [AnimaワークフローJSON](examples/modular/two-characters-anima.json) · [設定手順](#ワークフローから始める)
+- **5人用オールインワン。** RS TIPO Native、人物別のLoRAと3Dポーズを1つのRS段階的解像度サンプラーにまとめた例です。Anima 2BとLLLiteで、5人が輪になって床のカメラを見下ろす構図を試せます。 [英語の図解ガイド・ワークフローJSON・PNGのZIP](https://github.com/raspie10032/ComfyUI_RS_MultiCharacter_Sampler/releases/download/v1.1.16/RS-All-in-One-Anima-5-EN.zip) · [韓国語ラベルのJSON](https://github.com/raspie10032/ComfyUI_RS_MultiCharacter_Sampler/releases/download/v1.1.16/RS-All-in-One-Anima-5.json)
+
+5人用ワークフローには、Anima LLLiteに対応したComfyUI、RS MultiCharacter Sampler 1.1.16、RS TIPO Native 0.2.15、ワイルドカード用のImpact Packが必要です。ZIPを展開し、モデル設定と各機能の画面は `guide.html` で確認してください。 [RS TIPO Native](https://github.com/raspie10032/ComfyUI_RS_TIPO_Native/releases/tag/v0.2.15) · [ComfyUI-Impact-Pack](https://github.com/ltdrdata/ComfyUI-Impact-Pack)
 
 ## アプリ画面を開く — RS Workspace（実験）
 
@@ -21,17 +25,19 @@ ComfyUIでキャラクター別のプロンプト・LoRA・領域を設定して
 
 画面は現在韓国語です。[英語ガイド](docs/app-workspace.md) · [韓国語の全機能ガイド](docs/app-workspace.ko.md)。基本モデルは別途必要です。ボタンが見えない場合はバージョン、サーバー再起動、強制再読み込み、拡張の有効化を確認してください。重複インストールは避けてください。
 
-**1.0.10:** Krea 2 Turbo・MOSS用の学習済み3Dポーズアダプターを人物別領域と併用できます。`auto`は有効なMOSSポーズでネイティブJSON、Kreaではregionalを選択します。専用重みは初回使用時に自動取得します。[接続と制限](docs/pose3d.md#krea2-turbo-and-moss-pose-adapters-experimental) · [36枚の比較](docs/pose3d-genshin-diverse-validation.md)。
+## 主な機能
 
 ![LoRAなしのAnima 2人生成例](examples/two-characters-result.png)
+
+**サンプリング。** ComfyUIのサンプラーとスケジューラーを使用します。段階的解像度ノードで `start_scale` を1.0未満にすると、小さい解像度から始めてサンプリング中にLanczosで拡大します。開始倍率を下げると処理時間を短縮できる場合があり、細部や構図が変わることがあります。 [段階的解像度の使い方](docs/progressive-resolution.md)
 
 **カメラ視点:** [RS 統合カメラ制御](docs/camera-control.md) で統合 LoRA、42視点カメラと LoRA、視点タグのいずれかを選びます。方向・高さ・距離・ランダム視点をノード内で調整し、領域の拡縮・回転・平面透視変換を選べます。生成される3D姿勢はモデルに依存します。
 
 **カメラ機能の参考元:** [Animaカメラタグ補助](https://arca.live/b/aiart/179423561) / `ComfyUI-KR-Camera-Control`（原典表記：`ComfyUI_bsk_UI` / 灰暗x）。[参考範囲とクレジット](THIRD_PARTY_NOTICES.md#camera-control-references)。
 
-**3D人体エディター:** 関節・手・カメラを編集し、番号別マスクとポーズ画像を出力します。Anima 2Bでは **Anima LLLiteモデル** で `outline_7000` または `shaded_6200` を選べます。[3Dポーズガイド](docs/pose3d.md)
+**3D配置とポーズ誘導（実験）。** 3Dエディターから人物ごとのシルエットを番号付き領域に投影します。`pose_control=auto` ではAnima 2B（LLLite）、Krea 2 Turbo（身体キーポイント）、MOSS-Image SFT（人物別の色と深度）に対応するポーズアダプターも使えます。`masks_only` を選ぶか、対応するアダプターがないAnima 2.9BやSDXLを使う場合は配置領域のみを使います。 [3Dポーズの設定と制限](docs/pose3d.md#experimental-pose-adapter-path)
 
-## 主な機能
+**画像 → 3D（実験）:** 3Dポーズノードに1人の画像をドロップすると、自動推定後にエディターが開きます。半身画像の比率と範囲を維持。グループ編集中は選択人物だけを置換します。初回にSAM 3D Body（2.83GB、別途SAM License）を取得。[使い方](docs/pose3d.md#import-another-image-while-editing)。
 
 - 共通の場面と人物別の文章を分け、**キャラクター・文字を合計10領域まで**設定します。
 - 人物別LoRAを指定し、座標・枠・外部マスク・番号別のマスク描画で配置します。
@@ -127,15 +133,17 @@ Krea 2・MOSSの領域生成は実験的対応です。MOSSは通常のComfyUI C
 
 ## ノード一覧
 
-現在 **15ノード**を登録します。表示名・選択案内・ヘルプはComfyUIの英語・韓国語・日本語・簡体字中国語・繁体字中国語設定に従います。
+表示名・選択案内・ヘルプはComfyUIの英語・韓国語・日本語・簡体字中国語・繁体字中国語設定に従います。
 
 | ノード | 用途 |
 | --- | --- |
 | Character Prompt / LoRA / Position / Finalize Character Pipe | 番号別の設定を組み立て、最終パイプを作成します。 |
 | Character Mask / Mask Drawing | 外部マスクの接続と番号別の描画。 |
+| RS 3D Pose Masks（実験） | 3Dシーンから人物別のシルエットを作り、対応モデルのポーズを誘導します。 |
 | OpenPose Masks (Experimental) / Character Interaction | ポーズ由来の領域作成と重なり周辺の分離設定。 |
 | Image Reference (Experimental · Not Recommended) | 人物番号に参照画像を関連付けます。 |
 | MultiCharacter Sampler / Load Image | 生成と保存設定の復元。 |
+| RS Progressive Resolution Sampler / RS Unified Camera Control | 段階的に解像度を上げるか、カメラ視点を指定します。 |
 | MultiCharacter Detailer / Detection Combine Loader / Character Tagger Loader | 人物の検出・照合・部分補正。 |
 | MultiCharacter Prompts・旧形式 | 既存ワークフロー用の統合入力。新規作成には役割別ノードを使ってください。 |
 
@@ -159,9 +167,6 @@ python -m unittest discover -s tests -p 'test_*.py' -v
 node tests/test_ui.cjs
 ```
 
-ネイティブ統合試験には `RS_MC_TEST_COMFYUI` にComfyUIのパスを指定します。全11種のJavaScript UI試験と本体・OSの組み合わせは[CI設定](.github/workflows/tests.yml)を参照してください。
+ネイティブ統合試験には `RS_MC_TEST_COMFYUI` にComfyUIのパスを指定します。JavaScript UI試験と本体・OSの組み合わせは[CI設定](.github/workflows/tests.yml)を参照してください。
 
 GPL-3.0-only。[COPYING](COPYING) · [第三者に関する通知](THIRD_PARTY_NOTICES.md) · [ソースの系譜](docs/source-lineage.json)
-
-
-**3Dポーズ統合（実験）：** **3Dポーズ → 組み立てパイプ → Finalize → Sampler**のみ接続。Anima 2B・Krea2・MOSSのアダプターを内部で準備し、MODEL・VAE・パッチの追加ノードは不要です。`masks_only`または強度0はマスクのみ。未対応モデルもマスクのみとなり理由を表示します。[使い方・制限](docs/pose3d.md)。
