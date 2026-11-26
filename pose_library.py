@@ -135,13 +135,18 @@ def read_library(directories=None):
     """Read local catalogues; never resolve a caller-provided filesystem path."""
     entries, warnings, used = [], [], set()
     for directory in library_directories() if directories is None else directories:
-        path = Path(directory) / 'library.json'
-        if not path.is_file():
-            continue
         try:
-            if path.stat().st_size > 32_000_000:
+            root = Path(directory).resolve()
+            path = (root / 'library.json').resolve()
+            if not path.is_relative_to(root):
+                raise ValueError('Catalogue must stay inside a configured pose directory.')
+            if not path.is_file():
+                continue
+            with path.open('rb') as source:
+                content = source.read(32_000_001)
+            if len(content) > 32_000_000:
                 raise ValueError('Catalogue exceeds 32 MB.')
-            data = json.loads(path.read_text(encoding='utf-8'))
+            data = json.loads(content.decode('utf-8'))
             if data.get('schema') != 'rs.pose-library.v1' or not isinstance(data.get('poses'), list):
                 raise ValueError('Unsupported pose library schema.')
             for p in data['poses']:
@@ -161,6 +166,8 @@ def read_library(directories=None):
                     raise ValueError('Invalid pose ground offset.')
                 entries.append(dict(id=identity, name=str(p.get('name', identity))[:160], joints=joints, floor_y=floor))
                 used.add(identity)
-        except (OSError, ValueError, TypeError, AttributeError) as e:
-            warnings.append(f'{path.name}: {e}')
+        except (OSError, RuntimeError, UnicodeError):
+            warnings.append('library.json: Cannot read the pose catalogue.')
+        except (ValueError, TypeError, AttributeError) as error:
+            warnings.append(f'library.json: {error}')
     return dict(poses=entries, warnings=warnings)

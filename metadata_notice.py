@@ -1,18 +1,12 @@
 # SPDX-License-Identifier: GPL-3.0-only
 """Read-only image selection notice, before a workflow is queued."""
-from pathlib import Path
 from PIL import Image
+from .image_paths import resolve_image_path
 from .metadata import read_record
 
 
 def inspect_file(filename):
-    import folder_paths
-    path = Path(folder_paths.get_annotated_filepath(filename)).resolve()
-    roots = [Path(getter()).resolve() for getter in (folder_paths.get_input_directory,
-             folder_paths.get_output_directory, folder_paths.get_temp_directory)]
-    if not path.is_file() or not any(path.is_relative_to(root) for root in roots):
-        raise ValueError("Select an image inside ComfyUI input, output or temp.")
-    with Image.open(path) as image:
+    with Image.open(resolve_image_path(filename)) as image:
         record = read_record(image)
     rows = record.get("v4_prompt", {}).get("caption", {}).get("char_captions", [])
     if not isinstance(rows, list):

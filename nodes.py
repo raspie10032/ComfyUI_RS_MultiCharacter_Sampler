@@ -9,6 +9,7 @@ from PIL import Image, ImageOps
 import torch
 
 from .characters import CharacterPipe, PIPE_TYPE, TextRegion
+from .image_paths import resolve_image_path
 from .layout import effective_centers, character_masks, moss_layout_prompt
 from .metadata import (FORMATS, build_record, graph_assets, pipe_from_record,
                        read_record, save_image, validate_format, object_json)
@@ -574,9 +575,7 @@ class RSMultiCharacterLoadImage:
     DESCRIPTION = "Loads character metadata from PNG/WebP into the dedicated pipe, including per-character LoRA filenames and strengths. Matching local LoRAs are used when sampling; missing files give an error. Base model/global LoRA files are informational and must be connected manually. Use sampler 'use_image_settings' to restore seed/settings as well."
 
     def load(self, image):
-        import folder_paths
-        path = folder_paths.get_annotated_filepath(image)
-        with Image.open(path) as source:
+        with Image.open(resolve_image_path(image)) as source:
             record = read_record(source)
             pipe = pipe_from_record(record)
             original_size = source.size
@@ -589,11 +588,13 @@ class RSMultiCharacterLoadImage:
 
     @classmethod
     def IS_CHANGED(cls, image):
-        import folder_paths
-        with open(folder_paths.get_annotated_filepath(image), "rb") as f:
+        with resolve_image_path(image).open("rb") as f:
             return hashlib.file_digest(f, "sha256").hexdigest()
 
     @classmethod
     def VALIDATE_INPUTS(cls, image):
-        import folder_paths
-        return True if folder_paths.exists_annotated_filepath(image) else f"Image not found: {image}"
+        try:
+            resolve_image_path(image)
+        except ValueError as error:
+            return str(error)
+        return True

@@ -30,7 +30,11 @@ MODELS = {
         "9fe10addf9326e292da8a85a98ea74cd91b41771",
     ),
 }
-PIXAI_CODE_SHA256 = "3431279fdfff234f62664999fc1fe6bb20f1e8756f7435d0e165ebd4456f7fcd"
+PIXAI_SNAPSHOT_SHA256 = {
+    "config.json": "f8a19b38661c37dc5fd519f2137be70f6f897972021b4ebc17b7d35a0e27b9dd",
+    "preprocessor_config.json": "20451575e627950993de7b00641d5b263eceb3e7436e4ad518fea2411b60e49d",
+    "tagger_pipeline.py": "3431279fdfff234f62664999fc1fe6bb20f1e8756f7435d0e165ebd4456f7fcd",
+}
 
 
 def check_dependencies(model_name=DEFAULT_MODEL):
@@ -54,6 +58,18 @@ def check_dependencies(model_name=DEFAULT_MODEL):
             "If already installed, check that torch and torchvision are compatible."
         ) from exc
     return timm, hf_hub_download, load_file, create_transform, resolve_data_config
+
+
+def _verify_pixai_snapshot(paths):
+    snapshot = Path(paths["config.json"]).parent
+    # The JSON auto_map entries choose which Python code Transformers imports.
+    for filename, expected in PIXAI_SNAPSHOT_SHA256.items():
+        with (snapshot / filename).open("rb") as source:
+            digest = hashlib.file_digest(source, "sha256").hexdigest()
+        if digest != expected:
+            raise user_error("TAGGER_MODEL", ValueError,
+                f"PixAI {filename} checksum mismatch. Remove the cached file and retry.")
+    return snapshot
 
 
 class WDTagger:
@@ -96,11 +112,11 @@ class WDTagger:
             progress.report(f"File ready: {name}", 1, force=True)
         logging.info("[RS MultiCharacter Tagger] %s: loading weights on CPU.", self.model_name)
         progress.report(f"Loading {self.model_name} on CPU…", force=True)
-        config = json.loads(Path(paths["config.json"]).read_text(encoding="utf-8"))
         if self.model_name == PIXAI_MODEL:
-            self._load_pixai(paths, config)
+            self._load_pixai(_verify_pixai_snapshot(paths))
             progress.report(f"Ready: {self.model_name}", 1, force=True)
             return
+        config = json.loads(Path(paths["config.json"]).read_text(encoding="utf-8"))
         model = timm.create_model(
             config["architecture"],
             pretrained=False,
@@ -121,12 +137,10 @@ class WDTagger:
         self._model = model.eval()
         progress.report(f"Ready: {self.model_name}", 1, force=True)
 
-    def _load_pixai(self, paths, config):
+    def _load_pixai(self, snapshot):
         from transformers import AutoImageProcessor, AutoModel
 
-        # The official architecture is custom code; only execute the reviewed revision.
-        if hashlib.sha256(Path(paths["tagger_pipeline.py"]).read_bytes()).hexdigest() != PIXAI_CODE_SHA256:
-            raise user_error("TAGGER_MODEL", ValueError, "PixAI model code checksum mismatch. Remove the cached tagger_pipeline.py and retry.")
+        config = json.loads((snapshot / "config.json").read_text(encoding="utf-8"))
         if sum(count for _, count in config["tags_split"]) != config["num_classes"]:
             raise user_error("TAGGER_MODEL", ValueError, "PixAI tag category lengths do not match the model.")
         labels = []
@@ -137,9 +151,9 @@ class WDTagger:
             )
         if len(labels) != config["num_classes"] or len(labels) != len(config["tags"]):
             raise user_error("TAGGER_MODEL", ValueError, "PixAI model and tag vocabulary have different lengths.")
-        snapshot = str(Path(paths["config.json"]).parent)
-        processor = AutoImageProcessor.from_pretrained(snapshot, trust_remote_code=True, local_files_only=True)
-        model = AutoModel.from_pretrained(snapshot, trust_remote_code=True, local_files_only=True)
+        processor = AutoImageProcessor.from_pretrained(str(snapshot), trust_remote_code=True, local_files_only=True)
+        model = AutoModel.from_pretrained(
+            str(snapshot), trust_remote_code=True, local_files_only=True, use_safetensors=True)
         self._labels = labels
         self._processor = processor
         self._model = model.eval()

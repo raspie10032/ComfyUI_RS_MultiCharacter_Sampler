@@ -8,20 +8,31 @@ import re
 TOKEN = re.compile(r'__([^\n]+?)__')
 CHOICE = re.compile(r'(?<!\\)\{([^{}]*\|[^{}]*)\}')
 MAX_TEXT = 256_000
+MAX_FILE_BYTES = 8 * 1024 * 1024
 
 
 def roots():
     import folder_paths
-    base = Path(folder_paths.base_path)
-    found = [('user', Path(folder_paths.get_user_directory()) / 'wildcards'),
-             ('comfy', base / 'wildcards')]
+    found = []
+
+    def add(source, root, relative):
+        root = Path(root).resolve()
+        try:
+            directory = (root / relative).resolve()
+        except (OSError, RuntimeError):
+            return
+        if directory.is_relative_to(root):
+            found.append((source, directory))
+
+    add('user', folder_paths.get_user_directory(), 'wildcards')
+    add('comfy', folder_paths.base_path, 'wildcards')
     for custom in folder_paths.get_folder_paths('custom_nodes'):
-        directory = Path(custom)
+        directory = Path(custom).resolve()
         if directory.is_dir():
             for package in sorted(directory.iterdir()):
                 if package.is_dir():
                     for name in ('wildcards', 'custom_wildcards'):
-                        found.append((f'{package.name}:{name}', package / name))
+                        add(f'{package.name}:{name}', directory, Path(package.name) / name)
     return found
 
 
@@ -32,10 +43,14 @@ def inventory(directories=None):
         if not directory.is_dir():
             continue
         for path in sorted(directory.rglob('*.txt')):
-            if not path.resolve().is_relative_to(directory) or not path.is_file():
+            try:
+                resolved = path.resolve()
+            except (OSError, RuntimeError):
+                continue
+            if not resolved.is_relative_to(directory) or not resolved.is_file():
                 continue
             name = path.relative_to(directory).with_suffix('').as_posix()
-            files[f'{source}/{name}'] = path
+            files[f'{source}/{name}'] = resolved
     return files
 
 
@@ -52,9 +67,10 @@ def expand(texts, seed, files):
     def read(key):
         if key not in entries:
             path = files[key]
-            if path.stat().st_size > 8 * 1024 * 1024:
+            with path.open('rb') as source:
+                raw = source.read(MAX_FILE_BYTES + 1)
+            if len(raw) > MAX_FILE_BYTES:
                 raise ValueError(f'와일드카드 파일이 너무 큽니다: {key} (최대 8 MiB)')
-            raw = path.read_bytes()
             try:
                 text = raw.decode('utf-8-sig')
             except UnicodeDecodeError:
@@ -119,7 +135,10 @@ def register_routes():
     @server.routes.get('/rs_mc/app/wildcards')
     async def listing(request):
         import asyncio
-        files = await asyncio.to_thread(inventory)
+        try:
+            files = await asyncio.to_thread(inventory)
+        except (OSError, RuntimeError, ValueError):
+            return web.json_response({'error': '와일드카드 파일 목록을 읽을 수 없습니다.'}, status=400)
         return web.json_response({'files': sorted(files), 'syntax': '__name__ / {a|b}'})
 
     @server.routes.post('/rs_mc/app/wildcards/resolve')
@@ -132,7 +151,9 @@ def register_routes():
             def run():
                 return expand(data.get('texts'), data.get('seed'), inventory())
             return web.json_response({'texts': await asyncio.to_thread(run)})
-        except (ValueError, OSError, UnicodeError) as error:
+        except (OSError, RuntimeError, UnicodeError):
+            return web.json_response({'error': '와일드카드 파일을 읽을 수 없습니다. 파일 및 인코딩을 확인해 주세요.'}, status=400)
+        except ValueError as error:
             return web.json_response({'error': str(error)}, status=400)
 
 

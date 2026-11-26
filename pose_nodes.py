@@ -9,6 +9,7 @@ from PIL import Image, ImageDraw
 import torch
 
 from .character_builder import BUILD_PIPE_TYPE, BuildPipe, update_slot
+from .image_paths import resolve_image_path
 from .pose_parts import compile_semantic_parts
 from .region_mask import prepare_mask
 from .pose_image import decode_pose_image
@@ -27,13 +28,10 @@ def pose_files():
 
 
 def read_pose_image(filename):
-    import folder_paths
-    root=Path(folder_paths.get_input_directory()).resolve()
-    if not isinstance(filename,str) or not filename or Path(filename).is_absolute():
-        raise ValueError('Select an uploaded pose PNG. / 업로드한 뼈대 PNG를 선택해 주세요.')
-    path=(root/filename).resolve()
-    if not path.is_relative_to(root) or not path.is_file():
-        raise ValueError('Pose PNG is missing. Upload it again. / 뼈대 PNG를 찾지 못했습니다. 다시 업로드해 주세요.')
+    try:
+        path = resolve_image_path(filename, annotated=False)
+    except ValueError:
+        raise ValueError('Pose PNG is missing. Upload it again. / 뼈대 PNG를 찾지 못했습니다. 다시 업로드해 주세요.') from None
     try:
         with Image.open(path) as image:
             if max(image.size)>2048 or min(image.size)<64:
