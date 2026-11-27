@@ -4,6 +4,8 @@ import json
 import math
 from pathlib import Path
 
+from .model_download import ensure_model_file
+
 
 ATELIER_LORA = "anima/RS-CAMERA-CONTROL-v3.safetensors"
 ATELIER_LORA_URL = (
@@ -31,50 +33,8 @@ def ensure_atelier_lora():
 
 
 def ensure_camera_asset(name, url, size, sha256):
-    import folder_paths
-
-    if folder_paths.get_full_path("loras", name):
-        return name
-
-    import hashlib
-    import logging
-    from tempfile import NamedTemporaryFile
-    from urllib.request import urlopen
-
-    from .runtime_control import check_interrupted
-
-    target = Path(folder_paths.get_folder_paths("loras")[0]) / name
-    temporary = None
-    try:
-        check_interrupted()
-        target.parent.mkdir(parents=True, exist_ok=True)
-        logging.info("RS Camera Control: downloading %s", target.name)
-        digest, received = hashlib.sha256(), 0
-        with NamedTemporaryFile(dir=target.parent, prefix=".atelier-", suffix=".part", delete=False) as output:
-            temporary = Path(output.name)
-            with urlopen(url, timeout=30) as response:
-                while chunk := response.read(256 * 1024):
-                    check_interrupted()
-                    received += len(chunk)
-                    if received > size:
-                        raise ValueError("Unexpected file size")
-                    digest.update(chunk)
-                    output.write(chunk)
-        check_interrupted()
-        if received != size or digest.hexdigest() != sha256:
-            raise ValueError("Download failed SHA-256 verification")
-        if not folder_paths.get_full_path("loras", name):
-            temporary.replace(target)
-            folder_paths.filename_list_cache.pop("loras", None)
-        return name
-    except (OSError, ValueError) as error:
-        raise RuntimeError(
-            f"Could not install {target.name} from Hugging Face ({error}). "
-            f"Check the connection and retry, or place the file in models/loras/{name}."
-        ) from error
-    finally:
-        if temporary is not None:
-            temporary.unlink(missing_ok=True)
+    ensure_model_file("loras", name, url, size, sha256)
+    return name
 
 
 def direction(azimuth, elevation):

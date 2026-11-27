@@ -337,6 +337,7 @@ def graph_assets(prompt, unique_id):
     known = {"UNETLoader": ("unet_name", "weight_dtype"), "CheckpointLoaderSimple": ("ckpt_name",),
              "CLIPLoader": ("clip_name", "type", "device"), "VAELoader": ("vae_name",),
              "RSAnimaCameraMultiLoRA": ("strength_model",),
+             "RSAnimaKoreanTextLoader": ("pack", "lora_strength"),
              "RSUnifiedCameraControl": ("camera_mode", "enabled"),
              "LoraLoaderModelOnly": ("lora_name", "strength_model"),
              "LoraLoader": ("lora_name", "strength_model", "strength_clip")}

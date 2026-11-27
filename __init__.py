@@ -16,8 +16,10 @@ from .image_reference import RSMultiCharacterReference
 from .camera_control import RSCameraControl, RSAtelierSphereCameraControl, RSAnimaCameraMultiLoRA, RSUnifiedCameraControl
 from .progressive import RSMultiCharacterProgressiveSampler
 from .anima_ref_frame import RSAnimaReferenceAdapter, RSAnimaCharacterReference
+from .anima_korean_text import RSAnimaKoreanTextLoader
 
 NODE_CLASS_MAPPINGS = {
+    "RSAnimaKoreanTextLoader": RSAnimaKoreanTextLoader,
     "RSImageToPose3D": RSImageToPose3D,
     "RS3DPoseAdapter": RS3DPoseAdapter,
     "RSMultiCharacterPose3D": RSMultiCharacterPose3D,
@@ -45,6 +47,7 @@ NODE_CLASS_MAPPINGS = {
     "RSMultiCharacterTaggerLoader": RSMultiCharacterTaggerLoader,
 }
 NODE_DISPLAY_NAME_MAPPINGS = {
+    "RSAnimaKoreanTextLoader": "RS Anima Korean Text Loader",
     "RSImageToPose3D": "RS Image to 3D Pose (Experimental)",
     "RS3DPoseAdapter": "RS 3D Pose Adapter (Krea2 / MOSS · Experimental)",
     "RSMultiCharacterPose3D": "RS 3D Pose Masks (Experimental)",

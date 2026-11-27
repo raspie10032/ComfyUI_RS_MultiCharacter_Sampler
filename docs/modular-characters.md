@@ -30,6 +30,8 @@ STRING N ─┘      1~N번             1~N번            1~N번
 
 최대 10개 캐릭터·글자 영역이며 처리 수가 늘수록 품질을 보장하지 않습니다. 기존 파이프·샘플러·디테일러와 이미지 설정 저장·복원을 사용합니다. 이미지 로더는 완성된 설정을 복원하며 편집 노드 연결 순서까지 복원하지는 않습니다. 워크플로를 이미지에 넣으려면 일반 Save Image를 사용하세요. 기존 긴 노드는 저장된 워크플로 호환용으로 유지됩니다.
 
+**한글 BBox**를 쓰려면 Anima 2B의 `MODEL`과 `CLIP`을 **RS MultiCharacter Sampler**에 직접 연결하고, 샘플러의 `korean_text_pack`에서 베타 팩을 선택합니다. 한글 문구를 넣을 행을 `text`와 `box`로 지정하고, 안 쓰는 행의 사용을 끕니다. 한글이 들어 있는 활성 글자 상자에서만 팩을 적용합니다. 한글과 영문이 따로 배치되는 디자인은 두 상자에 각각 넣으면 영문 상자에서 기본 Anima를 사용합니다. 활성 한글 상자를 처음 실행할 때 `ComfyUI/models/rs_anima_korean_text/`에 약 114 MB를 다운로드합니다. 일반 KSampler에서 한글을 쓸 때는 **RS Anima Korean Text Loader**의 `MODEL`을 KSampler에, `CLIP`을 프롬프트 인코더에 연결합니다. [모델 카드와 예제 워크플로](https://huggingface.co/raspie/RS-Anima-Korean-Text)
+
 ## English
 
 Split the large node into **all prompts, all LoRAs, all positions, and Finalize**. Each role displays rows **1–N simultaneously**; there is no selected-character editor. Positive text arrives through external **STRING sockets**. There is no character UC or multiline prompt widget. Use Text (Multiline) nodes and set the common negative in Sampler.
@@ -39,6 +41,8 @@ Connect the three role nodes in **any order**, then Finalize. Matching row numbe
 Position previews settings received up to that node; Finalize shows the complete line. Coincident points spread left to right. The guide does not guarantee composition or people count. Linked dynamic settings are not guessed. Each slot has one shared STRING: character uses it as a positive prompt; text uses it as the exact words to draw, with a default lettering description. Switching kind keeps the same connection. Text needs a box Position and no character LoRA. On loading an old two-input workflow, the literal-text connection moves to the shared input; the separate style connection is no longer used. Up to ten character/text slots; quality is not guaranteed as count increases.
 
 The output uses the existing character pipe and metadata format. Image settings restore through the image loader; autosave does not embed the editing workflow. Use Save Image for that. The previous all-in-one node stays available for old workflows.
+
+For **Korean BBox lettering**, connect Anima 2B's `MODEL` and `CLIP` directly to **RS MultiCharacter Sampler** and select the beta under `korean_text_pack`. Set the lettering row to `text` with a `box` position. Disable unused rows. The pack applies to active lettering boxes containing Hangul. Put English in a separate box to use base Anima there. The first run with an active Korean box downloads about 114 MB to `ComfyUI/models/rs_anima_korean_text/`. For a standard KSampler workflow, connect the **RS Anima Korean Text Loader**'s `MODEL` to KSampler and its `CLIP` to the prompt encoders. [Model card and example workflow](https://huggingface.co/raspie/RS-Anima-Korean-Text)
 
 ## 日本語
 

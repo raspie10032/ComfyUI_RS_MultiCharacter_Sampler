@@ -2,7 +2,9 @@
 """Per-execution LoRA hooks, with the existing regional attention in every pass."""
 import torch
 import logging
-from .characters import LORA_MODES, validate_lora_mode
+from .characters import LORA_MODES, TextRegion, validate_lora_mode
+
+_KOREAN_TEXT = object()
 
 
 def lora_records(pipe):
@@ -94,6 +96,20 @@ class RegionalLoras:
                 "model_backend": "bypass" if bypass is not None and hook_group is not None else "weight_hooks" if hook_group is not None else "none",
                 "backend_reason": reason})
 
+    def add_text_regions(self, model, pack, korean):
+        from .anima_korean_text import KOREAN_BYPASS
+        from .lora_bypass import _prepare_factor_bypass
+
+        plan, reason = _prepare_factor_bypass(model, korean.image_weights)
+        if plan is None:
+            raise ValueError(f"Korean BBox mode cannot apply the pack's denoiser: {reason}.")
+        self.bypasses[_KOREAN_TEXT] = plan, reason
+        hook = plan.hook_group(korean.strength, key=KOREAN_BYPASS)
+        for index in sorted(korean.slots):
+            self.hooks[index] = hook
+            self.audit.append({"text_slot": index + 1, "name": pack, "strength_model": korean.strength,
+                               "model_keys": len(korean.image_weights), "model_backend": "bypass"})
+
     def install(self, model):
         """Release factor copies at the outer sampling boundary, also on errors."""
         from comfy.patcher_extension import WrappersMP
@@ -116,6 +132,10 @@ class RegionalLoras:
         self.execution = {"requested": mode, "effective": "none", "fallback_reason": None}
         if not any(self.hooks):
             return positive, negative
+        if mode == "normal" and any(isinstance(region, TextRegion) and hook is not None
+                                    for region, hook in zip(regions, self.hooks)):
+            self.execution["fallback_reason"] = "Korean text boxes use independent model predictions."
+            mode = "precision"
         if mode == "normal":
             from .shared_lora import SharedRegionalLora, SharedLoraUnsupported
             try:

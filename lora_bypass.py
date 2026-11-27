@@ -6,6 +6,7 @@ changes: ComfyUI's native bypass evaluates W(x) + up(down(x)), without expanding
 the factors into a checkpoint-sized patch or backing up the base weights.
 """
 import copy
+from contextlib import contextmanager
 from functools import partial
 
 import torch
@@ -44,7 +45,7 @@ def prepare_bypass(model, weights):
     return prepare_weight_delta(model, weights)
 
 
-def _prepare_factor_bypass(model, weights):
+def _prepare_factor_bypass(model, weights, *, allow_text_adapter=False):
     """Return (plan, reason). Unsupported formats stay on native weight hooks.
 
     Validate the entire file before using it: applying only some of its patches via
@@ -92,7 +93,7 @@ def _prepare_factor_bypass(model, weights):
             return None, "patch_type"
         if not key.startswith("diffusion_model."):
             return None, "non_diffusion_layer"
-        if "llm_adapter" in key:
+        if "llm_adapter" in key and not allow_text_adapter:
             return None, "text_adapter"
         values = adapter.weights
         if len(values) != 6 or any(v is not None for v in values[3:]):
@@ -167,13 +168,13 @@ class BypassLora:
         return sum(v.numel() * v.element_size() for _, _, weights in self.layers
                    for v in weights if isinstance(v, torch.Tensor))
 
-    def hook_group(self, strength):
+    def hook_group(self, strength, *, key="rs_mc_lora_bypass"):
         from comfy.hooks import EnumHookScope, HookGroup
         from comfy.patcher_extension import WrappersMP
 
         group = HookGroup()
         group.add(self.options_type({"wrappers": {WrappersMP.DIFFUSION_MODEL: {
-            "rs_mc_lora_bypass": [partial(self.forward, strength=strength)]}}},
+            key: [partial(self.forward, strength=strength)]}}},
             hook_scope=EnumHookScope.HookedOnly))
         return group
 
@@ -184,7 +185,12 @@ class BypassLora:
         # when conditioning carries hooks. The delegate owns NEW modules. Patch
         # the diffusion model actually being called, never preparation-time
         # module references (which would silently leave inference unchanged).
-        runtime_model = executor.class_obj
+        with self.installed(executor.class_obj, strength):
+            self.forward_calls += 1
+            return executor(*args, **kwargs)
+
+    @contextmanager
+    def installed(self, runtime_model, strength):
         modules = []
         for path, (_, adapter, _) in zip(self.layer_paths, self.layers):
             module = runtime_model.get_submodule(path)
@@ -201,8 +207,7 @@ class BypassLora:
                 present = {key for key in state if key in module.__dict__}
                 installed.append((hook, module, state, present))
                 hook.inject()
-            self.forward_calls += 1
-            return executor(*args, **kwargs)
+            yield
         finally:
             # This also runs on partial injection failure and cancellation.
             for hook, module, state, present in reversed(installed):

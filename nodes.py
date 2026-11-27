@@ -9,6 +9,7 @@ from PIL import Image, ImageOps
 import torch
 
 from .characters import CharacterPipe, PIPE_TYPE, TextRegion
+from .anima_korean_text import KoreanTextRegions, has_hangul, pack_names
 from .image_paths import resolve_image_path
 from .layout import effective_centers, character_masks, moss_layout_prompt
 from .metadata import (FORMATS, build_record, graph_assets, pipe_from_record,
@@ -104,6 +105,8 @@ class RSMultiCharacterSampler:
                 "tooltip": "Auto chooses MOSS native with an active 3D pose adapter, otherwise regional. Explicit saved choices are preserved. Regional routes attention for all supported models. MOSS native sends one official layout JSON prompt, requires MOSS and box or mask regions (masks become enclosing rectangles), and ignores regional strength/boundary/feather settings. Experimental: exact object bounds are not guaranteed."}),
             "flux_guidance": ("FLOAT", {"default": 3.5, "min": 0., "max": 20., "step": .1,
                 "tooltip": "Embedded guidance for FLUX.1 Dev / FLUX.2 Dev; separate from CFG. Schnell, Klein and FLUX 3 ignore this value. FLUX 3 Base uses ordinary CFG."}),
+            "korean_text_pack": (["Off", *pack_names()], {"default": "Off",
+                "tooltip": "Anima only. Applies the Korean pack to active text boxes whose literal text contains Hangul. The beta pack downloads on first use."}),
         }, "hidden": {"workflow_prompt": "PROMPT", "unique_id": "UNIQUE_ID"}}
 
     RETURN_TYPES = ("IMAGE", "LATENT", PIPE_TYPE, "STRING")
@@ -119,7 +122,7 @@ class RSMultiCharacterSampler:
                  use_image_settings=False, region_feather=.04, initial_common_prior=.05,
                  common_after_step3_boost=.1, initial_character_gain=1.7, initial_spatial_separation=.9,
                  boundary_hold_steps=3, boundary_decrement=.2, workflow_prompt=None, unique_id=None,
-                 layout_method="auto", flux_guidance=3.5):
+                 layout_method="auto", flux_guidance=3.5, korean_text_pack="Off"):
         import comfy.model_management
         import comfy.sample
         import comfy.utils
@@ -165,6 +168,7 @@ class RSMultiCharacterSampler:
             settings = {k: stored[k] for k in (*DEFAULTS, "seed")}
             layout_method = stored.get("layout_method", "regional")
             flux_guidance = stored.get("flux_guidance", 3.5)
+            korean_text_pack = stored.get("korean_text_pack", korean_text_pack)
         lora_application_mode = character_pipe.lora_application_mode
         settings["lora_application_mode"] = lora_application_mode
         requested_layout = layout_method
@@ -275,7 +279,20 @@ class RSMultiCharacterSampler:
         if role_refs and lora_application_mode != 'normal' and any(active_lora(c) for c in pipe.characters):
             raise ValueError('Role K/V with character LoRAs currently requires Normal application mode. / '
                              'Role K/V와 캐릭터 LoRA를 함께 쓸 때는 LoRA 노드에서 일반 적용을 선택해 주세요.')
-        loras = RegionalLoras(model, clip, pipe.characters) if any(active_lora(c) for c in pipe.characters) else None
+        korean = None
+        if family == "Anima":
+            settings["korean_text_pack"] = korean_text_pack
+        if korean_text_pack != "Off" and family == "Anima":
+            slots = [i for i, region in enumerate(pipe.regions)
+                     if isinstance(region, TextRegion) and has_hangul(region.text)]
+            if slots:
+                if role_refs or snap_refs:
+                    raise ValueError("Korean text boxes use precision LoRA. Choose Reference Frame instead of Role K/V or SnapRef.")
+                korean = KoreanTextRegions(model, clip, korean_text_pack, 1., slots)
+        loras = (RegionalLoras(model, clip, pipe.regions)
+                 if korean or any(active_lora(c) for c in pipe.characters) else None)
+        if korean:
+            loras.add_text_regions(model, korean_text_pack, korean)
         if native_prompt is not None and loras is not None and any(c is not clip for c in loras.clips):
             raise ValueError("MOSS native layout uses one text encoding. Use regional layout for per-character CLIP LoRA, or set each CLIP strength to zero.")
 
@@ -331,9 +348,16 @@ class RSMultiCharacterSampler:
         positive = encode(native_prompt if native_prompt is not None else prompt)
         negative = regional_negatives(encode, negative_prompt, pipe.regions, masks, loras.clips if loras else None)
         positive, negative = pose_conditioning(positive, negative, pose_runtime)
-        conditions = [encode(text_region_caption(c, convert, family not in ("Krea2", "MOSS", "FLUX1", "FLUX2", "FLUX3")), converted=True)[0]
-                      if isinstance(c, TextRegion) else encode(c.prompt, encoder=loras.clips[i] if loras else clip, reference_slot=i)[0]
-                      for i, c in enumerate(pipe.regions)] if native_prompt is None else []
+        conditions, korean_conditions = [], {}
+        if native_prompt is None:
+            for index, region in enumerate(pipe.regions):
+                if isinstance(region, TextRegion):
+                    caption = text_region_caption(region, convert, family not in ("Krea2", "MOSS", "FLUX1", "FLUX2", "FLUX3"))
+                    conditions.append(encode(caption, converted=True)[0])
+                    if korean and index in korean.slots:
+                        korean_conditions[index] = encode(caption, converted=True, encoder=korean.clip)[0]
+                else:
+                    conditions.append(encode(region.prompt, encoder=loras.clips[index] if loras else clip, reference_slot=index)[0])
         if family == "MOSS" and native_prompt is None:
             from .moss_camera import MOSS_CAMERA_WRAPPER, prepend_moss_camera
 
@@ -355,6 +379,8 @@ class RSMultiCharacterSampler:
         if pose_control:
             from .anima_pose_control import patch_metadata
             audit["anima_lllite"] = patch_metadata(model)
+        if korean:
+            audit["korean_text"] = {"pack": korean_text_pack, "slots": [i + 1 for i in sorted(korean.slots)]}
         from .interaction import interaction_settings
         interaction = interaction_settings(pipe.interaction_json)
         if interaction is not None:
@@ -384,6 +410,9 @@ class RSMultiCharacterSampler:
             settings['body_part_strength'] = pose['strength']
         work = model.clone()
         if frame_plan is not None:
+            if korean and work.is_dynamic():
+                # Bind the reference conditioning patch to the precision sampler's model.
+                work = work.get_non_dynamic_delegate()
             work.model_options.setdefault('transformer_options', {})['rs_anima_ref_ready'] = True
             from .anima_ref_frame import prepare_reference_latents
             reference_latent, stage_refs, preparation = prepare_reference_latents(
@@ -426,6 +455,8 @@ class RSMultiCharacterSampler:
                 boundary_hold_steps=min(settings["boundary_hold_steps"], settings["steps"]), boundary_decrement=settings["boundary_decrement"],
                 common_after_step3_boost=settings["common_after_step3_boost"], boxes=boxes)
             routing.pose = pose
+            routing.korean_text = korean
+            routing.korean_conditions = korean_conditions
             if role_refs:
                 if interaction is not None and interaction['preset'] != 'baseline':
                     raise ValueError('Role K/V uses balanced routing. Select the baseline interaction preset. / '
@@ -520,6 +551,8 @@ class RSMultiCharacterSampler:
             ui['text'].append('3D pose: ' + (f"{family} adapter / 자세 어댑터 적용" if pipe_pose_status['applied']
                 else 'masks only / 영역 마스크만 사용: ' + pipe_pose_status['reason']))
         ui["text"].append(f"Layout: {requested_layout} → {layout_method}")
+        if korean:
+            ui["text"].append("Korean text box slots: " + ", ".join(str(i) for i in audit["korean_text"]["slots"]))
         if native_prompt is not None:
             ui["text"].append("MOSS native: masks become enclosing boxes; color/depth pose control remains active when connected. / "
                               "MOSS 네이티브: 마스크는 외곽 사각형으로 바뀌며, 연결된 색상·깊이 포즈 제어는 유지됩니다.")

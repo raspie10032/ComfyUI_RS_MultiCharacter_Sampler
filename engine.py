@@ -8,7 +8,9 @@ Forward replacements are restored in finally blocks. See docs/architecture.md.
 import torch
 from comfy.sampler_helpers import convert_cond
 from comfy.samplers import process_conds
+from comfy.patcher_extension import WrappersMP, get_wrappers_with_key
 
+from .anima_korean_text import KOREAN_BYPASS
 from .interaction import protected_self_bias, exclusive_schedule
 from .resolution_control import separation_for_grid
 from .routing import (installed_ops, route_cross, route_self, token_groups,
@@ -47,6 +49,9 @@ class AnimaRouting:
         self.spatial_bias_separation = None
         self.role_kv_runtime = None
         self.snapref_runtime = None
+        self.korean_text = None
+        self.korean_conditions = {}
+        self.korean_contexts = None
 
     def sample(self, executor, *args, **kwargs):
         guider, sigmas, extra, _, noise, latent, denoise_mask, *_ = args
@@ -63,21 +68,22 @@ class AnimaRouting:
         self.spatial_bias = None
         self.spatial_bias_separation = None
         self.contexts = self.groups = self.part_cells = None
+        self.korean_contexts = None
         self.audit.update(cross_calls=0, self_calls=0, forwards=[], restored_forwards=0)
 
-        def process():
-            converted = [convert_cond([c])[0] for c in self.conditions]
+        def process(conditions):
+            converted = [convert_cond([c])[0] for c in conditions]
             cooked = process_conds(guider.inner_model, noise, {"positive": converted},
                 noise.device, latent, denoise_mask, extra["seed"], latent_shapes=[latent.shape])
             contexts = [c["model_conds"]["c_crossattn"].cond for c in cooked["positive"]]
-            self.audit["character_text_tokens"] = [len(c[1]["t5xxl_ids"]) for c in self.conditions]
             if self.mode == "cross_compact":
                 # Native adapter pads EACH isolated prompt to 512. Do not add
                 # an extra zero-key bank for each character in one softmax.
-                contexts = [c[:, :n] for c, n in zip(contexts, self.audit["character_text_tokens"])]
+                contexts = [c[:, :len(source[1]["t5xxl_ids"])] for c, source in zip(contexts, conditions)]
             return contexts
 
         self.process = process
+        self.audit["character_text_tokens"] = [len(c[1]["t5xxl_ids"]) for c in self.conditions]
         try:
             reference_runtime = self.role_kv_runtime or self.snapref_runtime
             if reference_runtime is not None:
@@ -86,6 +92,7 @@ class AnimaRouting:
             return executor(*args, **kwargs)
         finally:
             self.contexts = self.groups = self.process = self.part_cells = None
+            self.korean_contexts = None
             self.spatial_bias = self.sigmas = None
             self.spatial_bias_separation = None
 
@@ -101,7 +108,18 @@ class AnimaRouting:
         if self.contexts is None:
             if self.process is None:
                 raise RuntimeError("Spatial adapter was not initialized by the sampler")
-            self.contexts = self.process()
+            self.contexts = self.process(self.conditions)
+        contexts = self.contexts
+        korean_pass = self.korean_text is not None and bool(
+            get_wrappers_with_key(WrappersMP.DIFFUSION_MODEL, KOREAN_BYPASS, options))
+        if korean_pass:
+            if self.korean_contexts is None:
+                with self.korean_text.text_context(model):
+                    prepared = self.process(list(self.korean_conditions.values()))
+                self.korean_contexts = contexts.copy()
+                for slot, context_for_slot in zip(self.korean_conditions, prepared, strict=True):
+                    self.korean_contexts[slot] = context_for_slot
+            contexts = self.korean_contexts
         if self.role_kv_runtime is not None:
             self.role_kv_runtime.prepare_grid(model, x)
         snapref = self.snapref_runtime
@@ -131,14 +149,16 @@ class AnimaRouting:
                        for owners, ids in cells] if cells is not None else None)
             self.audit.update(token_grid=[h, w], spatial_slots=len(self.groups),
                               tokens_per_slot=[len(g) for g in self.groups])
-        lengths = [context.shape[1]] + [c.shape[1] for c in self.contexts]
+        lengths = [context.shape[1]] + [c.shape[1] for c in contexts]
         pieces = [context]
-        for c in self.contexts:
+        for c in contexts:
             c = c.to(context)
             pieces.append(torch.cat([c if kind == 0 else torch.zeros_like(c) for kind in kinds], 0))
         joined = torch.cat(pieces, 1)
         record = {"sigma": float(options["sigmas"][0]), "kinds": list(kinds),
                   "text_lengths": lengths, "cross_blocks": [], "self_blocks": []}
+        if self.korean_text is not None:
+            record["korean_text_pack"] = korean_pass
         weights = None
         gain = 1.
         weighted = self.mode in WEIGHTED
