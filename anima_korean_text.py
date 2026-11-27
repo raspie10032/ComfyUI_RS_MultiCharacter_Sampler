@@ -26,7 +26,14 @@ def has_hangul(text):
 
 
 def pack_names():
-    return list(dict.fromkeys((BETA_PACK, *_pack_paths().get_filename_list(PACKS))))
+    try:
+        paths = _pack_paths()
+    except ModuleNotFoundError as error:
+        if error.name != "folder_paths":
+            raise
+        # The sampler's schema can also be inspected outside a ComfyUI host.
+        return [BETA_PACK]
+    return list(dict.fromkeys((BETA_PACK, *paths.get_filename_list(PACKS))))
 
 
 def _pack_paths():

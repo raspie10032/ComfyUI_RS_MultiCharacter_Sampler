@@ -4,11 +4,12 @@ Regional prompting for ComfyUI. Give each character a prompt, an optional LoRA, 
 
 [한국어](README.ko.md) · [日本語](README.ja.md) · [Documentation](docs/README.md) · [Changelog](CHANGELOG.md) · [Releases](https://github.com/raspie10032/ComfyUI_RS_MultiCharacter_Sampler/releases) · [简体中文](README.zh-CN.md) · [繁體中文](README.zh-TW.md)
 
-**Current release: [1.1.16 Hangeul](docs/release-1.1.16.md).** Runs with local models; no RS NovelAI extension or API key is required.
+**Current release [1.1.17 Hangeul](docs/release-1.1.17.md)** adds experimental Korean lettering for Anima 2B. The sampler runs with local models.
 
 ## Download a workflow
 
 - **Two-character starter.** Set a common scene and two character prompts, then adjust their positions. [Anima workflow JSON](examples/modular/two-characters-anima.json) · [Setup](#start-with-a-workflow)
+- **Korean lettering with Anima 2B.** Place Korean and English in separate text boxes. The sampler uses the beta Korean pack in the active Korean boxes and downloads it on the first run. [BBox workflow JSON](https://huggingface.co/raspie/RS-Anima-Korean-Text/resolve/main/RS-Anima-Korean-Text-BBox.json) · [Setup](docs/release-1.1.17.md)
 - **Five-character all-in-one.** Set five numbered prompts with RS TIPO Native, add character LoRAs if needed, and edit the 3D scene. Generation uses one RS Progressive Resolution Sampler. The Anima 2B example uses LLLite to guide a five-person huddle viewed from below. [ZIP with English illustrated guide, workflow JSON and PNG](https://github.com/raspie10032/ComfyUI_RS_MultiCharacter_Sampler/releases/download/v1.1.16/RS-All-in-One-Anima-5-EN.zip) · [Korean-labeled workflow JSON](https://github.com/raspie10032/ComfyUI_RS_MultiCharacter_Sampler/releases/download/v1.1.16/RS-All-in-One-Anima-5.json)
 
 For the five-character workflow, use a ComfyUI build with native Anima LLLite support, RS MultiCharacter Sampler 1.1.16, RS TIPO Native 0.2.15 and Impact Pack for the wildcard inputs. Extract the ZIP and open `guide.html` for the model setup and feature-by-feature screenshots. [RS TIPO Native](https://github.com/raspie10032/ComfyUI_RS_TIPO_Native/releases/tag/v0.2.15) · [ComfyUI-Impact-Pack](https://github.com/ltdrdata/ComfyUI-Impact-Pack)

@@ -4,11 +4,12 @@ ComfyUI에서 캐릭터별 프롬프트·LoRA·영역을 지정해 샘플러 하
 
 [English](README.md) · [日本語](README.ja.md) · [문서 모음](docs/README.md) · [변경 기록](CHANGELOG.md) · [릴리스](https://github.com/raspie10032/ComfyUI_RS_MultiCharacter_Sampler/releases) · [简体中文](README.zh-CN.md) · [繁體中文](README.zh-TW.md)
 
-**현재 버전: [1.1.16 한글](docs/release-1.1.16.md).** 로컬 모델로 실행하며 RS NovelAI 확장이나 API 키가 필요하지 않습니다.
+**현재 버전 [1.1.17 한글](docs/release-1.1.17.md)**부터 Anima 2B에서 실험용 한글 글자 생성을 지원합니다. 샘플러는 로컬 모델로 실행합니다.
 
 ## 워크플로 다운로드
 
 - **2인 기본 예제.** 공통 장면과 캐릭터 둘의 프롬프트를 입력하고 위치를 조절합니다. [Anima 워크플로 JSON](examples/modular/two-characters-anima.json) · [설정 방법](#예제로-시작하기)
+- **Anima 2B 한글 글자.** 한글과 영문을 별도 텍스트 상자에 넣습니다. 켜진 한글 상자에는 베타 팩을 쓰며, 첫 실행에서 팩을 내려받습니다. [BBox 워크플로 JSON](https://huggingface.co/raspie/RS-Anima-Korean-Text/resolve/main/RS-Anima-Korean-Text-BBox.json) · [설정 방법](docs/release-1.1.17.md#한국어)
 - **5인 올인원.** RS TIPO Native로 프롬프트를 구성하고, 선택한 캐릭터별 LoRA와 3D 포즈를 RS 점진적 해상도 샘플러 하나에 전달합니다. 기본 예제는 Anima 2B와 LLLite로 다섯 명이 원을 이루고 바닥 카메라를 내려다보는 장면입니다. [한국어 워크플로 JSON](https://github.com/raspie10032/ComfyUI_RS_MultiCharacter_Sampler/releases/download/v1.1.16/RS-All-in-One-Anima-5.json) · [영문 그림 가이드·워크플로 JSON·PNG ZIP](https://github.com/raspie10032/ComfyUI_RS_MultiCharacter_Sampler/releases/download/v1.1.16/RS-All-in-One-Anima-5-EN.zip)
 
 5인 예제에는 Anima LLLite를 지원하는 ComfyUI, RS MultiCharacter Sampler 1.1.16, RS TIPO Native 0.2.15와 와일드카드용 Impact Pack이 필요합니다. ZIP을 풀고 `guide.html`을 열면 모델 설정과 기능별 화면을 볼 수 있습니다. [RS TIPO Native](https://github.com/raspie10032/ComfyUI_RS_TIPO_Native/releases/tag/v0.2.15) · [ComfyUI-Impact-Pack](https://github.com/ltdrdata/ComfyUI-Impact-Pack)
